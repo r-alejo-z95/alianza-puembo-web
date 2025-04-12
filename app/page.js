@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
+import Navbar from "@/components/navbar";
 
 export default function Home() {
   return (
-    <div className="flex h-screen justify-center items-center">
-      <Button variant="secondary">Hola Iglesia</Button>
-    </div>
+    <main className="bg-puembo-green h-screen w-screen">
+      <Navbar />
+    </main>
   );
 }
