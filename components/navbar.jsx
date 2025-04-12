@@ -13,6 +13,49 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const menuItemsLeft = [
+  {
+    name: "Conócenos",
+    href: "/conocenos",
+    subroutes: [
+      { name: "Historia", href: "/conocenos/historia" },
+      { name: "Equipo", href: "/conocenos/equipo" },
+      { name: "¿En qué creemos?", href: "/conocenos/que-creemos" },
+    ],
+  },
+  {
+    name: "Eventos",
+    href: "/eventos",
+    subroutes: [
+      { name: "Calendario", href: "/eventos/calendario" },
+      { name: "Próximos eventos", href: "/eventos/proximos-eventos" },
+    ],
+  },
+  {
+    name: "Ministerios",
+    href: "/ministerios",
+    subroutes: [
+      { name: "Niños", href: "/ministerios/ninos" },
+      { name: "Jóvenes", href: "/ministerios/jovenes" },
+      { name: "Adultos", href: "/ministerios/adultos" },
+    ],
+  },
+  { name: "Noticias", href: "/noticias" },
+];
+const menuItemsRight = [
+  {
+    name: "Media",
+    href: "/media",
+    subroutes: [
+      { name: "Prédicas", href: "/media/predicas" },
+      { name: "Galería", href: "/media/galeria" },
+    ],
+  },
+  { name: "Donaciones", href: "/donaciones" },
+  { name: "Oración", href: "/oracion" },
+  { name: "Contáctanos", href: "/contactanos" },
+];
+
 const NavItem = ({ title, href, children, className }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -76,67 +119,23 @@ export default function Navbar() {
         <div className="min-w-screen px-4 py-2 flex items-center justify-evenly">
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            <NavItem title="About Us" href="/about">
-              <div className="py-2">
-                <Link
-                  href="/about/history"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                >
-                  Our History
-                </Link>
-                <Link
-                  href="/about/staff"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                >
-                  Staff
-                </Link>
-                <Link
-                  href="/about/beliefs"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                >
-                  What We Believe
-                </Link>
-              </div>
-            </NavItem>
-            <NavItem title="Events" href="/events">
-              <div className="py-2">
-                <Link
-                  href="/events/calendar"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                >
-                  Calendar
-                </Link>
-                <Link
-                  href="/events/upcoming"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                >
-                  Upcoming Events
-                </Link>
-              </div>
-            </NavItem>
-            <NavItem title="Ministries" href="/ministries">
-              <div className="py-2">
-                <Link
-                  href="/ministries/children"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                >
-                  Children
-                </Link>
-                <Link
-                  href="/ministries/youth"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                >
-                  Youth
-                </Link>
-                <Link
-                  href="/ministries/adults"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                >
-                  Adults
-                </Link>
-              </div>
-            </NavItem>
-            <NavItem title="News" href="/news" />
+            {menuItemsLeft.map((item, index) => (
+              <NavItem key={index} title={item.name} href={item.href}>
+                {item.subroutes && (
+                  <div className="py-2">
+                    {item.subroutes.map((subroute, subIndex) => (
+                      <Link
+                        key={subIndex}
+                        href={subroute.href}
+                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                      >
+                        {subroute.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </NavItem>
+            ))}
           </nav>
 
           {/* Logo */}
@@ -154,24 +153,23 @@ export default function Navbar() {
 
           {/* Right Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            <NavItem title="Media" href="/media">
-              <div className="py-2">
-                <Link
-                  href="/media/sermons"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                >
-                  Sermons
-                </Link>
-                <Link
-                  href="/media/photos"
-                  className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                >
-                  Photo Gallery
-                </Link>
-              </div>
-            </NavItem>
-            <NavItem title="Give" href="/give" />
-            <NavItem title="Contact" href="/contact" />
+            {menuItemsRight.map((item, index) => (
+              <NavItem key={index} title={item.name} href={item.href}>
+                {item.subroutes && (
+                  <div className="py-2">
+                    {item.subroutes.map((subroute, subIndex) => (
+                      <Link
+                        key={subIndex}
+                        href={subroute.href}
+                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
+                      >
+                        {subroute.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </NavItem>
+            ))}
           </nav>
         </div>
       </div>
