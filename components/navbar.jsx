@@ -13,6 +13,24 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const socialLinks = [
+  {
+    name: "Facebook",
+    href: "https://www.facebook.com/iglesiaalianzapuembo/",
+    icon: Facebook,
+  },
+  {
+    name: "Instagram",
+    href: "https://www.instagram.com/iglesiaalianza_puembo/",
+    icon: Instagram,
+  },
+  {
+    name: "YouTube",
+    href: "https://www.youtube.com/c/IglesiaAlianzaPuembo",
+    icon: Youtube,
+  },
+];
+
 const menuItemsLeft = [
   {
     name: "Conócenos",
@@ -94,6 +112,30 @@ const NavItem = ({ title, href, children, className }) => {
   );
 };
 
+const NavMenu = ({ menuItems }) => {
+  return (
+    <nav className="hidden lg:flex items-center space-x-8">
+      {menuItems.map((item, index) => (
+        <NavItem key={index} title={item.name} href={item.href}>
+          {item.subroutes && (
+            <div className="py-2">
+              {item.subroutes.map((subroute, subIndex) => (
+                <Link
+                  key={subIndex}
+                  href={subroute.href}
+                  className="block px-4 py-2 text-(--puembo-black) hover:bg-gray-100"
+                >
+                  {subroute.name}
+                </Link>
+              ))}
+            </div>
+          )}
+        </NavItem>
+      ))}
+    </nav>
+  );
+};
+
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -103,43 +145,27 @@ export default function Navbar() {
         {/* Social Icons */}
         <div className="flex justify-end p-2 pr-4">
           <div className="flex gap-2">
-            <Link href="#" aria-label="Facebook">
-              <Facebook className="h-5 w-5 text-white hover:text-muted transition-colors" />
-            </Link>
-            <Link href="#" aria-label="Instagram">
-              <Instagram className="h-5 w-5 text-white hover:text-muted transition-colors" />
-            </Link>
-            <Link href="#" aria-label="YouTube">
-              <Youtube className="h-5 w-5 text-white hover:text-muted transition-colors" />
-            </Link>
+            {socialLinks.map((social, index) => (
+              <a
+                key={index}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.name}
+              >
+                <social.icon className="h-5 w-5 text-white hover:text-(--puembo-black) transition-colors" />
+              </a>
+            ))}
           </div>
         </div>
 
         {/* Main Navigation */}
         <div className="min-w-screen px-4 py-2 flex items-center justify-evenly">
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            {menuItemsLeft.map((item, index) => (
-              <NavItem key={index} title={item.name} href={item.href}>
-                {item.subroutes && (
-                  <div className="py-2">
-                    {item.subroutes.map((subroute, subIndex) => (
-                      <Link
-                        key={subIndex}
-                        href={subroute.href}
-                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                      >
-                        {subroute.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </NavItem>
-            ))}
-          </nav>
+          {/* Left Menu */}
+          <NavMenu menuItems={menuItemsLeft} />
 
           {/* Logo */}
-          <div className="  ">
+          <div>
             <Link href="/">
               <Image
                 src="/logo-puembo-white.png"
@@ -151,26 +177,8 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Right Navigation */}
-          <nav className="hidden lg:flex items-center space-x-8">
-            {menuItemsRight.map((item, index) => (
-              <NavItem key={index} title={item.name} href={item.href}>
-                {item.subroutes && (
-                  <div className="py-2">
-                    {item.subroutes.map((subroute, subIndex) => (
-                      <Link
-                        key={subIndex}
-                        href={subroute.href}
-                        className="block px-4 py-2 text-gray-800 hover:bg-gray-100"
-                      >
-                        {subroute.name}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </NavItem>
-            ))}
-          </nav>
+          {/* Right Menu */}
+          <NavMenu menuItems={menuItemsRight} />
         </div>
       </div>
     </header>
