@@ -2,7 +2,12 @@ import Navbar from "@/components/navbar";
 
 export default function Home() {
   return (
-    <main className="bg-puembo-green h-screen w-screen">
+    <main
+      className="h-screen w-screen bg-cover bg-top bg-no-repeat"
+      style={{
+        backgroundImage: "url('/hero.jpg')",
+      }}
+    >
       <Navbar />
     </main>
   );

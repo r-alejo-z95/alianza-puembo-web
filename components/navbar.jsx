@@ -85,13 +85,13 @@ const NavItem = ({ title, href, children, className }) => {
         onMouseLeave={() => setIsOpen(false)}
       >
         <button
-          className="flex items-center uppercase font-medium text-white hover:text-muted cursor-pointer transition-colors"
+          className="flex items-center uppercase font-medium text-white hover:text-accent cursor-pointer transition-colors"
           onClick={() => setIsOpen(!isOpen)}
         >
           {title} <ChevronDown className="ml-1 h-4 w-4" />
         </button>
         {isOpen && (
-          <div className="absolute left-0 mt-2 w-48 bg-muted shadow-lg rounded-md overflow-hidden z-50">
+          <div className="absolute left-0 mt-2 w-48 bg-muted/80 shadow-lg rounded-md overflow-hidden z-50">
             {children}
           </div>
         )}
@@ -103,7 +103,7 @@ const NavItem = ({ title, href, children, className }) => {
     <Link
       href={href}
       className={cn(
-        "uppercase font-medium text-white hover:text-muted transition-colors",
+        "uppercase font-medium text-white hover:text-accent transition-colors",
         className
       )}
     >
@@ -112,9 +112,9 @@ const NavItem = ({ title, href, children, className }) => {
   );
 };
 
-const NavMenu = ({ menuItems }) => {
+const NavMenu = ({ menuItems, className }) => {
   return (
-    <nav className="hidden lg:flex items-center space-x-8">
+    <nav className={cn("items-center lg:gap-8", className)}>
       {menuItems.map((item, index) => (
         <NavItem key={index} title={item.name} href={item.href}>
           {item.subroutes && (
@@ -123,7 +123,7 @@ const NavMenu = ({ menuItems }) => {
                 <Link
                   key={subIndex}
                   href={subroute.href}
-                  className="block px-4 py-2 text-(--puembo-black) hover:bg-gray-100"
+                  className="block px-4 py-2 text-(--puembo-black) hover:bg-accent"
                 >
                   {subroute.name}
                 </Link>
@@ -137,13 +137,13 @@ const NavMenu = ({ menuItems }) => {
 };
 
 export default function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuState, setMobileMenuState] = useState(false);
 
   return (
-    <header className="absolute top-0 left-0 right-0 z-50">
-      <div className="bg-(--puembo-green) flex flex-col">
+    <header className="">
+      <div className="bg-gradient-to-b from-(--puembo-black)/100 to-transparent">
         {/* Social Icons */}
-        <div className="flex justify-end p-2 pr-4">
+        <div className="flex justify-end pt-2 pr-4">
           <div className="flex gap-2">
             {socialLinks.map((social, index) => (
               <a
@@ -153,33 +153,60 @@ export default function Navbar() {
                 rel="noopener noreferrer"
                 aria-label={social.name}
               >
-                <social.icon className="h-5 w-5 text-white hover:text-(--puembo-black) transition-colors" />
+                <social.icon className="h-5 w-5 text-white hover:text-accent transition-colors" />
               </a>
             ))}
           </div>
         </div>
 
         {/* Main Navigation */}
-        <div className="min-w-screen px-4 py-2 flex items-center justify-evenly">
+        <div className="min-w-screen px-4 pb-2 flex items-center lg:justify-evenly">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuState(!mobileMenuState)}
+            aria-label={mobileMenuState ? "Close Menu" : "Open Menu"}
+            className="relative z-20 block cursor-pointer p-2.5 lg:hidden"
+          >
+            {mobileMenuState ? (
+              <X className="size-6 text-white" />
+            ) : (
+              <Menu className="size-6 text-white" />
+            )}
+          </button>
+
           {/* Left Menu */}
-          <NavMenu menuItems={menuItemsLeft} />
+          <NavMenu menuItems={menuItemsLeft} className="hidden lg:flex" />
 
           {/* Logo */}
-          <div>
+          <div className="flex-shrink-0">
             <Link href="/">
               <Image
                 src="/logo-puembo-white.png"
                 alt="logo"
-                width={3991}
-                height={2592}
-                className="w-48"
+                width={120}
+                height={78}
+                className="sm:w-30 md:w-36"
               />
             </Link>
           </div>
 
           {/* Right Menu */}
-          <NavMenu menuItems={menuItemsRight} />
+          <NavMenu menuItems={menuItemsRight} className="hidden lg:flex" />
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuState && (
+          <div className="w-full h-screen bg-muted/60 flex flex-col pl-4 pt-8 items-start">
+            <NavMenu
+              menuItems={menuItemsLeft}
+              className="flex flex-col space-y-4"
+            />
+            <NavMenu
+              menuItems={menuItemsRight}
+              className="flex flex-col space-y-4 mt-4"
+            />
+          </div>
+        )}
       </div>
     </header>
   );
