@@ -60,6 +60,7 @@ const menuItemsLeft = [
   },
   { name: "Noticias", href: "/noticias" },
 ];
+
 const menuItemsRight = [
   {
     name: "Media",
@@ -140,8 +141,8 @@ export default function Navbar() {
   const [mobileMenuState, setMobileMenuState] = useState(false);
 
   return (
-    <header className="">
-      <div className="bg-gradient-to-b from-(--puembo-black)/100 to-transparent">
+    <header>
+      <div className="flex flex-col bg-gradient-to-b from-(--puembo-black)/100 to-transparent">
         {/* Social Icons */}
         <div className="flex justify-end pt-2 pr-4">
           <div className="flex gap-2">
@@ -160,12 +161,12 @@ export default function Navbar() {
         </div>
 
         {/* Main Navigation */}
-        <div className="min-w-screen px-4 pb-2 flex items-center lg:justify-evenly">
+        <div className="w-full px-4 pb-2 flex items-center justify-between lg:justify-evenly relative">
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuState(!mobileMenuState)}
             aria-label={mobileMenuState ? "Close Menu" : "Open Menu"}
-            className="relative z-20 block cursor-pointer p-2.5 lg:hidden"
+            className="z-20 block cursor-pointer p-2.5 lg:hidden"
           >
             {mobileMenuState ? (
               <X className="size-6 text-white" />
@@ -178,17 +179,20 @@ export default function Navbar() {
           <NavMenu menuItems={menuItemsLeft} className="hidden lg:flex" />
 
           {/* Logo */}
-          <div className="flex-shrink-0">
+          <div className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0 flex-shrink-0">
             <Link href="/">
               <Image
                 src="/logo-puembo-white.png"
                 alt="logo"
                 width={120}
                 height={78}
-                className="sm:w-30 md:w-36"
+                className="w-26 md:w-30"
               />
             </Link>
           </div>
+
+          {/* Placeholder to balance layout on small screens */}
+          <div className="w-10 lg:hidden" />
 
           {/* Right Menu */}
           <NavMenu menuItems={menuItemsRight} className="hidden lg:flex" />
@@ -196,7 +200,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuState && (
-          <div className="w-full h-screen bg-muted/60 flex flex-col pl-4 pt-8 items-start">
+          <div className="w-full h-screen bg-muted/60 flex flex-col mt-4 pl-4 pt-8 items-start lg:hidden">
             <NavMenu
               menuItems={menuItemsLeft}
               className="flex flex-col space-y-4"
