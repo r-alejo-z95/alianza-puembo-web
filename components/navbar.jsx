@@ -86,9 +86,9 @@ const NavItem = ({ title, href, children, className }) => {
       >
         <button
           className={cn(
-            "flex items-center uppercase font-medium text-(--puembo-black) lg:text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer",
+            "flex items-center uppercase font-medium text-(--puembo-black) lg:text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer shadow-xs shadow-gray-400",
             "hover:bg-accent/50", // fondo al hacer hover
-            "lg:hover:bg-transparent", // estilo en desktop
+            "lg:hover:bg-transparent lg:shadow-transparent", // estilo en desktop
             "text-lg lg:text-base" // más grande solo en móvil
           )}
           onClick={() => setIsOpen(!isOpen)}
@@ -109,9 +109,9 @@ const NavItem = ({ title, href, children, className }) => {
     <Link
       href={href}
       className={cn(
-        "flex items-center uppercase font-medium text-(--puembo-black) lg:text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer",
+        "flex items-center uppercase font-medium text-(--puembo-black) lg:text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer shadow-xs shadow-gray-400",
         "hover:bg-accent/50", // fondo al hacer hover
-        "lg:hover:bg-transparent", // estilo en desktop
+        "lg:hover:bg-transparent lg:shadow-transparent", // estilo en desktop
         "text-lg lg:text-base", // más grande solo en móvil
         className
       )}
@@ -214,7 +214,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuState && (
-          <div className="mt-2 w-5/6 h-screen mx-auto bg-white flex flex-col px-4 pt-8 items-start lg:hidden overflow-y-auto shadow-md shadow-black/30 rounded-lg">
+          <div className="mt-2 w-5/6 h-fit mx-auto bg-white flex flex-col px-4 py-8 items-start lg:hidden shadow-md shadow-black/30 overflow-y-scroll rounded-lg">
             <NavMenu
               menuItems={menuItemsLeft}
               className="flex flex-col space-y-4 w-full pr-4"
