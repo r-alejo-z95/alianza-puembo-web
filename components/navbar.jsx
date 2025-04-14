@@ -203,12 +203,17 @@ export default function Navbar() {
               <Menu className="size-6 text-white" />
             )}
           </button>
-
           {/* Left Menu */}
           <NavMenu menuItems={menuItemsLeft} className="hidden lg:flex" />
-
           {/* Logo */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0 flex-shrink-0 hover:scale-110 transition duration-700">
+          <div
+            className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0 flex-shrink-0 hover:scale-110 transition duration-700"
+            onClick={() => {
+              if (mobileMenuState) {
+                setMobileMenuState(false);
+              }
+            }}
+          >
             <Link href="/">
               <Image
                 src="/logo-puembo-white.png"
@@ -219,10 +224,8 @@ export default function Navbar() {
               />
             </Link>
           </div>
-
           {/* Placeholder to balance layout on small screens */}
           <div className="w-10 lg:hidden" />
-
           {/* Right Menu */}
           <NavMenu menuItems={menuItemsRight} className="hidden lg:flex" />
         </div>
