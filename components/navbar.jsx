@@ -241,7 +241,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuState && (
-          <div className="mt-2 w-5/6 h-fit mx-auto bg-(--puembo-black) flex flex-col px-4 py-8 items-start lg:hidden border-1 border-accent/10 lg:border-0 overflow-y-scroll rounded-lg">
+          <div className="mt-6 w-5/6 max-h-screen mx-auto bg-(--puembo-black) flex flex-col px-4 py-8 items-start lg:hidden border-1 border-accent/10 lg:border-0 overflow-y-scroll rounded-lg">
             <NavMenu
               menuItems={menuItemsLeft}
               className="flex flex-col space-y-4 w-full pr-4"
