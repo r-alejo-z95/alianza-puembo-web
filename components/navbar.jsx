@@ -75,7 +75,7 @@ const menuItemsRight = [
   { name: "Contáctanos", href: "/contactanos" },
 ];
 
-const NavItem = ({ title, href, children, className }) => {
+const NavItem = ({ title, href, children, mobileMenuState, className }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   if (children) {
@@ -97,7 +97,14 @@ const NavItem = ({ title, href, children, className }) => {
           <ChevronDown className="ml-2 h-4 w-4 lg:ml-1" />
         </button>
         {isOpen && (
-          <div className="mt-2 w-full bg-muted/80 shadow-inner rounded-md overflow-hidden z-50 lg:absolute lg:left-0 lg:w-48">
+          <div
+            className={cn(
+              "mt-2 w-full shadow-inner rounded-md overflow-hidden z-50",
+              !mobileMenuState
+                ? "bg-muted/80 lg:absolute lg:left-0 lg:w-48"
+                : "shadow-xs shadow-gray-400"
+            )}
+          >
             {children}
           </div>
         )}
@@ -121,18 +128,26 @@ const NavItem = ({ title, href, children, className }) => {
   );
 };
 
-const NavMenu = ({ menuItems, className }) => {
+const NavMenu = ({ menuItems, mobileMenuState, className }) => {
   return (
     <nav className={cn("items-center lg:gap-8", className)}>
       {menuItems.map((item, index) => (
-        <NavItem key={index} title={item.name} href={item.href}>
+        <NavItem
+          key={index}
+          title={item.name}
+          href={item.href}
+          mobileMenuState={mobileMenuState}
+        >
           {item.subroutes && (
             <div className="py-2">
               {item.subroutes.map((subroute, subIndex) => (
                 <Link
                   key={subIndex}
                   href={subroute.href}
-                  className="block px-4 py-2 text-(--puembo-black) hover:bg-accent"
+                  className={cn(
+                    "block hover:bg-accent transition-colors rounded-md px-4 py-2 text-(--puembo-black)",
+                    !mobileMenuState ? " uppercase text-sm" : ""
+                  )}
                 >
                   {subroute.name}
                 </Link>
@@ -218,10 +233,12 @@ export default function Navbar() {
             <NavMenu
               menuItems={menuItemsLeft}
               className="flex flex-col space-y-4 w-full pr-4"
+              mobileMenuState={mobileMenuState}
             />
             <NavMenu
               menuItems={menuItemsRight}
               className="flex flex-col space-y-4 mt-4 w-full pr-4"
+              mobileMenuState={mobileMenuState}
             />
           </div>
         )}
