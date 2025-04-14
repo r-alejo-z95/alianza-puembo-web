@@ -81,18 +81,23 @@ const NavItem = ({ title, href, children, className }) => {
   if (children) {
     return (
       <div
-        className={cn("relative group", className)}
-        onMouseEnter={() => setIsOpen(true)}
-        onMouseLeave={() => setIsOpen(false)}
+        className={cn("relative w-full", className)}
+        onBlur={() => setIsOpen(false)}
       >
         <button
-          className="flex items-center uppercase font-medium text-white hover:text-accent cursor-pointer transition-colors"
+          className={cn(
+            "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 rounded-md hover:text-accent cursor-pointer",
+            "hover:bg-(--puembo-black)/30", // fondo al hacer hover
+            "lg:hover:bg-transparent lg:text-sm", // estilo en desktop
+            "text-lg lg:text-base" // más grande solo en móvil
+          )}
           onClick={() => setIsOpen(!isOpen)}
         >
-          {title} <ChevronDown className="ml-1 h-4 w-4" />
+          <span>{title}</span>
+          <ChevronDown className="ml-2 h-4 w-4 lg:ml-1" />
         </button>
         {isOpen && (
-          <div className="absolute left-0 mt-2 w-48 bg-muted/80 shadow-lg rounded-md overflow-hidden z-50">
+          <div className="mt-2 w-full bg-muted/80 shadow-inner rounded-md overflow-hidden z-50 lg:absolute lg:left-0 lg:w-48">
             {children}
           </div>
         )}
@@ -104,7 +109,10 @@ const NavItem = ({ title, href, children, className }) => {
     <Link
       href={href}
       className={cn(
-        "uppercase font-medium text-white hover:text-accent transition-colors",
+        "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 rounded-md hover:text-accent cursor-pointer",
+        "hover:bg-(--puembo-black)/30", // fondo al hacer hover
+        "lg:hover:bg-transparent lg:text-sm", // estilo en desktop
+        "text-lg lg:text-base", // más grande solo en móvil
         className
       )}
     >
@@ -200,14 +208,14 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuState && (
-          <div className="w-full h-screen bg-muted/60 flex flex-col mt-4 pl-4 pt-8 items-start lg:hidden">
+          <div className="mt-2 w-full h-screen bg-muted/60 flex flex-col px-4 pt-8 items-start lg:hidden overflow-y-auto">
             <NavMenu
               menuItems={menuItemsLeft}
-              className="flex flex-col space-y-4"
+              className="flex flex-col space-y-4 w-full pr-4"
             />
             <NavMenu
               menuItems={menuItemsRight}
-              className="flex flex-col space-y-4 mt-4"
+              className="flex flex-col space-y-4 mt-4 w-full pr-4"
             />
           </div>
         )}
