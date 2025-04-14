@@ -86,9 +86,9 @@ const NavItem = ({ title, href, children, className }) => {
       >
         <button
           className={cn(
-            "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md hover:text-accent cursor-pointer",
-            "hover:bg-(--puembo-black)/70", // fondo al hacer hover
-            "lg:hover:bg-transparent lg:text-sm", // estilo en desktop
+            "flex items-center uppercase font-medium text-(--puembo-black) lg:text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer",
+            "hover:bg-accent/50", // fondo al hacer hover
+            "lg:hover:bg-transparent", // estilo en desktop
             "text-lg lg:text-base" // más grande solo en móvil
           )}
           onClick={() => setIsOpen(!isOpen)}
@@ -109,9 +109,9 @@ const NavItem = ({ title, href, children, className }) => {
     <Link
       href={href}
       className={cn(
-        "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md hover:text-accent cursor-pointer",
-        "hover:bg-(--puembo-black)/70", // fondo al hacer hover
-        "lg:hover:bg-transparent lg:text-sm", // estilo en desktop
+        "flex items-center uppercase font-medium text-(--puembo-black) lg:text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer",
+        "hover:bg-accent/50", // fondo al hacer hover
+        "lg:hover:bg-transparent", // estilo en desktop
         "text-lg lg:text-base", // más grande solo en móvil
         className
       )}
@@ -154,7 +154,7 @@ export default function Navbar() {
         className={cn(
           "flex flex-col",
           mobileMenuState &&
-            "backdrop-blur-sm bg-gradient-to-b from-white/30 to-transparent"
+            "backdrop-blur-sm bg-gradient-to-b from-white/15 to-transparent"
         )}
       >
         {/* Social Icons */}
@@ -193,7 +193,7 @@ export default function Navbar() {
           <NavMenu menuItems={menuItemsLeft} className="hidden lg:flex" />
 
           {/* Logo */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0 flex-shrink-0">
+          <div className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0 flex-shrink-0 hover:scale-110 transition duration-700">
             <Link href="/">
               <Image
                 src="/logo-puembo-white.png"
@@ -214,7 +214,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuState && (
-          <div className="mt-2 w-full h-screen flex flex-col px-4 pt-8 items-start lg:hidden overflow-y-auto">
+          <div className="mt-2 w-5/6 h-screen mx-auto bg-white flex flex-col px-4 pt-8 items-start lg:hidden overflow-y-auto shadow-md shadow-black/30 rounded-lg">
             <NavMenu
               menuItems={menuItemsLeft}
               className="flex flex-col space-y-4 w-full pr-4"
