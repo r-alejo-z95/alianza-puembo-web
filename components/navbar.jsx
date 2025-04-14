@@ -86,8 +86,8 @@ const NavItem = ({ title, href, children, className }) => {
       >
         <button
           className={cn(
-            "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 rounded-md hover:text-accent cursor-pointer",
-            "hover:bg-(--puembo-black)/30", // fondo al hacer hover
+            "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md hover:text-accent cursor-pointer",
+            "hover:bg-(--puembo-black)/70", // fondo al hacer hover
             "lg:hover:bg-transparent lg:text-sm", // estilo en desktop
             "text-lg lg:text-base" // más grande solo en móvil
           )}
@@ -109,8 +109,8 @@ const NavItem = ({ title, href, children, className }) => {
     <Link
       href={href}
       className={cn(
-        "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 rounded-md hover:text-accent cursor-pointer",
-        "hover:bg-(--puembo-black)/30", // fondo al hacer hover
+        "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md hover:text-accent cursor-pointer",
+        "hover:bg-(--puembo-black)/70", // fondo al hacer hover
         "lg:hover:bg-transparent lg:text-sm", // estilo en desktop
         "text-lg lg:text-base", // más grande solo en móvil
         className
@@ -150,7 +150,13 @@ export default function Navbar() {
 
   return (
     <header>
-      <div className="flex flex-col bg-gradient-to-b from-(--puembo-black)/100 to-transparent">
+      <div
+        className={cn(
+          "flex flex-col",
+          mobileMenuState &&
+            "backdrop-blur-sm bg-gradient-to-b from-white/30 to-transparent"
+        )}
+      >
         {/* Social Icons */}
         <div className="flex justify-end pt-2 pr-4">
           <div className="flex gap-2">
@@ -208,7 +214,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuState && (
-          <div className="mt-2 w-full h-screen bg-muted/60 flex flex-col px-4 pt-8 items-start lg:hidden overflow-y-auto">
+          <div className="mt-2 w-full h-screen flex flex-col px-4 pt-8 items-start lg:hidden overflow-y-auto">
             <NavMenu
               menuItems={menuItemsLeft}
               className="flex flex-col space-y-4 w-full pr-4"
