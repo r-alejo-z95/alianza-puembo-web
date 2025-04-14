@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -162,10 +162,24 @@ const NavMenu = ({ menuItems, mobileMenuState, className }) => {
 
 export default function Navbar() {
   const [mobileMenuState, setMobileMenuState] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header>
-      <div className="flex flex-col bg-(--puembo-black) pb-2 lg:pb-0">
+    <header
+      className={cn(
+        "fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-in-out",
+        scrolled ? "bg-(--puembo-black) shadow-lg" : "bg-transparent"
+      )}
+    >
+      <div className="flex flex-col pb-2 md:pb-3 lg:pb-0">
         {/* Social Icons */}
         <div className="flex justify-end pt-2 pr-4">
           <div className="flex gap-2">
