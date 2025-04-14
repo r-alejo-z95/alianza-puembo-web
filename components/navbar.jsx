@@ -165,13 +165,7 @@ export default function Navbar() {
 
   return (
     <header>
-      <div
-        className={cn(
-          "flex flex-col",
-          mobileMenuState &&
-            "backdrop-blur-sm bg-gradient-to-b from-white/15 to-transparent"
-        )}
-      >
+      <div className="flex flex-col bg-(--puembo-black)/80 pb-2 lg:pb-0">
         {/* Social Icons */}
         <div className="flex justify-end pt-2 pr-4">
           <div className="flex gap-2">
