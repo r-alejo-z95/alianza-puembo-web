@@ -7,8 +7,6 @@ export default function Hero() {
       style={{
         backgroundImage: "url('/hero.jpg')",
       }}
-    >
-      <Navbar />
-    </main>
+    ></main>
   );
 }

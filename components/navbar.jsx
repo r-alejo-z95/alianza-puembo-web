@@ -86,7 +86,7 @@ const NavItem = ({ title, href, children, mobileMenuState, className }) => {
       >
         <button
           className={cn(
-            "flex items-center uppercase font-medium text-(--puembo-black) lg:text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer shadow-xs shadow-gray-400",
+            "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer",
             "hover:bg-accent/50", // fondo al hacer hover
             "lg:hover:bg-transparent lg:shadow-transparent", // estilo en desktop
             "text-lg lg:text-base" // más grande solo en móvil
@@ -99,10 +99,8 @@ const NavItem = ({ title, href, children, mobileMenuState, className }) => {
         {isOpen && (
           <div
             className={cn(
-              "mt-2 w-full shadow-inner rounded-md overflow-hidden z-50",
-              !mobileMenuState
-                ? "bg-muted/80 lg:absolute lg:left-0 lg:w-48"
-                : "shadow-xs shadow-gray-400"
+              "mt-2 w-full rounded-md z-50 bg-white",
+              !mobileMenuState ? "lg:absolute lg:left-0 lg:w-48" : ""
             )}
           >
             {children}
@@ -116,7 +114,7 @@ const NavItem = ({ title, href, children, mobileMenuState, className }) => {
     <Link
       href={href}
       className={cn(
-        "flex items-center uppercase font-medium text-(--puembo-black) lg:text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer shadow-xs shadow-gray-400",
+        "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer",
         "hover:bg-accent/50", // fondo al hacer hover
         "lg:hover:bg-transparent lg:shadow-transparent", // estilo en desktop
         "text-lg lg:text-base", // más grande solo en móvil
@@ -139,14 +137,16 @@ const NavMenu = ({ menuItems, mobileMenuState, className }) => {
           mobileMenuState={mobileMenuState}
         >
           {item.subroutes && (
-            <div className="py-2">
+            <div className="">
               {item.subroutes.map((subroute, subIndex) => (
                 <Link
                   key={subIndex}
                   href={subroute.href}
                   className={cn(
-                    "block hover:bg-accent transition-colors rounded-md px-4 py-2 text-(--puembo-black)",
-                    !mobileMenuState ? " uppercase text-sm" : ""
+                    "block hover:bg-accent/50 transition-colors px-4 py-3 text-(--puembo-black) rounded-sm",
+                    !mobileMenuState
+                      ? "uppercase text-sm"
+                      : "border-b border-accent/50"
                   )}
                 >
                   {subroute.name}
@@ -165,7 +165,7 @@ export default function Navbar() {
 
   return (
     <header>
-      <div className="flex flex-col bg-(--puembo-black)/80 pb-2 lg:pb-0">
+      <div className="flex flex-col bg-(--puembo-black) pb-2 lg:pb-0">
         {/* Social Icons */}
         <div className="flex justify-end pt-2 pr-4">
           <div className="flex gap-2">
@@ -197,6 +197,7 @@ export default function Navbar() {
               <Menu className="size-6 text-white" />
             )}
           </button>
+
           {/* Left Menu */}
           <NavMenu menuItems={menuItemsLeft} className="hidden lg:flex" />
           {/* Logo */}
@@ -226,7 +227,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {mobileMenuState && (
-          <div className="mt-2 w-5/6 h-fit mx-auto bg-white flex flex-col px-4 py-8 items-start lg:hidden shadow-md shadow-black/30 overflow-y-scroll rounded-lg">
+          <div className="mt-2 w-5/6 h-fit mx-auto bg-(--puembo-black) flex flex-col px-4 py-8 items-start lg:hidden border-1 border-accent/10 lg:border-0 overflow-y-scroll rounded-lg">
             <NavMenu
               menuItems={menuItemsLeft}
               className="flex flex-col space-y-4 w-full pr-4"
