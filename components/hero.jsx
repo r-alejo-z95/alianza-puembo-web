@@ -1,21 +1,15 @@
-import Image from "next/image";
+import { Button } from "./ui/button";
 
 export default function Hero() {
   return (
-    <main className="relative h-screen w-full">
-      <Image
-        src="/hero.jpg"
-        alt="Hero Image"
-        fill
-        className="object-cover object-top"
-        priority
-      />
-
-      <div className="absolute inset-0 flex items-center justify-center">
-        <h1 className="text-white text-5xl font-bold text-center drop-shadow-lg">
-          Bienvenido a la Iglesia Alianza Puembo
-        </h1>
+    <section
+      className="relative w-full h-screen bg-cover bg-top bg-no-repeat z-0"
+      style={{ backgroundImage: "url('/Hero.jpg')" }}
+    >
+      <div className="z-1 w-full h-full flex flex-col items-left justify-center text-white backdrop-brightness-50 px-13 gap-4">
+        <h2 className="text-xl">Experimenta la presencia de Dios en casa</h2>
+        <h1 className="text-7xl font-bold">Bienvenido</h1>
       </div>
-    </main>
+    </section>
   );
 }
