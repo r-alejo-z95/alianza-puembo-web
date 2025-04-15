@@ -179,7 +179,10 @@ export default function Navbar() {
     <header
       className={cn(
         "fixed top-0 left-0 w-full z-50 transition-colors duration-400 ease-in-out",
-        isHomepage && !scrolled && !mobileMenuState
+        !isHomepage ? "relative" : "",
+        scrolled || mobileMenuState
+          ? "bg-(--puembo-black) shadow-lg"
+          : isHomepage
           ? "bg-transparent"
           : "bg-(--puembo-black) shadow-lg"
       )}
