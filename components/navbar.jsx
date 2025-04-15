@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -164,6 +165,7 @@ const NavMenu = ({ menuItems, mobileMenuState, className }) => {
 export default function Navbar() {
   const [mobileMenuState, setMobileMenuState] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const isHomepage = usePathname() === "/";
 
   useEffect(() => {
     const onScroll = () => {
@@ -177,9 +179,9 @@ export default function Navbar() {
     <header
       className={cn(
         "fixed top-0 left-0 w-full z-50 transition-colors duration-400 ease-in-out",
-        scrolled || mobileMenuState
-          ? "bg-(--puembo-black) shadow-lg"
-          : "bg-transparent"
+        isHomepage && !scrolled && !mobileMenuState
+          ? "bg-transparent"
+          : "bg-(--puembo-black) shadow-lg"
       )}
     >
       <div className="flex flex-col pb-2 md:pb-3 lg:pb-0">
