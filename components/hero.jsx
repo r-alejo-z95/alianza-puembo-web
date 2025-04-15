@@ -13,7 +13,7 @@ export default function Hero() {
           <h2 className="text-sm md:text-xl lg:text-2xl">
             Experimenta la presencia de Dios en casa
           </h2>
-          <h1 className="uppercase text-4xl md:text-7xl lg:text-8xl font-bold">
+          <h1 className="font-merriweather text-4xl md:text-7xl lg:text-8xl font-bold">
             Bienvenido
           </h1>
         </div>

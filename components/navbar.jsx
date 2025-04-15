@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const socialLinks = [
   {
@@ -176,7 +177,9 @@ export default function Navbar() {
     <header
       className={cn(
         "fixed top-0 left-0 w-full z-50 transition-colors duration-400 ease-in-out",
-        scrolled ? "bg-(--puembo-black) shadow-lg" : "bg-transparent"
+        scrolled || mobileMenuState
+          ? "bg-(--puembo-black) shadow-lg"
+          : "bg-transparent"
       )}
     >
       <div className="flex flex-col pb-2 md:pb-3 lg:pb-0">
@@ -240,20 +243,28 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu */}
-        {mobileMenuState && (
-          <div className="mt-6 w-5/6 max-h-screen mx-auto bg-(--puembo-black) flex flex-col px-4 py-8 items-start lg:hidden border-1 border-accent/10 lg:border-0 overflow-y-scroll rounded-lg">
-            <NavMenu
-              menuItems={menuItemsLeft}
-              className="flex flex-col space-y-4 w-full pr-4"
-              mobileMenuState={mobileMenuState}
-            />
-            <NavMenu
-              menuItems={menuItemsRight}
-              className="flex flex-col space-y-4 mt-4 w-full pr-4"
-              mobileMenuState={mobileMenuState}
-            />
-          </div>
-        )}
+        <AnimatePresence>
+          {mobileMenuState && (
+            <motion.div
+              initial={{ opacity: 0, y: -30, scale: 1 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -30, scale: 1 }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              className="mt-6 w-full md:w-2/3 max-h-screen mx-auto flex flex-col px-4 py-8 items-start border-1 border-accent/10 overflow-y-scroll rounded-lg bg-(--puembo-black) md:bg-transparent lg:border-0 lg:hidden"
+            >
+              <NavMenu
+                menuItems={menuItemsLeft}
+                className="flex flex-col space-y-4 w-full pr-4"
+                mobileMenuState={mobileMenuState}
+              />
+              <NavMenu
+                menuItems={menuItemsRight}
+                className="flex flex-col space-y-4 mt-4 w-full pr-4"
+                mobileMenuState={mobileMenuState}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </header>
   );
