@@ -175,7 +175,7 @@ export default function Navbar() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 w-full z-50 transition-all duration-300 ease-in-out",
+        "fixed top-0 left-0 w-full z-50 transition-colors duration-400 ease-in-out",
         scrolled ? "bg-(--puembo-black) shadow-lg" : "bg-transparent"
       )}
     >
