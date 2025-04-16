@@ -25,10 +25,10 @@ export default function Info() {
           alt="Mujer abrazando a otra"
           width={3600}
           height={2403}
-          className="hidden md:block md:w-[360px] lg:w-[480px] rounded-md"
+          className="flex-shrink-0 w-0 md:w-[360px] lg:w-[480px] rounded-md"
         />
       </div>
-      <div className="flex flex-row min-w-screen md:flex-row gap-4 lg:gap-8">
+      <div className="flex flex-col max-w-screen md:flex-row gap-4 lg:gap-8">
         <Button className={landingPageBtnStyles}>Noticias</Button>
         <Button variant="outline" className={landingPageBtnStyles}>
           Calendario de eventos
