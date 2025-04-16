@@ -1,8 +1,7 @@
 import { Button } from "./ui/button";
+import { landingPageBtnStyles } from "@/lib/styles";
 
 export default function Hero() {
-  const heroBtnStyles = "w-fit text-sm md:text-lg lg:text-xl md:p-6 lg:p-8";
-
   return (
     <section
       className="relative w-full h-screen bg-cover bg-top bg-no-repeat z-0"
@@ -18,8 +17,8 @@ export default function Hero() {
           </h1>
         </div>
         <div className="flex flex-col md:flex-row gap-4 lg:gap-8">
-          <Button className={heroBtnStyles}>Visítanos</Button>
-          <Button className={heroBtnStyles}>Servicio On-line</Button>
+          <Button className={landingPageBtnStyles}>Visítanos</Button>
+          <Button className={landingPageBtnStyles}>Servicio On-line</Button>
         </div>
       </div>
     </section>
