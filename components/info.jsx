@@ -26,13 +26,14 @@ export default function Info() {
             </Button>
           </div>
         </div>
-        <Image
-          src="/info-section.jpg"
-          alt="Mujer abrazando a otra"
-          width={3600}
-          height={2403}
-          className="flex-shrink-0 w-0 md:w-[360px] lg:w-[480px] rounded-md"
-        />
+        <div className="relative flex-shrink-0 w-0 md:w-[300px] lg:w-[480px] aspect-[3/2]">
+          <Image
+            src="/info-section.jpg"
+            alt="Mujer abrazando a otra"
+            fill
+            className="object-cover"
+          />
+        </div>
       </div>
     </section>
   );
