@@ -19,6 +19,12 @@ export default function Info() {
             Somos una familia con convicciones firmes en Cristo, que comparte su
             Fe con otros.
           </p>
+          <div className="flex flex-col max-w-screen md:flex-row gap-4 lg:gap-8 mt-4">
+            <Button className={landingPageBtnStyles}>Noticias</Button>
+            <Button variant="outline" className={landingPageBtnStyles}>
+              Calendario de eventos
+            </Button>
+          </div>
         </div>
         <Image
           src="/info-section.jpg"
@@ -27,12 +33,6 @@ export default function Info() {
           height={2403}
           className="flex-shrink-0 w-0 md:w-[360px] lg:w-[480px] rounded-md"
         />
-      </div>
-      <div className="flex flex-col max-w-screen md:flex-row gap-4 lg:gap-8">
-        <Button className={landingPageBtnStyles}>Noticias</Button>
-        <Button variant="outline" className={landingPageBtnStyles}>
-          Calendario de eventos
-        </Button>
       </div>
     </section>
   );
