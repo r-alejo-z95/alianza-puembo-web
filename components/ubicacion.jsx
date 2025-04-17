@@ -1,7 +1,4 @@
-import { Button } from "./ui/button";
-import { landingPageBtnStyles } from "@/lib/styles";
 import { Youtube } from "lucide-react";
-import Image from "next/image";
 
 export default function Ubicacion() {
   return (
@@ -9,7 +6,7 @@ export default function Ubicacion() {
       <p className="text-2xl md:text-5xl lg:text-6xl">
         Queremos conocerte! Visítanos!
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Mapa */}
         <div className="flex-shrink-0">
           <iframe
@@ -18,7 +15,7 @@ export default function Ubicacion() {
             allowFullScreen={true}
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className="w-full aspect-[3/2]"
+            className="w-full aspect-[3/2] shadow-xl shadow-black/30"
           ></iframe>
         </div>
 
@@ -42,13 +39,12 @@ export default function Ubicacion() {
               <Youtube className="size-7 text-red-500 hover:text-red-300 transition-colors" />
             </a>
           </div>
-        </div>
-
-        {/* Dirección */}
-        <div className="flex items-center">
-          <p className="text-sm md:text-lg lg:text-xl text-center mx-auto">
-            Julio Tobar Donoso y 24 de Mayo - Puembo, Ecuador
-          </p>
+          {/* Dirección */}
+          <div className="flex items-center">
+            <p className="text-sm md:text-lg lg:text-xl text-center mx-auto">
+              Julio Tobar Donoso y 24 de Mayo - Puembo, Ecuador
+            </p>
+          </div>
         </div>
       </div>
     </section>
