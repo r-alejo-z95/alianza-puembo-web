@@ -65,16 +65,17 @@ const menuItemsLeft = [
 
 const menuItemsRight = [
   {
-    name: "Media",
-    href: "/media",
+    name: "Recursos",
+    href: "/recursos",
     subroutes: [
-      { name: "Prédicas", href: "/media/predicas" },
-      { name: "Galería", href: "/media/galeria" },
+      { name: "Prédicas", href: "/recursos/predicas" },
+      { name: "Devocionales", href: "/recursos/devocionales" },
+      { name: "Galería", href: "/recursos/galeria" },
     ],
   },
   { name: "Donaciones", href: "/donaciones" },
   { name: "Oración", href: "/oracion" },
-  { name: "Contáctanos", href: "/contactanos" },
+  { name: "Contacto", href: "/contacto" },
 ];
 
 const NavItem = ({ title, href, children, mobileMenuState, className }) => {
@@ -91,7 +92,7 @@ const NavItem = ({ title, href, children, mobileMenuState, className }) => {
             "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer",
             "hover:bg-accent/50", // fondo al hacer hover
             "lg:hover:bg-transparent lg:shadow-transparent", // estilo en desktop
-            "text-lg lg:text-base" // más grande solo en móvil
+            "text-lg lg:text-sm xl:text-base" // más grande solo en móvil
           )}
           onClick={() => setIsOpen(!isOpen)}
         >
@@ -119,7 +120,7 @@ const NavItem = ({ title, href, children, mobileMenuState, className }) => {
         "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer",
         "hover:bg-accent/50", // fondo al hacer hover
         "lg:hover:bg-transparent lg:shadow-transparent", // estilo en desktop
-        "text-lg lg:text-base", // más grande solo en móvil
+        "text-lg lg:text-sm xl:text-base", // más grande solo en móvil
         className
       )}
     >
@@ -237,7 +238,7 @@ export default function Navbar() {
                 alt="logo"
                 width={120}
                 height={78}
-                className="w-26 md:w-30"
+                className="w-26 md:w-28 xl:w-30"
               />
             </Link>
           </div>
