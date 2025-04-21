@@ -12,9 +12,10 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
+// Configs
 const socialLinks = [
   {
     name: "Facebook",
@@ -78,35 +79,48 @@ const menuItemsRight = [
   { name: "Contacto", href: "/contacto" },
 ];
 
-const NavItem = ({ title, href, children, mobileMenuState, className }) => {
-  const [isOpen, setIsOpen] = useState(false);
+// Shared styles
+const baseLinkClasses =
+  "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md cursor-pointer";
+const hoverClasses =
+  "hover:bg-accent/50 lg:hover:bg-transparent lg:hover:text-accent";
+const textSizeClasses = "text-lg lg:text-sm xl:text-base";
 
-  if (children) {
+const NavItem = ({ title, href, subroutes, mobile }) => {
+  const [open, setOpen] = useState(false);
+  const toggleOpen = () => setOpen((prev) => !prev);
+
+  if (subroutes) {
     return (
-      <div
-        className={cn("relative w-full", className)}
-        onBlur={() => setIsOpen(false)}
-      >
+      <div className="relative w-full" onBlur={() => setOpen(false)}>
         <button
-          className={cn(
-            "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer",
-            "hover:bg-accent/50", // fondo al hacer hover
-            "lg:hover:bg-transparent lg:shadow-transparent", // estilo en desktop
-            "text-lg lg:text-sm xl:text-base" // más grande solo en móvil
-          )}
-          onClick={() => setIsOpen(!isOpen)}
+          className={cn(baseLinkClasses, hoverClasses, textSizeClasses)}
+          onClick={toggleOpen}
         >
           <span>{title}</span>
-          <ChevronDown className="ml-2 h-4 w-4 lg:ml-1" />
+          <ChevronDown className="ml-2 h-4 w-4" />
         </button>
-        {isOpen && (
+        {open && (
           <div
             className={cn(
               "mt-2 w-full rounded-md z-50 bg-white",
-              !mobileMenuState ? "lg:absolute lg:left-0 lg:w-48" : ""
+              !mobile && "lg:absolute lg:left-0 lg:w-48"
             )}
           >
-            {children}
+            {subroutes.map((sub, idx) => (
+              <Link
+                key={idx}
+                href={sub.href}
+                className={cn(
+                  "block px-4 py-3 rounded-sm transition-colors",
+                  mobile
+                    ? "border-b border-accent/50"
+                    : "uppercase text-sm hover:bg-accent/50"
+                )}
+              >
+                {sub.name}
+              </Link>
+            ))}
           </div>
         )}
       </div>
@@ -116,62 +130,39 @@ const NavItem = ({ title, href, children, mobileMenuState, className }) => {
   return (
     <Link
       href={href}
-      className={cn(
-        "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md lg:hover:text-accent cursor-pointer",
-        "hover:bg-accent/50", // fondo al hacer hover
-        "lg:hover:bg-transparent lg:shadow-transparent", // estilo en desktop
-        "text-lg lg:text-sm xl:text-base", // más grande solo en móvil
-        className
-      )}
+      className={cn(baseLinkClasses, hoverClasses, textSizeClasses)}
     >
       {title}
     </Link>
   );
 };
 
-const NavMenu = ({ menuItems, mobileMenuState, className }) => {
-  return (
-    <nav className={cn("items-center lg:gap-8", className)}>
-      {menuItems.map((item, index) => (
-        <NavItem
-          key={index}
-          title={item.name}
-          href={item.href}
-          mobileMenuState={mobileMenuState}
-        >
-          {item.subroutes && (
-            <div className="">
-              {item.subroutes.map((subroute, subIndex) => (
-                <Link
-                  key={subIndex}
-                  href={subroute.href}
-                  className={cn(
-                    "block hover:bg-accent/50 transition-colors px-4 py-3 text-(--puembo-black) rounded-sm",
-                    !mobileMenuState
-                      ? "uppercase text-sm"
-                      : "border-b border-accent/50"
-                  )}
-                >
-                  {subroute.name}
-                </Link>
-              ))}
-            </div>
-          )}
-        </NavItem>
-      ))}
-    </nav>
-  );
-};
+const NavMenu = ({ items, mobile }) => (
+  <nav
+    className={cn(
+      "items-center gap-8",
+      mobile ? "flex-col space-y-4" : "hidden lg:flex"
+    )}
+  >
+    {items.map((item, idx) => (
+      <NavItem
+        key={idx}
+        title={item.name}
+        href={item.href}
+        subroutes={item.subroutes}
+        mobile={mobile}
+      />
+    ))}
+  </nav>
+);
 
 export default function Navbar() {
-  const [mobileMenuState, setMobileMenuState] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const isHomepage = usePathname() === "/";
 
   useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
+    const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -180,8 +171,8 @@ export default function Navbar() {
     <header
       className={cn(
         "fixed top-0 left-0 w-full z-50 transition-colors duration-400 ease-in-out",
-        !isHomepage ? "relative" : "",
-        scrolled || mobileMenuState
+        !isHomepage && "relative",
+        scrolled || mobileOpen
           ? "bg-(--puembo-black) shadow-lg"
           : isHomepage
           ? "bg-transparent"
@@ -192,45 +183,40 @@ export default function Navbar() {
         {/* Social Icons */}
         <div className="flex justify-end pt-2 pr-4">
           <div className="flex gap-2">
-            {socialLinks.map((social, index) => (
+            {socialLinks.map(({ href, name, icon: Icon }, i) => (
               <a
-                key={index}
-                href={social.href}
+                key={i}
+                href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label={social.name}
+                aria-label={name}
               >
-                <social.icon className="h-5 w-5 text-white hover:text-accent transition-colors" />
+                <Icon className="h-5 w-5 text-white hover:text-accent transition-colors" />
               </a>
             ))}
           </div>
         </div>
 
-        {/* Main Navigation */}
+        {/* Main Navbar */}
         <div className="w-full px-4 pb-2 flex items-center justify-between lg:justify-evenly relative">
-          {/* Mobile Menu Button */}
+          {/* Mobile Toggle */}
           <button
-            onClick={() => setMobileMenuState(!mobileMenuState)}
-            aria-label={mobileMenuState ? "Close Menu" : "Open Menu"}
-            className="z-20 block cursor-pointer p-2.5 lg:hidden"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="z-20 block lg:hidden p-2.5"
           >
-            {mobileMenuState ? (
+            {mobileOpen ? (
               <X className="size-6 text-white" />
             ) : (
               <Menu className="size-6 text-white" />
             )}
           </button>
 
-          {/* Left Menu */}
-          <NavMenu menuItems={menuItemsLeft} className="hidden lg:flex" />
+          {/* Left */}
+          <NavMenu items={menuItemsLeft} />
           {/* Logo */}
           <div
-            className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0 flex-shrink-0 hover:scale-110 transition duration-700"
-            onClick={() => {
-              if (mobileMenuState) {
-                setMobileMenuState(false);
-              }
-            }}
+            className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0 hover:scale-110 transition duration-700"
+            onClick={() => mobileOpen && setMobileOpen(false)}
           >
             <Link href="/">
               <Image
@@ -242,32 +228,23 @@ export default function Navbar() {
               />
             </Link>
           </div>
-          {/* Placeholder to balance layout on small screens */}
-          <div className="w-10 lg:hidden" />
-          {/* Right Menu */}
-          <NavMenu menuItems={menuItemsRight} className="hidden lg:flex" />
+          {/* Right */}
+          <NavMenu items={menuItemsRight} />
         </div>
 
         {/* Mobile Menu */}
         <AnimatePresence>
-          {mobileMenuState && (
+          {mobileOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -30, scale: 1 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -30, scale: 1 }}
+              initial={{ opacity: 0, y: -30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
               transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="mt-6 w-full md:w-2/3 max-h-screen mx-auto flex flex-col px-4 py-8 items-start border-1 border-accent/10 overflow-y-scroll rounded-lg bg-(--puembo-black) md:bg-transparent lg:border-0 lg:hidden"
+              className="mt-6 w-full md:w-2/3 max-h-screen mx-auto flex flex-col px-4 py-8 border rounded-lg bg-(--puembo-black) overflow-y-scroll lg:hidden"
             >
-              <NavMenu
-                menuItems={menuItemsLeft}
-                className="flex flex-col space-y-4 w-full pr-4"
-                mobileMenuState={mobileMenuState}
-              />
-              <NavMenu
-                menuItems={menuItemsRight}
-                className="flex flex-col space-y-4 mt-4 w-full pr-4"
-                mobileMenuState={mobileMenuState}
-              />
+              <NavMenu items={menuItemsLeft} mobile />
+              <div className="mt-4" />
+              <NavMenu items={menuItemsRight} mobile />
             </motion.div>
           )}
         </AnimatePresence>
