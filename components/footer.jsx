@@ -1,40 +1,42 @@
 import Link from "next/link";
+import { Button } from "./ui/button";
 
 const links = [
   {
-    title: "Features",
+    title: "Donaciones",
     href: "#",
   },
   {
-    title: "Solution",
+    title: "Noticias",
     href: "#",
   },
   {
-    title: "Customers",
+    title: "Eventos",
     href: "#",
   },
   {
-    title: "Pricing",
+    title: "Oración",
     href: "#",
   },
   {
-    title: "Help",
-    href: "#",
-  },
-  {
-    title: "About",
+    title: "Contacto",
     href: "#",
   },
 ];
 
 export default function Footer() {
   return (
-    <footer className="bg-(--puembo-black) py-12">
+    <footer className="bg-(--puembo-black) py-8">
       <div className="mx-auto max-w-5xl px-6">
         <div className="flex flex-wrap justify-between gap-6">
           <span className="text-white order-last block text-center text-sm md:order-first">
-            © {new Date().getFullYear()} Alianza Puembo, Todos los derechos
-            reservados
+            © {new Date().getFullYear()} Alianza Puembo
+            <br />
+            <Link href="https://github.com/r-alejo-z95">
+              <Button variant="link" className="text-white text-[10px]">
+                Desarrollado por RZ
+              </Button>
+            </Link>
           </span>
           <div className="order-first flex flex-wrap justify-center gap-6 text-sm md:order-last">
             {links.map((link, index) => (
