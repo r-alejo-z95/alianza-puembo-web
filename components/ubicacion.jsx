@@ -15,7 +15,7 @@ export default function Ubicacion() {
             allowFullScreen={true}
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className="w-full aspect-[3/2] shadow-xl shadow-black/30"
+            className="w-full aspect-[3/2] shadow-sm shadow-black/30"
           ></iframe>
         </div>
 
