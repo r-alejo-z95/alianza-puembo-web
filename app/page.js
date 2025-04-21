@@ -1,6 +1,6 @@
 import Hero from "@/components/hero";
 import Info from "@/components/info";
-import Ministerios from "@/components/ministerios";
+import Grupos from "@/components/grupos";
 import Ubicacion from "@/components/ubicacion";
 
 export default function Home() {
@@ -8,7 +8,7 @@ export default function Home() {
     <>
       <Hero />
       <Info />
-      <Ministerios />
+      <Grupos />
       <Ubicacion />
     </>
   );
