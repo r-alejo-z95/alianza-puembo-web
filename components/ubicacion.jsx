@@ -36,7 +36,7 @@ export default function Ubicacion() {
               rel="noopener noreferrer"
               aria-label="Youtube channel"
             >
-              <Youtube className="size-7 text-red-500 hover:text-red-300 transition-colors" />
+              <Youtube className="size-7 text-[#FF0000] hover:text-[#FF0000]/70 transition-colors" />
             </a>
           </div>
           {/* Dirección */}
