@@ -42,7 +42,9 @@ export default function Ubicacion() {
           {/* Dirección */}
           <div className="flex items-center">
             <p className="text-sm md:text-lg lg:text-xl text-center mx-auto">
-              Julio Tobar Donoso y 24 de Mayo - Puembo, Ecuador
+              Julio Tobar Donoso y 24 de Mayo
+              <br />
+              Puembo, Ecuador
             </p>
           </div>
         </div>
