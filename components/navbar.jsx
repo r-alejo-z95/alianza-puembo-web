@@ -52,11 +52,11 @@ const menuItemsLeft = [
   {
     name: "Ministerios",
     subroutes: [
-      { name: "Puembo Kids", href: "/puembo-kids" },
-      { name: "Jóvenes", href: "/jovenes" },
-      { name: "Música, artes, tecnología", href: "/mat" },
-      { name: "Grupos Pequeños", href: "/gp" },
-      { name: "Misión Dignidad", href: "/mision-dignidad" },
+      { name: "Puembo Kids", href: "/ministerios/puembo-kids" },
+      { name: "Jóvenes", href: "/ministerios/jovenes" },
+      { name: "Música, artes, tecnología", href: "/ministerios/mat" },
+      { name: "Grupos Pequeños", href: "/ministerios/gp" },
+      { name: "Misión Dignidad", href: "/ministerios/mision-dignidad" },
     ],
   },
   { name: "Noticias", href: "/noticias" },
