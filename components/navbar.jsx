@@ -15,7 +15,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-// Configs
+// Config
 const socialLinks = [
   {
     name: "Facebook",
@@ -37,27 +37,23 @@ const socialLinks = [
 const menuItemsLeft = [
   {
     name: "Conócenos",
-    href: "/conocenos",
     subroutes: [
-      { name: "Historia", href: "/conocenos/historia" },
-      { name: "Equipo", href: "/conocenos/equipo" },
-      { name: "¿En qué creemos?", href: "/conocenos/que-creemos" },
+      { name: "Equipo", href: "/equipo" },
+      { name: "¿En qué creemos?", href: "/que-creemos" },
     ],
   },
   {
     name: "Eventos",
-    href: "/eventos",
     subroutes: [
-      { name: "Calendario", href: "/eventos/calendario" },
-      { name: "Próximos eventos", href: "/eventos/proximos-eventos" },
+      { name: "Calendario", href: "/calendario" },
+      { name: "Próximos eventos", href: "/proximos-eventos" },
     ],
   },
   {
     name: "Ministerios",
-    href: "/ministerios",
     subroutes: [
-      { name: "Niños", href: "/ministerios/ninos" },
-      { name: "Jóvenes", href: "/ministerios/jovenes" },
+      { name: "Puembo Kids", href: "/puembo-kids" },
+      { name: "Jóvenes", href: "/jovenes" },
       { name: "Adultos", href: "/ministerios/adultos" },
     ],
   },
@@ -67,11 +63,13 @@ const menuItemsLeft = [
 const menuItemsRight = [
   {
     name: "Recursos",
-    href: "/recursos",
     subroutes: [
-      { name: "Prédicas", href: "/recursos/predicas" },
-      { name: "Devocionales", href: "/recursos/devocionales" },
-      { name: "Galería", href: "/recursos/galeria" },
+      {
+        name: "Prédicas",
+        href: "https://www.youtube.com/@IglesiaAlianzaPuembo/playlists",
+      },
+      { name: "Lee, Ora, Medita", href: "/lom" },
+      { name: "Galería", href: "https://iglesiaalianzapuembo.pixieset.com/" },
     ],
   },
   { name: "Donaciones", href: "/donaciones" },
@@ -79,64 +77,96 @@ const menuItemsRight = [
   { name: "Contacto", href: "/contacto" },
 ];
 
-// Shared styles
-const baseLinkClasses =
-  "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md cursor-pointer";
-const hoverClasses =
-  "hover:bg-accent/50 lg:hover:bg-transparent lg:hover:text-accent";
-const textSizeClasses = "text-lg lg:text-sm xl:text-base";
+// Component: SmartLink
+const SmartLink = ({ href, children, className = "", ...props }) => {
+  const isExternal = href.startsWith("http");
+  return isExternal ? (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+      {...props}
+    >
+      {children}
+    </a>
+  ) : (
+    <Link href={href} className={className} {...props}>
+      {children}
+    </Link>
+  );
+};
 
+// Component: Dropdown Menu
+const DropdownMenu = ({ subroutes, mobile }) => (
+  <div
+    className={cn(
+      "w-full rounded-md z-50 bg-white",
+      !mobile && "lg:absolute lg:left-0 lg:w-48"
+    )}
+  >
+    {subroutes.map((sub, i) => (
+      <SmartLink
+        key={i}
+        href={sub.href}
+        className={cn(
+          "block px-4 py-3 rounded-sm transition-colors",
+          mobile
+            ? "border-b border-accent/50"
+            : "uppercase text-sm hover:bg-accent/50"
+        )}
+      >
+        {sub.name}
+      </SmartLink>
+    ))}
+  </div>
+);
+
+// Component: NavItem
 const NavItem = ({ title, href, subroutes, mobile }) => {
   const [open, setOpen] = useState(false);
-  const toggleOpen = () => setOpen((prev) => !prev);
+
+  const baseClasses = cn(
+    "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md cursor-pointer",
+    "hover:bg-accent/50 lg:hover:bg-transparent lg:hover:text-accent",
+    "text-lg lg:text-sm xl:text-base"
+  );
 
   if (subroutes) {
     return (
-      <div className="relative w-full" onBlur={() => setOpen(false)}>
-        <button
-          className={cn(baseLinkClasses, hoverClasses, textSizeClasses)}
-          onClick={toggleOpen}
-        >
+      <div
+        className="relative w-full"
+        onMouseEnter={() => !mobile && setOpen(true)}
+        onMouseLeave={() => !mobile && setOpen(false)}
+      >
+        <div className={baseClasses} onClick={() => setOpen((prev) => !prev)}>
           <span>{title}</span>
           <ChevronDown className="ml-2 h-4 w-4" />
-        </button>
-        {open && (
-          <div
-            className={cn(
-              "mt-2 w-full rounded-md z-50 bg-white",
-              !mobile && "lg:absolute lg:left-0 lg:w-48"
-            )}
-          >
-            {subroutes.map((sub, idx) => (
-              <Link
-                key={idx}
-                href={sub.href}
-                className={cn(
-                  "block px-4 py-3 rounded-sm transition-colors",
-                  mobile
-                    ? "border-b border-accent/50"
-                    : "uppercase text-sm hover:bg-accent/50"
-                )}
-              >
-                {sub.name}
-              </Link>
-            ))}
-          </div>
-        )}
+        </div>
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              <DropdownMenu subroutes={subroutes} mobile={mobile} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
 
   return (
-    <Link
-      href={href}
-      className={cn(baseLinkClasses, hoverClasses, textSizeClasses)}
-    >
+    <SmartLink href={href} className={baseClasses}>
       {title}
-    </Link>
+    </SmartLink>
   );
 };
 
+// Component: NavMenu
 const NavMenu = ({ items, mobile }) => (
   <nav
     className={cn(
@@ -156,10 +186,12 @@ const NavMenu = ({ items, mobile }) => (
   </nav>
 );
 
+// Main Navbar
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const isHomepage = usePathname() === "/";
+  const pathname = usePathname();
+  const isHomepage = pathname === "/";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50);
@@ -167,20 +199,21 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const bgClass =
+    scrolled || mobileOpen || !isHomepage
+      ? "bg-(--puembo-black) shadow-lg"
+      : "bg-transparent";
+
   return (
     <header
       className={cn(
         "fixed top-0 left-0 w-full z-50 transition-colors duration-400 ease-in-out",
         !isHomepage && "relative",
-        scrolled || mobileOpen
-          ? "bg-(--puembo-black) shadow-lg"
-          : isHomepage
-          ? "bg-transparent"
-          : "bg-(--puembo-black) shadow-lg"
+        bgClass
       )}
     >
       <div className="flex flex-col pb-2 md:pb-3 lg:pb-0">
-        {/* Social Icons */}
+        {/* Social */}
         <div className="flex justify-end pt-2 pr-4">
           <div className="flex gap-2">
             {socialLinks.map(({ href, name, icon: Icon }, i) => (
@@ -197,7 +230,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Main Navbar */}
+        {/* Main Nav */}
         <div className="w-full px-4 pb-2 flex items-center justify-between lg:justify-evenly relative">
           {/* Mobile Toggle */}
           <button
@@ -211,8 +244,9 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* Left */}
+          {/* Left Menu */}
           <NavMenu items={menuItemsLeft} />
+
           {/* Logo */}
           <div
             className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0 hover:scale-110 transition duration-700"
@@ -228,7 +262,8 @@ export default function Navbar() {
               />
             </Link>
           </div>
-          {/* Right */}
+
+          {/* Right Menu */}
           <NavMenu items={menuItemsRight} />
         </div>
 
