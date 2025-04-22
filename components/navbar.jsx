@@ -54,7 +54,9 @@ const menuItemsLeft = [
     subroutes: [
       { name: "Puembo Kids", href: "/puembo-kids" },
       { name: "Jóvenes", href: "/jovenes" },
-      { name: "Adultos", href: "/ministerios/adultos" },
+      { name: "Música, artes, tecnología", href: "/mat" },
+      { name: "Grupos Pequeños", href: "/gp" },
+      { name: "Misión Dignidad", href: "/mision-dignidad" },
     ],
   },
   { name: "Noticias", href: "/noticias" },
