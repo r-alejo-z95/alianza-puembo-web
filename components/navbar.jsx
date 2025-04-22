@@ -38,8 +38,8 @@ const menuItemsLeft = [
   {
     name: "Conócenos",
     subroutes: [
-      { name: "Equipo", href: "/equipo" },
-      { name: "¿En qué creemos?", href: "/que-creemos" },
+      { name: "Equipo", href: "/conocenos/equipo" },
+      { name: "¿En qué creemos?", href: "/conocenos/que-creemos" },
     ],
   },
   {
