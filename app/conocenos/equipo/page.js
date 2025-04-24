@@ -43,7 +43,7 @@ export default function team() {
           </p>
         </div>
         <div className="flex flex-col gap-4 flex-1">
-          <div className="relative w-full lg:w-[480px] aspect-[3/2] rounded-lg overflow-hidden flex-shrink-0 mx-auto">
+          <div className="relative w-full lg:w-[500px] aspect-[3/2] rounded-lg overflow-hidden flex-shrink-0 mx-auto">
             <Image
               src="/familia-gio.avif"
               alt="Familia pastoral"
@@ -67,7 +67,7 @@ export default function team() {
               key={index}
               className="flex flex-col gap-4 max-w-md w-full mx-auto"
             >
-              <div className="relative w-full lg:w-[480px] aspect-[3/2] rounded-lg overflow-hidden flex-shrink-0 mx-auto">
+              <div className="relative w-full lg:w-[450px] aspect-[3/2] rounded-lg overflow-hidden flex-shrink-0 mx-auto">
                 <Image
                   src={member.image}
                   alt={`Foto de ${member.name}`}
