@@ -7,14 +7,14 @@ export default function Ubicacion() {
         <h2 className="text-center font-merriweather text-2xl md:text-4xl lg:text-5xl font-bold">
           ¡Queremos conocerte! Visítanos
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="rounded-lg overflow-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-0 w-full md:max-w-4xl lg:max-w-5xl mx-auto">
+          <div className="overflow-scroll">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d1534.3392033270873!2d-78.36464832020242!3d-0.19358952964798154!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d593c7c8324e13%3A0xe079bee6c92c5318!2sIglesia%20Alianza%20Puembo!5e1!3m2!1sen!2sec!4v1745463959460!5m2!1sen!2sec"
               allowFullScreen={true}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              className="w-full aspect-[3/2]"
+              className="w-[280px] md:w-full aspect-[3/2] mx-auto rounded-lg"
             ></iframe>
           </div>
           <div className="flex flex-col gap-4 justify-center items-center text-center">
