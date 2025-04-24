@@ -18,31 +18,38 @@ export default function Ubicacion() {
             ></iframe>
           </div>
           <div className="flex flex-col gap-4 justify-center items-center text-center">
-            <p className="font-merriweather text-xl md:text-2xl lg:text-3xl font-bold">
-              10:00 / 12:00
-            </p>
-            <p className="text-base md:text-lg lg:text-xl">
-              Servicios dominicales
-            </p>
-            <p className="font-merriweather text-xl md:text-2xl lg:text-3xl font-bold">
-              10:00
-            </p>
-            <div className="flex items-center gap-2">
-              <p className="text-base md:text-lg lg:text-xl">Servicio online</p>
-              <a
-                href="https://www.youtube.com/c/IglesiaAlianzaPuembo"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Youtube channel"
-              >
-                <Youtube className="size-7 text-[#FF0000] hover:text-[#FF0000]/70 transition-colors" />
-              </a>
+            <div>
+              <p className="font-merriweather text-xl md:text-2xl lg:text-3xl font-bold">
+                10:00 / 12:00
+              </p>
+              <p className="text-base md:text-lg lg:text-xl">
+                Servicios dominicales
+              </p>
             </div>
-            <p className="text-base md:text-lg lg:text-xl">
-              Julio Tobar Donoso y 24 de Mayo
-              <br />
-              Puembo, Ecuador
-            </p>
+            <div>
+              <p className="font-merriweather text-xl md:text-2xl lg:text-3xl font-bold">
+                10:00
+              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-base md:text-lg lg:text-xl">
+                  Servicio online
+                </p>
+                <a
+                  href="https://www.youtube.com/c/IglesiaAlianzaPuembo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Youtube channel"
+                >
+                  <Youtube className="size-7 text-[#FF0000] hover:text-[#FF0000]/70 transition-colors" />
+                </a>
+              </div>
+            </div>
+            <div>
+              <p className="text-base md:text-lg lg:text-xl">
+                Julio Tobar Donoso y 24 de Mayo
+              </p>
+              <p>Puembo, Ecuador</p>
+            </div>
           </div>
         </div>
       </div>
