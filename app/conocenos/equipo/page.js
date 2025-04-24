@@ -62,29 +62,37 @@ export default function team() {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-6xl">
-          {team.map((member, index) => (
-            <div
-              key={index}
-              className="flex flex-col gap-4 max-w-md w-full mx-auto"
-            >
-              <div className="relative w-full lg:w-[450px] aspect-[3/2] rounded-lg overflow-hidden flex-shrink-0 mx-auto">
-                <Image
-                  src={member.image}
-                  alt={`Foto de ${member.name}`}
-                  fill
-                  className="object-cover"
-                />
+          {team.map((member, index) => {
+            const isLast = index === team.length - 1;
+            const isOdd = team.length % 2 !== 0;
+            const shouldCenter = isLast && isOdd;
+
+            return (
+              <div
+                key={index}
+                className={`flex flex-col gap-4 max-w-md w-full mx-auto ${
+                  shouldCenter ? "sm:col-span-2 justify-self-center" : ""
+                }`}
+              >
+                <div className="relative w-full lg:w-[400px] aspect-[3/2] rounded-lg overflow-hidden flex-shrink-0 mx-auto">
+                  <Image
+                    src={member.image}
+                    alt={`Foto de ${member.name}`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+                <div className="flex flex-col text-center gap-1">
+                  <h3 className="font-merriweather text-lg md:text-xl lg:text-2xl font-bold">
+                    {member.name}
+                  </h3>
+                  <p className="text-xs md:text-sm lg:text-base">
+                    {member.detail}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col text-center gap-1">
-                <h3 className="font-merriweather text-lg md:text-xl lg:text-2xl font-bold">
-                  {member.name}
-                </h3>
-                <p className="text-xs md:text-sm lg:text-base">
-                  {member.detail}
-                </p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
