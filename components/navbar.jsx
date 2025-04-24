@@ -280,8 +280,8 @@ export default function Navbar() {
               <Image
                 src="/logo-puembo-white.png"
                 alt="logo"
-                width={120}
-                height={78}
+                width={3991}
+                height={2592}
                 className="w-26 md:w-28 xl:w-30"
               />
             </Link>
