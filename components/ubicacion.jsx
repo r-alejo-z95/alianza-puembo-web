@@ -20,7 +20,7 @@ export default function Ubicacion() {
           <div className="flex flex-col gap-4 justify-center items-center text-center">
             <div>
               <p className="font-merriweather text-xl md:text-2xl lg:text-3xl font-bold">
-                10:00 / 12:00
+                10:00 | 12:00
               </p>
               <p className="text-base md:text-lg lg:text-xl">
                 Servicios dominicales
