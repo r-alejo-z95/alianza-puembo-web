@@ -10,7 +10,7 @@ export default function Ubicacion() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="rounded-lg overflow-hidden shadow-md shadow-black/30">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.7956119194896!2d-78.3638005!3d-0.19331020000000002!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d593c7c8324e13%3A0xe079bee6c92c5318!2sIglesia%20Alianza%20Puembo!5e0!3m2!1sen!2sec!4v1744856239000!5m2!1sen!2sec"
+              src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d1534.3392033270873!2d-78.36464832020242!3d-0.19358952964798154!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d593c7c8324e13%3A0xe079bee6c92c5318!2sIglesia%20Alianza%20Puembo!5e1!3m2!1sen!2sec!4v1745463959460!5m2!1sen!2sec"
               allowFullScreen={true}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
