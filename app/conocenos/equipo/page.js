@@ -61,7 +61,7 @@ export default function team() {
             </p>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-6xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-4xl">
           {team.map((member, index) => {
             const isLast = index === team.length - 1;
             const isOdd = team.length % 2 !== 0;
