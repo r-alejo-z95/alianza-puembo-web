@@ -80,7 +80,13 @@ const menuItemsRight = [
 ];
 
 // Component: SmartLink
-const SmartLink = ({ href, children, className = "", ...props }) => {
+const SmartLink = ({
+  href,
+  children,
+  className = "",
+  closeMobileMenu,
+  ...props
+}) => {
   const isExternal = href.startsWith("http");
   return isExternal ? (
     <a
@@ -88,19 +94,25 @@ const SmartLink = ({ href, children, className = "", ...props }) => {
       target="_blank"
       rel="noopener noreferrer"
       className={className}
+      onClick={closeMobileMenu}
       {...props}
     >
       {children}
     </a>
   ) : (
-    <Link href={href} className={className} {...props}>
+    <Link
+      href={href}
+      className={className}
+      onClick={closeMobileMenu}
+      {...props}
+    >
       {children}
     </Link>
   );
 };
 
 // Component: Dropdown Menu
-const DropdownMenu = ({ subroutes, mobile }) => (
+const DropdownMenu = ({ subroutes, mobile, closeMobileMenu }) => (
   <div
     className={cn(
       "w-full rounded-md z-50 bg-white",
@@ -117,6 +129,7 @@ const DropdownMenu = ({ subroutes, mobile }) => (
             ? "border-b border-accent/50"
             : "uppercase text-sm hover:bg-accent/50"
         )}
+        closeMobileMenu={closeMobileMenu}
       >
         {sub.name}
       </SmartLink>
@@ -125,7 +138,7 @@ const DropdownMenu = ({ subroutes, mobile }) => (
 );
 
 // Component: NavItem
-const NavItem = ({ title, href, subroutes, mobile }) => {
+const NavItem = ({ title, href, subroutes, mobile, closeMobileMenu }) => {
   const [open, setOpen] = useState(false);
 
   const baseClasses = cn(
@@ -153,7 +166,11 @@ const NavItem = ({ title, href, subroutes, mobile }) => {
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              <DropdownMenu subroutes={subroutes} mobile={mobile} />
+              <DropdownMenu
+                subroutes={subroutes}
+                mobile={mobile}
+                closeMobileMenu={closeMobileMenu}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -162,14 +179,18 @@ const NavItem = ({ title, href, subroutes, mobile }) => {
   }
 
   return (
-    <SmartLink href={href} className={baseClasses}>
+    <SmartLink
+      href={href}
+      className={baseClasses}
+      closeMobileMenu={closeMobileMenu}
+    >
       {title}
     </SmartLink>
   );
 };
 
 // Component: NavMenu
-const NavMenu = ({ items, mobile }) => (
+const NavMenu = ({ items, mobile, closeMobileMenu }) => (
   <nav
     className={cn(
       "items-center gap-8",
@@ -183,6 +204,7 @@ const NavMenu = ({ items, mobile }) => (
         href={item.href}
         subroutes={item.subroutes}
         mobile={mobile}
+        closeMobileMenu={closeMobileMenu}
       />
     ))}
   </nav>
@@ -279,9 +301,17 @@ export default function Navbar() {
               transition={{ duration: 0.4, ease: "easeInOut" }}
               className="mt-6 w-full md:w-2/3 max-h-screen mx-auto flex flex-col px-4 py-8 border rounded-lg bg-(--puembo-black) overflow-y-scroll lg:hidden"
             >
-              <NavMenu items={menuItemsLeft} mobile />
+              <NavMenu
+                items={menuItemsLeft}
+                mobile
+                closeMobileMenu={() => setMobileOpen(false)}
+              />
               <div className="mt-4" />
-              <NavMenu items={menuItemsRight} mobile />
+              <NavMenu
+                items={menuItemsRight}
+                mobile
+                closeMobileMenu={() => setMobileOpen(false)}
+              />
             </motion.div>
           )}
         </AnimatePresence>
