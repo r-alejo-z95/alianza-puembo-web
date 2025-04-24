@@ -45,8 +45,8 @@ const menuItemsLeft = [
   {
     name: "Eventos",
     subroutes: [
-      { name: "Calendario", href: "/calendario" },
-      { name: "Próximos eventos", href: "/proximos-eventos" },
+      { name: "Calendario", href: "/eventos/calendario" },
+      { name: "Próximos eventos", href: "/eventos/proximos-eventos" },
     ],
   },
   {
@@ -70,7 +70,7 @@ const menuItemsRight = [
         name: "Prédicas",
         href: "https://www.youtube.com/@IglesiaAlianzaPuembo/playlists",
       },
-      { name: "Lee, Ora, Medita", href: "/lom" },
+      { name: "Lee, Ora, Medita", href: "/recursos/lom" },
       { name: "Galería", href: "https://iglesiaalianzapuembo.pixieset.com/" },
     ],
   },
