@@ -3,10 +3,7 @@ import { landingPageBtnStyles } from "@/lib/styles";
 
 export default function Hero() {
   return (
-    <section
-      className="relative w-full h-screen bg-cover bg-top bg-no-repeat"
-      style={{ backgroundImage: "url('/Hero.jpg')" }}
-    >
+    <section className="relative w-full h-screen bg-[url('/Hero.jpg')] bg-cover bg-top bg-no-repeat">
       <div className="w-full h-full flex flex-col justify-center items-start text-white backdrop-brightness-80 backdrop-contrast-70 px-4 md:px-6 lg:px-8 gap-6">
         <div className="flex flex-col gap-2 mb-4">
           <h2 className="text-base md:text-xl lg:text-2xl">
