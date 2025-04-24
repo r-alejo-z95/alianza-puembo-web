@@ -4,23 +4,23 @@ import { Button } from "./ui/button";
 const links = [
   {
     title: "Donaciones",
-    href: "#",
+    href: "/donaciones",
   },
   {
     title: "Noticias",
-    href: "#",
+    href: "/noticias",
   },
   {
     title: "Eventos",
-    href: "#",
+    href: "/eventos/proximos-eventos",
   },
   {
     title: "Oración",
-    href: "#",
+    href: "/oracion",
   },
   {
     title: "Contacto",
-    href: "#",
+    href: "/contacto",
   },
 ];
 
