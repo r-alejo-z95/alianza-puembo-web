@@ -1,5 +1,5 @@
 import { Youtube } from "lucide-react";
-import InteractiveMap from "./interactive-map";
+import GoogleMapView from "./interactive-map";
 
 export default function Ubicacion() {
   return (
@@ -10,7 +10,7 @@ export default function Ubicacion() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-0 w-full md:max-w-4xl lg:max-w-5xl mx-auto">
           <div className="overflow-scroll">
-            <InteractiveMap />
+            <GoogleMapView />
           </div>
           <div className="flex flex-col gap-4 justify-center items-center text-center">
             <div>

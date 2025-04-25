@@ -1,37 +1,46 @@
 "use client";
 
-import { useEffect } from "react";
-import "leaflet/dist/leaflet.css";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 
-export default function InteractiveMap() {
-  useEffect(() => {
-    import("leaflet").then((L) => {
-      const customIcon = L.icon({
-        iconUrl: "/icons/church-icon.png",
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-        popupAnchor: [0, -40],
-      });
+const containerStyle = {
+  width: "100%",
+  height: "100%",
+  borderRadius: "0.75rem",
+};
 
-      const map = L.map("map").setView([-0.1935895, -78.3646483], 17);
+const centerMap = {
+  lat: -0.193756,
+  lng: -78.363887,
+};
 
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "&copy; OpenStreetMap contributors",
-      }).addTo(map);
+const markerPosition = {
+  lat: -0.1940832557785033,
+  lng: -78.36375798200926,
+};
 
-      L.marker([-0.1935895, -78.3646483], { icon: customIcon })
-        .addTo(map)
-        .bindPopup(
-          "<b>Iglesia Alianza Puembo</b><br>Julio Tobar Donoso y 24 de Mayo"
-        )
-        .openPopup();
-    });
-  }, []);
+export default function GoogleMapView() {
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+  });
+
+  if (!isLoaded)
+    return (
+      <div className="flex">
+        <p className="text-center font-bold mx-auto my-auto">
+          Cargando mapa...
+        </p>
+      </div>
+    );
 
   return (
-    <div
-      id="map"
-      className="w-[280px] md:w-full aspect-[3/2] mx-auto rounded-lg"
-    ></div>
+    <div className="w-[280px] md:w-full aspect-[3/2] mx-auto">
+      <GoogleMap
+        mapContainerStyle={containerStyle}
+        center={centerMap}
+        zoom={18}
+      >
+        <Marker position={markerPosition} />
+      </GoogleMap>
+    </div>
   );
 }
