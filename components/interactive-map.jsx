@@ -76,7 +76,6 @@ export default function GoogleMapView() {
         >
           <Marker
             position={markerPosition}
-            onClick={() => setShowInfo(true)}
             icon={{
               url: "/icons/church-icon.png",
               scaledSize: new window.google.maps.Size(40, 40),
