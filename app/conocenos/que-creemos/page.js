@@ -10,8 +10,17 @@ export default function QueCreemos() {
     },
     {
       name: "Visión",
-      detail:
-        "Ser una familia con convicciones firmes en Cristo que comparten su fe con otros.",
+      detail: (
+        <>
+          <ul className="list-disc list-inside">
+            <li>Somos apasionados por Dios</li>
+            <li>Vivimos en Comunidad</li>
+            <li>Somos discípulos</li>
+            <li>Servimos</li>
+            <li>Proclamamos el Evangelio</li>
+          </ul>
+        </>
+      ),
     },
   ];
 
@@ -57,8 +66,7 @@ export default function QueCreemos() {
 
           <div class="flex flex-col gap-6 flex-1">
             <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-center">
-              Somos una Familia de Familia con una Misión y una Visión puestas
-              por Dios para Su Gloria.
+              Dios nos dió una Misión y una Visión para Su Gloria.
             </p>
             <div className="flex">
               {values.map((value, index) => {
