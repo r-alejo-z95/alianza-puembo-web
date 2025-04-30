@@ -62,7 +62,7 @@ export default function QueCreemos() {
                   <p className="text-xs md:text-sm lg:text-base text-justify">
                     {beleif.detail}
                   </p>
-                  <p className="text-xs md:text-sm text-justify italic flex items-center gap-4">
+                  <p className="text-xs md:text-sm text-justify italic flex items-center gap-2 lg:gap-4">
                     <BookOpenText className="size-4 shrink-0" />
                     <span>"{beleif.verse}"</span>
                   </p>
