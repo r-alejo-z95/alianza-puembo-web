@@ -57,13 +57,12 @@ export default function QueCreemos() {
   ];
 
   return (
-    <section className="w-full py-16 px-4 md:px-6 lg:px-8 text-(--puembo-black)">
-      <div className="flex flex-col items-center gap-12 max-w-screen-xl mx-auto">
-        <div className="flex flex-col gap-8 flex-1">
+    <section className="w-full h-full bg-[url('/familia-de-familias.jpg')] bg-fixed bg-cover bg-top bg-no-repeat">
+      <div className="flex flex-col items-center gap-12 py-16 px-4 md:px-6 lg:px-8 mx-auto backdrop-brightness-80 backdrop-contrast-70">
+        <div className="flex flex-col gap-8 flex-1 text-white">
           <h2 className="font-merriweather text-2xl md:text-4xl lg:text-5xl font-bold mx-auto">
             Somos una Familia de familias
           </h2>
-
           <div className="flex flex-col gap-6 flex-1">
             <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-center">
               Dios nos dió una Misión y una Visión para Su Gloria.
@@ -89,14 +88,13 @@ export default function QueCreemos() {
             </div>
           </div>
         </div>
-
         <div className="flex flex-col gap-6 flex-1 items-center max-w-screen-xl mx-auto">
-          <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-justify">
+          <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-justify text-white">
             Formamos parte de la Alianza Cristiana y Misionera, un movimiento
             enfocado en vivir y proclamar el evangelio de Jesucristo al mundo,
             con una vida centrada en Él y una misión clara hacia las naciones.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-5xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-5xl text-(--puembo-black)">
             {beleifs.map((beleif, index) => {
               return (
                 <Card
