@@ -5,28 +5,33 @@ import Image from "next/image";
 export default function Equipo() {
   const team = [
     {
+      name: "Ps. Leandro Gaitán",
+      detail: "Co-Pastor",
+      image: "/familia-leandro.avif",
+    },
+    {
       name: "Iván Echeverría",
-      detail: "Descripción breve del líder 1.",
+      detail: "Administrador",
       image: "/familia-ivan.avif",
     },
     {
       name: "Anabel García",
-      detail: "Descripción breve del líder 2.",
+      detail: "Coordinadora Ministerial Puentes",
       image: "/familia-anabel.avif",
     },
     {
       name: "Fabiola Diaz",
-      detail: "Descripción breve del líder 3.",
+      detail: "Coordinadora Ministerios de Apoyo",
       image: "/familia-papo.avif",
     },
     {
       name: "Daniela Riofrío",
-      detail: "Descripción breve del líder 4.",
+      detail: "Coordinadora Ministerial Jóvenes",
       image: "/familia-dani-r.avif",
     },
     {
       name: "Daniela Andrade",
-      detail: "Descripción breve del líder 5.",
+      detail: "Coordinadora Ministerial Puembo Kids",
       image: "/familia-dani-a.avif",
     },
   ];
@@ -42,8 +47,8 @@ export default function Equipo() {
             Conoce al equipo que lidera nuestra Iglesia
           </p>
         </div>
-        <div className="flex flex-col gap-4 flex-1">
-          <div className="relative w-full lg:w-[500px] aspect-[3/2] rounded-lg overflow-hidden flex-shrink-0 mx-auto">
+        <div className="flex flex-col gap-4 flex-1 w-full max-w-[600px]">
+          <div className="relative w-full lg:w-[500px] aspect-[3/2] rounded-lg overflow-hidden flex-shrink-0 mx-auto hover:scale-105 transition duration-700">
             <Image
               src="/familia-gio.avif"
               alt="Familia pastoral"
@@ -52,12 +57,11 @@ export default function Equipo() {
             />
           </div>
           <div className="flex flex-col gap-1 flex-1">
-            <h3 className="font-merriweather text-lg md:text-2xl lg:text-3xl font-bold mx-auto">
-              Pastor Principal: Gio Martinez
+            <h3 className="font-merriweather text-lg md:text-2xl lg:text-3xl font-bold mx-auto text-center">
+              Ps. Gio Martinez
             </h3>
             <p className="text-xs md:text-sm lg:text-base mx-auto text-center">
-              Ps. Gio Martinez, su esposa Cris Zapata, su hijo Josue, sus hijas
-              Berni, Maka y Rena.
+              Pastor Principal
             </p>
           </div>
         </div>
@@ -74,7 +78,7 @@ export default function Equipo() {
                   shouldCenter ? "sm:col-span-2 justify-self-center" : ""
                 }`}
               >
-                <div className="relative w-full lg:w-[400px] aspect-[3/2] rounded-lg overflow-hidden flex-shrink-0 mx-auto">
+                <div className="relative w-full lg:w-[400px] aspect-[3/2] rounded-lg overflow-hidden flex-shrink-0 mx-auto hover:scale-105 transition duration-700">
                   <Image
                     src={member.image}
                     alt={`Foto de ${member.name}`}
