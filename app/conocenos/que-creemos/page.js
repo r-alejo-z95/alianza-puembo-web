@@ -2,6 +2,19 @@ import { Card } from "@/components/ui/card";
 import { BookOpenText } from "lucide-react";
 
 export default function QueCreemos() {
+  const values = [
+    {
+      name: "Misión",
+      detail:
+        "Ser una familia con convicciones firmes en Cristo que comparten su fe con otros.",
+    },
+    {
+      name: "Visión",
+      detail:
+        "Ser una familia con convicciones firmes en Cristo que comparten su fe con otros.",
+    },
+  ];
+
   const beleifs = [
     {
       name: "Cristo nuestro Salvador",
@@ -36,44 +49,71 @@ export default function QueCreemos() {
 
   return (
     <section className="w-full py-16 px-4 md:px-6 lg:px-8 text-(--puembo-black)">
-      <div className="flex flex-col items-center gap-8 max-w-screen-xl mx-auto">
-        <div className="flex flex-col gap-4 flex-1 mb-4">
+      <div className="flex flex-col items-center gap-12 max-w-screen-xl mx-auto">
+        <div className="flex flex-col gap-8 flex-1">
           <h2 className="font-merriweather text-2xl md:text-4xl lg:text-5xl font-bold mx-auto">
             ¿En qué creemos?
           </h2>
-          <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-justify">
-            Somos una iglesia que forma parte de la Alianza Cristiana y
-            Misionera, un movimiento enfocado en vivir y proclamar el evangelio
-            de Jesucristo al mundo, con una vida centrada en Él y una misión
-            clara hacia las naciones.
-          </p>
+
+          <div class="flex flex-col gap-6 flex-1">
+            <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-center">
+              Somos una Familia de Familia con una Misión y una Visión puestas
+              por Dios para Su Gloria.
+            </p>
+            <div className="flex">
+              {values.map((value, index) => {
+                return (
+                  <div
+                    key={index}
+                    className="flex flex-row gap-4 max-w-md w-full mx-auto"
+                  >
+                    <div className="flex flex-col gap-2 mx-4">
+                      <h3 className="font-merriweather text-xl md:text-3xl lg:text-4xl font-bold mx-auto text-center">
+                        {value.name}
+                      </h3>
+                      <p className="text-sm md:text-base lg:text-lg mx-8 lg:mx-12 text-justify">
+                        {value.detail}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-5xl">
-          {beleifs.map((beleif, index) => {
-            return (
-              <Card
-                key={index}
-                className="flex flex-col gap-4 max-w-md w-full mx-auto"
-              >
-                <div className="flex flex-col gap-2 mx-8">
-                  <h3 className="font-merriweather text-lg md:text-xl lg:text-2xl font-bold text-center">
-                    {beleif.name}
-                  </h3>
-                  <p className="text-xs md:text-sm lg:text-base text-justify">
-                    {beleif.detail}
-                  </p>
-                  <p className="text-xs md:text-sm text-justify italic flex items-center gap-2 lg:gap-4">
-                    <BookOpenText className="size-4 shrink-0" />
-                    <span>"{beleif.verse}"</span>
-                  </p>
-                  <p className="text-xs md:text-sm lg:text-base text-justify font-semibold">
-                    {beleif.citation}
-                  </p>
-                </div>
-              </Card>
-            );
-          })}
+        <div class="flex flex-col gap-6 flex-1 items-center max-w-screen-xl mx-auto">
+          <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-justify">
+            Formamos parte de la Alianza Cristiana y Misionera, un movimiento
+            enfocado en vivir y proclamar el evangelio de Jesucristo al mundo,
+            con una vida centrada en Él y una misión clara hacia las naciones.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-5xl">
+            {beleifs.map((beleif, index) => {
+              return (
+                <Card
+                  key={index}
+                  className="flex flex-col gap-4 max-w-md w-full mx-auto"
+                >
+                  <div className="flex flex-col gap-2 mx-8">
+                    <h3 className="font-merriweather text-lg md:text-xl lg:text-2xl font-bold text-center">
+                      {beleif.name}
+                    </h3>
+                    <p className="text-xs md:text-sm lg:text-base text-justify">
+                      {beleif.detail}
+                    </p>
+                    <p className="text-xs md:text-sm text-justify italic flex items-center gap-2 lg:gap-4">
+                      <BookOpenText className="size-4 shrink-0" />
+                      <span>"{beleif.verse}"</span>
+                    </p>
+                    <p className="text-xs md:text-sm lg:text-base text-justify font-semibold">
+                      {beleif.citation}
+                    </p>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
