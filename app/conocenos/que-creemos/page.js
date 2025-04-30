@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/card";
 import { BookOpenText } from "lucide-react";
 
 export default function QueCreemos() {
@@ -40,7 +41,7 @@ export default function QueCreemos() {
           <h2 className="font-merriweather text-2xl md:text-4xl lg:text-5xl font-bold mx-auto">
             ¿En qué creemos?
           </h2>
-          <p className="text-base md:text-lg lg:text-xl mx-auto text-center">
+          <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-justify">
             Somos una iglesia que forma parte de la Alianza Cristiana y
             Misionera, un movimiento enfocado en vivir y proclamar el evangelio
             de Jesucristo al mundo, con una vida centrada en Él y una misión
@@ -51,11 +52,11 @@ export default function QueCreemos() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-5xl">
           {beleifs.map((beleif, index) => {
             return (
-              <div
+              <Card
                 key={index}
                 className="flex flex-col gap-4 max-w-md w-full mx-auto"
               >
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 mx-8">
                   <h3 className="font-merriweather text-lg md:text-xl lg:text-2xl font-bold text-center">
                     {beleif.name}
                   </h3>
@@ -70,7 +71,7 @@ export default function QueCreemos() {
                     {beleif.citation}
                   </p>
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
