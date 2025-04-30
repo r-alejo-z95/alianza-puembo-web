@@ -61,10 +61,10 @@ export default function QueCreemos() {
       <div className="flex flex-col items-center gap-12 max-w-screen-xl mx-auto">
         <div className="flex flex-col gap-8 flex-1">
           <h2 className="font-merriweather text-2xl md:text-4xl lg:text-5xl font-bold mx-auto">
-            ¿En qué creemos?
+            Somos una Familia de familias
           </h2>
 
-          <div class="flex flex-col gap-6 flex-1">
+          <div className="flex flex-col gap-6 flex-1">
             <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-center">
               Dios nos dió una Misión y una Visión para Su Gloria.
             </p>
@@ -79,9 +79,9 @@ export default function QueCreemos() {
                       <h3 className="font-merriweather text-xl md:text-3xl lg:text-4xl font-bold mx-auto text-center">
                         {value.name}
                       </h3>
-                      <p className="text-sm md:text-base lg:text-lg mx-8 lg:mx-12 text-justify">
+                      <div className="text-sm md:text-base lg:text-lg mx-8 lg:mx-12 text-justify">
                         {value.detail}
-                      </p>
+                      </div>
                     </div>
                   </div>
                 );
@@ -90,7 +90,7 @@ export default function QueCreemos() {
           </div>
         </div>
 
-        <div class="flex flex-col gap-6 flex-1 items-center max-w-screen-xl mx-auto">
+        <div className="flex flex-col gap-6 flex-1 items-center max-w-screen-xl mx-auto">
           <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-justify">
             Formamos parte de la Alianza Cristiana y Misionera, un movimiento
             enfocado en vivir y proclamar el evangelio de Jesucristo al mundo,
