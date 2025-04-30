@@ -2,7 +2,7 @@ import { Button } from "./../../../components/ui/button";
 import { landingPageBtnStyles } from "@/lib/styles";
 import Image from "next/image";
 
-export default function team() {
+export default function Equipo() {
   const team = [
     {
       name: "Iván Echeverría",
