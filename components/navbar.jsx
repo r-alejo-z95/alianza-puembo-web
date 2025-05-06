@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { headerTextSizes } from "@/lib/styles";
 
 // Config
 const socialLinks = [
@@ -142,9 +143,9 @@ const NavItem = ({ title, href, subroutes, mobile, closeMobileMenu }) => {
   const [open, setOpen] = useState(false);
 
   const baseClasses = cn(
-    "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 rounded-md cursor-pointer",
+    "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 lg:mt-2 xl:mt-0 2xl:mt-4 rounded-md cursor-pointer",
     "hover:bg-accent/50 lg:hover:bg-transparent lg:hover:text-accent",
-    "text-lg lg:text-sm xl:text-base"
+    headerTextSizes
   );
 
   if (subroutes) {
@@ -225,7 +226,7 @@ export default function Navbar() {
 
   const bgClass =
     scrolled || mobileOpen || !isHomepage
-      ? "bg-(--puembo-black) shadow-lg"
+      ? "bg-(--puembo-black)"
       : "bg-transparent";
 
   return (
@@ -238,8 +239,8 @@ export default function Navbar() {
     >
       <div className="flex flex-col pb-2 md:pb-3 lg:pb-0">
         {/* Social */}
-        <div className="flex justify-end pt-2 pr-4">
-          <div className="flex gap-2">
+        <div className="flex justify-end pt-2 pr-4 absolute right-0 z-1">
+          <div className="flex gap-2 2xl:gap-4">
             {socialLinks.map(({ href, name, icon: Icon }, i) => (
               <a
                 key={i}
@@ -248,14 +249,14 @@ export default function Navbar() {
                 rel="noopener noreferrer"
                 aria-label={name}
               >
-                <Icon className="h-5 w-5 text-white hover:text-accent transition-colors" />
+                <Icon className="h-4 w-4 xl:h-5 xl:w-5 2xl:h-8 2xl:w-8 text-white hover:text-accent transition-colors" />
               </a>
             ))}
           </div>
         </div>
 
         {/* Main Nav */}
-        <div className="w-full px-4 pb-2 flex items-center justify-between lg:justify-evenly relative">
+        <div className="w-full px-4 pb-2 pt-4 md:pt-6 lg:pt-2 flex items-center md:justify-between lg:justify-evenly gap-2 xl:justify-around relative">
           {/* Mobile Toggle */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -282,7 +283,7 @@ export default function Navbar() {
                 alt="logo"
                 width={3991}
                 height={2592}
-                className="w-26 md:w-28 xl:w-30"
+                className="w-26 md:w-28 xl:w-30 2xl:w-42"
               />
             </Link>
           </div>

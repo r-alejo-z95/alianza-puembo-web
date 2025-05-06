@@ -2,7 +2,7 @@
 
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
 import { Button } from "./ui/button";
-import { landingPageBtnStyles } from "@/lib/styles";
+import { btnStyles } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
 const containerStyle = {
@@ -86,9 +86,9 @@ export default function GoogleMapView() {
           href={`https://www.google.com/maps/dir/?api=1&destination=${markerPosition.lat},${markerPosition.lng}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="absolute mt-4 ml-4"
+          className="absolute mt-4 ml-4 xl:mt-6 xl:ml-6"
         >
-          <Button className={cn(landingPageBtnStyles)}>Cómo llegar</Button>
+          <Button className={cn(btnStyles)}>Cómo llegar</Button>
         </a>
       </div>
     </div>
