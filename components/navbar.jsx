@@ -15,6 +15,12 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { headerTextSizes } from "@/lib/styles";
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
 
 // Config
 const socialLinks = [
@@ -349,24 +355,71 @@ export default function Navbar() {
               initial={{ opacity: 0, y: -30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -30 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
-              className="mt-6 w-full md:w-2/3 max-h-screen mx-auto flex flex-col px-4 py-8 border rounded-lg bg-(--puembo-black) overflow-y-scroll lg:hidden"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="mt-6 w-full md:w-2/3 max-h-screen mx-auto flex flex-col px-4 bg-(--puembo-black) overflow-y-scroll lg:hidden"
             >
-              <NavMenu
-                items={menuItemsLeft}
-                mobile
-                closeMobileMenu={handleMobileToggle}
-                openSubmenu={openSubmenu}
-                setOpenSubmenu={setOpenSubmenu}
-              />
-              <div className="mt-4" />
-              <NavMenu
-                items={menuItemsRight}
-                mobile
-                closeMobileMenu={handleMobileToggle}
-                openSubmenu={openSubmenu}
-                setOpenSubmenu={setOpenSubmenu}
-              />
+              <Accordion type="single" collapsible>
+                {menuItemsLeft.map((item, idx) =>
+                  item.subroutes ? (
+                    <AccordionItem key={idx} value={item.name}>
+                      <AccordionTrigger className="text-white uppercase font-medium text-lg">
+                        {item.name}
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        {item.subroutes.map((sub, subIdx) => (
+                          <SmartLink
+                            key={subIdx}
+                            href={sub.href}
+                            className="block px-4 py-2 text-(--puembo-black) border-b bg-muted last:border-b-0"
+                            closeMobileMenu={handleMobileToggle}
+                          >
+                            {sub.name}
+                          </SmartLink>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ) : (
+                    <SmartLink
+                      key={idx}
+                      href={item.href}
+                      className="text-white uppercase font-medium text-lg py-4 block border-b last:border-b-0"
+                      closeMobileMenu={handleMobileToggle}
+                    >
+                      {item.name}
+                    </SmartLink>
+                  )
+                )}
+                {menuItemsRight.map((item, idx) =>
+                  item.subroutes ? (
+                    <AccordionItem key={idx} value={item.name}>
+                      <AccordionTrigger className="text-white uppercase font-medium text-lg">
+                        {item.name}
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        {item.subroutes.map((sub, subIdx) => (
+                          <SmartLink
+                            key={subIdx}
+                            href={sub.href}
+                            className="block px-4 py-2 text-(--puembo-black) border-b bg-muted last:border-b-0"
+                            closeMobileMenu={handleMobileToggle}
+                          >
+                            {sub.name}
+                          </SmartLink>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ) : (
+                    <SmartLink
+                      key={idx}
+                      href={item.href}
+                      className="text-white uppercase font-medium text-lg py-4 block border-b last:border-b-0"
+                      closeMobileMenu={handleMobileToggle}
+                    >
+                      {item.name}
+                    </SmartLink>
+                  )
+                )}
+              </Accordion>
             </motion.div>
           )}
         </AnimatePresence>
