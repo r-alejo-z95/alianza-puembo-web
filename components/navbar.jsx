@@ -139,8 +139,16 @@ const DropdownMenu = ({ subroutes, mobile, closeMobileMenu }) => (
 );
 
 // Component: NavItem
-const NavItem = ({ title, href, subroutes, mobile, closeMobileMenu }) => {
-  const [open, setOpen] = useState(false);
+const NavItem = ({
+  title,
+  href,
+  subroutes,
+  mobile,
+  closeMobileMenu,
+  openSubmenu,
+  setOpenSubmenu,
+}) => {
+  const isOpen = openSubmenu === title;
 
   const baseClasses = cn(
     "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 lg:mt-2 xl:mt-0 2xl:mt-4 rounded-md cursor-pointer",
@@ -152,29 +160,46 @@ const NavItem = ({ title, href, subroutes, mobile, closeMobileMenu }) => {
     return (
       <div
         className="relative w-full"
-        onMouseEnter={() => !mobile && setOpen(true)}
-        onMouseLeave={() => !mobile && setOpen(false)}
+        onMouseEnter={() => !mobile && setOpenSubmenu(title)}
+        onMouseLeave={() => !mobile && setOpenSubmenu(null)}
       >
-        <div className={baseClasses} onClick={() => setOpen((prev) => !prev)}>
+        <div
+          className={baseClasses}
+          onClick={() => setOpenSubmenu(isOpen ? null : title)}
+        >
           <span>{title}</span>
           <ChevronDown className="ml-2 h-4 w-4" />
         </div>
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-            >
+        {mobile ? (
+          // Renderizar directamente sin animación en el menú móvil
+          isOpen && (
+            <div className="w-full bg-white rounded-md">
               <DropdownMenu
                 subroutes={subroutes}
                 mobile={mobile}
                 closeMobileMenu={closeMobileMenu}
               />
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          )
+        ) : (
+          // Usar animación en pantallas grandes
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <DropdownMenu
+                  subroutes={subroutes}
+                  mobile={mobile}
+                  closeMobileMenu={closeMobileMenu}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
       </div>
     );
   }
@@ -191,7 +216,13 @@ const NavItem = ({ title, href, subroutes, mobile, closeMobileMenu }) => {
 };
 
 // Component: NavMenu
-const NavMenu = ({ items, mobile, closeMobileMenu }) => (
+const NavMenu = ({
+  items,
+  mobile,
+  closeMobileMenu,
+  openSubmenu,
+  setOpenSubmenu,
+}) => (
   <nav
     className={cn(
       "items-center gap-8",
@@ -206,6 +237,8 @@ const NavMenu = ({ items, mobile, closeMobileMenu }) => (
         subroutes={item.subroutes}
         mobile={mobile}
         closeMobileMenu={closeMobileMenu}
+        openSubmenu={openSubmenu}
+        setOpenSubmenu={setOpenSubmenu}
       />
     ))}
   </nav>
@@ -214,6 +247,7 @@ const NavMenu = ({ items, mobile, closeMobileMenu }) => (
 // Main Navbar
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [openSubmenu, setOpenSubmenu] = useState(null); // Estado para rastrear el submenú abierto
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const isHomepage = pathname === "/";
@@ -223,6 +257,14 @@ export default function Navbar() {
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const handleMobileToggle = () => {
+    if (mobileOpen) {
+      // Si el menú móvil se está cerrando, restablece los submenús
+      setOpenSubmenu(null);
+    }
+    setMobileOpen(!mobileOpen);
+  };
 
   const bgClass =
     scrolled || mobileOpen || !isHomepage
@@ -259,7 +301,7 @@ export default function Navbar() {
         <div className="w-full px-4 pb-2 pt-4 md:pt-6 lg:pt-2 flex items-center md:justify-between lg:justify-evenly gap-2 xl:justify-around relative">
           {/* Mobile Toggle */}
           <button
-            onClick={() => setMobileOpen(!mobileOpen)}
+            onClick={handleMobileToggle}
             className="z-20 block lg:hidden p-2.5"
           >
             {mobileOpen ? (
@@ -270,7 +312,11 @@ export default function Navbar() {
           </button>
 
           {/* Left Menu */}
-          <NavMenu items={menuItemsLeft} />
+          <NavMenu
+            items={menuItemsLeft}
+            openSubmenu={openSubmenu}
+            setOpenSubmenu={setOpenSubmenu}
+          />
 
           {/* Logo */}
           <div
@@ -289,7 +335,11 @@ export default function Navbar() {
           </div>
 
           {/* Right Menu */}
-          <NavMenu items={menuItemsRight} />
+          <NavMenu
+            items={menuItemsRight}
+            openSubmenu={openSubmenu}
+            setOpenSubmenu={setOpenSubmenu}
+          />
         </div>
 
         {/* Mobile Menu */}
@@ -305,13 +355,17 @@ export default function Navbar() {
               <NavMenu
                 items={menuItemsLeft}
                 mobile
-                closeMobileMenu={() => setMobileOpen(false)}
+                closeMobileMenu={handleMobileToggle}
+                openSubmenu={openSubmenu}
+                setOpenSubmenu={setOpenSubmenu}
               />
               <div className="mt-4" />
               <NavMenu
                 items={menuItemsRight}
                 mobile
-                closeMobileMenu={() => setMobileOpen(false)}
+                closeMobileMenu={handleMobileToggle}
+                openSubmenu={openSubmenu}
+                setOpenSubmenu={setOpenSubmenu}
               />
             </motion.div>
           )}
