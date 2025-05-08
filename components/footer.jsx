@@ -38,24 +38,26 @@ export default function Footer() {
               "text-white order-last flex flex-col text-center md:order-first"
             )}
           >
-            <div className="flex gap-1 items-center">
-              <Image
-                src="/iso-white.png"
-                alt="Isotipo Puembo"
-                width={300}
-                height={300}
-                className="size-3.5 xl:size-5"
-              />
-              <p>Puembo - {new Date().getFullYear()}</p>
+            <div className="flex flex-col items-center">
+              <div className="flex gap-1 items-center">
+                <Image
+                  src="/iso-white.png"
+                  alt="Isotipo Puembo"
+                  width={300}
+                  height={300}
+                  className="size-3.5 xl:size-5"
+                />
+                <p>Puembo - {new Date().getFullYear()}</p>
+              </div>
+              <Link href="https://github.com/r-alejo-z95">
+                <Button
+                  variant="link"
+                  className="text-white text-xs 2xl:text-base"
+                >
+                  Desarrollado por RZ
+                </Button>
+              </Link>
             </div>
-            <Link href="https://github.com/r-alejo-z95">
-              <Button
-                variant="link"
-                className="text-white text-xs 2xl:text-base"
-              >
-                Desarrollado por RZ
-              </Button>
-            </Link>
           </div>
           <div
             className={cn(
