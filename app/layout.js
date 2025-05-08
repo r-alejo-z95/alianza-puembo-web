@@ -1,4 +1,4 @@
-import Navbar from "@/components/navbar";
+import Navbar from "@/components/navbar/Navbar";
 import Footer from "@/components/footer";
 import "./globals.css";
 import { Poppins, Merriweather } from "next/font/google";
