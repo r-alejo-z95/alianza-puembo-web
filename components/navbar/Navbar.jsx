@@ -44,7 +44,7 @@ const Navbar = () => {
         bgClass
       )}
     >
-      <div className="flex flex-col pb-2 md:pb-3 lg:pb-0">
+      <div className="flex flex-col pb-2">
         {/* Social */}
         <div className="flex justify-end pt-2 pr-4 absolute right-0 z-1">
           <div className="flex gap-2 2xl:gap-4">
@@ -64,7 +64,7 @@ const Navbar = () => {
         </div>
 
         {/* Main Nav */}
-        <div className="w-full px-4 pt-4 md:pt-6 lg:pt-2 flex items-center md:justify-between lg:justify-evenly xl:justify-around gap-2 relative">
+        <div className="w-full px-4 pt-2 pb-1 lg:pb-0 flex items-center md:justify-between lg:justify-evenly xl:justify-around gap-4 relative">
           {/* Mobile Toggle */}
           <button
             onClick={toggleMobileMenu}
@@ -80,14 +80,14 @@ const Navbar = () => {
           {/* Desktop Menu */}
           <NavMenu items={leftItems} />
           {/* Logo */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0  hover:scale-110 transition duration-700">
+          <div className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0  hover:scale-105 transition duration-700">
             <Link href="/" onClick={closeMobileMenu}>
               <Image
                 src="/logo-puembo-white.png"
                 alt="Iglesia Alianza Puembo"
                 width={3991}
                 height={2592}
-                className="w-26 md:w-28 xl:w-30 2xl:w-42"
+                className="w-26 xl:w-28 2xl:w-36"
               />
             </Link>
           </div>
