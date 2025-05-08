@@ -57,7 +57,7 @@ const Navbar = () => {
                 aria-label={name}
                 className="text-white hover:text-accent"
               >
-                <Icon className="h-4 w-4 xl:h-5 xl:w-5 2xl:h-8 2xl:w-8" />
+                <Icon className="h-4 w-4 2xl:h-8 2xl:w-8" />
               </a>
             ))}
           </div>
