@@ -9,7 +9,7 @@ import {
 import SmartLink from "./SmartLink";
 
 const MobileMenu = ({ items, onLinkClick }) => (
-  <div className="w-full md:w-2/3 max-h-screen mx-auto flex flex-col px-4 overflow-y-auto lg:hidden">
+  <div className="w-full md:w-2/3 max-h-[calc(100vh-160px)] mx-auto flex flex-col px-4 overflow-y-auto lg:hidden">
     <Accordion type="single" collapsible>
       {items.map((item, idx) =>
         item.subroutes ? (
