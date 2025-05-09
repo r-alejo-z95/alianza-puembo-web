@@ -10,12 +10,7 @@ import Image from "next/image";
 
 export default function Info() {
   return (
-    <section
-      className={cn(
-        sectionPx,
-        "w-full h-[50%] py-16 text-primary overflow-hidden"
-      )}
-    >
+    <section className={cn(sectionPx, "w-full h-[50%] py-16 overflow-hidden")}>
       <div className="flex flex-col-reverse md:flex-row items-center gap-8 lg:gap-12">
         <div className="flex flex-col gap-6 flex-1">
           <h2 className={cn(subTitleSizes, "font-merriweather font-bold")}>

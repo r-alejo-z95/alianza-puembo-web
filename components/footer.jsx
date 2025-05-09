@@ -35,7 +35,7 @@ export default function Footer() {
           <div
             className={cn(
               footerTextSizes,
-              "text-white order-last flex flex-col text-center md:order-first"
+              "text-primary-foreground order-last flex flex-col text-center md:order-first"
             )}
           >
             <div className="flex flex-col items-center">
@@ -52,7 +52,7 @@ export default function Footer() {
               <Link href="https://github.com/r-alejo-z95">
                 <Button
                   variant="link"
-                  className="text-white text-xs 2xl:text-base"
+                  className="text-primary-foreground text-xs 2xl:text-base"
                 >
                   Desarrollado por RZ
                 </Button>
@@ -69,7 +69,7 @@ export default function Footer() {
               <Link
                 key={index}
                 href={link.href}
-                className="text-white hover:text-accent block duration-150"
+                className="text-primary-foreground hover:text-accent block duration-150"
               >
                 <span>{link.title}</span>
               </Link>

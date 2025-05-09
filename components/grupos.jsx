@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 export default function Grupos() {
   return (
-    <section className="w-full h-screen flex flex-col text-white bg-primary">
+    <section className="w-full h-screen flex flex-col text-primary-foreground bg-primary">
       <div className="relative w-[90%] h-[90%] mx-auto my-auto bg-[url('/groups.jpg')] bg-cover bg-center rounded-md brightness-80 contrast-70" />
       <div
         className={cn(

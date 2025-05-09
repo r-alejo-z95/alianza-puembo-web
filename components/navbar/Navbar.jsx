@@ -38,7 +38,6 @@ const Navbar = () => {
     <header
       className={cn(
         "fixed top-0 left-0 w-full z-50 transition-all duration-300",
-        !isHomepage && "relative",
         bgClass
       )}
     >

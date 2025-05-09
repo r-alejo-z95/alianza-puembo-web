@@ -13,7 +13,7 @@ export default function Hero() {
       <div
         className={cn(
           sectionPx,
-          "w-full h-full flex flex-col justify-center items-start text-white backdrop-brightness-80 backdrop-contrast-70 gap-4"
+          "w-full h-full flex flex-col justify-center items-start text-primary-foreground backdrop-brightness-80 backdrop-contrast-70 gap-4"
         )}
       >
         <div className="flex flex-col gap-2 mb-4">
