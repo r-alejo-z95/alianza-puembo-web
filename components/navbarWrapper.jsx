@@ -15,7 +15,7 @@ export default function NavbarWrapper({ children }) {
       <Navbar setNavbarHeight={setNavbarHeight} />
       <main
         style={{ marginTop: isHomepage ? 0 : navbarHeight }}
-        className="transition-all duration-300"
+        className="transition-colors "
       >
         {children}
       </main>
