@@ -5,7 +5,7 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Navbar from "./navbar/Navbar";
 
-export default function NavbarWrapper({ children }) {
+export default function NavbarWrapper() {
   const [navbarHeight, setNavbarHeight] = useState(0);
   const pathname = usePathname();
   const isHomepage = pathname === "/";
@@ -13,12 +13,10 @@ export default function NavbarWrapper({ children }) {
   return (
     <>
       <Navbar setNavbarHeight={setNavbarHeight} />
-      <main
+      <div
+        id="dynamicMargin"
         style={{ marginTop: isHomepage ? 0 : navbarHeight }}
-        className="transition-colors "
-      >
-        {children}
-      </main>
+      />
     </>
   );
 }
