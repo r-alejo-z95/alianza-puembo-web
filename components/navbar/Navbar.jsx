@@ -53,7 +53,7 @@ const Navbar = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={name}
-                className="text-white hover:text-accent"
+                className="text-primary-foreground hover:text-accent"
               >
                 <Icon className="h-4 w-4 2xl:h-8 2xl:w-8" />
               </a>
@@ -66,7 +66,7 @@ const Navbar = () => {
           {/* Mobile Toggle */}
           <button
             onClick={toggleMobileMenu}
-            className="text-white p-4 lg:hidden"
+            className="text-primary-foreground p-4 lg:hidden"
           >
             {mobileOpen ? (
               <X className="w-6 h-6" />

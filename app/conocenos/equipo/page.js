@@ -37,7 +37,7 @@ export default function Equipo() {
   ];
 
   return (
-    <section className="w-full py-16 px-4 md:px-6 lg:px-8 text-primary">
+    <section className="w-full py-16 px-4 md:px-6 lg:px-8">
       <div className="flex flex-col items-center gap-8 max-w-screen-xl mx-auto">
         <div className="flex flex-col gap-4 flex-1 mb-4">
           <h2 className="font-merriweather text-2xl md:text-4xl lg:text-5xl font-bold mx-auto">

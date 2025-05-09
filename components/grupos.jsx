@@ -29,7 +29,7 @@ export default function Grupos() {
           Tenemos un lugar para ti
         </p>
         <div className="max-w-screen mx-auto">
-          <Button variant="outline" className={btnStyles}>
+          <Button variant="secondary" className={btnStyles}>
             Conecta con un Grupo Pequeño
           </Button>
         </div>

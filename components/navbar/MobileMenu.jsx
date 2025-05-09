@@ -14,7 +14,7 @@ const MobileMenu = ({ items, onLinkClick }) => (
       {items.map((item, idx) =>
         item.subroutes ? (
           <AccordionItem key={idx} value={item.name}>
-            <AccordionTrigger className="text-white uppercase font-medium text-lg">
+            <AccordionTrigger className="text-primary-foreground uppercase font-medium text-lg">
               {item.name}
             </AccordionTrigger>
             <AccordionContent>
@@ -22,7 +22,7 @@ const MobileMenu = ({ items, onLinkClick }) => (
                 <SmartLink
                   key={subIdx}
                   href={sub.href}
-                  className="block px-4 py-4 text-primary border-b bg-muted last:border-b-0"
+                  className="block px-4 py-4 border-b border-accent-foreground bg-background last:border-b-0"
                   onClick={onLinkClick}
                 >
                   {sub.name}
@@ -34,7 +34,7 @@ const MobileMenu = ({ items, onLinkClick }) => (
           <SmartLink
             key={idx}
             href={item.href}
-            className="text-white uppercase font-medium text-lg py-4 block border-b last:border-b-0"
+            className="text-primary-foreground uppercase font-medium text-lg py-4 block border-b last:border-b-0"
             onClick={onLinkClick}
           >
             {item.name}
