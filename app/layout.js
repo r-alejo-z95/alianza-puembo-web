@@ -1,4 +1,4 @@
-import Navbar from "@/components/navbar/Navbar";
+import NavbarWrapper from "@/components/navbarWrapper";
 import Footer from "@/components/footer";
 import "./globals.css";
 import { Poppins, Merriweather } from "next/font/google";
@@ -24,7 +24,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es" className={`${poppins.variable} ${merriweather.variable}`}>
       <body className="font-poppins">
-        <Navbar />
+        <NavbarWrapper />
         {children}
         <Footer />
       </body>

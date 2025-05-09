@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,17 +13,24 @@ import MobileMenu from "./MobileMenu";
 import { socialLinks, menuItems } from "./config";
 import { cn } from "@/lib/utils";
 
-const Navbar = () => {
+const Navbar = ({ setNavbarHeight }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const isHomepage = pathname === "/";
+  const navbarRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (navbarRef.current) {
+      setNavbarHeight(navbarRef.current.offsetHeight);
+    }
+  }, [setNavbarHeight]);
 
   const leftItems = menuItems.filter((item) => item.position === "left");
   const rightItems = menuItems.filter((item) => item.position === "right");
@@ -36,6 +43,7 @@ const Navbar = () => {
 
   return (
     <header
+      ref={navbarRef}
       className={cn(
         "fixed top-0 left-0 w-full z-50 transition-all duration-300",
         bgClass
