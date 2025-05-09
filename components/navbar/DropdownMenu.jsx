@@ -12,10 +12,10 @@ const DropdownMenu = ({ subroutes, mobile, onLinkClick }) => (
       <SmartLink
         key={i}
         href={sub.href}
-        className={`block px-4 py-3 rounded-sm transition-colors ${
+        className={`block px-4 py-3 rounded-md transition-colors ${
           mobile
-            ? "border-b border-accent/50"
-            : "uppercase text-sm hover:bg-accent/50"
+            ? "border-b border-accent"
+            : "uppercase text-sm hover:bg-accent"
         }`}
         onClick={onLinkClick}
       >

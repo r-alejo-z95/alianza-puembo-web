@@ -22,7 +22,7 @@ const MobileMenu = ({ items, onLinkClick }) => (
                 <SmartLink
                   key={subIdx}
                   href={sub.href}
-                  className="block px-4 py-4 text-(--puembo-black) border-b bg-muted last:border-b-0"
+                  className="block px-4 py-4 text-primary border-b bg-muted last:border-b-0"
                   onClick={onLinkClick}
                 >
                   {sub.name}

@@ -32,9 +32,7 @@ const Navbar = () => {
   const closeMobileMenu = () => setMobileOpen(false);
 
   const bgClass =
-    scrolled || mobileOpen || !isHomepage
-      ? "bg-(--puembo-black)"
-      : "bg-transparent";
+    scrolled || mobileOpen || !isHomepage ? "bg-primary" : "bg-transparent";
 
   return (
     <header
@@ -103,7 +101,7 @@ const Navbar = () => {
             animate={{ height: "auto" }}
             exit={{ height: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden bg-(--puembo-black)"
+            className="overflow-hidden bg-primary"
           >
             <MobileMenu items={menuItems} onLinkClick={closeMobileMenu} />
           </motion.div>

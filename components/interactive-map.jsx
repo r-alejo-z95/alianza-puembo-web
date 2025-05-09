@@ -67,7 +67,7 @@ export default function GoogleMapView() {
 
   return (
     <div>
-      <div className="w-[280px] md:w-full aspect-[3/2] mx-auto rounded-lg overflow-hidden flex">
+      <div className="w-[280px] md:w-full aspect-[3/2] mx-auto rounded-md overflow-hidden flex">
         <GoogleMap
           mapContainerStyle={containerStyle}
           center={centerMap}

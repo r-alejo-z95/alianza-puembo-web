@@ -94,7 +94,7 @@ export default function QueCreemos() {
             enfocado en vivir y proclamar el evangelio de Jesucristo al mundo,
             con una vida centrada en Él y una misión clara hacia las naciones.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-5xl text-(--puembo-black)">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-5xl text-primary">
             {beleifs.map((beleif, index) => {
               return (
                 <Card

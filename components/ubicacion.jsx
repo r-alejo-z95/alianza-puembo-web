@@ -10,9 +10,7 @@ import {
 
 export default function Ubicacion() {
   return (
-    <section
-      className={cn(sectionPx, "w-full h-[50%] py-16 text-(--puembo-black)")}
-    >
+    <section className={cn(sectionPx, "w-full h-[50%] py-16 text-primary")}>
       <div className="mx-auto flex flex-col gap-8">
         <h2
           className={cn(

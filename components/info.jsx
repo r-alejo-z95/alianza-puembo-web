@@ -13,7 +13,7 @@ export default function Info() {
     <section
       className={cn(
         sectionPx,
-        "w-full h-[50%] py-16 text-(--puembo-black) overflow-hidden"
+        "w-full h-[50%] py-16 text-primary overflow-hidden"
       )}
     >
       <div className="flex flex-col-reverse md:flex-row items-center gap-8 lg:gap-12">
@@ -32,7 +32,7 @@ export default function Info() {
             </Button>
           </div>
         </div>
-        <div className="relative max-w-full w-full md:w-[300px] lg:w-[500px] xl:w-[700px] 2xl:w-[900px] 3xl:w-[1100px] 4xl:w-[1300px] 5xl:w-[1500px] aspect-[3/2] rounded-lg overflow-hidden flex-shrink-0">
+        <div className="relative max-w-full w-full md:w-[300px] lg:w-[500px] xl:w-[700px] 2xl:w-[900px] 3xl:w-[1100px] 4xl:w-[1300px] 5xl:w-[1500px] aspect-[3/2] rounded-md overflow-hidden flex-shrink-0">
           <Image
             src="/info-section.jpg"
             alt="Mujer abrazando a otra"

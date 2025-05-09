@@ -12,7 +12,7 @@ const NavItem = ({ title, href, subroutes, mobile, onLinkClick }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const baseClasses = cn(
-    "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 lg:mt-2 xl:mt-0 2xl:mt-4 rounded-md cursor-pointer hover:bg-accent/50 lg:hover:bg-transparent lg:hover:text-accent",
+    "flex items-center uppercase font-medium text-white transition-colors w-full justify-between px-4 py-3 lg:px-0 lg:py-0 lg:mt-2 xl:mt-0 2xl:mt-4 rounded-md cursor-pointer hover:bg-accent lg:hover:bg-transparent lg:hover:text-accent",
     headerTextSizes
   );
 

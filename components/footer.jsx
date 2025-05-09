@@ -29,7 +29,7 @@ const links = [
 
 export default function Footer() {
   return (
-    <footer className="bg-(--puembo-black) py-8">
+    <footer className="bg-primary py-8">
       <div className="mx-auto w-[80%] px-6">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <div
