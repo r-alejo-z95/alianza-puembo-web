@@ -9,7 +9,7 @@ import {
 
 export default function Hero() {
   return (
-    <section className="relative w-full h-screen bg-[url('/Hero.jpg')] bg-cover bg-top bg-no-repeat">
+    <section className="relative w-full h-screen bg-[url('/Hero.gif')] bg-cover bg-top bg-no-repeat">
       <div
         className={cn(
           sectionPx,
