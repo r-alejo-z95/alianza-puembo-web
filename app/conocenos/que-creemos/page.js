@@ -81,7 +81,7 @@ export default function QueCreemos() {
                       <h3 className="font-merriweather text-xl md:text-3xl lg:text-4xl font-bold mx-auto text-center">
                         {value.name}
                       </h3>
-                      <div className="text-sm md:text-base lg:text-lg mx-8 lg:mx-12 text-justify">
+                      <div className="text-sm md:text-base lg:text-lg mx-8 lg:mx-12 ">
                         {value.detail}
                       </div>
                     </div>
