@@ -32,6 +32,7 @@ export default function QueCreemos() {
       verse:
         "¡En ningún otro hay salvación! Dios no ha dado ningún otro nombre bajo el cielo, mediante el cual podamos ser salvos.",
       citation: "–Hechos 4:12",
+      image: "Salvador.png",
     },
     {
       name: "Cristo nuestro Santificador",
@@ -40,6 +41,7 @@ export default function QueCreemos() {
       verse:
         "Cristo nos hizo justos ante Dios; nos hizo puros y santos y nos liberó del pecado.",
       citation: "–1 Corintios 1:30",
+      image: "Santificador.png",
     },
     {
       name: "Cristo nuestro Sanador",
@@ -48,6 +50,7 @@ export default function QueCreemos() {
       verse:
         "Una oración ofrecida con fe sanará al enfermo, y el Señor hará que se recupere; y si ha cometido pecados, será perdonado.",
       citation: "–Santiago 5:15",
+      image: "Sanador.png",
     },
     {
       name: "Cristo nuestro Rey que viene",
@@ -56,6 +59,7 @@ export default function QueCreemos() {
       verse:
         "Y ustedes verán al Hijo del Hombre sentado en el lugar de poder, a la derecha de Dios, y viniendo en las nubes del cielo.",
       citation: "–Marcos 14:62",
+      image: "Rey.png",
     },
   ];
 
@@ -102,9 +106,20 @@ export default function QueCreemos() {
               return (
                 <Card
                   key={index}
-                  className="flex flex-col gap-4 max-w-md w-full mx-auto hover:scale-105 transition-transform duration-300 ease-in-out"
+                  className="flex flex-col gap-4 max-w-md w-full mx-auto hover:scale-105 cursor-default transition-transform duration-700 ease-in-out relative overflow-hidden"
                 >
-                  <div className="flex flex-col gap-2 mx-8">
+                  <div
+                    className="absolute inset-0 z-0 m-4"
+                    style={{
+                      backgroundImage: `url('/${beleif.image}')`,
+                      backgroundSize: "contain",
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "center",
+                      opacity: 0.5,
+                    }}
+                  />
+
+                  <div className="flex flex-col gap-2 mx-8 relative z-10">
                     <h3 className="font-merriweather text-lg md:text-xl lg:text-2xl font-bold text-center">
                       {beleif.name}
                     </h3>
