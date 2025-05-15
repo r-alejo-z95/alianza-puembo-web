@@ -30,36 +30,39 @@ export default function QueCreemos() {
       detail:
         "Jesús es el único camino hacia Dios. A través de su muerte y resurrección, ofrece perdón y vida eterna a todos los que creen.",
       verse:
-        "... porque no hay otro nombre bajo el cielo, dado a los hombres, en que podamos ser salvos.",
+        "¡En ningún otro hay salvación! Dios no ha dado ningún otro nombre bajo el cielo, mediante el cual podamos ser salvos.",
       citation: "–Hechos 4:12",
     },
     {
       name: "Cristo nuestro Santificador",
       detail:
         "Después de salvarnos, Cristo nos transforma por medio del Espíritu Santo, guiándonos a una vida santa y obediente.",
-      verse: "Porque esta es la voluntad de Dios: vuestra santificación...",
-      citation: "–1 Tesalonicenses 4:3",
+      verse:
+        "Cristo nos hizo justos ante Dios; nos hizo puros y santos y nos liberó del pecado.",
+      citation: "–1 Corintios 1:30",
     },
     {
       name: "Cristo nuestro Sanador",
       detail:
         "Creemos que Jesús también sana nuestras enfermedades conforme a su voluntad, como parte de su obra redentora.",
-      verse: "Por sus heridas fuimos nosotros sanados.",
-      citation: "–Isaías 53:5",
+      verse:
+        "Una oración ofrecida con fe sanará al enfermo, y el Señor hará que se recupere; y si ha cometido pecados, será perdonado.",
+      citation: "–Santiago 5:15",
     },
     {
       name: "Cristo nuestro Rey que viene",
       detail:
         "Jesús volverá con poder y gloria. Su regreso es nuestra esperanza y nos llama a vivir con fe, propósito y urgencia.",
-      verse: "Este mismo Jesús... vendrá así como le habéis visto ir al cielo.",
-      citation: "–Hechos 1:11",
+      verse:
+        "Y ustedes verán al Hijo del Hombre sentado en el lugar de poder, a la derecha de Dios, y viniendo en las nubes del cielo.",
+      citation: "–Marcos 14:62",
     },
   ];
 
   return (
-    <section className="w-full h-full bg-[url('/familia-de-familias.jpg')] bg-fixed bg-cover bg-top bg-no-repeat">
-      <div className="flex flex-col items-center gap-12 py-16 px-4 md:px-6 lg:px-8 mx-auto backdrop-brightness-80 backdrop-contrast-70">
-        <div className="flex flex-col gap-8 flex-1 text-primary-foreground">
+    <section className="w-full h-full">
+      <div className="flex flex-col items-center gap-12 py-16 px-4 md:px-6 lg:px-8 mx-auto">
+        <div className="flex flex-col gap-8 flex-1">
           <h2 className="font-merriweather text-2xl md:text-4xl lg:text-5xl font-bold mx-auto">
             Somos una Familia de familias
           </h2>
@@ -89,7 +92,7 @@ export default function QueCreemos() {
           </div>
         </div>
         <div className="flex flex-col gap-6 flex-1 items-center max-w-screen-xl mx-auto">
-          <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-justify text-primary-foreground">
+          <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-justify">
             Formamos parte de la Alianza Cristiana y Misionera, un movimiento
             enfocado en vivir y proclamar el evangelio de Jesucristo al mundo,
             con una vida centrada en Él y una misión clara hacia las naciones.
@@ -99,7 +102,7 @@ export default function QueCreemos() {
               return (
                 <Card
                   key={index}
-                  className="flex flex-col gap-4 max-w-md w-full mx-auto"
+                  className="flex flex-col gap-4 max-w-md w-full mx-auto hover:scale-105 transition-transform duration-300 ease-in-out"
                 >
                   <div className="flex flex-col gap-2 mx-8">
                     <h3 className="font-merriweather text-lg md:text-xl lg:text-2xl font-bold text-center">
