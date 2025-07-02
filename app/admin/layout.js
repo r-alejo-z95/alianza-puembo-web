@@ -1,7 +1,10 @@
+'use client';
 
-import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
-import { Home, Calendar, BookOpen, HandHelping } from "lucide-react";
+import { Home, Calendar, BookOpen, HandHelping, Settings } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 const navLinks = [
   { href: "/admin", label: "Inicio", icon: Home },
@@ -11,6 +14,13 @@ const navLinks = [
 ];
 
 export default function AdminLayout({ children }) {
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <aside className="w-64 bg-(--puembo-green) text-white p-4 flex flex-col">
@@ -28,7 +38,14 @@ export default function AdminLayout({ children }) {
             <Home className="h-5 w-5" />
             Ir a Página Principal
           </Link>
-          <UserButton signOutFallbackRedirectUrl="/" />
+          <Button variant="ghost" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors justify-start text-white">
+            <Settings className="h-5 w-5" />
+            Preferencias
+          </Button>
+          <Button variant="ghost" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors justify-start text-white" onClick={handleSignOut}>
+            <Home className="h-5 w-5" />
+            Cerrar Sesión
+          </Button>
         </div>
       </aside>
       <main className="flex-1 p-8">
