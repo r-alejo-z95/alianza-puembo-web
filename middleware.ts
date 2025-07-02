@@ -1,16 +1,36 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { createServerClient } from '@supabase/ssr';
 
-const isProtectedRoute = createRouteMatcher(["/admin(.*)"]);
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        get: (name) => req.cookies.get(name)?.value,
+        set: (name, value, options) => {
+          req.cookies.set({ name, value, ...options });
+          res.cookies.set({ name, value, ...options });
+        },
+        remove: (name, options) => {
+          req.cookies.set({ name, value: '', ...options });
+          res.cookies.set({ name, value: '', ...options });
+        },
+      },
+    }
+  );
 
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) await auth.protect()
-})
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (req.nextUrl.pathname.startsWith('/admin') && !session) {
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+
+  return res;
+}
 
 export const config = {
-  matcher: [
-    // Excluye /_next, /api, /trpc, /static y /public
-    '/((?!.+\.[\w]+$|_next).*)',
-    // Incluye /api, /trpc y rutas que no tienen extensión de archivo
-    '/(api|trpc)(.*)',
-  ],
+  matcher: ['/admin/:path*'],
 };

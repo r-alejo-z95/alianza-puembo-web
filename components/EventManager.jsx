@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +14,6 @@ export default function EventManager() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const { getToken } = useAuth();
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -36,17 +34,8 @@ export default function EventManager() {
     fetchEvents();
   }, []);
 
-  // Sets the Clerk-generated Supabase token for the current Supabase client instance
-  const setSupabaseAuth = async () => {
-    const token = await getToken({ template: 'supabase' });
-    if (token) {
-      supabase.auth.setSession({ access_token: token });
-    }
-    return supabase;
-  }
-
   const handleSave = async (eventData, posterFile) => {
-    await setSupabaseAuth();
+    const { data: { user } } = await supabase.auth.getUser();
     let poster_url = selectedEvent?.poster_url || null;
 
     if (posterFile) {
@@ -70,7 +59,8 @@ export default function EventManager() {
       const { error } = await supabase.from('events').update(dataToSave).eq('id', selectedEvent.id);
       if (error) console.error('Error updating event:', error);
     } else {
-      const { error } = await supabase.from('events').insert([dataToSave]);
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from('events').insert([{ ...dataToSave, user_id: user?.id }]);
       if (error) console.error('Error creating event:', error);
     }
     setIsFormOpen(false);
@@ -78,7 +68,6 @@ export default function EventManager() {
   };
 
   const handleDelete = async (eventId) => {
-    await setSupabaseAuth();
     const { error } = await supabase.from('events').delete().eq('id', eventId);
     if (error) console.error('Error deleting event:', error);
     fetchEvents();
