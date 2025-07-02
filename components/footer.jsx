@@ -68,11 +68,17 @@ export default function Footer() {
             <div>
               <SignedOut>
                 <Button variant="secondary" size="sm" asChild>
-                  <SignInButton className="cursor-pointer" />
+                  <SignInButton className="cursor-pointer">
+                    Admin Dashboard
+                  </SignInButton>
                 </Button>
               </SignedOut>
               <SignedIn>
-                <UserButton />
+                <Link href="/admin">
+                  <Button variant="secondary" size="sm">
+                    Admin Dashboard
+                  </Button>
+                </Link>
               </SignedIn>
             </div>
           </div>
