@@ -1,5 +1,5 @@
 import UserCalendar from '@/components/UserCalendar';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { mainTitleSizes, sectionPx } from '@/lib/styles';
 
@@ -8,7 +8,7 @@ async function getEvents() {
   // La política de RLS permite que cualquiera lea los eventos, por lo que no se necesita autenticación aquí.
   const { data, error } = await supabase
     .from('events')
-    .select('id, title, start_time, end_time');
+    .select('id, title, description, start_time, end_time');
 
   if (error) {
     console.error('Error fetching events from Supabase:', error);
@@ -31,9 +31,6 @@ export default async function CalendarPage() {
 
   return (
     <div className={cn(sectionPx, "py-16 md:py-24 lg:py-32")}>
-       <h1 className={cn(mainTitleSizes, "text-center mb-12 font-merriweather font-bold")}>
-          Calendario de Eventos
-        </h1>
       <UserCalendar events={events} />
     </div>
   );

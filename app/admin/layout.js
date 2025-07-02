@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Home, Calendar, BookOpen, HandHelping, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 
 const navLinks = [
@@ -18,7 +18,7 @@ export default function AdminLayout({ children }) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push('/');
   };
 
   return (

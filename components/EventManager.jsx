@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -41,19 +41,24 @@ export default function EventManager() {
     if (posterFile) {
       const fileName = `${Date.now()}_${posterFile.name}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('posters')
+        .from('event-posters')
         .upload(fileName, posterFile);
 
       if (uploadError) {
         console.error('Error uploading poster:', uploadError);
         return;
       } else {
-        const { data: urlData } = supabase.storage.from('posters').getPublicUrl(uploadData.path);
+        const { data: urlData } = supabase.storage.from('event-posters').getPublicUrl(uploadData.path);
         poster_url = urlData.publicUrl;
       }
     }
 
-    const dataToSave = { ...eventData, poster_url };
+    const dataToSave = {
+      ...eventData,
+      start_time: new Date(eventData.start_time).toISOString(),
+      end_time: eventData.end_time ? new Date(eventData.end_time).toISOString() : null,
+      poster_url
+    };
 
     if (selectedEvent) {
       const { error } = await supabase.from('events').update(dataToSave).eq('id', selectedEvent.id);

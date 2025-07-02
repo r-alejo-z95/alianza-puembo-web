@@ -36,8 +36,8 @@ export default function EventForm({ event, onSave, onCancel }) {
     defaultValues: {
       title: event?.title || '',
       description: event?.description || '',
-      start_time: event?.start_time ? new Date(event.start_time).toISOString().substring(0, 16) : '',
-      end_time: event?.end_time ? new Date(event.end_time).toISOString().substring(0, 16) : '',
+      start_time: event?.start_time ? new Date(event.start_time).toLocaleString('sv').substring(0, 16) : '',
+      end_time: event?.end_time ? new Date(event.end_time).toLocaleString('sv').substring(0, 16) : '',
     },
   });
 
