@@ -1,3 +1,4 @@
+'use client'
 import { Button } from "./ui/button";
 import {
   btnStyles,
@@ -7,10 +8,16 @@ import {
 } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { motion } from 'framer-motion';
 
 export default function Info() {
   return (
-    <section className={cn(sectionPx, "w-full h-[50%] py-16 overflow-hidden")}>
+    <motion.section 
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.8, ease: "easeInOut" }}
+      className={cn(sectionPx, "w-full h-[50%] py-16 overflow-hidden")}>
       <div className="flex flex-col-reverse md:flex-row items-center gap-8 lg:gap-12">
         <div className="flex flex-col gap-6 flex-1">
           <h2 className={cn(subTitleSizes, "font-merriweather font-bold")}>
@@ -36,6 +43,6 @@ export default function Info() {
           />
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }
