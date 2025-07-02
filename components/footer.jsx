@@ -3,6 +3,13 @@ import Image from "next/image";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { footerTextSizes } from "@/lib/styles";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from "@clerk/nextjs";
 
 const links = [
   {
@@ -57,6 +64,16 @@ export default function Footer() {
                   Desarrollado por RZ
                 </Button>
               </Link>
+            </div>
+            <div>
+              <SignedOut>
+                <Button variant="secondary" size="sm" asChild>
+                  <SignInButton className="cursor-pointer" />
+                </Button>
+              </SignedOut>
+              <SignedIn>
+                <UserButton />
+              </SignedIn>
             </div>
           </div>
           <div

@@ -1,3 +1,3 @@
-export default function ContactoLayout({ children }) {
-  return <section className="">{children}</section>;
+export default function ContactLayout({ children }) {
+  return <main>{children}</main>;
 }

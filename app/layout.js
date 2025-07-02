@@ -2,6 +2,8 @@ import NavbarWrapper from "@/components/navbarWrapper";
 import Footer from "@/components/footer";
 import "./globals.css";
 import { Poppins, Merriweather } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
+import { esMX } from "@clerk/localizations";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -22,12 +24,17 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es" className={`${poppins.variable} ${merriweather.variable}`}>
-      <body className="font-poppins">
-        <NavbarWrapper />
-        {children}
-        <Footer />
-      </body>
-    </html>
+    <ClerkProvider localization={esMX}>
+      <html
+        lang="es"
+        className={`${poppins.variable} ${merriweather.variable}`}
+      >
+        <body className="font-poppins">
+          <NavbarWrapper />
+          {children}
+          <Footer />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
