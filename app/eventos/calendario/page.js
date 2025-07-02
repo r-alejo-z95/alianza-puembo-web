@@ -1,46 +1,33 @@
 import UserCalendar from '@/components/UserCalendar';
+import { supabase } from '@/lib/supabaseClient';
 import { cn } from '@/lib/utils';
 import { mainTitleSizes, sectionPx } from '@/lib/styles';
 
-// --- Simulación de obtención de datos --- 
-// En una aplicación real, esto vendría de tu base de datos.
-async function getEventsFromDatabase() {
-  // Simula un retardo de red
-  await new Promise(resolve => setTimeout(resolve, 500));
+// --- Obtención de datos reales desde Supabase ---
+async function getEvents() {
+  // La política de RLS permite que cualquiera lea los eventos, por lo que no se necesita autenticación aquí.
+  const { data, error } = await supabase
+    .from('events')
+    .select('id, title, start_time, end_time');
 
-  const events = [
-    {
-      id: '1',
-      title: 'Servicio Dominical',
-      start: '2025-07-06T10:00:00',
-      end: '2025-07-06T11:30:00',
-    },
-    {
-      id: '2',
-      title: 'Servicio Dominical',
-      start: '2025-07-06T12:00:00',
-      end: '2025-07-06T13:30:00',
-    },
-    {
-      id: '3',
-      title: 'Reunión de Jóvenes',
-      start: '2025-07-12T18:00:00',
-      end: '2025-07-12T20:00:00',
-    },
-    {
-      id: '4',
-      title: 'Estudio Bíblico Semanal',
-      start: '2025-07-09T19:00:00',
-      end: '2025-07-09T20:30:00',
-    },
-  ];
+  if (error) {
+    console.error('Error fetching events from Supabase:', error);
+    return [];
+  }
 
-  return events;
+  // FullCalendar espera las propiedades 'start' y 'end', 
+  // así que mapeamos los nombres de las columnas de la base de datos.
+  return data.map(event => ({
+    id: event.id,
+    title: event.title,
+    start: event.start_time,
+    end: event.end_time,
+  }));
 }
-// --- Fin de la simulación ---
+// --- Fin de la obtención de datos ---
 
 export default async function CalendarPage() {
-  const events = await getEventsFromDatabase();
+  const events = await getEvents();
 
   return (
     <div className={cn(sectionPx, "py-16 md:py-24 lg:py-32")}>
