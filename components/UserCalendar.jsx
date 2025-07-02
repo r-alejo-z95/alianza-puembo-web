@@ -28,6 +28,10 @@ export default function UserCalendar({ events }) {
           minute: '2-digit',
           meridiem: 'short'
         }}
+        eventDidMount={(info) => {
+          // Añade un tooltip con el título completo del evento
+          info.el.title = info.event.title;
+        }}
       />
     </div>
   );
