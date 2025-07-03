@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { BookOpenText } from "lucide-react";
+import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 export default function QueCreemos() {
   const values = [
@@ -64,12 +65,12 @@ export default function QueCreemos() {
   ];
 
   return (
-    <section className="container mx-auto px-4 py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold tracking-tight font-merriweather">
+    <section className={pageSection}>
+      <div className={pageHeaderContainer}>
+        <h1 className={pageTitle}>
           Somos una Familia de familias
         </h1>
-        <p className="mt-4 text-lg text-muted-foreground">
+        <p className={pageDescription}>
           Dios nos dió una Misión y una Visión para Su Gloria.
         </p>
       </div>
@@ -120,7 +121,7 @@ export default function QueCreemos() {
                   />
 
                   <div className="flex flex-col gap-2 mx-8 relative z-10">
-                    <h3 className="font-merriweather text-lg md:text-xl lg:text-2xl font-bold text-center">
+                    <h3 className={sectionTitle}>
                       {beleif.name}
                     </h3>
                     <p className="text-xs md:text-sm lg:text-base text-justify">

@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
+import { cn } from "@/lib/utils";
 
 export default function Equipo() {
   const team = [
@@ -35,12 +37,12 @@ export default function Equipo() {
   ];
 
   return (
-    <section className="container mx-auto px-4 py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold tracking-tight font-merriweather">
+    <section className={pageSection}>
+      <div className={pageHeaderContainer}>
+        <h1 className={pageTitle}>
           Equipo Ministerial
         </h1>
-        <p className="mt-4 text-lg text-muted-foreground">
+        <p className={pageDescription}>
           Conoce al equipo que lidera nuestra Iglesia
         </p>
       </div>
@@ -72,9 +74,9 @@ export default function Equipo() {
             return (
               <div
                 key={index}
-                className={`flex flex-col gap-4 max-w-md w-full mx-auto ${
+                className={cn("flex flex-col gap-4 max-w-md w-full mx-auto",
                   shouldCenter ? "sm:col-span-2 justify-self-center" : ""
-                }`}
+                )}
               >
                 <div className="relative w-full lg:w-[400px] aspect-[3/2] rounded-md overflow-hidden flex-shrink-0 mx-auto hover:scale-105 transition duration-700">
                   <Image
@@ -85,7 +87,7 @@ export default function Equipo() {
                   />
                 </div>
                 <div className="flex flex-col text-center gap-1">
-                  <h3 className="font-merriweather text-lg md:text-xl lg:text-2xl font-bold">
+                  <h3 className={sectionTitle}>
                     {member.name}
                   </h3>
                   <p className="text-xs md:text-sm lg:text-base">

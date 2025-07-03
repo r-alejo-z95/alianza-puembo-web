@@ -38,7 +38,7 @@ export default async function Lom({ searchParams }) {
         <div className="flex flex-col gap-12 w-full max-w-3xl mx-auto">
           {posts.map(post => (
             <div key={post.id} className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center">
-              <h2 className="text-3xl font-semibold mb-2 font-merriweather">{post.title}</h2>
+              <h2 className={cn(sectionTitle, "text-3xl mb-2")}>{post.title}</h2>
               <p className="text-gray-600 text-sm mb-4">
                 {new Date(post.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}
               </p>
