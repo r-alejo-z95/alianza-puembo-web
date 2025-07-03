@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import EventForm from './EventForm';
 
 export default function EventManager() {
@@ -102,7 +103,18 @@ export default function EventManager() {
               {events.map((event) => (
                 <TableRow key={event.id}>
                   <TableCell>{event.title}</TableCell>
-                  <TableCell>{event.description}</TableCell>
+                  <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>{event.description}</span>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs break-words">
+                          <p>{event.description}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
                   <TableCell>{new Date(event.start_time).toLocaleString()}</TableCell>
                   <TableCell>{new Date(event.end_time).toLocaleString()}</TableCell>
                   <TableCell>
