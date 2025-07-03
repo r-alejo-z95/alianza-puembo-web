@@ -1,11 +1,13 @@
+import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
+
 export default function PuemboKids() {
   return (
-    <section className="container mx-auto px-4 py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold tracking-tight font-merriweather">
+    <section className={pageSection}>
+      <div className={pageHeaderContainer}>
+        <h1 className={pageTitle}>
           Puembo Kids
         </h1>
-        <p className="mt-4 text-lg text-muted-foreground">
+        <p className={pageDescription}>
           Un espacio divertido y seguro para que los más pequeños aprendan de Jesús.
         </p>
       </div>

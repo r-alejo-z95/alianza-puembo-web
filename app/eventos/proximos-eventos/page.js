@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers';
 import Image from 'next/image';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { cn } from '@/lib/utils';
+import { pageSection, pageHeaderContainer, pageTitle, pageDescription, sectionTitle } from "@/lib/styles";
 
 export default async function ProximosEventos() {
   const cookieStore = cookies();

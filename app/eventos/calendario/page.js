@@ -1,5 +1,6 @@
 import UserCalendar from '@/components/UserCalendar';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 // --- Obtención de datos reales desde Supabase ---
 async function getEvents() {
@@ -32,12 +33,12 @@ export default async function CalendarPage() {
   const events = await getEvents();
 
   return (
-    <section className="container mx-auto px-4 py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold tracking-tight font-merriweather">
+    <section className={pageSection}>
+      <div className={pageHeaderContainer}>
+        <h1 className={pageTitle}>
           Calendario de Eventos
         </h1>
-        <p className="mt-4 text-lg text-muted-foreground">
+        <p className={pageDescription}>
           Descubre los próximos eventos de la iglesia y marca tu calendario.
         </p>
       </div>

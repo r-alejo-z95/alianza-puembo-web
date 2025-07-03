@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
+import { pageSection, pageHeaderContainer, pageTitle, pageDescription, sectionTitle } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
 export default function Equipo() {
@@ -57,7 +57,7 @@ export default function Equipo() {
             />
           </div>
           <div className="flex flex-col gap-1 flex-1">
-            <h3 className="font-merriweather text-lg md:text-2xl lg:text-3xl font-bold mx-auto text-center">
+            <h3 className={cn(sectionTitle, "mx-auto text-center text-lg md:text-2xl lg:text-3xl font-bold")}>
               Ps. Gio Martinez
             </h3>
             <p className="text-xs md:text-sm lg:text-base mx-auto text-center">
