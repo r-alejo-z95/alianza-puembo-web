@@ -128,7 +128,7 @@ export default function QueCreemos() {
                     </p>
                     <p className="text-xs md:text-sm text-justify italic flex items-center gap-2 lg:gap-4">
                       <BookOpenText className="size-4 shrink-0" />
-                      <span>"{beleif.verse}"</span>
+                      <span>&quot;{beleif.verse}&quot;</span>
                     </p>
                     <p className="text-xs md:text-sm lg:text-base text-justify font-semibold">
                       {beleif.citation}
