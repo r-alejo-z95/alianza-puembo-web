@@ -6,11 +6,17 @@ import {
   subTitleSizes,
 } from "@/lib/styles";
 import { cn } from "@/lib/utils";
+import Image from 'next/image';
 
 export default function Grupos() {
   return (
-    <section className="w-full h-screen flex flex-col text-primary-foreground bg-primary">
-      <div className="relative w-[90%] h-[90%] mx-auto my-auto bg-[url('/groups.jpg')] bg-cover bg-center rounded-md brightness-80 contrast-70" />
+    <section className="relative w-full h-screen flex flex-col text-primary-foreground bg-primary">
+      <Image
+        src="/groups.jpg"
+        alt="Grupos Pequeños"
+        fill
+        className="object-cover brightness-80 contrast-70"
+      />
       <div
         className={cn(
           sectionPx,
