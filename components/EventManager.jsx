@@ -128,8 +128,8 @@ export default function EventManager() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableCell>
-                    <TableCell>{new Date(event.start_time).toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}</TableCell>
-                    <TableCell>{event.end_time ? new Date(event.end_time).toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : 'N/A'}</TableCell>
+                    <TableCell>{new Date(event.start_time).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</TableCell>
+                    <TableCell>{event.end_time ? new Date(event.end_time).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}</TableCell>
                     <TableCell className="w-32 max-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
                       <TooltipProvider>
                         <Tooltip>
