@@ -70,3 +70,39 @@ Sitio web para la iglesia "Alianza Puembo", desarrollado con Next.js (App Router
 -   **Manejo de Zonas Horarias**: Las fechas y horas se convierten a UTC antes de ser guardadas en Supabase y se muestran en la hora local del usuario en los formularios para evitar desfases.
 -   **Estilo de Calendario**: El calendario público (`UserCalendar`) utiliza estilos personalizados para los botones y el formato del mes, alineados con la paleta de colores de la iglesia.
 -   **Tooltip de Eventos**: Al hacer hover sobre un evento en el calendario público, se muestra un tooltip de `shadcn/ui` con el título, descripción y hora de inicio del evento.
+
+## 7. Principios de Desarrollo y Convenciones
+
+Para mantener la simplicidad, legibilidad, escalabilidad y evitar la repetición de código, se siguen los siguientes principios:
+
+-   **Estilos Unificados (`lib/styles.js`)**:
+    -   Se centralizan las clases de Tailwind CSS más comunes y repetitivas en `lib/styles.js`.
+    -   Esto incluye patrones para secciones de página (`pageSection`), contenedores de encabezado (`pageHeaderContainer`), títulos principales (`pageTitle`), descripciones de página (`pageDescription`), y títulos de secciones (`sectionTitle`, `subSectionTitle`).
+    -   Se utiliza `cn` de `clsx` para combinar condicionalmente las clases de Tailwind, manteniendo la legibilidad.
+
+-   **Componentes Reutilizables**:
+    -   Se extraen bloques de UI repetidos en componentes React separados para su reutilización.
+    -   Se hace uso extensivo de los componentes de `shadcn/ui` (`Card`, `Button`, `Input`, `Textarea`, `Checkbox`, `Label`, `Tooltip`, `AlertDialog`, `Table`, `Badge`) para una interfaz consistente y accesible.
+    -   Componentes personalizados como `ContactForm`, `PrayerRequestForm`, `RichTextEditor`, `EventManager`, `LomManager`, y `PrayerRequestManager` encapsulan funcionalidades específicas y su UI.
+
+-   **Estructura de Páginas Públicas Consistente**:
+    -   Todas las páginas públicas (excluyendo el homepage) siguen una estructura común:
+        -   Un `<section>` principal con `className={pageSection}`.
+        -   Un `<div>` para el encabezado con `className={pageHeaderContainer}`.
+        -   Un `<h1>` para el título principal con `className={pageTitle}`.
+        -   Un `<p>` opcional para la descripción con `className={pageDescription}`.
+
+-   **Manejo de Fechas Consistente**:
+    -   Las fechas se formatean de manera uniforme en toda la aplicación, utilizando `toLocaleDateString` y `toLocaleTimeString` con opciones específicas para asegurar la consistencia (ej., sin segundos, formato localizado).
+    -   Se considera la zona horaria (UTC) al recuperar y mostrar fechas para evitar desfases.
+
+-   **Uso de Fuentes**:
+    -   `Merriweather` se utiliza exclusivamente para títulos principales y subtítulos de sección (`font-merriweather`).
+    -   `Poppins` se utiliza para el cuerpo del texto y otros elementos de UI.
+
+-   **Server Actions**:
+    -   Se utilizan `Server Actions` para el manejo de formularios y la interacción con la base de datos, lo que mejora la seguridad y el rendimiento.
+
+-   **Validación y Gestión de Formularios**:
+    -   Se utiliza `Zod` para la definición de esquemas y la validación de datos de formularios.
+    -   `react-hook-form` se emplea para la gestión del estado de los formularios y la integración con la validación de `Zod`.

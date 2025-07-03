@@ -1,5 +1,6 @@
 
 import ContactForm from '@/components/ContactForm';
+import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 export default function ContactPage() {
   return (
