@@ -23,7 +23,7 @@ export default function UserCalendar({ events }) {
         editable={false} // Los usuarios no pueden editar eventos
         selectable={false} // Los usuarios no pueden seleccionar fechas para agregar eventos
         locale={esLocale} // Poner el calendario en español
-        eventColor="#3788d8"
+        eventColor="var(--puembo-green)"
         eventTimeFormat={{
           hour: 'numeric',
           minute: '2-digit',
@@ -55,6 +55,22 @@ export default function UserCalendar({ events }) {
           );
         }}
       />
+      <style jsx global>{`
+        .fc .fc-button-primary {
+          background-color: hsl(92, 45.9%, 47.8%); /* puembo-green */
+          border-color: hsl(92, 45.9%, 47.8%);
+          color: white;
+        }
+        .fc .fc-button-primary:hover {
+          background-color: hsl(92, 45.9%, 37.8%); /* Darker puembo-green */
+          border-color: hsl(92, 45.9%, 37.8%);
+        }
+        .fc .fc-button-primary:not(:disabled).fc-button-active {
+          background-color: hsl(92, 45.9%, 37.8%); /* Darker puembo-green for active state */
+          border-color: hsl(92, 45.9%, 37.8%);
+        }
+        
+      `}</style>
     </div>
   );
 }
