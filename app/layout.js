@@ -5,6 +5,7 @@ import Footer from "@/components/footer";
 import "./globals.css";
 import { Poppins, Merriweather } from "next/font/google";
 import { usePathname } from 'next/navigation';
+import { Toaster } from "@/components/ui/sonner";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function RootLayout({ children }) {
         {!isAuthRoute && <NavbarWrapper />}
         {children}
         {!isAuthRoute && <Footer />}
+        <Toaster />
       </body>
     </html>
   );
