@@ -85,62 +85,88 @@ export default function EventManager() {
         <CardTitle>Lista de Eventos</CardTitle>
         <Button onClick={() => { setSelectedEvent(null); setIsFormOpen(true); }}>Añadir Evento</Button>
       </CardHeader>
-      <CardContent>
+      <CardContent className="max-w-full">
         {loading ? (
           <p>Cargando eventos...</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Título</TableHead>
-                <TableHead>Descripción</TableHead>
-                <TableHead>Fecha de Inicio</TableHead>
-                <TableHead>Fecha de Fin</TableHead>
-                <TableHead>Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {events.map((event) => (
-                <TableRow key={event.id}>
-                  <TableCell>{event.title}</TableCell>
-                  <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span>{event.description}</span>
-                        </TooltipTrigger>
-                        <TooltipContent className="max-w-xs break-words">
-                          <p>{event.description}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </TableCell>
-                  <TableCell>{new Date(event.start_time).toLocaleString()}</TableCell>
-                  <TableCell>{new Date(event.end_time).toLocaleString()}</TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm" className="mr-2" onClick={() => { setSelectedEvent(event); setIsFormOpen(true); }}>Editar</Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm">Eliminar</Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Esto eliminará permanentemente el evento de nuestros servidores.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(event.id)}>Continuar</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table className="w-full">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-bold">Título</TableHead>
+                  <TableHead className="font-bold">Descripción</TableHead>
+                  <TableHead className="font-bold">Fecha de Inicio</TableHead>
+                  <TableHead className="font-bold">Fecha de Fin</TableHead>
+                  <TableHead className="w-32 font-bold">Póster URL</TableHead>
+                  <TableHead className="font-bold">Acciones</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {events.map((event) => (
+                  <TableRow key={event.id}>
+                    <TableCell className="overflow-hidden text-ellipsis whitespace-nowrap">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>{event.title}</span>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs break-words">
+                            <p>{event.title}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableCell>
+                    <TableCell className="overflow-hidden text-ellipsis whitespace-nowrap">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>{event.description}</span>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs break-words">
+                            <p>{event.description}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableCell>
+                    <TableCell>{new Date(event.start_time).toLocaleString()}</TableCell>
+                    <TableCell>{new Date(event.end_time).toLocaleString()}</TableCell>
+                    <TableCell className="w-32 max-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>{event.poster_url || 'N/A'}</span>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs break-words">
+                            <p>{event.poster_url || 'N/A'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableCell>
+                    <TableCell className="min-w-[150px]">
+                      <Button variant="outline" size="sm" className="mr-2" onClick={() => { setSelectedEvent(event); setIsFormOpen(true); }}>Editar</Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">Eliminar</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Esto eliminará permanentemente el evento de nuestros servidores.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(event.id)}>Continuar</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
 

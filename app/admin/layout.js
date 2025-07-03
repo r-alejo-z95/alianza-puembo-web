@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Home, Calendar, BookOpen, HandHelping } from "lucide-react";
+import { Home, Calendar, BookOpen, HandHelping, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const navLinks = [
   { href: "/admin", label: "Inicio", icon: Home },
@@ -19,6 +19,7 @@ const navLinks = [
 export default function AdminLayout({ children }) {
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -42,7 +43,8 @@ export default function AdminLayout({ children }) {
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      <aside className="w-64 bg-[hsl(92,45.9%,47.8%)] text-white p-4 flex flex-col">
+      {/* Sidebar para pantallas grandes */}
+      <aside className="hidden lg:flex lg:w-1/5 bg-[hsl(92,45.9%,47.8%)] text-white p-4 flex-col">
         <h1 className="text-2xl font-bold mb-8 text-white">Admin Dashboard</h1>
         <nav className="flex flex-col space-y-2 flex-grow">
           {navLinks.map(link => (
@@ -75,7 +77,53 @@ export default function AdminLayout({ children }) {
           </DropdownMenu>
         </div>
       </aside>
-      <main className="flex-1 p-8">
+
+      {/* Botón de menú para pantallas pequeñas */}
+      <div className="lg:hidden fixed top-4 left-4 z-50">
+        <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+          <Menu className="h-6 w-6" />
+        </Button>
+      </div>
+
+      {/* Sidebar para pantallas pequeñas (overlay) */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-(--puembo-black) bg-opacity-50 z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)}></div>
+      )}
+      <aside className={`fixed inset-y-0 left-0 w-64 bg-[hsl(92,45.9%,47.8%)] text-white p-4 flex-col z-50 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:hidden`}>
+        <h1 className="text-2xl font-bold mb-8 text-white">Admin Dashboard</h1>
+        <nav className="flex flex-col space-y-2 flex-grow">
+          {navLinks.map(link => (
+            <Link key={link.href} href={link.href} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors" onClick={() => setIsSidebarOpen(false)}>
+              <link.icon className="h-5 w-5" />
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="mt-auto flex flex-col gap-4">
+          <Link href="/" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors" onClick={() => setIsSidebarOpen(false)}>
+            <Home className="h-5 w-5" />
+            Ir a Página Principal
+          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="flex items-center gap-3 px-3 py-6 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors justify-start text-white">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="text-black">{getInitials(user?.user_metadata?.full_name || user?.email)}</AvatarFallback>
+                </Avatar>
+                <span>{user?.user_metadata?.full_name || user?.email || 'Admin'}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56">
+              <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => { router.push('/admin/preferencias'); setIsSidebarOpen(false); }}>Preferencias</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { handleSignOut(); setIsSidebarOpen(false); }}>Cerrar Sesión</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </aside>
+
+      <main className="flex-1 py-8 px-16 lg:px-8 lg:w-4/5 overflow-x-hidden">
         {children}
       </main>
     </div>
