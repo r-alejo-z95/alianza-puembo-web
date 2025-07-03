@@ -2,8 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
@@ -12,34 +11,29 @@ import NavMenu from "./NavMenu";
 import MobileMenu from "./MobileMenu";
 import { socialLinks, menuItems } from "./config";
 import { cn } from "@/lib/utils";
+import { useNavbarLogic } from "@/lib/hooks/useNavbarLogic";
 
 const Navbar = ({ setNavbarHeight }) => {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const pathname = usePathname();
-  const isHomepage = pathname === "/";
-  const navbarRef = useRef(null);
+  const {
+    mobileOpen,
+    isHomepage,
+    navbarRef,
+    bgClass,
+    toggleMobileMenu,
+    closeMobileMenu,
+    setNavbarHeight: setNavbarHeightFromHook,
+  } = useNavbarLogic();
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
+  // Pasar setNavbarHeight del hook al prop del componente padre
+  // Esto asegura que el NavbarWrapper reciba la altura correcta
   useEffect(() => {
     if (navbarRef.current) {
       setNavbarHeight(navbarRef.current.offsetHeight);
     }
-  }, [setNavbarHeight]);
+  }, [navbarRef, setNavbarHeight]);
 
   const leftItems = menuItems.filter((item) => item.position === "left");
   const rightItems = menuItems.filter((item) => item.position === "right");
-
-  const toggleMobileMenu = () => setMobileOpen((prev) => !prev);
-  const closeMobileMenu = () => setMobileOpen(false);
-
-  const bgClass =
-    scrolled || mobileOpen || !isHomepage ? "bg-primary" : "bg-transparent";
 
   return (
     <header
