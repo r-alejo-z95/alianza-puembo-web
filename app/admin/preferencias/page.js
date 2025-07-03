@@ -117,7 +117,7 @@ export default function PreferenciasPage() {
               name="full_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nombre Completo</FormLabel>
+                  <FormLabel>Nombre de Usuario</FormLabel>
                   <FormControl>
                     <Input placeholder="Tu nombre" {...field} />
                   </FormControl>
