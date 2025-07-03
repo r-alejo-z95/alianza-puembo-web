@@ -25,7 +25,7 @@ export default async function OracionPage() {
   return (
     <section className="container mx-auto px-4 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold tracking-tight">Muro de Oración</h1>
+        <h1 className="text-4xl font-bold tracking-tight font-merriweather">Muro de Oración</h1>
         <p className="mt-4 text-lg text-muted-foreground">
           Unámonos en oración. Aquí puedes compartir tus peticiones y orar por las de otros.
         </p>

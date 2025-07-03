@@ -23,17 +23,22 @@ export default async function Lom({ searchParams }) {
   const hasNewerDevocional = page > 0;
 
   return (
-    <section className={`container mx-auto px-4 py-8 flex flex-col items-center ${posts.length > 0 ? 'min-h-[calc(100vh-100px)]' : ''}`}>
-      {posts.length === 0 && (
-        <h1 className="text-4xl font-bold text-center mb-8">Devocionales LOM</h1>
-      )}
+    <section className="container mx-auto px-4 py-12">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold tracking-tight font-merriweather">
+          Devocionales LOM
+        </h1>
+        <p className="mt-4 text-lg text-muted-foreground">
+          Alimento espiritual para tu día a día.
+        </p>
+      </div>
       {posts.length === 0 ? (
         <p className="text-center text-lg min-h-[60vh] flex items-center justify-center">No hay devocionales publicados por el momento.</p>
       ) : (
-        <div className="flex flex-col gap-12 w-full max-w-3xl">
+        <div className="flex flex-col gap-12 w-full max-w-3xl mx-auto">
           {posts.map(post => (
             <div key={post.id} className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center">
-              <h2 className="text-3xl font-semibold mb-2">{post.title}</h2>
+              <h2 className="text-3xl font-semibold mb-2 font-merriweather">{post.title}</h2>
               <p className="text-gray-600 text-sm mb-4">
                 {new Date(post.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}
               </p>

@@ -1,10 +1,9 @@
 import UserCalendar from '@/components/UserCalendar';
-import { supabase } from '@/lib/supabase/client';
-import { cn } from '@/lib/utils';
-import { mainTitleSizes, sectionPx } from '@/lib/styles';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
 
 // --- Obtención de datos reales desde Supabase ---
 async function getEvents() {
+  const supabase = await createServerSupabaseClient();
   // La política de RLS permite que cualquiera lea los eventos, por lo que no se necesita autenticación aquí.
   const { data, error } = await supabase
     .from('events')
@@ -33,8 +32,16 @@ export default async function CalendarPage() {
   const events = await getEvents();
 
   return (
-    <div className={cn(sectionPx, "py-16 md:py-24 lg:py-32")}>
+    <section className="container mx-auto px-4 py-12">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold tracking-tight font-merriweather">
+          Calendario de Eventos
+        </h1>
+        <p className="mt-4 text-lg text-muted-foreground">
+          Descubre los próximos eventos de la iglesia y marca tu calendario.
+        </p>
+      </div>
       <UserCalendar events={events} />
-    </div>
+    </section>
   );
 }

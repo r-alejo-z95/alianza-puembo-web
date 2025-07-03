@@ -19,12 +19,19 @@ export default async function ProximosEventos() {
   const upcomingEvents = events.filter(event => new Date(event.start_time) >= now).slice(0, 2);
 
   return (
-    <section className="container mx-auto px-4 py-8 flex flex-col items-center">
-      <h1 className="text-4xl font-bold text-center mb-8">Próximos Eventos</h1>
+    <section className="container mx-auto px-4 py-12">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold tracking-tight font-merriweather">
+          Próximos Eventos
+        </h1>
+        <p className="mt-4 text-lg text-muted-foreground">
+          Mantente al tanto de lo que viene en nuestra comunidad.
+        </p>
+      </div>
       {upcomingEvents.length === 0 ? (
         <p className="text-center text-lg min-h-[60vh] flex items-center justify-center">No hay eventos próximamente.</p>
       ) : (
-        <div className="flex flex-col gap-12 w-full max-w-3xl">
+        <div className="flex flex-col gap-12 w-full max-w-3xl mx-auto">
           {upcomingEvents.map(event => (
             <div key={event.id} className="flex flex-col items-center text-center">
               {event.poster_url && (
@@ -38,7 +45,7 @@ export default async function ProximosEventos() {
                   />
                 </div>
               )}
-              <h2 className="text-3xl font-semibold mb-2">{event.title}</h2>
+              <h2 className="text-3xl font-semibold mb-2 font-merriweather">{event.title}</h2>
               {event.description && (
                 <p className="text-gray-700 mb-4 max-w-2xl">{event.description}</p>
               )}
