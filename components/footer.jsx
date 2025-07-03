@@ -3,6 +3,7 @@ import Image from "next/image";
 import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { footerTextSizes } from "@/lib/styles";
+import { usePathname } from "next/navigation";
 
 const links = [
   {
@@ -28,6 +29,9 @@ const links = [
 ];
 
 export default function Footer() {
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+
   return (
     <footer className="bg-primary py-8">
       <div className="mx-auto w-[80%] px-6">
@@ -49,22 +53,26 @@ export default function Footer() {
                 />
                 <p>Puembo - {new Date().getFullYear()}</p>
               </div>
-              <Link href="https://github.com/r-alejo-z95">
-                <Button
-                  variant="link"
-                  className="text-primary-foreground text-xs 2xl:text-base"
-                >
-                  Desarrollado por RZ
-                </Button>
-              </Link>
+              {isHomePage && (
+                <Link href="https://github.com/r-alejo-z95">
+                  <Button
+                    variant="link"
+                    className="text-primary-foreground text-xs 2xl:text-base"
+                  >
+                    Desarrollado por RZ
+                  </Button>
+                </Link>
+              )}
             </div>
-            <div>
-              <Link href="/admin">
-                <Button variant="secondary" size="sm">
-                  Admin Dashboard
-                </Button>
-              </Link>
-            </div>
+            {isHomePage && (
+              <div>
+                <Link href="/admin">
+                  <Button variant="secondary" size="sm">
+                    Admin
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
           <div
             className={cn(
