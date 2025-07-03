@@ -1,7 +1,57 @@
-export default function ProximosEventos() {
+import { cookies } from 'next/headers';
+import Image from 'next/image';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
+
+export default async function ProximosEventos() {
+  const cookieStore = cookies();
+  const supabase = await createServerSupabaseClient(cookieStore);
+  const { data: events, error } = await supabase
+    .from('events')
+    .select('*')
+    .order('start_time', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching events:', error);
+    return <p>Error al cargar los eventos.</p>;
+  }
+
+  const now = new Date();
+  const upcomingEvents = events.filter(event => new Date(event.start_time) >= now).slice(0, 2);
+
   return (
-    <>
-      <h1 className="text-9xl">Proximos Eventos</h1>
-    </>
+    <section className="container mx-auto px-4 py-8 flex flex-col items-center">
+      <h1 className="text-4xl font-bold text-center mb-8">Próximos Eventos</h1>
+      {upcomingEvents.length === 0 ? (
+        <p className="text-center text-lg min-h-[60vh] flex items-center justify-center">No hay eventos próximamente.</p>
+      ) : (
+        <div className="flex flex-col gap-12 w-full max-w-3xl">
+          {upcomingEvents.map(event => (
+            <div key={event.id} className="flex flex-col items-center text-center">
+              {event.poster_url && (
+                <div className="relative w-full max-w-xl h-96 mb-4">
+                  <Image
+                    src={event.poster_url}
+                    alt={event.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="rounded-lg object-contain"
+                  />
+                </div>
+              )}
+              <h2 className="text-3xl font-semibold mb-2">{event.title}</h2>
+              {event.description && (
+                <p className="text-gray-700 mb-4 max-w-2xl">{event.description}</p>
+              )}
+              <p className="text-gray-600 text-lg">
+                <span className="font-medium">Fecha:</span> {new Date(event.start_time).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+              </p>
+              <p className="text-gray-600 text-lg">
+                <span className="font-medium">Hora:</span> {new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
