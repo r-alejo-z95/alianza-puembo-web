@@ -37,7 +37,7 @@ export default async function Lom({ searchParams }) {
               <p className="text-gray-600 text-sm mb-4">
                 {new Date(post.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
-              <p className="text-gray-700 mb-4 text-justify">{post.content}</p>
+              <p className="text-gray-700 mb-4 text-justify prose max-w-none" dangerouslySetInnerHTML={{ __html: post.content }}></p>
             </div>
           ))}
           <div className="flex justify-between w-full mt-8">
