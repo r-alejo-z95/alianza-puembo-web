@@ -8,14 +8,22 @@ import {
   secondaryTextSizes,
 } from "@/lib/styles";
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 export default function Hero() {
   return (
-    <section className="relative w-full h-screen bg-[url('/Hero.gif')] bg-cover bg-top bg-no-repeat">
+    <section className="relative w-full h-screen">
+      <Image
+        src="/Hero.gif"
+        alt="Alianza Puembo Hero Background"
+        fill
+        priority
+        className="object-cover object-top"
+      />
       <div
         className={cn(
           sectionPx,
-          "w-full h-full flex flex-col justify-center items-start text-primary-foreground backdrop-brightness-80 backdrop-contrast-70 gap-4"
+          "relative z-10 w-full h-full flex flex-col justify-center items-start text-primary-foreground backdrop-brightness-80 backdrop-contrast-70 gap-4"
         )}
       >
         <motion.div 
