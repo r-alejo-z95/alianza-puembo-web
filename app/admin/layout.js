@@ -78,11 +78,11 @@ export default function AdminLayout({ children }) {
                 <span>{user?.user_metadata?.full_name || user?.email || 'Admin'}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-white text-gray-900">
-              <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push('/admin/preferencias')}>Preferencias</DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut}>Cerrar Sesión</DropdownMenuItem>
+            <DropdownMenuContent className="w-56 bg-gray-500 text-white shadow-md rounded-md">
+              <DropdownMenuLabel className="text-white font-bold">Mi Cuenta</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-gray-100" />
+              <DropdownMenuItem onClick={() => router.push('/admin/preferencias')} className="hover:bg-gray-300 text-white cursor-pointer">Preferencias</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSignOut} className="hover:bg-gray-300 text-white cursor-pointer">Cerrar Sesión</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
