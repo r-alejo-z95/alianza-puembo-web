@@ -1,11 +1,18 @@
-
 import EventManager from '@/components/EventManager';
+import { adminPageSection, adminPageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 export default function EventosPage() {
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Gestionar Eventos</h1>
+    <section className={adminPageSection}>
+      <div className={adminPageHeaderContainer}>
+        <h1 className={pageTitle}>
+          Gestionar Eventos
+        </h1>
+        <p className={pageDescription}>
+          Administra los eventos de la iglesia.
+        </p>
+      </div>
       <EventManager />
-    </div>
+    </section>
   );
 }
