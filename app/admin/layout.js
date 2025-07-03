@@ -45,7 +45,7 @@ export default function AdminLayout({ children }) {
     <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
       {/* Sidebar para pantallas grandes */}
       <aside className="hidden lg:flex lg:w-64 bg-(--puembo-green) text-white p-4 flex-col shadow-lg">
-        <div className="mb-8 flex justify-center">
+        <div className="mb-8 flex justify-center border-b border-gray-100 pb-4">
           <Link href="/admin">
             <Image
               src="/logo-puembo-white.png"
@@ -58,21 +58,21 @@ export default function AdminLayout({ children }) {
         </div>
         <nav className="flex flex-col space-y-2 flex-grow">
           {navLinks.map(link => (
-            <Link key={link.href} href={link.href} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors text-white">
+            <Link key={link.href} href={link.href} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors text-white shadow-2xl">
               <link.icon className="h-5 w-5" />
               {link.label}
             </Link>
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-4 border-t border-gray-100 pt-4">
-          <Link href="/" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors text-white">
+          <Link href="/" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors text-white shadow-2xl">
             <Home className="h-5 w-5" />
             Ir a Página Principal
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors justify-start text-white w-full">
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-8 w-8 shadow-2xl">
                   <AvatarFallback className="text-white bg-(--puembo-black) text-lg font-bold">{getInitials(user?.user_metadata?.full_name || user?.email)}</AvatarFallback>
                 </Avatar>
                 <span>{user?.user_metadata?.full_name || user?.email || 'Admin'}</span>
