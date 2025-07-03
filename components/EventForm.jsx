@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -30,6 +30,7 @@ const eventSchema = z.object({
 
 export default function EventForm({ event, onSave, onCancel }) {
   const [posterFile, setPosterFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   const form = useForm({
     resolver: zodResolver(eventSchema),
@@ -103,11 +104,22 @@ export default function EventForm({ event, onSave, onCancel }) {
         <FormItem>
           <FormLabel>Póster del Evento (Opcional)</FormLabel>
           <FormControl>
-            <Input 
-              type="file" 
-              accept="image/*" 
-              onChange={(e) => setPosterFile(e.target.files[0])} 
-            />
+            <div className="flex items-center space-x-2">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setPosterFile(e.target.files[0])}
+                className="hidden"
+                ref={fileInputRef}
+              />
+              <Button
+                type="button"
+                onClick={() => fileInputRef.current.click()}
+              >
+                Seleccionar Archivo
+              </Button>
+              {posterFile && <span className="text-sm text-gray-500">{posterFile.name}</span>}
+            </div>
           </FormControl>
           <FormMessage />
         </FormItem>
