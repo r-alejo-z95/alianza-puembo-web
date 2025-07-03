@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import RichTextEditor from '@/components/RichTextEditor';
 import {
   Form,
@@ -20,6 +19,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from 'sonner';
 
 const lomSchema = z.object({
@@ -179,9 +179,18 @@ export default function LomManager() {
                 {posts.map((post) => (
                   <TableRow key={post.id}>
                     <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                      {post.title}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>{post.title}</span>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs break-words">
+                            <p>{post.title}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </TableCell>
-                    <TableCell>{new Date(post.publication_date).toLocaleDateString(undefined, { timeZone: 'UTC' })}</TableCell>
+                    <TableCell>{new Date(post.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</TableCell>
                     <TableCell className="min-w-[150px]">
                       <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(post)}>Editar</Button>
                       <AlertDialog>
