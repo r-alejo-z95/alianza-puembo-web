@@ -45,7 +45,7 @@ export default async function ProximosEventos() {
                   />
                 </div>
               )}
-              <h2 className="text-3xl font-semibold mb-2 font-merriweather">{event.title}</h2>
+              <h2 className={cn(sectionTitle, "text-3xl mb-2")}>{event.title}</h2>
               {event.description && (
                 <p className="text-gray-700 mb-4 max-w-2xl">{event.description}</p>
               )}
