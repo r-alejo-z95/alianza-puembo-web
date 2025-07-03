@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { toast } from 'sonner';
+import { pageSection, pageHeaderContainer, pageTitle, pageDescription, adminPageSection, adminPageHeaderContainer } from "@/lib/styles";
 
 const profileSchema = z.object({
   email: z.string().email('Correo electrónico inválido.').optional().or(z.literal('')),
@@ -105,71 +106,81 @@ export default function PreferenciasPage() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Preferencias de Usuario</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="full_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nombre de Usuario</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Tu nombre" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Correo Electrónico</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="tu@ejemplo.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nueva Contraseña (dejar en blanco para no cambiar)</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="********" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirmar Nueva Contraseña</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="********" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Guardando...' : 'Guardar Cambios'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+    <section className={adminPageSection}>
+      <div className={adminPageHeaderContainer}>
+        <h1 className={pageTitle}>
+          Preferencias de Usuario
+        </h1>
+        <p className={pageDescription}>
+          Actualiza tu información de perfil y contraseña.
+        </p>
+      </div>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Actualizar Perfil</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="full_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre de Usuario</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Tu nombre" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Correo Electrónico</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="tu@ejemplo.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nueva Contraseña (dejar en blanco para no cambiar)</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="********" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirmar Nueva Contraseña</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="********" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Guardando...' : 'Guardar Cambios'}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </section>
   );
 }

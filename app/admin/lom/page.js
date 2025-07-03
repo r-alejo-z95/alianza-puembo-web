@@ -1,11 +1,18 @@
-
 import LomManager from '@/components/LomManager';
+import { adminPageSection, adminPageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 export default function LomPage() {
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Gestionar Devocionales (LOM)</h1>
+    <section className={adminPageSection}>
+      <div className={adminPageHeaderContainer}>
+        <h1 className={pageTitle}>
+          Gestionar Devocionales (LOM)
+        </h1>
+        <p className={pageDescription}>
+          Administra los devocionales de Lee, Ora, Medita.
+        </p>
+      </div>
       <LomManager />
-    </div>
+    </section>
   );
 }

@@ -1,10 +1,18 @@
 import PrayerRequestManager from '@/components/PrayerRequestManager';
+import { adminPageSection, adminPageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 export default function OracionAdminPage() {
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Gestionar Peticiones de Oración</h1>
+    <section className={adminPageSection}>
+      <div className={adminPageHeaderContainer}>
+        <h1 className={pageTitle}>
+          Gestionar Peticiones de Oración
+        </h1>
+        <p className={pageDescription}>
+          Administra las peticiones de oración recibidas.
+        </p>
+      </div>
       <PrayerRequestManager />
-    </div>
+    </section>
   );
 }
