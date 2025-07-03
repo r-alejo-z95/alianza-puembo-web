@@ -1,5 +1,3 @@
-import { Button } from "./../../../components/ui/button";
-import { landingPageBtnStyles } from "@/lib/styles";
 import Image from "next/image";
 
 export default function Equipo() {
@@ -37,16 +35,16 @@ export default function Equipo() {
   ];
 
   return (
-    <section className="w-full py-16 px-4 md:px-6 lg:px-8">
+    <section className="container mx-auto px-4 py-12">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold tracking-tight font-merriweather">
+          Equipo Ministerial
+        </h1>
+        <p className="mt-4 text-lg text-muted-foreground">
+          Conoce al equipo que lidera nuestra Iglesia
+        </p>
+      </div>
       <div className="flex flex-col items-center gap-8 max-w-screen-xl mx-auto">
-        <div className="flex flex-col gap-4 flex-1 mb-4">
-          <h2 className="font-merriweather text-2xl md:text-4xl lg:text-5xl font-bold mx-auto">
-            Equipo Ministerial
-          </h2>
-          <p className="text-base md:text-lg lg:text-xl mx-auto">
-            Conoce al equipo que lidera nuestra Iglesia
-          </p>
-        </div>
         <div className="flex flex-col gap-4 flex-1 w-full max-w-[600px]">
           <div className="relative w-full lg:w-[500px] aspect-[3/2] rounded-md overflow-hidden flex-shrink-0 mx-auto hover:scale-105 transition duration-700">
             <Image

@@ -64,35 +64,35 @@ export default function QueCreemos() {
   ];
 
   return (
-    <section className="w-full h-full">
-      <div className="flex flex-col items-center gap-12 py-16 px-4 md:px-6 lg:px-8 mx-auto">
-        <div className="flex flex-col gap-8 flex-1">
-          <h2 className="font-merriweather text-2xl md:text-4xl lg:text-5xl font-bold mx-auto">
-            Somos una Familia de familias
-          </h2>
-          <div className="flex flex-col gap-6 flex-1">
-            <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-center">
-              Dios nos dió una Misión y una Visión para Su Gloria.
-            </p>
-            <div className="flex">
-              {values.map((value, index) => {
-                return (
-                  <div
-                    key={index}
-                    className="flex flex-row gap-4 max-w-md w-full mx-auto"
-                  >
-                    <div className="flex flex-col gap-2 mx-4">
-                      <h3 className="font-merriweather text-xl md:text-3xl lg:text-4xl font-bold mx-auto text-center">
-                        {value.name}
-                      </h3>
-                      <div className="text-sm md:text-base lg:text-lg mx-8 lg:mx-12 ">
-                        {value.detail}
-                      </div>
+    <section className="container mx-auto px-4 py-12">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold tracking-tight font-merriweather">
+          Somos una Familia de familias
+        </h1>
+        <p className="mt-4 text-lg text-muted-foreground">
+          Dios nos dió una Misión y una Visión para Su Gloria.
+        </p>
+      </div>
+      <div className="flex flex-col items-center gap-12">
+        <div className="flex flex-col gap-6 flex-1">
+          <div className="flex">
+            {values.map((value, index) => {
+              return (
+                <div
+                  key={index}
+                  className="flex flex-row gap-4 max-w-md w-full mx-auto"
+                >
+                  <div className="flex flex-col gap-2 mx-4">
+                    <h3 className="font-merriweather text-xl md:text-3xl lg:text-4xl font-bold mx-auto text-center">
+                      {value.name}
+                    </h3>
+                    <div className="text-sm md:text-base lg:text-lg mx-8 lg:mx-12 ">
+                      {value.detail}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
         <div className="flex flex-col gap-6 flex-1 items-center max-w-screen-xl mx-auto">
