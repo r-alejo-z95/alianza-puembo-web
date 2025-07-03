@@ -181,7 +181,7 @@ export default function LomManager() {
                     <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
                       {post.title}
                     </TableCell>
-                    <TableCell>{new Date(post.publication_date).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(post.publication_date).toLocaleDateString(undefined, { timeZone: 'UTC' })}</TableCell>
                     <TableCell className="min-w-[150px]">
                       <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(post)}>Editar</Button>
                       <AlertDialog>

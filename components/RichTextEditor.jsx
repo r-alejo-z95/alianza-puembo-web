@@ -6,49 +6,33 @@ import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
+import CodeBlock from '@tiptap/extension-code-block';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
-import { Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code, List, ListOrdered, Heading1, Heading2, Heading3, Quote, Minus, Link as LinkIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react';
+import { Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, ListOrdered, Quote, Minus, AlignLeft, AlignCenter, AlignRight, AlignJustify, CodeSquare } from 'lucide-react';
 
 const RichTextEditor = ({ content, onChange }) => {
   const editor = useEditor({
     extensions: [
-      StarterKit,
-      Underline,
-      Link.configure({
-        openOnClick: false,
-        autolink: true,
+      StarterKit.configure({
+        heading: false,
+        code: false,
       }),
-      TextAlign.configure(),
+      Underline,
+      TextAlign.configure({
+        types: ['paragraph'],
+      }),
+      CodeBlock,
     ],
     content: content,
     immediatelyRender: false,
-    onBeforeCreate: ({ editor }) => {
-      console.log('Editor is about to be created', editor);
-    },
-    onCreate: ({ editor }) => {
-      console.log('Editor created', editor);
-    },
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
-      console.log('Editor updated', editor.getHTML());
-    },
-    onSelectionUpdate: ({ editor }) => {
-      console.log('Selection updated');
-    },
-    onTransaction: ({ editor }) => {
-      console.log('Transaction occurred');
-    },
-    onFocus: ({ editor }) => {
-      console.log('Editor focused');
-    },
-    onBlur: ({ editor }) => {
-      console.log('Editor blurred');
     },
     
     editorProps: {
       attributes: {
-        class: 'prose dark:prose-invert max-w-none focus:outline-none p-4 border rounded-md min-h-[200px]',
+        class: 'dark:prose-invert max-w-none focus:outline-none p-4 border rounded-md min-h-[200px]',
       },
     },
   });
@@ -115,32 +99,11 @@ const RichTextEditor = ({ content, onChange }) => {
           <Strikethrough className="h-4 w-4" />
         </Toggle>
         <Toggle
-          pressed={editor.isActive('code')}
-          onPressedChange={() => editor.chain().focus().toggleCode().run()}
-          aria-label="Toggle code"
+          pressed={editor.isActive('codeBlock')}
+          onPressedChange={() => editor.chain().focus().toggleCodeBlock().run()}
+          aria-label="Toggle code block"
         >
-          <Code className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive('heading', { level: 1 })}
-          onPressedChange={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          aria-label="Toggle H1"
-        >
-          <Heading1 className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive('heading', { level: 2 })}
-          onPressedChange={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          aria-label="Toggle H2"
-        >
-          <Heading2 className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive('heading', { level: 3 })}
-          onPressedChange={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          aria-label="Toggle H3"
-        >
-          <Heading3 className="h-4 w-4" />
+          <CodeSquare className="h-4 w-4" />
         </Toggle>
         <Toggle
           pressed={editor.isActive('bulletList')}
@@ -168,12 +131,6 @@ const RichTextEditor = ({ content, onChange }) => {
           aria-label="Insert horizontal rule"
         >
           <Minus className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          onPressedChange={setLink}
-          aria-label="Insert link"
-        >
-          <LinkIcon className="h-4 w-4" />
         </Toggle>
         <Toggle
           pressed={editor.isActive({ textAlign: 'left' })}
