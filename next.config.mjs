@@ -10,7 +10,9 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '**.vercel.app',
+        hostname: 'gxziassnnbwnbzfrzcnx.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/public-images/**',
       },
     ],
   },
