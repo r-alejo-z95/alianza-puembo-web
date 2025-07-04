@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createMiddlewareSupabaseClient } from './lib/supabase/middleware';
@@ -6,6 +5,9 @@ import { createMiddlewareSupabaseClient } from './lib/supabase/middleware';
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareSupabaseClient(req, res);
+
+  // Refresh session
+  await supabase.auth.getSession();
 
   const { data: { session } } = await supabase.auth.getSession();
 
