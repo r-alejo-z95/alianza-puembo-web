@@ -35,9 +35,15 @@ export default function Grupos() {
           Tenemos un lugar para ti
         </p>
         <div className="max-w-screen mx-auto">
-          <Button variant="secondary" className={btnStyles}>
-            Conecta con un Grupo Pequeño
-          </Button>
+          <a
+            href="https://forms.office.com/Pages/ResponsePage.aspx?id=TmWoelp7PUyMjKoX21uYwVMTAcOtIU5Nr5xM06Zvtd9UNURNTktFVkUwNzY5NDk4RkxNUEwxTUJBSS4u"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="secondary" className={btnStyles}>
+              Conecta con un Grupo Pequeño
+            </Button>
+          </a>
         </div>
       </div>
     </section>

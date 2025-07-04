@@ -40,8 +40,22 @@ export default function Hero() {
           </h1>
         </motion.div>
         <div className="flex flex-col md:flex-row gap-4 lg:gap-6 2xl:gap-8">
-          <Button className={btnStyles}>Visítanos</Button>
-          <Button className={btnStyles}>Servicio On-line</Button>
+          <Button
+            className={btnStyles}
+            onClick={() => {
+              const ubicacion = document.getElementById("ubicacion");
+              ubicacion?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
+            Visítanos
+          </Button>
+          <a
+            href="https://www.youtube.com/@IglesiaAlianzaPuembo"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button className={btnStyles}>Servicio On-line</Button>
+          </a>
         </div>
       </div>
     </section>
