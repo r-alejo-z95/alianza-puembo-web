@@ -57,11 +57,15 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      if (error.message === 'Invalid login credentials') {
+        setError('No estás registrado. Contacta a tu administrador.');
+      } else {
+        setError(error.message);
+      }
+      setLoading(false);
     } else {
-      // Redirección manejada por onAuthStateChange
+      router.push('/admin');
     }
-    setLoading(false);
   };
 
   return (
