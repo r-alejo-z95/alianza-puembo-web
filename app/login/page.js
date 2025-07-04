@@ -28,23 +28,16 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Verifica sesión al cargar la página
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        router.replace('/admin');
-      }
-    });
-  }, [router]);
-
-  // Escucha cambios de sesión (opcional, pero útil si hay logout/login en otras pestañas)
-  useEffect(() => {
+ useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        router.replace('/admin');
+        window.location.href = '/admin';
       }
     });
-    return () => subscription.unsubscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [router]);
 
   const form = useForm({
@@ -71,7 +64,7 @@ export default function LoginPage() {
       }
       setLoading(false);
     } else {
-      router.push('/admin');
+      window.location.href = '/admin';
     }
   };
 
