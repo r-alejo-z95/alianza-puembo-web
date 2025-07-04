@@ -8,9 +8,12 @@ const nextConfig = {
         port: '',
         pathname: '/storage/v1/object/public/event-posters/**',
       },
+      {
+        protocol: 'https',
+        hostname: '**.vercel.app',
+      },
     ],
   },
-  output: 'standalone',
 };
 
 export default nextConfig;
