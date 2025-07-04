@@ -12,7 +12,7 @@ export default function Grupos() {
   return (
     <section className="relative w-full h-screen flex flex-col text-primary-foreground bg-primary">
       <Image
-        src="/groups.jpg"
+        src="https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images//Groups.jpg"
         alt="Grupos Pequeños"
         fill
         className="object-cover brightness-80 contrast-70"
