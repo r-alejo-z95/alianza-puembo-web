@@ -6,9 +6,6 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareSupabaseClient(req, res);
 
-  // Refresh session
-  await supabase.auth.getSession();
-
   const { data: { session } } = await supabase.auth.getSession();
 
   if (req.nextUrl.pathname.startsWith('/admin') && !session) {
