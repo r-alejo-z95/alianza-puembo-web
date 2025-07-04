@@ -10,7 +10,7 @@ import {
 
 export default function Ubicacion() {
   return (
-    <section className={cn(sectionPx, "w-full h-[50%] py-16")}>
+    <section id="ubicacion" className={cn(sectionPx, "w-full h-[50%] py-16")}>
       <div className="mx-auto flex flex-col gap-8">
         <h2
           className={cn(
