@@ -1,7 +1,8 @@
 'use client';
 
+import { redirect } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -30,6 +31,8 @@ const profileSchema = z.object({
 export default function PreferenciasPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const supabase = createClient();
 
   const form = useForm({
     resolver: zodResolver(profileSchema),
@@ -88,15 +91,7 @@ export default function PreferenciasPage() {
       });
     } else {
       toast('Perfil actualizado con éxito.');
-      // Re-fetch user to update local state
-      const { data: { user: updatedUser } } = await supabase.auth.getUser();
-      setUser(updatedUser);
-      form.reset({
-        email: updatedUser.email || '',
-        full_name: updatedUser.user_metadata?.full_name || '',
-        password: '',
-        confirmPassword: '',
-      });
+      window.location.reload();
     }
     setLoading(false);
   };

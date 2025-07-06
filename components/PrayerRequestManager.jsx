@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,6 +14,8 @@ import { toast } from 'sonner';
 export default function PrayerRequestManager() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const supabase = createClient();
 
   const fetchRequests = async () => {
     setLoading(true);
