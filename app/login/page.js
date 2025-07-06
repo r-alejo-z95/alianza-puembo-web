@@ -1,44 +1,22 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { loginSchema } from '@/lib/schemas';
+import { login } from './actions';
+
+import { useState } from 'react';
+import Image from 'next/image';
+
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
-const loginSchema = z.object({
-  email: z.string().email('Correo electrónico inválido.'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres.'),
-});
-
 export default function LoginPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
- useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        window.location.href = '/admin';
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [router]);
 
   const form = useForm({
     resolver: zodResolver(loginSchema),
@@ -48,24 +26,21 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = async (values) => {
+  const onSubmit = async (data) => {
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: values.email,
-      password: values.password,
-    });
 
-    if (error) {
-      if (error.message === 'Invalid login credentials') {
-        setError('No estás registrado. Contacta a tu administrador.');
-      } else {
-        setError(error.message);
-      }
-      setLoading(false);
-    } else {
-      window.location.href = '/admin';
+    const formData = new FormData();
+    formData.append('email', data.email);
+    formData.append('password', data.password);
+
+    const result = await login(formData);
+
+    if (result?.error) {
+      setError(result.error);
     }
+
+    setLoading(false);
   };
 
   return (
@@ -93,7 +68,7 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>Correo electrónico</FormLabel>
                   <FormControl>
-                    <Input placeholder="tu@ejemplo.com" {...field} className="rounded-md" />
+                    <Input placeholder="tu@ejemplo.com" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -106,14 +81,14 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>Contraseña</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="********" {...field} className="rounded-md" />
+                    <Input type="password" placeholder="********" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full bg-[var(--puembo-green)] hover:bg-[hsl(92,45.9%,37.8%)] rounded-md" disabled={loading}>
+            <Button type="submit" className="w-full bg-[var(--puembo-green)] hover:bg-[hsl(92,45.9%,37.8%)]" disabled={loading}>
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </Button>
           </form>
