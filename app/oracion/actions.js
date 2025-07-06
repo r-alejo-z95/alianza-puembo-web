@@ -1,11 +1,12 @@
-
 'use server';
 
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
 export async function addPrayerRequest(formData) {
-  const supabase = await createServerSupabaseClient();
+  const cookieStore = cookies();
+  const supabase = await createClient(cookieStore);
 
   const name = formData.get('name');
   const request_text = formData.get('request_text');
