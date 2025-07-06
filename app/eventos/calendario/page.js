@@ -1,14 +1,16 @@
+import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 import UserCalendar from '@/components/UserCalendar';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 // --- Obtención de datos reales desde Supabase ---
 async function getEvents() {
-  const supabase = await createServerSupabaseClient();
+  const cookieStore = cookies();
+  const supabase = await createClient(cookieStore);
   // La política de RLS permite que cualquiera lea los eventos, por lo que no se necesita autenticación aquí.
   const { data, error } = await supabase
     .from('events')
-        .select('id, title, description, start_time, end_time');
+    .select('id, title, description, start_time, end_time');
 
   if (error) {
     console.error('Error fetching events from Supabase:', error);

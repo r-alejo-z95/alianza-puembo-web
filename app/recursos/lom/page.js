@@ -1,11 +1,13 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
+import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { pageSection, pageHeaderContainer, pageTitle, pageDescription, sectionTitle } from "@/lib/styles";
 
 export default async function Lom({ searchParams }) {
-  const supabase = await createServerSupabaseClient();
+  const cookieStore = cookies();
+  const supabase = await createClient(cookieStore);
   const resolvedSearchParams = await searchParams;
   const page = parseInt(resolvedSearchParams.page) || 0;
   const postsPerPage = 1;

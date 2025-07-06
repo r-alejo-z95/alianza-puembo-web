@@ -1,12 +1,12 @@
 import { cookies } from 'next/headers';
 import Image from 'next/image';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils';
 import { pageSection, pageHeaderContainer, pageTitle, pageDescription, sectionTitle } from "@/lib/styles";
 
 export default async function ProximosEventos() {
   const cookieStore = cookies();
-  const supabase = await createServerSupabaseClient(cookieStore);
+  const supabase = await createClient(cookieStore);
   const { data: events, error } = await supabase
     .from('events')
     .select('*')
