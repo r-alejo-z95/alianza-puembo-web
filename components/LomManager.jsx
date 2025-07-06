@@ -190,7 +190,7 @@ export default function LomManager() {
                         </Tooltip>
                       </TooltipProvider>
                     </TableCell>
-                    <TableCell>{new Date(post.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}</TableCell>
+                    <TableCell>{new Date(post.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</TableCell>
                     <TableCell className="min-w-[150px]">
                       <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(post)}>Editar</Button>
                       <AlertDialog>
