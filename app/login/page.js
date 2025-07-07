@@ -48,7 +48,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
         <div className="flex flex-col items-center mb-8">
           <Image
-            src="/logo-puembo.png"
+            src="/brand/logo-puembo.png"
             alt="Alianza Puembo Logo"
             width={150}
             height={150}

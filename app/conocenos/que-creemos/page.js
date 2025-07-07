@@ -33,7 +33,7 @@ export default function QueCreemos() {
       verse:
         "¡En ningún otro hay salvación! Dios no ha dado ningún otro nombre bajo el cielo, mediante el cual podamos ser salvos.",
       citation: "–Hechos 4:12",
-      image: "Salvador.png",
+      image: "/conocenos/Salvador.png",
     },
     {
       name: "Cristo nuestro Santificador",
@@ -42,7 +42,7 @@ export default function QueCreemos() {
       verse:
         "Cristo nos hizo justos ante Dios; nos hizo puros y santos y nos liberó del pecado.",
       citation: "–1 Corintios 1:30",
-      image: "Santificador.png",
+      image: "/conocenos/Santificador.png",
     },
     {
       name: "Cristo nuestro Sanador",
@@ -51,7 +51,7 @@ export default function QueCreemos() {
       verse:
         "Una oración ofrecida con fe sanará al enfermo, y el Señor hará que se recupere; y si ha cometido pecados, será perdonado.",
       citation: "–Santiago 5:15",
-      image: "Sanador.png",
+      image: "/conocenos/Sanador.png",
     },
     {
       name: "Cristo nuestro Rey que viene",
@@ -60,7 +60,7 @@ export default function QueCreemos() {
       verse:
         "Y ustedes verán al Hijo del Hombre sentado en el lugar de poder, a la derecha de Dios, y viniendo en las nubes del cielo.",
       citation: "–Marcos 14:62",
-      image: "Rey.png",
+      image: "/conocenos/que creemos/Rey.png",
     },
   ];
 

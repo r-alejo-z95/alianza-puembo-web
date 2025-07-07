@@ -40,7 +40,7 @@ export default function AdminSidebar({ user, children }) {
         <div className="mb-8 flex justify-center border-b border-gray-100 pb-4">
           <Link href="/admin">
             <Image
-              src="/logo-puembo-white.png"
+              src="/brand/logo-puembo-white.png"
               alt="Alianza Puembo Admin"
               width={150}
               height={50}
@@ -96,7 +96,7 @@ export default function AdminSidebar({ user, children }) {
           <div className="mb-8 flex justify-center border-b border-gray-100 pb-4">
             <Link href="/admin" onClick={() => setIsSidebarOpen(false)}>
               <Image
-                src="/logo-puembo-white.png"
+                src="/brand/logo-puembo-white.png"
                 alt="Alianza Puembo Admin"
                 width={150}
                 height={50}

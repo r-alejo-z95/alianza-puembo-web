@@ -82,7 +82,7 @@ const Navbar = ({ setNavbarHeight }) => {
           <div className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0  hover:scale-105 transition duration-700">
             <Link href="/" onClick={closeMobileMenu}>
               <Image
-                src="/logo-puembo-white.png"
+                src="/brand/logo-puembo-white.png"
                 alt="Iglesia Alianza Puembo"
                 width={3991}
                 height={2592}
