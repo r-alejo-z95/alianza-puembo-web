@@ -1,8 +1,8 @@
 'use client';
 
-import NavbarWrapper from "@/components/navbarWrapper";
-import Footer from "@/components/footer";
-import "./globals.css";
+import NavbarWrapper from "@/components/public/layout/NavbarWrapper";
+import Footer from "@/components/public/layout/Footer";
+import "@/app/globals.css";
 import { Poppins, Merriweather } from "next/font/google";
 import { usePathname } from 'next/navigation';
 import { Toaster } from "@/components/ui/sonner";

@@ -27,12 +27,12 @@ export default async function Lom({ searchParams }) {
   const hasNewerDevocional = page > 0;
 
   return (
-    <section className="container mx-auto px-4 py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold tracking-tight font-merriweather">
+    <section className={pageSection}>
+      <div className={pageHeaderContainer}>
+        <h1 className={pageTitle}>
           Devocionales LOM
         </h1>
-        <p className="mt-4 text-lg text-muted-foreground">
+        <p className={pageDescription}>
           Alimento espiritual para tu día a día.
         </p>
       </div>

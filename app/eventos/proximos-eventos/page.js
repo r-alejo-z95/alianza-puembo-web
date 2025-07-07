@@ -21,7 +21,7 @@ export default async function ProximosEventos() {
   const upcomingEvents = events.filter(event => new Date(event.start_time) >= now).slice(0, 2);
 
   return (
-    <section className="container mx-auto px-4 py-12">
+    <section className={pageSection}>
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold tracking-tight font-merriweather">
           Próximos Eventos

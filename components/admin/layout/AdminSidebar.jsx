@@ -136,7 +136,7 @@ export default function AdminSidebar({ user, children }) {
           </div>
         </div>
       </aside>
-      <main className="flex-1 py-8 px-16 lg:px-8 lg:w-4/5 overflow-x-hidden bg-gray-100 dark:bg-gray-900">
+      <main className="flex-1 py-8 px-12 lg:px-8 overflow-x-hidden bg-gray-100 dark:bg-gray-900">
         {children}
       </main>
     </div>

@@ -8,7 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import EventForm from './EventForm';
+import EventForm from '@/components/admin/forms/EventForm';
+import { toast } from 'sonner';
 
 export default function EventManager() {
   const [events, setEvents] = useState([]);
@@ -27,6 +28,7 @@ export default function EventManager() {
 
     if (error) {
       console.error('Error fetching events:', error);
+      toast.error('Error al cargar los eventos.');
     } else {
       setEvents(data);
     }
@@ -49,6 +51,7 @@ export default function EventManager() {
 
       if (uploadError) {
         console.error('Error uploading poster:', uploadError);
+        toast.error('Error al subir el póster del evento.');
         return;
       } else {
         const { data: urlData } = supabase.storage.from('event-posters').getPublicUrl(uploadData.path);
@@ -65,19 +68,35 @@ export default function EventManager() {
 
     if (selectedEvent) {
       const { error } = await supabase.from('events').update(dataToSave).eq('id', selectedEvent.id);
-      if (error) console.error('Error updating event:', error);
+      if (error) 
+        {console.error('Error updating event:', error)
+        toast.error('Error al actualizar el evento.');
+        } else {
+        toast.success('Evento actualizado con éxito.');
+        }
     } else {
       const { data: { user } } = await supabase.auth.getUser();
       const { error } = await supabase.from('events').insert([{ ...dataToSave, user_id: user?.id }]);
-      if (error) console.error('Error creating event:', error);
+      if (error) {
+        console.error('Error creating event:', error);
+        toast.error('Error al crear el evento.');
+      } else {
+        toast.success('Evento creado con éxito.');
+      }
     }
     setIsFormOpen(false);
     fetchEvents();
   };
 
   const handleDelete = async (eventId) => {
+
     const { error } = await supabase.from('events').delete().eq('id', eventId);
-    if (error) console.error('Error deleting event:', error);
+    if (error) {
+      console.error('Error deleting event:', error);
+      toast.error('Error al eliminar el evento.');
+    } else {
+      toast.success('Evento eliminado con éxito.');
+    }
     fetchEvents();
   };
 
@@ -99,32 +118,32 @@ export default function EventManager() {
                   <TableHead className="font-bold">Descripción</TableHead>
                   <TableHead className="font-bold">Fecha de Inicio</TableHead>
                   <TableHead className="font-bold">Fecha de Fin</TableHead>
-                  <TableHead className="w-32 font-bold">Póster URL</TableHead>
+                  <TableHead className="font-bold">Póster URL</TableHead>
                   <TableHead className="font-bold">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {events.map((event) => (
                   <TableRow key={event.id}>
-                    <TableCell className="overflow-hidden text-ellipsis whitespace-nowrap">
+                    <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span>{event.title}</span>
                           </TooltipTrigger>
-                          <TooltipContent className="max-w-xs break-words">
+                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
                             <p>{event.title}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </TableCell>
-                    <TableCell className="overflow-hidden text-ellipsis whitespace-nowrap">
+                    <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span>{event.description}</span>
                           </TooltipTrigger>
-                          <TooltipContent className="max-w-xs break-words">
+                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
                             <p>{event.description}</p>
                           </TooltipContent>
                         </Tooltip>
@@ -132,13 +151,13 @@ export default function EventManager() {
                     </TableCell>
                     <TableCell>{new Date(event.start_time).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</TableCell>
                     <TableCell>{event.end_time ? new Date(event.end_time).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}</TableCell>
-                    <TableCell className="w-32 max-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
+                    <TableCell className="max-w-48 overflow-hidden text-ellipsis whitespace-nowrap">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span>{event.poster_url || 'N/A'}</span>
                           </TooltipTrigger>
-                          <TooltipContent className="max-w-xs break-words">
+                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
                             <p>{event.poster_url || 'N/A'}</p>
                           </TooltipContent>
                         </Tooltip>

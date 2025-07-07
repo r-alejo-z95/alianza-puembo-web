@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
-import UserCalendar from '@/components/UserCalendar';
+import UserCalendar from '@/components/public/calendar/UserCalendar';
 import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 // --- Obtención de datos reales desde Supabase ---
@@ -14,7 +14,7 @@ async function getEvents() {
 
   if (error) {
     console.error('Error fetching events from Supabase:', error);
-    return [];
+    return <p>Error al cargar los eventos en el calendario.</p>;
   }
 
   // FullCalendar espera las propiedades 'start' y 'end', 

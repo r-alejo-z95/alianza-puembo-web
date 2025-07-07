@@ -1,6 +1,5 @@
 'use client';
 
-import { redirect } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useForm } from 'react-hook-form';
@@ -8,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
@@ -19,7 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { toast } from 'sonner';
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription, adminPageSection, adminPageHeaderContainer } from "@/lib/styles";
+import { pageTitle, pageDescription, adminPageSection, adminPageHeaderContainer } from "@/lib/styles";
 
 const profileSchema = z.object({
   email: z.string().email('Correo electrónico inválido.').optional().or(z.literal('')),
@@ -91,7 +89,7 @@ export default function PreferenciasPage() {
       });
     } else {
       toast('Perfil actualizado con éxito.');
-      window.location.reload();
+      window.location.href = '/admin';
     }
     setLoading(false);
   };

@@ -1,4 +1,4 @@
-import EventManager from '@/components/EventManager';
+import EventManager from '@/components/admin/managers/EventManager';
 import { adminPageSection, adminPageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 export default function EventosPage() {

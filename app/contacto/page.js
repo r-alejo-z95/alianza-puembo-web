@@ -1,13 +1,13 @@
 
-import ContactForm from '@/components/ContactForm';
+import ContactForm from '@/components/public/forms/ContactForm';
 import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 export default function ContactPage() {
   return (
-    <section className="container mx-auto px-4 py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold tracking-tight font-merriweather">Contáctanos</h1>
-        <p className="mt-4 text-lg text-muted-foreground">
+    <section className={pageSection}>
+      <div className={pageHeaderContainer}>
+        <h1 className={pageTitle}>Contáctanos</h1>
+        <p className={pageDescription}>
           Estamos aquí para servirte. Envíanos un mensaje y nos pondremos en contacto contigo.
         </p>
       </div>
