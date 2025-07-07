@@ -45,7 +45,7 @@ export default function Footer() {
             <div className="flex flex-col items-center">
               <div className="flex gap-1 items-center">
                 <Image
-                  src="/iso-white.png"
+                  src="/brand/iso-white.png"
                   alt="Isotipo Puembo"
                   width={300}
                   height={300}

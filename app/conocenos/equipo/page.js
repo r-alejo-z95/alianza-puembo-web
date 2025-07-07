@@ -7,32 +7,32 @@ export default function Equipo() {
     {
       name: "Ps. Leandro Gaitán",
       detail: "Co-Pastor",
-      image: "/familia-leandro.avif",
+      image: "/conocenos/equipo/familia-leandro.avif",
     },
     {
       name: "Iván Echeverría",
       detail: "Administrador",
-      image: "/familia-ivan.avif",
+      image: "/conocenos/familia-ivan.avif",
     },
     {
       name: "Anabel García",
       detail: "Coordinadora Ministerial Puentes",
-      image: "/familia-anabel.avif",
+      image: "/conocenos/familia-anabel.avif",
     },
     {
       name: "Fabiola Diaz",
       detail: "Coordinadora Ministerios de Apoyo",
-      image: "/familia-papo.avif",
+      image: "/conocenos/familia-papo.avif",
     },
     {
       name: "Daniela Riofrío",
       detail: "Coordinadora Ministerial Jóvenes",
-      image: "/familia-dani-r.avif",
+      image: "/conocenos/familia-dani-r.avif",
     },
     {
       name: "Daniela Andrade",
       detail: "Coordinadora Ministerial Puembo Kids",
-      image: "/familia-dani-a.avif",
+      image: "/conocenos/familia-dani-a.avif",
     },
   ];
 
@@ -50,7 +50,7 @@ export default function Equipo() {
         <div className="flex flex-col gap-4 flex-1 w-full max-w-[600px]">
           <div className="relative w-full lg:w-[500px] aspect-[3/2] rounded-md overflow-hidden flex-shrink-0 mx-auto hover:scale-105 transition duration-700">
             <Image
-              src="/familia-gio.avif"
+              src="/conocenos/equipo/familia-gio.avif"
               alt="Familia pastoral"
               fill
               className="object-cover"

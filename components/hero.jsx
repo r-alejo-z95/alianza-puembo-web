@@ -12,13 +12,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
 const heroImages = [
-  '/hero/Hero1.jpg',
-  '/hero/Hero2.jpg',
-  '/hero/Hero3.jpg',
-  '/hero/Hero4.jpg',
-  '/hero/Hero5.jpg',
-  '/hero/Hero6.jpg',
-  '/hero/Hero7.jpg',
+  '/homepage/hero/Hero1.jpg',
+  '/homepage/hero/Hero2.jpg',
+  '/homepage/hero/Hero3.jpg',
+  '/homepage/hero/Hero4.jpg',
+  '/homepage/hero/Hero5.jpg',
+  '/homepage/hero/Hero6.jpg',
+  '/homepage/hero/Hero7.jpg',
 ];
 
 export default function Hero() {
