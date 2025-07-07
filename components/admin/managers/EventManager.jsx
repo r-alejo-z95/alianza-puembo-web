@@ -125,7 +125,7 @@ export default function EventManager() {
               <TableBody>
                 {events.map((event) => (
                   <TableRow key={event.id}>
-                    <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
+                    <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>

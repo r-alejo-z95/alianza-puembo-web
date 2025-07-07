@@ -186,7 +186,7 @@ export default function LomManager() {
                           <TooltipTrigger asChild>
                             <span>{post.title}</span>
                           </TooltipTrigger>
-                          <TooltipContent className="max-w-xs break-words">
+                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
                             <p>{post.title}</p>
                           </TooltipContent>
                         </Tooltip>
