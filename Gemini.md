@@ -82,6 +82,7 @@ Para mantener la simplicidad, legibilidad, escalabilidad y evitar la repetición
 
 -   **Componentes Reutilizables**:
     -   Se extraen bloques de UI repetidos en componentes React separados para su reutilización.
+    -   Los componentes se organizan en subdirectorios `admin/` y `public/` dentro de `components/` para una mejor modularidad y claridad, reflejando su uso en el panel de administración o en las secciones públicas del sitio.
     -   Se hace uso extensivo de los componentes de `shadcn/ui` (`Card`, `Button`, `Input`, `Textarea`, `Checkbox`, `Label`, `Tooltip`, `AlertDialog`, `Table`, `Badge`) para una interfaz consistente y accesible.
     -   Componentes personalizados como `ContactForm`, `PrayerRequestForm`, `RichTextEditor`, `EventManager`, `LomManager`, y `PrayerRequestManager` encapsulan funcionalidades específicas y su UI.
 
@@ -91,6 +92,7 @@ Para mantener la simplicidad, legibilidad, escalabilidad y evitar la repetición
         -   Un `<div>` para el encabezado con `className={pageHeaderContainer}`.
         -   Un `<h1>` para el título principal con `className={pageTitle}`.
         -   Un `<p>` opcional para la descripción con `className={pageDescription}`.
+    -   Se ha eliminado `app/root-layout-client.js` y su funcionalidad se ha integrado directamente en `app/layout.js` o en `components/public/layout/RootLayoutClient.jsx` para simplificar la estructura de layouts.
 
 -   **Manejo de Fechas Consistente**:
     -   Las fechas se formatean de manera uniforme en toda la aplicación, utilizando `toLocaleDateString` y `toLocaleTimeString` con opciones específicas para asegurar la consistencia (ej., sin segundos, formato localizado).

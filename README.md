@@ -90,7 +90,7 @@ El proyecto utiliza Supabase Auth para la gestión de usuarios. La ruta `/admin`
 ```
 alianza-puembo-web/
 ├── app/                 # Páginas y rutas de la aplicación (Next.js App Router)
-├── components/          # Componentes React reutilizables
+├── components/          # Componentes React reutilizables, organizados en `admin/` y `public/`
 ├── lib/                 # Utilidades, clientes Supabase, hooks, esquemas
 ├── public/              # Archivos estáticos (imágenes, iconos)
 ├── styles/              # Estilos globales y de Tailwind CSS
