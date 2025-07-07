@@ -1,4 +1,4 @@
-import LomManager from '@/components/LomManager';
+import LomManager from '@/components/admin/managers/LomManager'
 import { adminPageSection, adminPageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 export default function LomPage() {

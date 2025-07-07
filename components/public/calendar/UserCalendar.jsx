@@ -36,14 +36,14 @@ export default function UserCalendar({ events }) {
               <Tooltip>
                 <TooltipTrigger asChild>
                   {/* Renderiza el contenido predeterminado del evento de FullCalendar */}
-                  <div className="fc-event-main-frame">
-                    <div className="fc-event-time">{arg.timeText}</div>
-                    <div className="fc-event-title-container">
-                      <div className="fc-event-title fc-sticky">{arg.event.title}</div>
+                  <div className="fc-event-main-frame overflow-hidden">
+                    <div className="fc-event-title-container flex flex-row items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-(--puembo-green)"/> 
+                      <div className="fc-event-title fc-sticky text-ellipsis">{arg.event.title}</div>
                     </div>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="bg-white p-4 rounded-lg shadow-lg max-w-xs text-sm">
+                <TooltipContent className="bg-white/50 backdrop-blur-xs p-4 pr-0 rounded-lg shadow-lg max-w-xs text-sm">
                   <p className="font-bold text-base mb-1 text-black">{arg.event.title}</p>
                   {arg.event.extendedProps.description && (
                     <p className="text-gray-700 mb-2">{arg.event.extendedProps.description}</p>
@@ -69,7 +69,6 @@ export default function UserCalendar({ events }) {
           background-color: hsl(92, 45.9%, 37.8%); /* Darker puembo-green for active state */
           border-color: hsl(92, 45.9%, 37.8%);
         }
-        
       `}</style>
     </div>
   );

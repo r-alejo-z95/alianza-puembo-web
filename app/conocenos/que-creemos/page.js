@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { BookOpenText } from "lucide-react";
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription, sectionTitle, subSectionTitle } from "@/lib/styles";
+import { pageSection, pageHeaderContainer, pageTitle, pageDescription, sectionTitle } from "@/lib/styles";
 
 export default function QueCreemos() {
   const values = [

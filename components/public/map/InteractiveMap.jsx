@@ -1,7 +1,7 @@
 "use client";
 
 import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { btnStyles } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 

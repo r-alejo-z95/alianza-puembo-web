@@ -1,4 +1,4 @@
-import PrayerRequestManager from '@/components/PrayerRequestManager';
+import PrayerRequestManager from '@/components/admin/managers/PrayerRequestManager';
 import { adminPageSection, adminPageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
 export default function OracionAdminPage() {

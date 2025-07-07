@@ -1,4 +1,4 @@
-import RootLayoutClient from "./root-layout-client";
+import RootLayoutClient from "@/components/public/layout/RootLayoutClient";
 
 export const metadata = {
   title: "Alianza Puembo",

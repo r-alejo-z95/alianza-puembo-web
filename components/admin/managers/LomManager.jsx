@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import RichTextEditor from '@/components/RichTextEditor';
+import RichTextEditor from '@/components/admin/forms/RichTextEditor';
 import {
   Form,
   FormControl,

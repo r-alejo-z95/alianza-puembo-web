@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
-import PrayerRequestForm from '@/components/PrayerRequestForm';
+import PrayerRequestForm from '@/components/public/forms/PrayerRequestForm';
 import { addPrayerRequest } from './actions';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 

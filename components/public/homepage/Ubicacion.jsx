@@ -1,5 +1,5 @@
 import { Youtube } from "lucide-react";
-import GoogleMapView from "./interactive-map";
+import GoogleMapView from "@/components/public/map/InteractiveMap";
 import { cn } from "@/lib/utils";
 import {
   sectionPx,

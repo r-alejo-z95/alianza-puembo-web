@@ -1,7 +1,7 @@
-import Hero from "@/components/hero";
-import Info from "@/components/info";
-import Grupos from "@/components/grupos";
-import Ubicacion from "@/components/ubicacion";
+import Hero from "@/components/public/homepage/Hero";
+import Info from "@/components/public/homepage/Info";
+import Grupos from "@/components/public/homepage/Grupos";
+import Ubicacion from "@/components/public/homepage/Ubicacion";
 
 export default function Home() {
   return (
