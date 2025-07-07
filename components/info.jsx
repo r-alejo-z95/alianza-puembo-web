@@ -40,7 +40,7 @@ export default function Info() {
         </div>
         <div className="relative max-w-full w-full md:w-[300px] lg:w-[500px] xl:w-[700px] 2xl:w-[900px] 3xl:w-[1100px] 4xl:w-[1300px] 5xl:w-[1500px] aspect-[3/2] rounded-md overflow-hidden flex-shrink-0">
           <Image
-            src="/homepage/Info-section.jpg"
+            src="https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images/homepage/Info-section.jpg"
             alt="Mujer abrazando a otra"
             fill
             className="object-cover"

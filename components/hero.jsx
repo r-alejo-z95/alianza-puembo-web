@@ -12,13 +12,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
 const heroImages = [
-  '/homepage/hero/Hero1.jpg',
-  '/homepage/hero/Hero2.jpg',
-  '/homepage/hero/Hero3.jpg',
-  '/homepage/hero/Hero4.jpg',
-  '/homepage/hero/Hero5.jpg',
-  '/homepage/hero/Hero6.jpg',
-  '/homepage/hero/Hero7.jpg',
+  'https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images/homepage/hero/Hero1.webp',
+  'https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images/homepage/hero/Hero2.webp',
+  'https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images/homepage/hero/Hero3.webp',
+  'https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images/homepage/hero/Hero4.webp',
+  'https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images/homepage/hero/Hero5.webp',
+  'https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images/homepage/hero/Hero6.webp',
+  'https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images/homepage/hero/Hero7.webp',
 ];
 
 export default function Hero() {
