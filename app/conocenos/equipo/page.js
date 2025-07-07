@@ -12,27 +12,27 @@ export default function Equipo() {
     {
       name: "Iván Echeverría",
       detail: "Administrador",
-      image: "/conocenos/familia-ivan.avif",
+      image: "/conocenos/equipo/familia-ivan.avif",
     },
     {
       name: "Anabel García",
       detail: "Coordinadora Ministerial Puentes",
-      image: "/conocenos/familia-anabel.avif",
+      image: "/conocenos/equipo/familia-anabel.avif",
     },
     {
       name: "Fabiola Diaz",
       detail: "Coordinadora Ministerios de Apoyo",
-      image: "/conocenos/familia-papo.avif",
+      image: "/conocenos/equipo/familia-papo.avif",
     },
     {
       name: "Daniela Riofrío",
       detail: "Coordinadora Ministerial Jóvenes",
-      image: "/conocenos/familia-dani-r.avif",
+      image: "/conocenos/equipo/familia-dani-r.avif",
     },
     {
       name: "Daniela Andrade",
       detail: "Coordinadora Ministerial Puembo Kids",
-      image: "/conocenos/familia-dani-a.avif",
+      image: "/conocenos/equipo/familia-dani-a.avif",
     },
   ];
 
