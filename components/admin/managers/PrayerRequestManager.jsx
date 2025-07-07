@@ -71,20 +71,29 @@ export default function PrayerRequestManager() {
               <TableBody>
                 {requests.map((req) => (
                   <TableRow key={req.id}>
-                    <TableCell className="max-w-sm overflow-hidden text-ellipsis whitespace-nowrap">
+                    <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
                        <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span>{req.request_text}</span>
                           </TooltipTrigger>
-                          <TooltipContent className="max-w-xs break-words">
+                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
                             <p>{req.request_text}</p>
                           </TooltipContent>
                         </Tooltip>
                        </TooltipProvider>
                     </TableCell>
-                    <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                        {req.name || 'N/A'}
+                    <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
+                       <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>{req.name || 'N/A'}</span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
+                            <p>{req.name || 'N/A'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                       </TooltipProvider>
                     </TableCell>
                     <TableCell>{new Date(req.created_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</TableCell>
                     <TableCell>
