@@ -1,41 +1,75 @@
-'use client'
-import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
+'use client';
+import { useState, useEffect } from 'react';
+import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
 import {
   btnStyles,
   sectionPx,
   mainTitleSizes,
   secondaryTextSizes,
-} from "@/lib/styles";
-import { motion } from 'framer-motion';
+} from '@/lib/styles';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
+const heroImages = [
+  '/hero/Hero1.jpg',
+  '/hero/Hero2.jpg',
+  '/hero/Hero3.jpg',
+  '/hero/Hero4.jpg',
+  '/hero/Hero5.jpg',
+  '/hero/Hero6.jpg',
+  '/hero/Hero7.jpg',
+];
+
 export default function Hero() {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prevIndex) =>
+        prevIndex === heroImages.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 7000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section className="relative w-full h-screen">
-      <Image
-        src="/Hero.gif"
-        alt="Alianza Puembo Hero Background"
-        fill
-        priority
-        className="object-cover object-top"
-      />
+      <AnimatePresence>
+        <motion.div
+          key={currentImageIndex}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1, ease: 'easeInOut' }}
+          className="absolute inset-0"
+        >
+          <Image
+            src={heroImages[currentImageIndex]}
+            alt="Alianza Puembo Hero Background"
+            fill
+            priority
+            className="object-cover object-top"
+          />
+        </motion.div>
+      </AnimatePresence>
       <div
         className={cn(
           sectionPx,
-          "relative z-10 w-full h-full flex flex-col justify-center items-start text-primary-foreground backdrop-brightness-80 backdrop-contrast-70 gap-4"
+          'relative z-10 w-full h-full flex flex-col justify-center items-start text-primary-foreground backdrop-brightness-80 backdrop-contrast-70 gap-4'
         )}
       >
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeInOut" }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
           className="flex flex-col gap-2 mb-4"
         >
           <h2 className={cn(secondaryTextSizes)}>
             Experimenta la presencia de Dios en casa
           </h2>
-          <h1 className={cn(mainTitleSizes, "font-merriweather font-bold")}>
+          <h1 className={cn(mainTitleSizes, 'font-merriweather font-bold')}>
             Bienvenido
           </h1>
         </motion.div>
@@ -43,8 +77,8 @@ export default function Hero() {
           <Button
             className={btnStyles}
             onClick={() => {
-              const ubicacion = document.getElementById("ubicacion");
-              ubicacion?.scrollIntoView({ behavior: "smooth" });
+              const ubicacion = document.getElementById('ubicacion');
+              ubicacion?.scrollIntoView({ behavior: 'smooth' });
             }}
           >
             Visítanos
