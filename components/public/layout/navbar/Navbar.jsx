@@ -98,11 +98,11 @@ const Navbar = ({ setNavbarHeight }) => {
               <Image
                 src="/brand/logo-puembo-white.png"
                 alt="Iglesia Alianza Puembo"
-                width={399}
-                height={259}
+                width={100}
+                height={65}
                 priority
-                className={cn("w-26 xl:w-28 2xl:w-36", dropShadow)}
-                unoptimized
+                className={cn("w-24 xl:w-28 2xl:w-36 h-auto", dropShadow)}
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               />
             </Link>
           </motion.div>
