@@ -52,12 +52,11 @@ export default function LoginPage() {
             <Image
               src="/brand/logo-puembo.png"
               alt="Alianza Puembo Logo"
-              width={3991}
-              height={2592}
+              width={150}
+              height={97}
               sizes="150px"
               className="w-[150px] h-auto"
               priority
-              unoptimized
             />
           </Link>
           <h2 className="text-2xl font-bold text-center text-[var(--puembo-green)]">
