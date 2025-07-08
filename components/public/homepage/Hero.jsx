@@ -7,6 +7,7 @@ import {
   sectionPx,
   mainTitleSizes,
   secondaryTextSizes,
+  textShadow,
 } from '@/lib/styles';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -80,10 +81,16 @@ export default function Hero() {
           transition={{ duration: 1, ease: 'easeInOut' }}
           className="flex flex-col gap-2 mb-4"
         >
-          <h2 className={cn(secondaryTextSizes)}>
+          <h2 className={cn(secondaryTextSizes, textShadow)}>
             Experimenta la presencia de Dios en casa
           </h2>
-          <h1 className={cn(mainTitleSizes, 'font-merriweather font-bold')}>
+          <h1
+            className={cn(
+              mainTitleSizes,
+              'font-merriweather font-bold',
+              textShadow
+            )}
+          >
             Bienvenido
           </h1>
         </motion.div>
