@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import EventForm from '@/components/admin/forms/EventForm';
 import { toast } from 'sonner';
+import { OverflowCell } from './table-cells/OverflowCell';
 
 export default function EventManager() {
   const [events, setEvents] = useState([]);
@@ -126,42 +126,15 @@ export default function EventManager() {
                 {events.map((event) => (
                   <TableRow key={event.id}>
                     <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span>{event.title}</span>
-                          </TooltipTrigger>
-                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
-                            <p>{event.title}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                       <OverflowCell>{event.title}</OverflowCell>
                     </TableCell>
                     <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span>{event.description}</span>
-                          </TooltipTrigger>
-                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
-                            <p>{event.description}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <OverflowCell>{event.description}</OverflowCell>
                     </TableCell>
                     <TableCell>{new Date(event.start_time).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</TableCell>
                     <TableCell>{event.end_time ? new Date(event.end_time).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}</TableCell>
                     <TableCell className="max-w-48 overflow-hidden text-ellipsis whitespace-nowrap">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span>{event.poster_url || 'N/A'}</span>
-                          </TooltipTrigger>
-                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
-                            <p>{event.poster_url || 'N/A'}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <OverflowCell>{event.poster_url || 'N/A'}</OverflowCell>
                     </TableCell>
                     <TableCell className="min-w-[150px]">
                       <Button variant="outline" size="sm" className="mr-2" onClick={() => { setSelectedEvent(event); setIsFormOpen(true); }}>Editar</Button>
