@@ -9,7 +9,7 @@ import {
   secondaryTextSizes,
   textShadow,
 } from '@/lib/styles';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Image from 'next/image';
 
 const heroImages = [
@@ -36,39 +36,31 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="relative w-full h-screen">
-      <AnimatePresence>
+    <section className="relative w-full h-screen overflow-hidden">
+      {/* Background images superpuestas con fade suave */}
+      {heroImages.map((src, i) => (
         <motion.div
-          key={currentImageIndex}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          key={i}
+          initial={false}
+          animate={{ opacity: i === currentImageIndex ? 1 : 0 }}
           transition={{ duration: 0.5, ease: 'easeInOut' }}
           className="absolute inset-0"
+          style={{ zIndex: i === currentImageIndex ? 1 : 0 }}
         >
           <Image
-            src={heroImages[currentImageIndex]}
-            alt="Alianza Puembo Hero Background"
+            src={src}
+            alt={`Hero ${i}`}
             fill
-            priority
             sizes="100vw"
+            priority={i === 0}
             quality={100}
-            className="object-cover object-top"
+            className="object-cover object-top transition-opacity duration-500"
             unoptimized
           />
         </motion.div>
-      </AnimatePresence>
-      {/* Preload the next image */}
-      <div style={{ display: 'none' }}>
-        <Image
-          src={heroImages[(currentImageIndex + 1) % heroImages.length]}
-          alt="Preloaded Hero Background"
-          width={1920}
-          height={1080}
-          quality={100}
-          unoptimized
-        />
-      </div>
+      ))}
+
+      {/* Contenido encima del fondo */}
       <div
         className={cn(
           sectionPx,

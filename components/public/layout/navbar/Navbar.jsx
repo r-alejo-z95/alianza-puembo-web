@@ -85,20 +85,27 @@ const Navbar = ({ setNavbarHeight }) => {
           {/* Desktop Menu */}
           <NavMenu items={leftItems} />
           {/* Logo */}
-          <div
-            className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0 hover:scale-105 transition duration-700">
+          <motion.div
+            initial={{ opacity: 0, y: 0 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className={cn(
+              "absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0 hover:scale-105 transition duration-700",
+              dropShadow
+            )}
+          >
             <Link href="/" onClick={closeMobileMenu}>
               <Image
                 src="/brand/logo-puembo-white.png"
                 alt="Iglesia Alianza Puembo"
-                width={3991}
-                height={2592}
+                width={399}
+                height={259}
                 priority
                 className={cn("w-26 xl:w-28 2xl:w-36", dropShadow)}
                 unoptimized
               />
             </Link>
-          </div>
+          </motion.div>
           <NavMenu items={rightItems} />
         </div>
       </div>
