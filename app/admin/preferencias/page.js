@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { toast } from 'sonner';
-import { pageTitle, pageDescription, adminPageSection, adminPageHeaderContainer } from "@/lib/styles";
+import { adminPageTitle, adminPageDescription, adminPageSection, adminPageHeaderContainer } from "@/lib/styles";
 
 const profileSchema = z.object({
   email: z.string().email('Correo electrónico inválido.').optional().or(z.literal('')),
@@ -101,10 +101,10 @@ export default function PreferenciasPage() {
   return (
     <section className={adminPageSection}>
       <div className={adminPageHeaderContainer}>
-        <h1 className={pageTitle}>
+        <h1 className={adminPageTitle}>
           Preferencias de Usuario
         </h1>
-        <p className={pageDescription}>
+        <p className={adminPageDescription}>
           Actualiza tu información de perfil y contraseña.
         </p>
       </div>

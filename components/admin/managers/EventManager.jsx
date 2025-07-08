@@ -10,172 +10,165 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import EventForm from '@/components/admin/forms/EventForm';
 import { toast } from 'sonner';
 import { OverflowCell } from './table-cells/OverflowCell';
+import { EventRow } from './table-cells/EventRows';
 
 export default function EventManager() {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedEvent, setSelectedEvent] = useState(null);
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState(null);
 
-  const supabase = createClient();
+    const supabase = createClient();
 
-  const fetchEvents = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .order('start_time', { ascending: false });
+    const fetchEvents = async () => {
+        setLoading(true);
+        const { data, error } = await supabase
+            .from('events')
+            .select('*')
+            .order('start_time', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching events:', error);
-      toast.error('Error al cargar los eventos.');
-    } else {
-      setEvents(data);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const handleSave = async (eventData, posterFile) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    let poster_url = selectedEvent?.poster_url || null;
-
-    if (posterFile) {
-      const fileName = `${Date.now()}_${posterFile.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('event-posters')
-        .upload(fileName, posterFile);
-
-      if (uploadError) {
-        console.error('Error uploading poster:', uploadError);
-        toast.error('Error al subir el póster del evento.');
-        return;
-      } else {
-        const { data: urlData } = supabase.storage.from('event-posters').getPublicUrl(uploadData.path);
-        poster_url = urlData.publicUrl;
-      }
-    }
-
-    const dataToSave = {
-      ...eventData,
-      start_time: new Date(eventData.start_time).toISOString(),
-      end_time: eventData.end_time ? new Date(eventData.end_time).toISOString() : null,
-      poster_url
+        if (error) {
+            console.error('Error fetching events:', error);
+            toast.error('Error al cargar los eventos.');
+        } else {
+            setEvents(data);
+        }
+        setLoading(false);
     };
 
-    if (selectedEvent) {
-      const { error } = await supabase.from('events').update(dataToSave).eq('id', selectedEvent.id);
-      if (error) 
-        {console.error('Error updating event:', error)
-        toast.error('Error al actualizar el evento.');
-        } else {
-        toast.success('Evento actualizado con éxito.');
+    useEffect(() => {
+        fetchEvents();
+    }, []);
+
+    const handleSave = async (eventData, posterFile) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        let poster_url = selectedEvent?.poster_url || null;
+
+        if (posterFile) {
+            const fileName = `${Date.now()}_${posterFile.name}`;
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('event-posters')
+                .upload(fileName, posterFile);
+
+            if (uploadError) {
+                console.error('Error uploading poster:', uploadError);
+                toast.error('Error al subir el póster del evento.');
+                return;
+            } else {
+                const { data: urlData } = supabase.storage.from('event-posters').getPublicUrl(uploadData.path);
+                poster_url = urlData.publicUrl;
+            }
         }
-    } else {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from('events').insert([{ ...dataToSave, user_id: user?.id }]);
-      if (error) {
-        console.error('Error creating event:', error);
-        toast.error('Error al crear el evento.');
-      } else {
-        toast.success('Evento creado con éxito.');
-      }
-    }
-    setIsFormOpen(false);
-    fetchEvents();
-  };
 
-  const handleDelete = async (eventId) => {
+        const dataToSave = {
+            ...eventData,
+            start_time: new Date(eventData.start_time).toISOString(),
+            end_time: eventData.end_time ? new Date(eventData.end_time).toISOString() : null,
+            poster_url
+        };
 
-    const { error } = await supabase.from('events').delete().eq('id', eventId);
-    if (error) {
-      console.error('Error deleting event:', error);
-      toast.error('Error al eliminar el evento.');
-    } else {
-      toast.success('Evento eliminado con éxito.');
-    }
-    fetchEvents();
-  };
+        if (selectedEvent) {
+            const { error } = await supabase.from('events').update(dataToSave).eq('id', selectedEvent.id);
+            if (error) {
+                console.error('Error updating event:', error)
+                toast.error('Error al actualizar el evento.');
+            } else {
+                toast.success('Evento actualizado con éxito.');
+            }
+        } else {
+            const { data: { user } } = await supabase.auth.getUser();
+            const { error } = await supabase.from('events').insert([{ ...dataToSave, user_id: user?.id }]);
+            if (error) {
+                console.error('Error creating event:', error);
+                toast.error('Error al crear el evento.');
+            } else {
+                toast.success('Evento creado con éxito.');
+            }
+        }
+        setIsFormOpen(false);
+        fetchEvents();
+    };
 
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Lista de Eventos</CardTitle>
-        <Button onClick={() => { setSelectedEvent(null); setIsFormOpen(true); }}>Añadir Evento</Button>
-      </CardHeader>
-      <CardContent className="max-w-full">
-        {loading ? (
-          <p>Cargando eventos...</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table className="w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-bold">Título</TableHead>
-                  <TableHead className="font-bold">Descripción</TableHead>
-                  <TableHead className="font-bold">Fecha de Inicio</TableHead>
-                  <TableHead className="font-bold">Fecha de Fin</TableHead>
-                  <TableHead className="font-bold">Póster URL</TableHead>
-                  <TableHead className="font-bold">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {events.map((event) => (
-                  <TableRow key={event.id}>
-                    <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
-                       <OverflowCell>{event.title}</OverflowCell>
-                    </TableCell>
-                    <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                      <OverflowCell>{event.description}</OverflowCell>
-                    </TableCell>
-                    <TableCell>{new Date(event.start_time).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</TableCell>
-                    <TableCell>{event.end_time ? new Date(event.end_time).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' }) : 'N/A'}</TableCell>
-                    <TableCell className="max-w-48 overflow-hidden text-ellipsis whitespace-nowrap">
-                      <OverflowCell>{event.poster_url || 'N/A'}</OverflowCell>
-                    </TableCell>
-                    <TableCell className="min-w-[150px]">
-                      <Button variant="outline" size="sm" className="mr-2" onClick={() => { setSelectedEvent(event); setIsFormOpen(true); }}>Editar</Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">Eliminar</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Esta acción no se puede deshacer. Esto eliminará permanentemente el evento de nuestros servidores.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(event.id)}>Continuar</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </CardContent>
+    const handleDelete = async (eventId) => {
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedEvent ? 'Editar Evento' : 'Añadir Nuevo Evento'}</DialogTitle>
-          </DialogHeader>
-          <EventForm
-            event={selectedEvent}
-            onSave={handleSave}
-            onCancel={() => setIsFormOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
-    </Card>
-  );
+        const { error } = await supabase.from('events').delete().eq('id', eventId);
+        if (error) {
+            console.error('Error deleting event:', error);
+            toast.error('Error al eliminar el evento.');
+        } else {
+            toast.success('Evento eliminado con éxito.');
+        }
+        fetchEvents();
+    };
+
+    return (
+        <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Lista de Eventos</CardTitle>
+                <Button onClick={() => { setSelectedEvent(null); setIsFormOpen(true); }}>Añadir Evento</Button>
+            </CardHeader>
+            <CardContent className="max-w-full">
+                {loading ? (
+                    <p>Cargando eventos...</p>
+                ) : (
+                    <div id='event-table'>
+                        {/* Pantallas grandes */}
+                        <div className="hidden lg:block overflow-x-auto">
+                            <Table className="w-full">
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="font-bold">Título</TableHead>
+                                        <TableHead className="font-bold">Descripción</TableHead>
+                                        <TableHead className="font-bold">Fecha</TableHead>
+                                        <TableHead className="font-bold">Hora</TableHead>
+                                        <TableHead className="font-bold">Póster</TableHead>
+                                        <TableHead className="font-bold">Acciones</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {events.map((event) => (
+                                        <EventRow
+                                            key={event.id}
+                                            event={event}
+                                            onEdit={() => { setSelectedEvent(event); setIsFormOpen(true); }}
+                                            onDelete={() => handleDelete(event.id)}
+                                            compact={false}
+                                        />
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+
+                        {/* Pantallas pequeñas */}
+                        <div className="lg:hidden space-y-4">
+                            <div className="w-full">
+                                {events.map((event) => (
+                                    <EventRow
+                                        key={event.id}
+                                        event={event}
+                                        onEdit={() => { setSelectedEvent(event); setIsFormOpen(true); }}
+                                        onDelete={() => handleDelete(event.id)}
+                                        compact={true}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </CardContent>
+
+            <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{selectedEvent ? 'Editar Evento' : 'Añadir Nuevo Evento'}</DialogTitle>
+                    </DialogHeader>
+                    <EventForm
+                        event={selectedEvent}
+                        onSave={handleSave}
+                        onCancel={() => setIsFormOpen(false)}
+                    />
+                </DialogContent>
+            </Dialog>
+        </Card>
+    );
 }
