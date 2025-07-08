@@ -18,6 +18,7 @@ export default function Grupos() {
         quality={100}
         sizes="100vw"
         className="object-cover brightness-80 contrast-70"
+        unoptimized
       />
       <div
         className={cn(
@@ -42,7 +43,7 @@ export default function Grupos() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button variant="secondary" className={btnStyles}>
+            <Button variant="outline" className={btnStyles + " text-black"}>
               Conecta con un Grupo Pequeño
             </Button>
           </a>

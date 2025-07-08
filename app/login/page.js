@@ -55,8 +55,9 @@ export default function LoginPage() {
               width={3991}
               height={2592}
               sizes="150px"
-              className="w-auto h-auto"
+              className="w-[150px] h-auto"
               priority
+              unoptimized
             />
           </Link>
           <h2 className="text-2xl font-bold text-center text-[var(--puembo-green)]">

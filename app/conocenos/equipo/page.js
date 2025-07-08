@@ -55,6 +55,7 @@ export default function Equipo() {
               fill
               sizes="(max-width: 1023px) 100vw, 500px"
               className="object-cover"
+              unoptimized
             />
           </div>
           <div className="flex flex-col gap-1 flex-1">
