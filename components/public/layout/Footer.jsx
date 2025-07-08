@@ -35,14 +35,14 @@ export default function Footer() {
   return (
     <footer className="bg-primary py-8">
       <div className="mx-auto w-[80%] px-6">
-        <div className="flex flex-wrap items-center justify-between gap-6">
+        <div className="flex flex-wrap items-center lg:items-start justify-between gap-6">
           <div
             className={cn(
               footerTextSizes,
               "text-primary-foreground order-last flex flex-col text-center md:order-first"
             )}
           >
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-start">
               <div className="flex gap-1 items-center">
                 <Image
                   src="/brand/iso-white.png"
@@ -53,26 +53,26 @@ export default function Footer() {
                 />
                 <p>Puembo - {new Date().getFullYear()}</p>
               </div>
-              {isHomePage && (
-                <Link href="https://github.com/r-alejo-z95">
-                  <Button
-                    variant="link"
-                    className="text-primary-foreground text-xs 2xl:text-base"
-                  >
-                    Desarrollado por RZ
-                  </Button>
-                </Link>
-              )}
-            </div>
             {isHomePage && (
               <div>
                 <Link href="/admin">
-                  <Button variant="secondary" size="sm">
+                  <Button variant="link" size="xs" className="text-primary-foreground underline hover:text-primary-foreground/80">
                     Admin
                   </Button>
                 </Link>
               </div>
             )}
+            {/* {isHomePage && (
+              <Link href="https://github.com/r-alejo-z95">
+                <Button
+                  variant="link"
+                  className="text-primary-foreground text-xs 2xl:text-base"
+                >
+                  Desarrollado por RZ
+                </Button>
+              </Link>
+            )} */}
+            </div>
           </div>
           <div
             className={cn(
