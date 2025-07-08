@@ -21,6 +21,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components
 import { toast } from 'sonner';
 import { LomRow } from './table-cells/LomRow';
 import { useIsLargeScreen } from '@/lib/hooks/useIsLargeScreen';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const lomSchema = z.object({
   title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),
@@ -202,20 +203,26 @@ export default function LomManager() {
                   ))}
                 </TableBody>
               </Table>
-              <div className="flex justify-end space-x-2 mt-4">
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Anterior
-                </Button>
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  Siguiente
-                </Button>
-              </div>
+              {totalPages > 1 && (
+                <div className="flex justify-end space-x-2 mt-4">
+                  <Button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    variant="outline"
+                    size="icon"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    variant="outline"
+                    size="icon"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Pantallas pequeñas */}
@@ -231,20 +238,26 @@ export default function LomManager() {
                   />
                 ))}
               </div>
-              <div className="flex justify-end space-x-2 mt-4">
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                >
-                  Anterior
-                </Button>
-                <Button
-                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                  disabled={currentPage === totalPages}
-                >
-                  Siguiente
-                </Button>
-              </div>
+              {totalPages > 1 && (
+                <div className="flex justify-end space-x-2 mt-4">
+                  <Button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    variant="outline"
+                    size="icon"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    variant="outline"
+                    size="icon"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -41,7 +41,7 @@ export function PrayerRequestRow({ request, onDelete, compact }) {
                         {request.is_public ? (
                             <Badge variant="outline">Pública</Badge>
                         ) : (
-                            <Badge variant="destructive">Privada</Badge>
+                            <Badge variant="blue">Privada</Badge>
                         )}
                         {request.is_anonymous && <Badge variant="secondary">Anónima</Badge>}
                     </div>
@@ -65,7 +65,7 @@ export function PrayerRequestRow({ request, onDelete, compact }) {
                     {request.is_public ? (
                         <Badge variant="outline">Pública</Badge>
                     ) : (
-                        <Badge variant="destructive">Privada</Badge>
+                        <Badge variant="blue">Privada</Badge>
                     )}
                     {request.is_anonymous && <Badge variant="secondary">Anónima</Badge>}
                 </div>

@@ -66,7 +66,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
             <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
                 <OverflowCell>{event.title}</OverflowCell>
             </TableCell>
-            <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
+            <TableCell className="max-w-68 overflow-hidden text-ellipsis whitespace-nowrap">
                 <OverflowCell>{event.description}</OverflowCell>
             </TableCell>
             <TableCell>{new Date(event.start_time).toLocaleDateString('es-ES', { dateStyle: 'medium' })}</TableCell>
