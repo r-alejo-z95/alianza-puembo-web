@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useIsLargeScreen } from '@/lib/hooks/useIsLargeScreen';
 import { useIsOverflowing } from '@/lib/hooks/useIsOverflowing';
 
@@ -15,24 +15,24 @@ export function OverflowCell({ children }: { children: string }) {
     return <span ref={ref} className="block">{children}</span>;
   }
 
-  const toggleTooltip = () => {
+  const togglePopover = () => {
     if (!isLarge) setOpen(!open);
   };
 
   return (
-    <Tooltip open={isLarge ? undefined : open} onOpenChange={setOpen}>
-      <TooltipTrigger asChild>
+    <Popover open={isLarge ? undefined : open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <span
           ref={ref}
-          onClick={toggleTooltip}
+          onClick={togglePopover}
           className="block cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap"
         >
           {children}
         </span>
-      </TooltipTrigger>
-      <TooltipContent side="bottom-start" className="max-w-3xs break-words">
+      </PopoverTrigger>
+      <PopoverContent side="bottom-start" className="max-w-3xs break-words text-xs">
         <p>{children}</p>
-      </TooltipContent>
-    </Tooltip>
+      </PopoverContent>
+    </Popover>
   );
 }
