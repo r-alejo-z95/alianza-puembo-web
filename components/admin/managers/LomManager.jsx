@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { LomRow } from './table-cells/LomRow';
+import { useIsLargeScreen } from '@/lib/hooks/useIsLargeScreen';
 
 const lomSchema = z.object({
   title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),
@@ -30,6 +31,10 @@ export default function LomManager() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const isLargeScreen = useIsLargeScreen();
+  const itemsPerPage = 3; // Always 3 for LOM posts
 
   const supabase = createClient();
 
@@ -116,6 +121,13 @@ export default function LomManager() {
     fetchPosts();
   };
 
+  const totalPages = useMemo(() => Math.ceil(posts.length / itemsPerPage), [posts.length, itemsPerPage]);
+  const currentPosts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return posts.slice(startIndex, endIndex);
+  }, [posts, currentPage, itemsPerPage]);
+
   return (
     <Card>
       <CardHeader>
@@ -179,7 +191,7 @@ export default function LomManager() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {posts.map((post) => (
+                  {currentPosts.map((post) => (
                     <LomRow
                       key={post.id}
                       post={post}
@@ -190,12 +202,26 @@ export default function LomManager() {
                   ))}
                 </TableBody>
               </Table>
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Siguiente
+                </Button>
+              </div>
             </div>
 
             {/* Pantallas pequeñas */}
             <div className="lg:hidden space-y-4">
               <div className="w-full">
-                {posts.map((post) => (
+                {currentPosts.map((post) => (
                   <LomRow
                     key={post.id}
                     post={post}
@@ -204,6 +230,20 @@ export default function LomManager() {
                     compact={true}
                   />
                 ))}
+              </div>
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Siguiente
+                </Button>
               </div>
             </div>
           </div>

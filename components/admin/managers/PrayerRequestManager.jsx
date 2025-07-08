@@ -1,8 +1,10 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useIsLargeScreen } from '@/lib/hooks/useIsLargeScreen';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
@@ -11,6 +13,10 @@ import { PrayerRequestRow } from './table-cells/PrayerRequestRow';
 export default function PrayerRequestManager() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const isLargeScreen = useIsLargeScreen();
+  const itemsPerPage = isLargeScreen ? 5 : 3;
 
   const supabase = createClient();
 
@@ -45,6 +51,13 @@ export default function PrayerRequestManager() {
     }
   };
 
+  const totalPages = useMemo(() => Math.ceil(requests.length / itemsPerPage), [requests.length, itemsPerPage]);
+  const currentRequests = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return requests.slice(startIndex, endIndex);
+  }, [requests, currentPage, itemsPerPage]);
+
   return (
     <Card>
       <CardHeader>
@@ -68,7 +81,7 @@ export default function PrayerRequestManager() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {requests.map((req) => (
+                  {currentRequests.map((req) => (
                     <PrayerRequestRow
                       key={req.id}
                       request={req}
@@ -78,12 +91,26 @@ export default function PrayerRequestManager() {
                   ))}
                 </TableBody>
               </Table>
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Siguiente
+                </Button>
+              </div>
             </div>
 
             {/* Pantallas pequeñas */}
             <div className="lg:hidden space-y-4">
               <div className="w-full">
-                {requests.map((req) => (
+                {currentRequests.map((req) => (
                   <PrayerRequestRow
                     key={req.id}
                     request={req}
@@ -91,6 +118,20 @@ export default function PrayerRequestManager() {
                     compact={true}
                   />
                 ))}
+              </div>
+              <div className="flex justify-end space-x-2 mt-4">
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Anterior
+                </Button>
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Siguiente
+                </Button>
               </div>
             </div>
           </div>

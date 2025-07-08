@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useIsLargeScreen } from '@/lib/hooks/useIsLargeScreen';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,6 +16,10 @@ export default function EventManager() {
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const isLargeScreen = useIsLargeScreen();
+    const itemsPerPage = isLargeScreen ? 5 : 3;
 
     const supabase = createClient();
 
@@ -23,7 +28,7 @@ export default function EventManager() {
         const { data, error } = await supabase
             .from('events')
             .select('*')
-            .order('start_time', { ascending: false });
+            .order('start_time', { ascending: true });
 
         if (error) {
             console.error('Error fetching events:', error);
@@ -99,6 +104,13 @@ export default function EventManager() {
         fetchEvents();
     };
 
+    const totalPages = useMemo(() => Math.ceil(events.length / itemsPerPage), [events.length, itemsPerPage]);
+    const currentEvents = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return events.slice(startIndex, endIndex);
+    }, [events, currentPage, itemsPerPage]);
+
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -124,7 +136,7 @@ export default function EventManager() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {events.map((event) => (
+                                    {currentEvents.map((event) => (
                                         <EventRow
                                             key={event.id}
                                             event={event}
@@ -135,12 +147,26 @@ export default function EventManager() {
                                     ))}
                                 </TableBody>
                             </Table>
+                            <div className="flex justify-end space-x-2 mt-4">
+                                <Button
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Anterior
+                                </Button>
+                                <Button
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Siguiente
+                                </Button>
+                            </div>
                         </div>
 
                         {/* Pantallas pequeñas */}
                         <div className="lg:hidden space-y-4">
                             <div className="w-full">
-                                {events.map((event) => (
+                                {currentEvents.map((event) => (
                                     <EventRow
                                         key={event.id}
                                         event={event}
@@ -149,6 +175,20 @@ export default function EventManager() {
                                         compact={true}
                                     />
                                 ))}
+                            </div>
+                            <div className="flex justify-end space-x-2 mt-4">
+                                <Button
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    Anterior
+                                </Button>
+                                <Button
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}
+                                >
+                                    Siguiente
+                                </Button>
                             </div>
                         </div>
                     </div>
