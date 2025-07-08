@@ -7,6 +7,7 @@ import { login } from './actions';
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 import {
   Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
@@ -47,13 +48,17 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
         <div className="flex flex-col items-center mb-8">
-          <Image
-            src="/brand/logo-puembo.png"
-            alt="Alianza Puembo Logo"
-            width={150}
-            height={150}
-            className="mb-6"
-          />
+          <Link href="/" className="mb-6">
+            <Image
+              src="/brand/logo-puembo.png"
+              alt="Alianza Puembo Logo"
+              width={3991}
+              height={2592}
+              sizes="150px"
+              className="w-auto h-auto"
+              priority
+            />
+          </Link>
           <h2 className="text-2xl font-bold text-center text-[var(--puembo-green)]">
             Iniciar Sesión
           </h2>

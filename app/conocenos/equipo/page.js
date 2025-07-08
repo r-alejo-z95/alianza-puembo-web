@@ -53,6 +53,7 @@ export default function Equipo() {
               src="/conocenos/equipo/familia-gio.avif"
               alt="Familia pastoral"
               fill
+              sizes="(max-width: 1023px) 100vw, 500px"
               className="object-cover"
             />
           </div>
@@ -83,6 +84,7 @@ export default function Equipo() {
                     src={member.image}
                     alt={`Foto de ${member.name}`}
                     fill
+                    sizes="(max-width: 1023px) 100vw, 400px"
                     className="object-cover"
                   />
                 </div>
