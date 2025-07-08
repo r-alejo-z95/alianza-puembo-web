@@ -58,7 +58,7 @@ const NavItem = ({ title, href, subroutes, mobile, onLinkClick }) => {
   }
 
   return (
-    <SmartLink href={href} className={baseClasses} onClick={onLinkClick}>
+    <SmartLink href={href} className={cn(baseClasses, textShadow)} onClick={onLinkClick}>
       {title}
     </SmartLink>
   );
