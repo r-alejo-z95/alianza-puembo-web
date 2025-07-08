@@ -3,6 +3,7 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import { TableRow, TableCell } from '@/components/ui/table';
 import { OverflowCell } from './OverflowCell';
 import { toast } from 'sonner';
+import { Pencil, Trash2 } from 'lucide-react';
 
 export function EventRow({ event, onEdit, onDelete, compact }) {
     const posterActions = event.poster_url ? (
@@ -22,10 +23,14 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
 
     const actions = (
         <>
-            <Button variant="outline" size="sm" className="mr-2" onClick={onEdit}>Editar</Button>
+            <Button variant="outline" size="icon" aria-label="Editar evento" className="mr-2" onClick={onEdit}>
+                <Pencil className="w-4 h-4" />
+            </Button>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">Eliminar</Button>
+                    <Button variant="destructive" size="icon" aria-label="Eliminar evento">
+                        <Trash2 className="w-4 h-4" />
+                    </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
