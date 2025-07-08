@@ -17,10 +17,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { OverflowCell } from './table-cells/OverflowCell';
+import { LomRow } from './table-cells/LomRow';
 
 const lomSchema = z.object({
   title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),
@@ -154,7 +153,7 @@ export default function LomManager() {
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => { form.reset({ title: '', content: '' }); setSelectedPost(null); }}>Cancelar</Button>
               <Button type="submit" disabled={loading}>
-                {selectedPost ? 'Actualizar Devocional' : 'Publicar Devocional'}
+                {selectedPost ? 'Actualizar' : 'Publicar'}
               </Button>
             </div>
           </form>
@@ -168,46 +167,45 @@ export default function LomManager() {
         {loading ? (
           <p>Cargando devocionales...</p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table className="w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-bold">Título</TableHead>
-                  <TableHead className="font-bold">Fecha de Publicación</TableHead>
-                  <TableHead className="font-bold">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {posts.map((post) => (
-                  <TableRow key={post.id}>
-                    <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                     <OverflowCell>{post.title}</OverflowCell>
-                    </TableCell>
-                    <TableCell>{new Date(post.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</TableCell>
-                    <TableCell className="min-w-[150px]">
-                      <Button variant="outline" size="sm" className="mr-2" onClick={() => handleEdit(post)}>Editar</Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">Eliminar</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Esta acción no se puede deshacer. Esto eliminará permanentemente el devocional.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(post.id)}>Continuar</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
+          <div id='lom-table'>
+            {/* Pantallas grandes */}
+            <div className="hidden lg:block overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-bold">Título</TableHead>
+                    <TableHead className="font-bold">Fecha de Publicación</TableHead>
+                    <TableHead className="font-bold">Acciones</TableHead>
                   </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {posts.map((post) => (
+                    <LomRow
+                      key={post.id}
+                      post={post}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      compact={false}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Pantallas pequeñas */}
+            <div className="lg:hidden space-y-4">
+              <div className="w-full">
+                {posts.map((post) => (
+                  <LomRow
+                    key={post.id}
+                    post={post}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    compact={true}
+                  />
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

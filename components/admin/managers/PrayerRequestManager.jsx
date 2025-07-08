@@ -3,13 +3,10 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { OverflowCell } from './table-cells/OverflowCell';
+import { PrayerRequestRow } from './table-cells/PrayerRequestRow';
 
 export default function PrayerRequestManager() {
   const [requests, setRequests] = useState([]);
@@ -57,56 +54,45 @@ export default function PrayerRequestManager() {
         {loading ? (
           <p>Cargando peticiones...</p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table className="w-full">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-bold">Petición</TableHead>
-                  <TableHead className="font-bold">Nombre</TableHead>
-                  <TableHead className="font-bold">Fecha</TableHead>
-                  <TableHead className="font-bold">Estado</TableHead>
-                  <TableHead className="font-bold">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {requests.map((req) => (
-                  <TableRow key={req.id}>
-                    <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                      <OverflowCell>{req.request_text}</OverflowCell>
-                    </TableCell>
-                    <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
-                       <OverflowCell>{req.name || "N/A"}</OverflowCell>
-                    </TableCell>
-                    <TableCell>{new Date(req.created_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        {req.is_public && <Badge variant="outline">Pública</Badge>}
-                        {req.is_anonymous && <Badge variant="secondary">Anónima</Badge>}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">Eliminar</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Esta acción no se puede deshacer. La petición será eliminada permanentemente.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(req.id)}>Eliminar</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </TableCell>
+          <div id='prayer-request-table'>
+            {/* Pantallas grandes */}
+            <div className="hidden lg:block overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-bold">Petición</TableHead>
+                    <TableHead className="font-bold">Nombre</TableHead>
+                    <TableHead className="font-bold">Fecha</TableHead>
+                    <TableHead className="font-bold">Estado</TableHead>
+                    <TableHead className="font-bold">Acciones</TableHead>
                   </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {requests.map((req) => (
+                    <PrayerRequestRow
+                      key={req.id}
+                      request={req}
+                      onDelete={handleDelete}
+                      compact={false}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Pantallas pequeñas */}
+            <div className="lg:hidden space-y-4">
+              <div className="w-full">
+                {requests.map((req) => (
+                  <PrayerRequestRow
+                    key={req.id}
+                    request={req}
+                    onDelete={handleDelete}
+                    compact={true}
+                  />
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>
