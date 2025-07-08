@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { redirect } from "next/navigation";
+import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import Image from "next/image";
 import { Home, Calendar, BookOpen, HandHelping, Menu } from "lucide-react";
@@ -33,6 +33,11 @@ export default function AdminSidebar({ user, children }) {
     return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
   };
 
+  // Estado para controlar el DropdownMenu en mobile
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const router = useRouter();
+
   return (
     <div className="flex min-h-screen w-full bg-gray-100 dark:bg-gray-900">
       {/* Sidebar para pantallas grandes */}
@@ -60,10 +65,7 @@ export default function AdminSidebar({ user, children }) {
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-4 border-t border-gray-100 pt-4">
-          <Link href="/" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors text-white shadow-2xl">
-            <Home className="h-5 w-5" />
-            Ir a Página Principal
-          </Link>
+          <Link href="/" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors text-white shadow-2xl"></Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors justify-start text-white w-full">
@@ -120,7 +122,7 @@ export default function AdminSidebar({ user, children }) {
               <Home className="h-5 w-5" />
               Ir a Página Principal
             </Link>
-            <DropdownMenu>
+            <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors justify-start text-white w-full">
                   <Avatar className="h-8 w-8 shadow-2xl">
@@ -132,14 +134,23 @@ export default function AdminSidebar({ user, children }) {
               <DropdownMenuContent className="w-56 bg-(--puembo-black)/30 backdrop-blur-md text-white shadow-md">
                 <DropdownMenuLabel className="font-bold">Mi Cuenta</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => redirect('/admin/preferencias')} className="cursor-pointer transition-colors rounded-md hover:shadow-xl hover:bg-gray-100">Preferencias</DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setIsSidebarOpen(false);
+                    setIsDropdownOpen(false);
+                    router.push('/admin/preferencias');
+                  }}
+                  className="cursor-pointer transition-colors rounded-md hover:shadow-xl hover:bg-gray-100"
+                >
+                  Preferencias
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer transition-colors rounded-md hover:shadow-xl hover:bg-gray-100">Cerrar Sesión</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </div>
       </aside>
-      <main className="flex-1 py-8 px-12 lg:px-8 overflow-x-hidden bg-gray-100 dark:bg-gray-900">
+      <main className="flex-1 p-2 lg:py-8 lg:px-8 overflow-x-hidden bg-gray-100 dark:bg-gray-900">
         {children}
       </main>
     </div>
