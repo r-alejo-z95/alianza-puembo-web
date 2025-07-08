@@ -50,6 +50,8 @@ export default function Hero() {
             alt="Alianza Puembo Hero Background"
             fill
             priority
+            sizes="100vw"
+            quality={100}
             className="object-cover object-top"
           />
         </motion.div>

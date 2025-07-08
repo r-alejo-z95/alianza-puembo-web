@@ -42,7 +42,8 @@ export default async function ProximosEventos() {
                     src={event.poster_url}
                     alt={event.title}
                     fill
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    sizes="(max-width: 768px) 576px, (max-width: 1200px) 50vw, 1000px"
+                    quality={100}
                     className="rounded-lg object-contain"
                   />
                 </div>

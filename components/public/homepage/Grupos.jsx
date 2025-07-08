@@ -15,6 +15,8 @@ export default function Grupos() {
         src="https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images/homepage/Group-section.webp"
         alt="Grupos Pequeños"
         fill
+        quality={100}
+        sizes="100vw"
         className="object-cover brightness-80 contrast-70"
       />
       <div
