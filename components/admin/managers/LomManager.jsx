@@ -19,8 +19,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from 'sonner';
+import { OverflowCell } from './table-cells/OverflowCell';
 
 const lomSchema = z.object({
   title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),
@@ -181,16 +181,7 @@ export default function LomManager() {
                 {posts.map((post) => (
                   <TableRow key={post.id}>
                     <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span>{post.title}</span>
-                          </TooltipTrigger>
-                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
-                            <p>{post.title}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                     <OverflowCell>{post.title}</OverflowCell>
                     </TableCell>
                     <TableCell>{new Date(post.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</TableCell>
                     <TableCell className="min-w-[150px]">

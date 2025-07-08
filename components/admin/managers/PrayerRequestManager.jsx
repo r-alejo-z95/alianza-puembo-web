@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { toast } from 'sonner';
+import { OverflowCell } from './table-cells/OverflowCell';
 
 export default function PrayerRequestManager() {
   const [requests, setRequests] = useState([]);
@@ -72,28 +72,10 @@ export default function PrayerRequestManager() {
                 {requests.map((req) => (
                   <TableRow key={req.id}>
                     <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                       <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span>{req.request_text}</span>
-                          </TooltipTrigger>
-                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
-                            <p>{req.request_text}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                       </TooltipProvider>
+                      <OverflowCell>{req.request_text}</OverflowCell>
                     </TableCell>
                     <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
-                       <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span>{req.name || 'N/A'}</span>
-                          </TooltipTrigger>
-                          <TooltipContent side="top-start" className="max-w-3xs wrap-break-word">
-                            <p>{req.name || 'N/A'}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                       </TooltipProvider>
+                       <OverflowCell>{req.name || "N/A"}</OverflowCell>
                     </TableCell>
                     <TableCell>{new Date(req.created_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</TableCell>
                     <TableCell>
