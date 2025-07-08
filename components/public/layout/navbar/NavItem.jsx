@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import SmartLink from "./SmartLink";
 import DropdownMenu from "./DropdownMenu";
-import { headerTextSizes } from "@/lib/styles";
+import { headerTextSizes, textShadow } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
 const NavItem = ({ title, href, subroutes, mobile, onLinkClick }) => {
@@ -23,7 +23,7 @@ const NavItem = ({ title, href, subroutes, mobile, onLinkClick }) => {
         onMouseEnter={() => !mobile && setIsOpen(true)}
         onMouseLeave={() => !mobile && setIsOpen(false)}
       >
-        <div className={baseClasses} onClick={() => setIsOpen(!isOpen)}>
+        <div className={cn(baseClasses, textShadow)} onClick={() => setIsOpen(!isOpen)}>
           <span>{title}</span>
           <ChevronDown className="ml-2 h-4 w-4" />
         </div>

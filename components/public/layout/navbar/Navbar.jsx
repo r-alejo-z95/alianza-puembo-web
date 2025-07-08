@@ -12,11 +12,11 @@ import MobileMenu from "./MobileMenu";
 import { socialLinks, menuItems } from "./config";
 import { cn } from "@/lib/utils";
 import { useNavbarLogic } from "@/lib/hooks/useNavbarLogic";
+import { dropShadow } from "@/lib/styles";
 
 const Navbar = ({ setNavbarHeight }) => {
   const {
     mobileOpen,
-    isHomepage,
     navbarRef,
     bgClass,
     toggleMobileMenu,
@@ -54,7 +54,10 @@ const Navbar = ({ setNavbarHeight }) => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={name}
-                className="text-primary-foreground hover:text-accent"
+                className={cn(
+                  "text-primary-foreground hover:text-accent",
+                  dropShadow
+                )}
               >
                 <Icon className="h-4 w-4 2xl:h-8 2xl:w-8" />
               </a>
@@ -67,7 +70,10 @@ const Navbar = ({ setNavbarHeight }) => {
           {/* Mobile Toggle */}
           <button
             onClick={toggleMobileMenu}
-            className="text-primary-foreground p-4 lg:hidden"
+            className={cn(
+              "text-primary-foreground p-4 lg:hidden",
+              dropShadow
+            )}
           >
             {mobileOpen ? (
               <X className="w-6 h-6" />
@@ -79,7 +85,8 @@ const Navbar = ({ setNavbarHeight }) => {
           {/* Desktop Menu */}
           <NavMenu items={leftItems} />
           {/* Logo */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0  hover:scale-105 transition duration-700">
+          <div
+            className="absolute left-1/2 transform -translate-x-1/2 lg:static lg:translate-x-0 hover:scale-105 transition duration-700">
             <Link href="/" onClick={closeMobileMenu}>
               <Image
                 src="/brand/logo-puembo-white.png"
@@ -87,7 +94,7 @@ const Navbar = ({ setNavbarHeight }) => {
                 width={3991}
                 height={2592}
                 priority
-                className="w-26 xl:w-28 2xl:w-36"
+                className={cn("w-26 xl:w-28 2xl:w-36", dropShadow)}
                 unoptimized
               />
             </Link>

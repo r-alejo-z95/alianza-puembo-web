@@ -5,6 +5,7 @@ import {
   sectionPx,
   mainTitleSizes,
   subTitleSizes,
+  textShadow,
 } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 import Image from 'next/image';
@@ -35,7 +36,8 @@ export default function Grupos() {
           viewport={{ once: true }}
           className={cn(
             subTitleSizes,
-            'text-center font-merriweather font-bold mx-auto'
+            'text-center font-merriweather font-bold mx-auto',
+            textShadow
           )}
         >
           Grupos Pequeños
@@ -45,7 +47,11 @@ export default function Grupos() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeInOut', delay: 0.2 }}
           viewport={{ once: true }}
-          className={cn(mainTitleSizes, 'text-center mx-auto')}
+          className={cn(
+            mainTitleSizes,
+            'text-center mx-auto',
+            textShadow
+          )}
         >
           Tenemos un lugar para ti
         </motion.p>
