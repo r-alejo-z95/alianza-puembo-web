@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import { Button } from "@/components/ui/button";
 import { btnStyles } from "@/lib/styles";
 import { cn } from "@/lib/utils";
@@ -21,69 +21,23 @@ const markerPosition = {
   lng: -78.36375798200926,
 };
 
-const customMapStyle = [
-  {
-    featureType: "poi",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "transit",
-    stylers: [{ visibility: "off" }],
-  },
-  {
-    featureType: "administrative",
-    elementType: "labels",
-    stylers: [{ visibility: "on" }],
-  },
-  {
-    featureType: "road",
-    elementType: "labels",
-    stylers: [{ visibility: "on" }],
-  },
-  {
-    featureType: "road",
-    elementType: "geometry",
-    stylers: [{ color: "#e5e5e5" }],
-  },
-  {
-    featureType: "water",
-    stylers: [{ color: "#c9c9c9" }],
-  },
-];
-
 export default function GoogleMapView() {
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
-  });
-
-  if (!isLoaded)
-    return (
-      <div className="flex">
-        <p className="text-center font-bold mx-auto my-auto">
-          Cargando mapa...
-        </p>
-      </div>
-    );
-
   return (
-    <div>
+    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} libraries={["marker"]}>
       <div className="w-[280px] md:w-full aspect-[3/2] mx-auto rounded-md overflow-hidden flex">
-        <GoogleMap
+        <Map
+          mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID} // Reemplaza con tu Map ID de Google Cloud Console
+          defaultCenter={centerMap}
+          defaultZoom={18}
+          disableDefaultUI={true}
           mapContainerStyle={containerStyle}
-          center={centerMap}
-          zoom={18}
-          options={{ styles: customMapStyle, disableDefaultUI: true }}
         >
-          <Marker
-            position={markerPosition}
-            icon={{
-              url: "/icons/church-icon.png",
-              scaledSize: new window.google.maps.Size(40, 40),
-            }}
-          />
-        </GoogleMap>
+          <AdvancedMarker position={markerPosition}>
+              <img src="/icons/church-icon.png" alt="Church Icon" style={{ width: '36px', height: '36px' }} />
+          </AdvancedMarker>
+        </Map>
         <a
-          href={`https://www.google.com/maps/dir/?api=1&destination=${markerPosition.lat},${markerPosition.lng}`}
+          href={`https://www.google.com/maps/dir/?api=1&destination=Iglesia+Alianza+Puembo`}
           target="_blank"
           rel="noopener noreferrer"
           className="absolute mt-4 ml-4 xl:mt-6 xl:ml-6"
@@ -91,6 +45,6 @@ export default function GoogleMapView() {
           <Button className={cn(btnStyles)}>Cómo llegar</Button>
         </a>
       </div>
-    </div>
+    </APIProvider>
   );
 }
