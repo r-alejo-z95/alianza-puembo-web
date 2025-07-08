@@ -42,7 +42,7 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1, ease: 'easeInOut' }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
           className="absolute inset-0"
         >
           <Image
@@ -53,19 +53,31 @@ export default function Hero() {
             sizes="100vw"
             quality={100}
             className="object-cover object-top"
+            unoptimized
           />
         </motion.div>
       </AnimatePresence>
+      {/* Preload the next image */}
+      <div style={{ display: 'none' }}>
+        <Image
+          src={heroImages[(currentImageIndex + 1) % heroImages.length]}
+          alt="Preloaded Hero Background"
+          width={1920}
+          height={1080}
+          quality={100}
+          unoptimized
+        />
+      </div>
       <div
         className={cn(
           sectionPx,
-          'relative z-10 w-full h-full flex flex-col justify-center items-start text-primary-foreground backdrop-brightness-80 backdrop-contrast-70 gap-4'
+          'relative z-10 w-full h-full flex flex-col justify-center items-start text-primary-foreground gap-4'
         )}
       >
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
+          transition={{ duration: 1, ease: 'easeInOut' }}
           className="flex flex-col gap-2 mb-4"
         >
           <h2 className={cn(secondaryTextSizes)}>

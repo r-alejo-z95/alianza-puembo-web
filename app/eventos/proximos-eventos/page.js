@@ -45,6 +45,7 @@ export default async function ProximosEventos() {
                     sizes="(max-width: 768px) 576px, (max-width: 1200px) 50vw, 1000px"
                     quality={100}
                     className="rounded-lg object-contain"
+                    unoptimized
                   />
                 </div>
               )}

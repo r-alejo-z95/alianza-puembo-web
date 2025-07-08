@@ -88,6 +88,7 @@ const Navbar = ({ setNavbarHeight }) => {
                 height={2592}
                 priority
                 className="w-26 xl:w-28 2xl:w-36"
+                unoptimized
               />
             </Link>
           </div>

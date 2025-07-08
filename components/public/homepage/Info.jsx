@@ -46,6 +46,7 @@ export default function Info() {
             quality={100}
             sizes="(max-width: 767px) 100vw, (min-width: 768px) 300px, (min-width: 1024px) 500px, (min-width: 1280px) 700px, (min-width: 1536px) 900px, 1500px"
             className="object-cover"
+            unoptimized
           />
         </div>
       </div>
