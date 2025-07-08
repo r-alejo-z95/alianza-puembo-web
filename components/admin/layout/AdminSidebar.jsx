@@ -65,7 +65,10 @@ export default function AdminSidebar({ user, children }) {
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-4 border-t border-gray-100 pt-4">
-          <Link href="/" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors text-white shadow-2xl"></Link>
+          <Link href="/" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors text-white shadow-2xl" onClick={() => setIsSidebarOpen(false)}>
+            <Home className="h-5 w-5" />
+            Ir a Página Principal
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[hsl(92,45.9%,40%)] transition-colors justify-start text-white w-full">
