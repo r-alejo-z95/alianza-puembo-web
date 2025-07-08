@@ -37,7 +37,7 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
         return (
             <div className='border rounded-lg p-4 shadow-sm space-y-2'>
                 <div><span className="font-semibold">Título:</span> <OverflowCell>{post.title}</OverflowCell></div>
-                <div><span className="font-semibold">Fecha de Publicación:</span> {new Date(post.publication_date).toLocaleDateString('es-ES', { dateStyle: 'medium' })}</div>
+                <div><span className="font-semibold">Fecha de Publicación:</span> {new Date(post.publication_date).toLocaleDateString('es-ES', { dateStyle: 'medium', timeZone: 'UTC' })}</div>
                 <div className="flex gap-2 pt-2">{actions}</div>
             </div>
         );
@@ -48,7 +48,7 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
             <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
                 <OverflowCell>{post.title}</OverflowCell>
             </TableCell>
-            <TableCell>{new Date(post.publication_date).toLocaleDateString('es-ES', { dateStyle: 'medium' })}</TableCell>
+            <TableCell>{new Date(post.publication_date).toLocaleDateString('es-ES', { dateStyle: 'medium', timeZone: 'UTC' })}</TableCell>
             <TableCell className="min-w-[150px]">{actions}</TableCell>
         </TableRow>
     );
