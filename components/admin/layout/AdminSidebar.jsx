@@ -106,8 +106,10 @@ export default function AdminSidebar({ user, children }) {
                 src="/brand/logo-puembo-white.png"
                 alt="Alianza Puembo Admin"
                 width={150}
-                height={50}
-                className="object-contain"
+                height={97}
+                className="object-contain w-[150px] h-auto"
+                priority
+                sizes="150px"
               />
             </Link>
           </div>
