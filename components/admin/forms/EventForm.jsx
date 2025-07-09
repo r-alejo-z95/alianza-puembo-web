@@ -26,6 +26,7 @@ const eventSchema = z.object({
   end_time: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: 'Fecha de fin inválida.',
   }),
+  registration_link: z.string().url({ message: "Por favor, introduce una URL válida." }).optional().or(z.literal('')),
 });
 
 export default function EventForm({ event, onSave, onCancel }) {
@@ -39,6 +40,7 @@ export default function EventForm({ event, onSave, onCancel }) {
       description: event?.description || '',
       start_time: event?.start_time ? new Date(event.start_time).toLocaleString('sv').substring(0, 16) : '',
       end_time: event?.end_time ? new Date(event.end_time).toLocaleString('sv').substring(0, 16) : '',
+      registration_link: event?.registration_link || '',
     },
   });
 
@@ -96,6 +98,19 @@ export default function EventForm({ event, onSave, onCancel }) {
               <FormLabel>Fecha y Hora de Fin</FormLabel>
               <FormControl>
                 <Input type="datetime-local" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="registration_link"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Link de Registro (Opcional)</FormLabel>
+              <FormControl>
+                <Input placeholder="https://ejemplo.com/registro" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

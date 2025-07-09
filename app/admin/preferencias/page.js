@@ -55,7 +55,7 @@ export default function PreferenciasPage() {
       setLoading(false);
     };
     fetchUser();
-  }, [form]);
+  }, [form, supabase.auth]);
 
   const onSubmit = async (data) => {
     if (data.password && data.password !== data.confirmPassword) {

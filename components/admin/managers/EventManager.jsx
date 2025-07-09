@@ -68,7 +68,8 @@ export default function EventManager() {
             ...eventData,
             start_time: new Date(eventData.start_time).toISOString(),
             end_time: eventData.end_time ? new Date(eventData.end_time).toISOString() : null,
-            poster_url
+            poster_url,
+            registration_link: eventData.registration_link || null
         };
 
         if (selectedEvent) {
@@ -133,6 +134,7 @@ export default function EventManager() {
                                         <TableHead className="font-bold">Fecha</TableHead>
                                         <TableHead className="font-bold">Hora</TableHead>
                                         <TableHead className="font-bold">Póster</TableHead>
+                                        <TableHead className="font-bold">Link de Registro</TableHead>
                                         <TableHead className="font-bold">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>
