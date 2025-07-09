@@ -33,8 +33,8 @@ export const menuItems = [
     position: "left",
     name: "Eventos",
     subroutes: [
-      { name: "Calendario", href: "/eventos/calendario" },
       { name: "Próximos eventos", href: "/eventos/proximos-eventos" },
+      { name: "Calendario", href: "/eventos/calendario" },
     ],
   },
   {
