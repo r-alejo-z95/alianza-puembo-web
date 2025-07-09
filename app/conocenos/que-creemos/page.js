@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { BookOpenText } from "lucide-react";
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription, sectionTitle } from "@/lib/styles";
+import Image from "next/image";
+import { textShadow, dropShadow } from "@/lib/styles";
+import { pageSection, pageHeaderContainer, imageHeaderContainer, pageTitle, pageDescription, sectionTitle } from "@/lib/styles";
 
 export default function QueCreemos() {
   const values = [
@@ -65,29 +67,44 @@ export default function QueCreemos() {
   ];
 
   return (
-    <section className={pageSection}>
-      <div className={pageHeaderContainer}>
-        <h1 className={pageTitle}>
-          Somos una Familia de familias
-        </h1>
-        <p className={pageDescription}>
-          Dios nos dió una Misión y una Visión para Su Gloria.
-        </p>
+    <section>
+      <div className={imageHeaderContainer}>
+        <Image
+          src="/conocenos/que-creemos/Que-creemos.webp"
+          alt="Silueta de manos levantadas"
+          fill
+          priority
+          className="object-cover object-center"
+        />
+
+        <div className="absolute inset-0 bg-black/50 z-10" />
+
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center text-white px-4">
+          <h1 className={pageTitle + textShadow}>
+            Somos una Familia de familias
+          </h1>
+          <p className={pageDescription + textShadow}>
+            Dios nos dió una Misión y una Visión para Su Gloria.
+          </p>
+        </div>
       </div>
+
+
+
       <div className="flex flex-col items-center gap-12">
-        <div className="flex flex-col gap-6 flex-1">
-          <div className="flex">
+        <div className={"container mx-auto px-4 pt-12 flex flex-col gap-6 flex-1"}>
+          <div className="flex flex-row w-full items-start justify-center flex-wrap">
             {values.map((value, index) => {
               return (
                 <div
                   key={index}
-                  className="flex flex-row gap-4 max-w-md w-full mx-auto"
+                  className="flex flex-row gap-4 max-w-md flex-wrap items-center justify-center"
                 >
                   <div className="flex flex-col gap-2 mx-4">
                     <h3 className="font-merriweather text-xl md:text-3xl lg:text-4xl font-bold mx-auto text-center">
                       {value.name}
                     </h3>
-                    <div className="text-sm md:text-base lg:text-lg mx-8 lg:mx-12 ">
+                    <div className="text-sm md:text-base lg:text-lg mx-4 lg:mx-12 ">
                       {value.detail}
                     </div>
                   </div>
@@ -96,42 +113,35 @@ export default function QueCreemos() {
             })}
           </div>
         </div>
-        <div className="flex flex-col gap-6 flex-1 items-center max-w-screen-xl mx-auto">
-          <p className="text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-justify">
+
+
+        <div className={"container mx-auto px-4 pb-12 flex flex-col gap-6 flex-1 items-center max-w-screen-xl"}>
+          <p className={textShadow + " pb-4 text-base md:text-lg lg:text-xl mx-8 lg:mx-16 text-justify text-white"}>
             Formamos parte de la Alianza Cristiana y Misionera, un movimiento
             enfocado en vivir y proclamar el evangelio de Jesucristo al mundo,
             con una vida centrada en Él y una misión clara hacia las naciones.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-5xl">
+
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-5xl mx-auto px-4">
             {beleifs.map((beleif, index) => {
               return (
                 <Card
                   key={index}
-                  className="flex flex-col gap-4 max-w-md w-full mx-auto hover:scale-105 cursor-default transition-transform duration-700 ease-in-out relative overflow-hidden"
+                  className={dropShadow + " flex flex-col gap-4 max-w-md w-full mx-auto cursor-default relative overflow-hidden border-0 bg-white/10"}
                 >
-                  <div
-                    className="absolute inset-0 z-0 m-4"
-                    style={{
-                      backgroundImage: `url('${beleif.image}')`,
-                      backgroundSize: "contain",
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "center",
-                      opacity: 0.5,
-                    }}
-                  />
-
                   <div className="flex flex-col gap-2 mx-8 relative z-10">
-                    <h3 className={sectionTitle}>
+                    <h3 className={sectionTitle + textShadow + " flex items-center gap-2 text-white"}>
                       {beleif.name}
                     </h3>
-                    <p className="text-xs md:text-sm lg:text-base text-justify">
+                    <p className={textShadow + " text-xs md:text-sm lg:text-base text-left text-gray-300"}>
                       {beleif.detail}
                     </p>
-                    <p className="text-xs md:text-sm text-justify italic flex items-center gap-2 lg:gap-4">
+                    <p className={textShadow + " text-sm md:text-base text-justify italic flex items-center gap-2 lg:gap-4 text-gray-400"}>
                       <BookOpenText className="size-4 shrink-0" />
                       <span>&quot;{beleif.verse}&quot;</span>
                     </p>
-                    <p className="text-xs md:text-sm lg:text-base text-justify font-semibold">
+                    <p className={textShadow + " text-sm text-justify font-semibold text-gray-400"}>
                       {beleif.citation}
                     </p>
                   </div>
@@ -140,6 +150,9 @@ export default function QueCreemos() {
             })}
           </div>
         </div>
+
+        <div className="pb-6" />
+
       </div>
     </section>
   );

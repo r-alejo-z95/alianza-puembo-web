@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import NavbarWrapper from "@/components/public/layout/NavbarWrapper";
 import Footer from "@/components/public/layout/Footer";
 import "@/app/globals.css";
@@ -22,6 +23,7 @@ const merriweather = Merriweather({
 export default function RootLayoutClient({ children }) {
   const pathname = usePathname();
   const isAuthRoute = pathname.startsWith('/admin') || pathname === '/login';
+  const [navbarHeight, setNavbarHeight] = useState(0);
 
   return (
     <html
@@ -29,8 +31,10 @@ export default function RootLayoutClient({ children }) {
       className={`${poppins.variable} ${merriweather.variable}`}
     >
       <body className="font-poppins">
-        {!isAuthRoute && <NavbarWrapper />}
-        {children}
+        {!isAuthRoute && <NavbarWrapper setNavbarHeight={setNavbarHeight} />}
+        <main style={{ paddingTop: (isAuthRoute || pathname === '/') ? 0 : (navbarHeight - 1) }}>
+          {children}
+        </main>
         {!isAuthRoute && <Footer />}
         <Toaster />
       </body>
