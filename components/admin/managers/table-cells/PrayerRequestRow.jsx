@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { TableRow, TableCell } from '@/components/ui/table';
@@ -34,7 +33,7 @@ export function PrayerRequestRow({ request, onDelete, compact }) {
             <div className='border rounded-lg p-4 shadow-sm space-y-2'>
                 <div><span className="font-semibold">Petición:</span> <OverflowCell>{request.request_text}</OverflowCell></div>
                 <div><span className="font-semibold">Nombre:</span> <OverflowCell>{request.name || "N/A"}</OverflowCell></div>
-                <div><span className="font-semibold">Fecha:</span> {new Date(request.created_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+                <div><span className="font-semibold">Fecha:</span> {new Date(request.created_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Guayaquil' })}</div>
                 <div>
                     <span className="font-semibold">Estado:</span>
                     <div className="flex gap-2 mt-1">
@@ -59,7 +58,7 @@ export function PrayerRequestRow({ request, onDelete, compact }) {
             <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
                 <OverflowCell>{request.name || "N/A"}</OverflowCell>
             </TableCell>
-            <TableCell>{new Date(request.created_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</TableCell>
+            <TableCell>{new Date(request.created_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Guayaquil' })}</TableCell>
             <TableCell>
                 <div className="flex gap-2">
                     {request.is_public ? (

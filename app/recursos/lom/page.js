@@ -15,7 +15,7 @@ export default async function Lom({ searchParams }) {
 
   const { data: posts, error, count } = await supabase
     .from('lom_posts')
-    .select('*', { count: 'exact' })
+    .select('*')
     .order('publication_date', { ascending: false });
 
   if (error) {
@@ -49,7 +49,7 @@ export default async function Lom({ searchParams }) {
             <div key={post.id} className="bg-white p-6 rounded-lg shadow-md flex flex-col items-center text-center">
               <h2 className={cn(sectionTitle, "text-3xl mb-2")}>{post.title}</h2>
               <p className="text-gray-600 text-sm mb-4">
-                {new Date(post.publication_date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+                {new Date(post.created_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Guayaquil' })}
               </p>
               <div className="text-gray-700 mb-4 text-justify tiptap max-w-none" dangerouslySetInnerHTML={{ __html: post.content }}></div>
             </div>
