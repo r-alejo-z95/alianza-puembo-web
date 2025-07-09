@@ -48,11 +48,14 @@ export default function EventManager() {
         const { data: { user } } = await supabase.auth.getUser();
         let poster_url = selectedEvent?.poster_url || null;
 
+        let poster_w = selectedEvent?.poster_w || null;
+        let poster_h = selectedEvent?.poster_h || null;
+
         if (posterFile) {
-            const fileName = `${Date.now()}_${posterFile.name}`;
+            const fileName = `${Date.now()}_${posterFile.file.name}`;
             const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('event-posters')
-                .upload(fileName, posterFile);
+                .upload(fileName, posterFile.file);
 
             if (uploadError) {
                 console.error('Error uploading poster:', uploadError);
@@ -61,6 +64,8 @@ export default function EventManager() {
             } else {
                 const { data: urlData } = supabase.storage.from('event-posters').getPublicUrl(uploadData.path);
                 poster_url = urlData.publicUrl;
+                poster_w = posterFile.width;
+                poster_h = posterFile.height;
             }
         }
 
@@ -69,6 +74,8 @@ export default function EventManager() {
             start_time: new Date(eventData.start_time).toISOString(),
             end_time: eventData.end_time ? new Date(eventData.end_time).toISOString() : null,
             poster_url,
+            poster_w,
+            poster_h,
             registration_link: eventData.registration_link || null
         };
 

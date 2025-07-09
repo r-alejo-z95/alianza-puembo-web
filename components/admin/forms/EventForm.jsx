@@ -123,7 +123,22 @@ export default function EventForm({ event, onSave, onCancel }) {
               <Input
                 type="file"
                 accept="image/*"
-                onChange={(e) => setPosterFile(e.target.files[0])}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                      const img = new Image();
+                      img.onload = () => {
+                        setPosterFile({ file, width: img.width, height: img.height });
+                      };
+                      img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                  } else {
+                    setPosterFile(null);
+                  }
+                }}
                 className="hidden"
                 ref={fileInputRef}
               />
@@ -133,7 +148,7 @@ export default function EventForm({ event, onSave, onCancel }) {
               >
                 Seleccionar Archivo
               </Button>
-              {posterFile && <span className="text-sm text-gray-500">{posterFile.name}</span>}
+              {posterFile && <span className="text-sm text-gray-500">{posterFile.file.name}</span>}
             </div>
           </FormControl>
           <FormMessage />
