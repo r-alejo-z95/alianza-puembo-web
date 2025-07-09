@@ -9,7 +9,7 @@ const formatEventDate = (start, end) => {
     const startDate = new Date(start);
     const endDate = end ? new Date(end) : null;
 
-    const options = { day: 'numeric', month: 'short', year: 'numeric' };
+    const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Guayaquil' };
     const esFormatter = new Intl.DateTimeFormat('es-ES', options);
 
     const isSameDay = (d1, d2) => {
@@ -94,7 +94,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                 <div><span className="font-semibold">Título:</span> {event.title}</div>
                 <div><span className="font-semibold">Descripción:</span> {event.description}</div>
                 <div><span className="font-semibold">Fecha:</span> {formattedDate}</div>
-                <div><span className="font-semibold">Hora:</span> {new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(event.end_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</div>
+                <div><span className="font-semibold">Hora:</span> {new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })} - {new Date(event.end_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })}</div>
                 {event.poster_url && <div><span className="font-semibold">Póster:</span> {posterActions}</div>}
                 {event.registration_link && <div><span className="font-semibold">Link de Registro:</span> {registrationLinkActions}</div>}
                 <div className="flex gap-2 pt-2">{actions}</div>
@@ -113,7 +113,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
             <TableCell>
                 <OverflowCell>{formattedDate}</OverflowCell>
             </TableCell>
-            <TableCell>{new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} - {new Date(event.end_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</TableCell>
+            <TableCell>{new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })} - {new Date(event.end_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })}</TableCell>
             <TableCell>{posterActions}</TableCell>
             <TableCell>{registrationLinkActions}</TableCell>
             <TableCell className="min-w-[150px]">{actions}</TableCell>

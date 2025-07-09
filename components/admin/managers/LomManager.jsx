@@ -73,7 +73,6 @@ export default function LomManager() {
 
     const dataToSave = {
       ...data,
-      publication_date: new Date().toISOString(),
       user_id: user?.id,
     };
 
