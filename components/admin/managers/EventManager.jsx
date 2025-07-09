@@ -52,6 +52,20 @@ export default function EventManager() {
         let poster_h = selectedEvent?.poster_h || null;
 
         if (posterFile) {
+            // If updating an existing event and a new poster is provided, delete the old one
+            if (selectedEvent && selectedEvent.poster_url) {
+                const oldFileName = selectedEvent.poster_url.split('/').pop();
+                const { error: deleteOldStorageError } = await supabase.storage
+                    .from('event-posters')
+                    .remove([oldFileName]);
+
+                if (deleteOldStorageError) {
+                    console.error('Error deleting old poster from storage:', deleteOldStorageError);
+                    toast.error('Error al eliminar el póster antiguo del almacenamiento.');
+                    // Continue with the new upload even if old deletion fails
+                }
+            }
+
             const fileName = `${Date.now()}_${posterFile.file.name}`;
             const { data: uploadData, error: uploadError } = await supabase.storage
                 .from('event-posters')
@@ -102,11 +116,38 @@ export default function EventManager() {
     };
 
     const handleDelete = async (eventId) => {
+        // Fetch the event to get the poster_url before deleting
+        const { data: eventToDelete, error: fetchError } = await supabase
+            .from('events')
+            .select('poster_url')
+            .eq('id', eventId)
+            .single();
 
-        const { error } = await supabase.from('events').delete().eq('id', eventId);
-        if (error) {
-            console.error('Error deleting event:', error);
-            toast.error('Error al eliminar el evento.');
+        if (fetchError) {
+            console.error('Error fetching event for deletion:', fetchError);
+            toast.error('Error al obtener el evento para eliminar.');
+            return;
+        }
+
+        // If there's a poster_url, delete the file from storage
+        if (eventToDelete.poster_url) {
+            const fileName = eventToDelete.poster_url.split('/').pop();
+            const { error: deleteStorageError } = await supabase.storage
+                .from('event-posters')
+                .remove([fileName]);
+
+            if (deleteStorageError) {
+                console.error('Error deleting poster from storage:', deleteStorageError);
+                toast.error('Error al eliminar el póster del almacenamiento.');
+                // Continue to delete the event record even if storage deletion fails
+            }
+        }
+
+        // Delete the event record from the database
+        const { error: deleteDbError } = await supabase.from('events').delete().eq('id', eventId);
+        if (deleteDbError) {
+            console.error('Error deleting event from database:', deleteDbError);
+            toast.error('Error al eliminar el evento de la base de datos.');
         } else {
             toast.success('Evento eliminado con éxito.');
         }
