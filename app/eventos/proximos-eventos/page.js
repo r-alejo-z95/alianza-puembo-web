@@ -5,11 +5,16 @@ import { cn } from '@/lib/utils';
 import { sectionTitle, sectionText } from "@/lib/styles";
 import { Button } from '@/components/ui/button';
 import { EventosHeader } from "@/components/public/layout/pages/eventos/EventosHeader";
+import { PaginationControls } from "@/components/public/PaginationControls";
 
-export default async function ProximosEventos() {
+export default async function ProximosEventos({ searchParams }) {
   const cookieStore = cookies();
   const supabase = await createClient(cookieStore);
-  const { data: events, error } = await supabase
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page) || 1;
+  const eventsPerPage = 3;
+
+  const { data: events, error, count } = await supabase
     .from('events')
     .select('*')
     .order('start_time', { ascending: true });
@@ -20,16 +25,24 @@ export default async function ProximosEventos() {
   }
 
   const now = new Date();
-  const upcomingEvents = events.filter(event => new Date(event.start_time) >= now).slice(0, 2);
+  const upcomingEvents = events.filter(event => new Date(event.start_time) >= now);
+
+  const totalPages = Math.ceil(upcomingEvents.length / eventsPerPage);
+  const paginatedEvents = upcomingEvents.slice(
+    (page - 1) * eventsPerPage,
+    page * eventsPerPage
+  );
+
+  const hasNextPage = page * eventsPerPage < upcomingEvents.length;
 
   return (
     <section>
       <EventosHeader />
-      {upcomingEvents.length === 0 ? (
+      {paginatedEvents.length === 0 ? (
         <p className="text-center text-lg min-h-[60vh] flex items-center justify-center">No hay eventos próximamente.</p>
       ) : (
         <div className="flex flex-col gap-6 w-full mx-auto px-8 md:px-20 pt-8 md:pt-16 pb-16 md:pb-24">
-          {upcomingEvents.map(event => (
+          {paginatedEvents.map(event => (
             <div key={event.id} className="flex flex-col items-center text-center">
               {event.poster_url && (
                 <div className="relative w-full mb-4" style={{ aspectRatio: event.poster_w && event.poster_h ? `${event.poster_w} / ${event.poster_h}` : '16 / 9' }}>
@@ -68,9 +81,11 @@ export default async function ProximosEventos() {
               </div>
             </div>
           ))}
+          {totalPages > 1 && (
+            <PaginationControls hasNextPage={hasNextPage} totalPages={totalPages} basePath="/eventos/proximos-eventos" />
+          )}
         </div>
-      )
-      }
-    </section >
+      )}
+    </section>
   );
 }

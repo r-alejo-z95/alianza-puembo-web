@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import EventForm from '@/components/admin/forms/EventForm';
 import { toast } from 'sonner';
 import { EventRow } from './table-cells/EventRows';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { PaginationControls } from "@/components/admin/PaginationControls";
 
 export default function EventManager() {
     const [events, setEvents] = useState([]);
@@ -199,24 +199,12 @@ export default function EventManager() {
                                 </TableBody>
                             </Table>
                             {totalPages > 1 && (
-                                <div className="flex justify-end space-x-2 mt-4">
-                                    <Button
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        disabled={currentPage === 1}
-                                        variant="outline"
-                                        size="icon"
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                        disabled={currentPage === totalPages}
-                                        variant="outline"
-                                        size="icon"
-                                    >
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                </div>
+                                <PaginationControls
+                                    hasNextPage={currentPage < totalPages}
+                                    totalPages={totalPages}
+                                    currentPage={currentPage}
+                                    setCurrentPage={setCurrentPage}
+                                />
                             )}
                         </div>
 
@@ -234,24 +222,12 @@ export default function EventManager() {
                                 ))}
                             </div>
                             {totalPages > 1 && (
-                                <div className="flex justify-end space-x-2 mt-4">
-                                    <Button
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        disabled={currentPage === 1}
-                                        variant="outline"
-                                        size="icon"
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                        disabled={currentPage === totalPages}
-                                        variant="outline"
-                                        size="icon"
-                                    >
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                </div>
+                                <PaginationControls
+                                    hasNextPage={currentPage < totalPages}
+                                    totalPages={totalPages}
+                                    currentPage={currentPage}
+                                    setCurrentPage={setCurrentPage}
+                                />
                             )}
                         </div>
                     </div>
