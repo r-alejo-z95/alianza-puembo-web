@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { PrayerRequestRow } from './table-cells/PrayerRequestRow';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { PaginationControls } from "@/components/admin/PaginationControls";
 
 export default function PrayerRequestManager() {
   const [requests, setRequests] = useState([]);
@@ -53,6 +53,7 @@ export default function PrayerRequestManager() {
   };
 
   const totalPages = useMemo(() => Math.ceil(requests.length / itemsPerPage), [requests.length, itemsPerPage]);
+  const hasNextPage = currentPage * itemsPerPage < requests.length;
   const currentRequests = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -93,24 +94,12 @@ export default function PrayerRequestManager() {
                 </TableBody>
               </Table>
               {totalPages > 1 && (
-                <div className="flex justify-end space-x-2 mt-4">
-                  <Button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    variant="outline"
-                    size="icon"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    variant="outline"
-                    size="icon"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+                <PaginationControls
+                  hasNextPage={hasNextPage}
+                  totalPages={totalPages}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                />
               )}
             </div>
 
@@ -127,24 +116,12 @@ export default function PrayerRequestManager() {
                 ))}
               </div>
               {totalPages > 1 && (
-                <div className="flex justify-end space-x-2 mt-4">
-                  <Button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    variant="outline"
-                    size="icon"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    variant="outline"
-                    size="icon"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+                <PaginationControls
+                  hasNextPage={hasNextPage}
+                  totalPages={totalPages}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                />
               )}
             </div>
           </div>
