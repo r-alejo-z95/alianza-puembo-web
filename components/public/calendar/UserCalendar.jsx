@@ -5,18 +5,23 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import Link from 'next/link';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function UserCalendar({ events }) {
   return (
-    <div className="w-full">
+    <div className="w-full lg:w-[75vw] mx-auto">
       <FullCalendar
         height="85vh"
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay',
+          left: 'title',
+          center: '',
+          right: 'prev next',
+        }}
+        titleFormat={{
+          month: 'long',
+          year: 'numeric',
         }}
         initialView="dayGridMonth"
         events={events}
@@ -30,40 +35,57 @@ export default function UserCalendar({ events }) {
           meridiem: 'short'
         }}
         eventContent={(arg) => {
-          const startTime = new Date(arg.event.start).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+          const startTime = new Date(arg.event.start).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' });
+          const hasLink = arg.event.extendedProps.link && arg.event.extendedProps.link !== '';
+
+          const content = (
+            <>
+              <p className="font-bold text-base mb-1 text-black">{arg.event.title}</p>
+              {arg.event.extendedProps.description && (
+                <p className="text-gray-500 mb-2">{arg.event.extendedProps.description}</p>
+              )}
+              <p className="text-gray-600">{startTime}</p>
+            </>
+          );
+
           return (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  {/* Renderiza el contenido predeterminado del evento de FullCalendar */}
-                  <div className="fc-event-main-frame overflow-hidden">
-                    <div className="fc-event-title-container flex flex-row items-center gap-2">
-                      <div className="w-4 h-4 rounded-full bg-(--puembo-green)"/> 
-                      <div className="fc-event-title fc-sticky text-ellipsis">{arg.event.title}</div>
-                    </div>
+            <Popover>
+              <PopoverTrigger asChild className="block cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap">
+                {/* Renderiza el contenido predeterminado del evento de FullCalendar */}
+                <div className="fc-event-main-frame overflow-hidden">
+                  <div className="fc-event-title-container flex flex-row items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-(--puembo-green)" />
+                    <div className="fc-event-title fc-sticky text-ellipsis">{arg.event.title}</div>
                   </div>
-                </TooltipTrigger>
-                <TooltipContent className="bg-white/50 backdrop-blur-xs p-4 pr-0 rounded-lg shadow-lg max-w-xs text-sm">
-                  <p className="font-bold text-base mb-1 text-black">{arg.event.title}</p>
-                  {arg.event.extendedProps.description && (
-                    <p className="text-gray-700 mb-2">{arg.event.extendedProps.description}</p>
-                  )}
-                  <p className="text-gray-600">{startTime}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                </div>
+              </PopoverTrigger>
+              <PopoverContent side="top-start" className="bg-gray-100/90 border-white min-w-[100px] max-w-3xs break-words text-xs">
+                {hasLink ? (
+                  <Link href={arg.event.extendedProps.link} target="_blank" rel="noopener noreferrer" className='cursor-pointer'>
+                    {content}
+                  </Link>
+                ) : (
+                  <div>
+                    {content}
+                  </div>
+                )}
+              </PopoverContent>
+            </Popover>
           );
         }}
       />
       <style jsx global>{`
         .fc .fc-button-primary {
           background-color: hsl(92, 45.9%, 47.8%); /* puembo-green */
-          border-color: hsl(92, 45.9%, 47.8%);
+          border-style: none;
           color: white;
+          box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
         .fc .fc-button-primary:hover {
           background-color: hsl(92, 45.9%, 37.8%); /* Darker puembo-green */
           border-color: hsl(92, 45.9%, 37.8%);
+          box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.15);
+          
         }
         .fc .fc-button-primary:not(:disabled).fc-button-active {
           background-color: hsl(92, 45.9%, 37.8%); /* Darker puembo-green for active state */
