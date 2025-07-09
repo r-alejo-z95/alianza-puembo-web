@@ -10,7 +10,7 @@ async function getEvents() {
   // La política de RLS permite que cualquiera lea los eventos, por lo que no se necesita autenticación aquí.
   const { data, error } = await supabase
     .from('events')
-    .select('id, title, description, start_time, end_time');
+    .select('*');
 
   if (error) {
     console.error('Error fetching events from Supabase:', error);
@@ -26,6 +26,7 @@ async function getEvents() {
     end: event.end_time,
     extendedProps: {
       description: event.description,
+      link: event.registration_link,
     },
   }));
 }
