@@ -2,7 +2,9 @@ import { cookies } from 'next/headers';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils';
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription, sectionTitle } from "@/lib/styles";
+import { sectionTitle, sectionText } from "@/lib/styles";
+import { Button } from '@/components/ui/button';
+import { EventosHeader } from "@/components/public/layout/pages/eventos/EventosHeader";
 
 export default async function ProximosEventos() {
   const cookieStore = cookies();
@@ -21,23 +23,16 @@ export default async function ProximosEventos() {
   const upcomingEvents = events.filter(event => new Date(event.start_time) >= now).slice(0, 2);
 
   return (
-    <section className={pageSection}>
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold tracking-tight font-merriweather">
-          Próximos Eventos
-        </h1>
-        <p className="mt-4 text-lg text-muted-foreground">
-          Mantente al tanto de lo que viene en nuestra comunidad.
-        </p>
-      </div>
+    <section>
+      <EventosHeader />
       {upcomingEvents.length === 0 ? (
         <p className="text-center text-lg min-h-[60vh] flex items-center justify-center">No hay eventos próximamente.</p>
       ) : (
-        <div className="flex flex-col gap-12 w-full max-w-3xl mx-auto">
+        <div className="flex flex-col gap-6 w-full mx-auto px-8 md:px-20 pt-8 md:pt-16 pb-16 md:pb-24">
           {upcomingEvents.map(event => (
             <div key={event.id} className="flex flex-col items-center text-center">
               {event.poster_url && (
-                <div className="relative w-full max-w-xl h-96 mb-4">
+                <div className="relative w-full mb-4" style={{ aspectRatio: '16/9' }}>
                   <Image
                     src={event.poster_url}
                     alt={event.title}
@@ -46,19 +41,31 @@ export default async function ProximosEventos() {
                     quality={100}
                     className="rounded-lg object-contain"
                     unoptimized
+                    priority
                   />
                 </div>
               )}
-              <h2 className={cn(sectionTitle, "text-3xl mb-2")}>{event.title}</h2>
+              <h2 className={cn(sectionTitle, "mb-2")}>{event.title}</h2>
               {event.description && (
-                <p className="text-gray-700 mb-4 max-w-2xl">{event.description}</p>
+                <p className={cn(sectionText, "mb-4 max-w-2xl text-gray-800")}>{event.description}</p>
               )}
-              <p className="text-gray-600 text-lg">
-                <span className="font-medium">Fecha:</span> {new Date(event.start_time).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
-              </p>
-              <p className="text-gray-600 text-lg">
-                <span className="font-medium">Hora:</span> {new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
-              </p>
+              <div className='flex flex-row justify-center items-center gap-8'>
+                <div className='flex flex-col'>
+                  <p className={cn("text-gray-600", sectionText)}>
+                    <span className="font-medium">Fecha:</span> {new Date(event.start_time).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Guayaquil' })}
+                  </p>
+                  <p className={cn("text-gray-600", sectionText)}>
+                    <span className="font-medium">Hora:</span> {new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })}
+                  </p>
+                </div>
+                {event.registration_link && (
+                  <div className="mt-4">
+                    <a href={event.registration_link} target="_blank" rel="noopener noreferrer">
+                      <Button className="px-4 py-2 bg-(--puembo-green) text-white rounded-md hover:bg-[hsl(92,45.9%,40%)]">Regístrate</Button>
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
