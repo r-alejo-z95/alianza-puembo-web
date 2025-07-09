@@ -32,7 +32,7 @@ export default async function ProximosEventos() {
           {upcomingEvents.map(event => (
             <div key={event.id} className="flex flex-col items-center text-center">
               {event.poster_url && (
-                <div className="relative w-full mb-4" style={{ aspectRatio: '16/9' }}>
+                <div className="relative w-full mb-4" style={{ aspectRatio: event.poster_w && event.poster_h ? `${event.poster_w} / ${event.poster_h}` : '16 / 9' }}>
                   <Image
                     src={event.poster_url}
                     alt={event.title}
@@ -69,7 +69,8 @@ export default async function ProximosEventos() {
             </div>
           ))}
         </div>
-      )}
-    </section>
+      )
+      }
+    </section >
   );
 }
