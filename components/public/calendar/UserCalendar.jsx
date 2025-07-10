@@ -36,7 +36,8 @@ export default function UserCalendar({ events }) {
         }}
         eventContent={(arg) => {
           const startTime = new Date(arg.event.start).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' });
-          const hasLink = arg.event.extendedProps.link && arg.event.extendedProps.link !== '';
+          const eventLink = '/eventos/proximos-eventos#' + encodeURIComponent(arg.event.title);
+
 
           const content = (
             <>
@@ -54,21 +55,15 @@ export default function UserCalendar({ events }) {
                 {/* Renderiza el contenido predeterminado del evento de FullCalendar */}
                 <div className="fc-event-main-frame overflow-hidden">
                   <div className="fc-event-title-container flex flex-row items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-(--puembo-green)" />
+                    <div className="w-2 h-2 rounded-full bg-(--puembo-green)" />
                     <div className="fc-event-title fc-sticky text-ellipsis">{arg.event.title}</div>
                   </div>
                 </div>
               </PopoverTrigger>
               <PopoverContent side="top-start" className="bg-gray-100/90 border-white min-w-[100px] max-w-3xs break-words text-xs">
-                {hasLink ? (
-                  <Link href={arg.event.extendedProps.link} target="_blank" rel="noopener noreferrer" className='cursor-pointer'>
-                    {content}
-                  </Link>
-                ) : (
-                  <div>
-                    {content}
-                  </div>
-                )}
+                <Link href={eventLink} target="_blank" rel="noopener noreferrer" className='cursor-pointer'>
+                  {content}
+                </Link>
               </PopoverContent>
             </Popover>
           );
