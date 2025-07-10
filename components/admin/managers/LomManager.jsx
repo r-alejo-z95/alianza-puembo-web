@@ -67,13 +67,23 @@ export default function LomManager() {
     fetchPosts();
   }, []);
 
+  const createSlug = (title) => {
+    return title
+      .toLowerCase()
+      .replace(/ /g, '-')
+      .replace(/[^\w-]+/g, '');
+  };
+
   const onSubmit = async (data) => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
 
+    const slug = createSlug(data.title);
+
     const dataToSave = {
       ...data,
       user_id: user?.id,
+      slug: slug,
     };
 
     if (selectedPost) {
