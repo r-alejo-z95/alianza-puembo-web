@@ -26,7 +26,6 @@ async function getEvents() {
     end: event.end_time,
     extendedProps: {
       description: event.description,
-      link: event.registration_link,
     },
   }));
 }

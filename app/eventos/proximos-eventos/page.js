@@ -41,11 +41,11 @@ export default async function ProximosEventos({ searchParams }) {
       {paginatedEvents.length === 0 ? (
         <p className="text-center text-lg min-h-[60vh] flex items-center justify-center">No hay eventos próximamente.</p>
       ) : (
-        <div className="flex flex-col gap-6 w-full mx-auto px-8 md:px-20 pt-8 md:pt-16 pb-16 md:pb-24">
+        <div className="flex flex-col gap-10 md:gap-16 w-full mx-auto px-8 md:px-28 pt-8 md:pt-16 pb-16 md:pb-24">
           {paginatedEvents.map(event => (
-            <div key={event.id} className="flex flex-col items-center text-center">
+            <div id={event.title} key={event.id} className="flex flex-col items-center text-center">
               {event.poster_url && (
-                <div className="relative w-full mb-4" style={{ aspectRatio: event.poster_w && event.poster_h ? `${event.poster_w} / ${event.poster_h}` : '16 / 9' }}>
+                <div className="relative w-full mb-2 md:mb-4" style={{ aspectRatio: event.poster_w && event.poster_h ? `${event.poster_w} / ${event.poster_h}` : '16 / 9' }}>
                   <Image
                     src={event.poster_url}
                     alt={event.title}
@@ -60,7 +60,7 @@ export default async function ProximosEventos({ searchParams }) {
               )}
               <h2 className={cn(sectionTitle, "mb-2")}>{event.title}</h2>
               {event.description && (
-                <p className={cn(sectionText, "mb-4 max-w-2xl text-gray-800")}>{event.description}</p>
+                <p className={cn(sectionText, "mb-2 max-w-2xl text-gray-800")}>{event.description}</p>
               )}
               <div className='flex flex-row justify-center items-center gap-8'>
                 <div className='flex flex-col'>
