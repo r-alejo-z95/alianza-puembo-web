@@ -1,4 +1,5 @@
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
+import { contentSection } from "@/lib/styles";
+import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 
 export const metadata = {
   title: "Misión Dignidad",
@@ -10,16 +11,16 @@ export const metadata = {
 
 export default function MisionDignidad() {
   return (
-    <section className={pageSection}>
-      <div className={pageHeaderContainer}>
-        <h1 className={pageTitle}>
-          Misión Dignidad
-        </h1>
-        <p className={pageDescription}>
-          Extendiendo el amor de Cristo a los más necesitados.
-        </p>
+    <section>
+      <PageHeader
+        title="Misión Dignidad"
+        description="Extendiendo el amor de Cristo a los más necesitados."
+        imageUrl="/ministerios/mision-dignidad/Mision-dignidad.jpg"
+        imageAlt="Personas ayudando a los necesitados"
+      />
+      <div className={contentSection}>
+        {/* Contenido de Misión Dignidad */}
       </div>
-      {/* Contenido de Misión Dignidad */}
     </section>
   );
 }

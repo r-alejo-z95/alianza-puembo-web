@@ -2,6 +2,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { notAvailableText, contentSection } from '@/lib/styles';
+
 
 // This page will fetch the latest LOM post and redirect to its dynamic route.
 export default async function LomRedirectPage() {
@@ -16,9 +18,22 @@ export default async function LomRedirectPage() {
     .single();
 
   if (error || !data) {
-    // If no posts are found, redirect to the main resources page or a specific 'not-found' page.
-    // For now, we'll redirect to the parent resources page.
-    redirect('/recursos');
+    return (
+      <section>
+        <PageHeader
+          title="Devocionales LOM"
+          description="Profundiza en la lectura y meditación de la Biblia."
+          imageUrl="/recursos/lom/Lom.png"
+          imageAlt="Nubes en el cielo con luz del sol"
+        />
+
+        <div className={contentSection}>
+          <p className={notAvailableText}>
+            No hay devocionales disponibles.
+          </p>
+        </div>
+      </section>
+    );
   }
 
   // Redirect to the latest post's slugified URL.

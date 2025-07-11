@@ -1,4 +1,5 @@
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription, sectionTitle } from "@/lib/styles";
+import { sectionTitle, contentSection } from "@/lib/styles";
+import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail } from "lucide-react";
 
@@ -50,17 +51,15 @@ const donationSections = [
 
 export default function Donaciones() {
   return (
-    <section className={pageSection}>
-      <div className={pageHeaderContainer}>
-        <h1 className={pageTitle}>
-          Donaciones
-        </h1>
-        <p className={pageDescription}>
-          Tu generosidad nos ayuda a seguir extendiendo el Reino de Dios.
-        </p>
-      </div>
+    <section>
+      <PageHeader
+        title="Donaciones"
+        description="Tu generosidad nos ayuda a seguir extendiendo el Reino de Dios."
+        imageUrl="/donaciones/Donaciones.jpg"
+        imageAlt="Genta adorando"
+      />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className={contentSection}>
         <p className="text-center text-lg italic mb-8 max-w-3xl mx-auto">
           &quot;Traigan íntegro el diezmo para los fondos del templo, y así habrá alimento en mi casa. Pruébenme en esto —dice el Señor Todopoderoso—, y vean si no abro las compuertas del cielo y derramo sobre ustedes bendición hasta que sobreabunde.&rdquo;
           <br />
