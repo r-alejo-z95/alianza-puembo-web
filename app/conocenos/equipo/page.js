@@ -2,6 +2,14 @@ import Image from "next/image";
 import { pageSection, pageHeaderContainer, pageTitle, pageDescription, sectionTitle } from "@/lib/styles";
 import { cn } from "@/lib/utils";
 
+export const metadata = {
+  title: "Equipo Ministerial",
+  description: "Conoce a los pastores y líderes que sirven a nuestra comunidad en Alianza Puembo. Descubre quiénes somos y nuestra misión.",
+  alternates: {
+    canonical: "/conocenos/equipo",
+  },
+};
+
 export default function Equipo() {
   const team = [
     {

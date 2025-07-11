@@ -2,6 +2,14 @@
 import ContactForm from '@/components/public/forms/ContactForm';
 import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
+export const metadata = {
+  title: "Contáctanos",
+  description: "¿Tienes preguntas, sugerencias o necesitas ayuda? Contáctanos a través de nuestro formulario o encuentra nuestra información de contacto.",
+  alternates: {
+    canonical: "/contacto",
+  },
+};
+
 export default function ContactPage() {
   return (
     <section className={pageSection}>

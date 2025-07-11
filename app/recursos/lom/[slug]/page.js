@@ -7,6 +7,28 @@ import { Button } from '@/components/ui/button';
 import { pageHeaderContainer, pageTitle, pageSection } from '@/lib/styles';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const post = await getLomPost(slug);
+
+  if (!post) {
+    return {
+      title: 'Devocional no encontrado',
+    };
+  }
+
+  return {
+    title: {
+      absolute: `${post.title} | Devocionales LOM | Alianza Puembo`,
+    },
+    description: post.content.substring(0, 160), // Basic description from content
+    openGraph: {
+      title: post.title,
+      description: post.content.substring(0, 160),
+    },
+  };
+}
+
 async function getLomPost(slug) {
   const cookieStore = cookies();
   const supabase = await createClient(cookieStore);
@@ -45,27 +67,10 @@ async function getAdjacentPosts(currentPostDate) {
   return { prevPost, nextPost };
 }
 
-export async function generateMetadata({ params }) {
-  const post = await getLomPost(params.slug);
-
-  if (!post) {
-    return {
-      title: 'Devocional no encontrado',
-    };
-  }
-
-  return {
-    title: post.title,
-    description: post.content.substring(0, 160), // Basic description from content
-    openGraph: {
-      title: post.title,
-      description: post.content.substring(0, 160),
-    },
-  };
-}
 
 export default async function LomPostPage({ params }) {
-  const post = await getLomPost(params.slug);
+  const { slug } = await params;
+  const post = await getLomPost(slug);
 
   if (!post) {
     notFound();

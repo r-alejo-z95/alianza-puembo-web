@@ -3,6 +3,14 @@ import { cookies } from 'next/headers';
 import UserCalendar from '@/components/public/calendar/UserCalendar';
 import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
+export const metadata = {
+  title: "Calendario de Eventos",
+  description: "Consulta nuestro calendario para no perderte ningún evento, reunión o actividad especial en Alianza Puembo. ¡Te esperamos!",
+  alternates: {
+    canonical: "/eventos/calendario",
+  },
+};
+
 // --- Obtención de datos reales desde Supabase ---
 async function getEvents() {
   const cookieStore = cookies();

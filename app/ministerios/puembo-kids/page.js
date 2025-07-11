@@ -1,5 +1,13 @@
 import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
+export const metadata = {
+  title: "Puembo Kids",
+  description: "Puembo Kids es nuestro ministerio para niños, un lugar lleno de diversión, seguridad y enseñanza bíblica para que los más pequeños conozcan a Jesús.",
+  alternates: {
+    canonical: "/ministerios/puembo-kids",
+  },
+};
+
 export default function PuemboKids() {
   return (
     <section className={pageSection}>

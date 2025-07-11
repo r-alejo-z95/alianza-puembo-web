@@ -2,6 +2,14 @@ import { pageSection, pageHeaderContainer, pageTitle, pageDescription, sectionTi
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail } from "lucide-react";
 
+export const metadata = {
+  title: "Donaciones",
+  description: "Apoya la misión de Alianza Puembo a través de tus diezmos y ofrendas. Tu generosidad nos permite seguir extendiendo el Reino de Dios.",
+  alternates: {
+    canonical: "/donaciones",
+  },
+};
+
 const commonDetails = {
   ruc: "0991263217001",
   email: "contabilidadiglesia@alianzapuembo.org",
