@@ -4,9 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --breakpoint-3xl: 120rem;
-  --breakpoint-4xl: 160rem;
-  --breakpoint-5xl: 240rem;
+  
   --font-poppins: "Poppins", sans-serif;
   --font-merriweather: "Merriweather", "serif";
   --puembo-green: hsl(92, 45.9%, 47.8%);

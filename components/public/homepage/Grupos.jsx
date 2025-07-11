@@ -62,7 +62,7 @@ export default function Grupos() {
             rel="noopener noreferrer"
           >
             <Button variant="outline" className={btnStyles + " text-black"}>
-              Conecta con un Grupo Pequeño
+              Conecta con un GP
             </Button>
           </a>
         </div>

@@ -4,10 +4,7 @@ import NavItem from "./NavItem";
 
 const NavMenu = ({ items, mobile, onLinkClick }) => (
   <nav
-    className={`items-center gap-8 ${
-      mobile ? "flex-col space-y-4" : "hidden lg:flex"
-    }`}
-  >
+    className={`items-center ${mobile ? "flex-col space-y-4" : "hidden lg:flex gap-8"}`}>
     {items.map((item, idx) => (
       <NavItem
         key={idx}

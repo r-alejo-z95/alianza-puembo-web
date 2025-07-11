@@ -32,7 +32,7 @@ export default function RootLayoutClient({ children }) {
     >
       <body className="font-poppins">
         {!isAuthRoute && <NavbarWrapper setNavbarHeight={setNavbarHeight} />}
-        <main style={{ paddingTop: (isAuthRoute || pathname === '/') ? 0 : (navbarHeight - 1) }}>
+        <main style={{ paddingTop: (isAuthRoute || pathname === '/') ? 0 : (navbarHeight) }}>
           {children}
         </main>
         {!isAuthRoute && <Footer />}

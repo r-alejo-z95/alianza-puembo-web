@@ -19,7 +19,7 @@ export default function Info() {
       transition={{ duration: 0.8, ease: "easeInOut" }}
       className={cn(sectionPx, "w-full h-[50%] py-16 overflow-hidden")}>
       <div className="flex flex-col-reverse md:flex-row items-center gap-8 lg:gap-12">
-        <div className="flex flex-col gap-6 flex-1">
+        <div className="flex flex-col gap-6 md:w-1/2">
           <h2 className={cn(subTitleSizes, "font-merriweather font-bold")}>
             Somos una familia con convicciones firmes en Cristo
           </h2>
@@ -38,13 +38,13 @@ export default function Info() {
             </a>
           </div>
         </div>
-        <div className="relative max-w-full w-full md:w-[300px] lg:w-[500px] xl:w-[700px] 2xl:w-[900px] 3xl:w-[1100px] 4xl:w-[1300px] 5xl:w-[1500px] aspect-[3/2] rounded-md overflow-hidden flex-shrink-0">
+        <div className="relative w-full md:w-1/2 aspect-[3/2] rounded-md overflow-hidden">
           <Image
             src="homepage/Info-section.jpg"
             alt="Mujer abrazando a otra"
             fill
             quality={100}
-            sizes="(max-width: 767px) 100vw, (min-width: 768px) 300px, (min-width: 1024px) 500px, (min-width: 1280px) 700px, (min-width: 1536px) 900px, 1500px"
+            sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover"
             unoptimized
           />
