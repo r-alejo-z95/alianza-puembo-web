@@ -40,7 +40,7 @@ Sitio web para la iglesia "Alianza Puembo", desarrollado con Next.js (App Router
     -   `lib/supabase/middleware.js`: Para uso específico en el `middleware.ts`.
 -   **Tablas Principales (Esquema Simplificado)**:
     -   `events`: `id`, `title`, `description`, `start_time`, `end_time`, `poster_url`, `created_at`, `user_id`.
-    -   `lom_posts`: `id`, `title`, `content`, `publication_date`, `created_at`, `user_id`.
+    -   `lom_posts`: `id`, `title`, `content`, `publication_date`, `created_at`, `user_id`, **`slug` (añadido para URLs amigables)**.
     -   `prayer_requests`: `id`, `request_text`, `is_anonymous`, `is_public`, `created_at`.
 -   **Políticas de Row Level Security (RLS)**:
     -   **Tablas (`events`, `lom_posts`, `prayer_requests`)**: Las políticas están configuradas para permitir lectura pública en algunas tablas y operaciones de escritura/actualización/eliminación solo para usuarios autenticados, o para el autor del post en el caso de `lom_posts`.
@@ -108,3 +108,45 @@ Para mantener la simplicidad, legibilidad, escalabilidad y evitar la repetición
 -   **Validación y Gestión de Formularios**:
     -   Se utiliza `Zod` para la definición de esquemas y la validación de datos de formularios.
     -   `react-hook-form` se emplea para la gestión del estado de los formularios y la integración con la validación de `Zod`.
+
+## 8. Gestión de Metadatos (SEO y Redes Sociales)
+
+Next.js (App Router) centraliza la gestión de metadatos mediante la exportación de objetos `metadata` o funciones `generateMetadata` en archivos `layout.js` y `page.js`.
+
+### 8.1. Metadatos Globales (`app/layout.js`)
+
+-   Define los metadatos por defecto para todo el sitio.
+-   `metadataBase`: URL base del sitio para construir URLs absolutas.
+-   `title`: Incluye `template` (ej. `%s | Alianza Puembo`) y `default` para títulos consistentes.
+-   `description`: Descripción general del sitio.
+-   `openGraph` y `twitter`: Configuración para compartir en redes sociales (imágenes, títulos, descripciones). Las imágenes referenciadas (`/brand/logo-puembo.png`) deben existir en el directorio `public/`.
+-   `alternates`: Define URLs canónicas.
+-   `icons`: Configuración de favicons y `apple-touch-icon`.
+
+### 8.2. Metadatos Específicos por Página
+
+-   **Páginas Estáticas (`page.js`):** Exportan un objeto `metadata` con `title`, `description` y `alternates.canonical` específicos para la página. Estos valores anulan o se combinan con los del layout padre.
+-   **Páginas Dinámicas (`[slug]/page.js`):** Utilizan la función `generateMetadata` (que puede ser `async`) para obtener datos y construir metadatos dinámicamente. Para títulos exactos que no sigan la plantilla del layout padre, se usa `title: { absolute: '...' }`.
+-   **Páginas de Administración y Login:** Se les asignan metadatos específicos con `robots: { index: false, follow: false }` para evitar su indexación por motores de búsqueda.
+
+### 8.3. Consideraciones Importantes
+
+-   **`'use client'` y `metadata`:** No se puede exportar `metadata` ni `generateMetadata` desde componentes marcados con `'use client'`. En estos casos, la definición de metadatos debe moverse a un archivo `layout.js` dentro del mismo segmento de ruta.
+-   **`params` en Server Components:** Al acceder a `params` en funciones `generateMetadata` o Server Components, es necesario `await` el objeto `params` antes de desestructurar sus propiedades (ej. `const { slug } = await params;`).
+
+### 8.4. Favicons Condicionales (Light/Dark Mode)
+
+Para favicons que cambian según el tema del sistema (claro/oscuro):
+-   Se requieren dos archivos `.ico` (ej. `public/favicon-light.ico` y `public/favicon-dark.ico`).
+-   Las etiquetas `<link>` se añaden directamente en la sección `<head>` del `app/layout.js`, utilizando el atributo `media="(prefers-color-scheme: light)"` o `media="(prefers-color-scheme: dark)"`.
+-   La propiedad `icons` del objeto `metadata` en `app/layout.js` debe ser eliminada si se usan estas etiquetas `<link>` directas.
+
+## 9. Refactorización de la Sección LOM (Lee, Ora, Medita)
+
+La sección LOM ha sido refactorizada para utilizar rutas dinámicas basadas en "slugs", mejorando el SEO y la experiencia de usuario.
+
+-   **Columna `slug`:** Se añadió una columna `slug` de tipo `TEXT` a la tabla `lom_posts` en Supabase para almacenar URLs amigables.
+-   **Generación Automática de `slug`:** El `LomManager` en el panel de administración ahora genera y guarda automáticamente el `slug` a partir del título del devocional al crearlo o editarlo.
+-   **Páginas Dinámicas:** La ruta `/recursos/lom/[slug]/page.js` muestra devocionales individuales, permitiendo la navegación entre el devocional anterior y siguiente.
+-   **Redirección de Ruta Principal:** La ruta base `/recursos/lom` ahora redirige automáticamente al devocional más reciente, asegurando que los usuarios siempre vean el contenido más actual.
+-   **Formato de Título:** El título de la pestaña del navegador para los devocionales LOM sigue el formato: `Título del Devocional | Devocionales LOM | Alianza Puembo`.
