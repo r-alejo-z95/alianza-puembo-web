@@ -1,4 +1,5 @@
-import { contentSection } from "@/lib/styles";
+import { SmallGroupsIntroSection } from "@/components/public/layout/pages/ministerios/gp/SmallGroupsIntroSection";
+import { SmallGroupsBenefitsSection } from "@/components/public/layout/pages/ministerios/gp/SmallGroupsBenefitsSection";
 import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 
 export const metadata = {
@@ -11,16 +12,15 @@ export const metadata = {
 
 export default function GruposPequenos() {
   return (
-    <section>
+    <main>
       <PageHeader
         title="Grupos Pequeños"
         description="Crece en comunidad y fe a través de nuestros grupos pequeños."
         imageUrl="/ministerios/gp/gp.jpg"
         imageAlt="Grupo pequeño"
       />
-      <div className={contentSection}>
-        {/* Contenido de grupos pequeños */}
-      </div>
-    </section>
+      <SmallGroupsIntroSection />
+      <SmallGroupsBenefitsSection />
+    </main>
   );
 }

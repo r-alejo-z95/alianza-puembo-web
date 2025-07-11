@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { notAvailableText, contentSection } from '@/lib/styles';
+import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 
 
 // This page will fetch the latest LOM post and redirect to its dynamic route.

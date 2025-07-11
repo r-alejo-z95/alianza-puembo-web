@@ -1,4 +1,5 @@
-import { contentSection } from "@/lib/styles";
+import { PuemboKidsIntroSection } from "@/components/public/layout/pages/ministerios/puembo-kids/PuemboKidsIntroSection";
+import { PuemboKidsActivitiesSection } from "@/components/public/layout/pages/ministerios/puembo-kids/PuemboKidsActivitiesSection";
 import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 
 export const metadata = {
@@ -11,16 +12,15 @@ export const metadata = {
 
 export default function PuemboKids() {
   return (
-    <section>
+    <main>
       <PageHeader
         title="Puembo Kids"
         description="Un espacio divertido y seguro para que los más pequeños aprendan de Jesús."
         imageUrl="/ministerios/puembo-kids/Puembo-kids.jpg"
         imageAlt="Celebración de Puembo Kids"
       />
-      <div className={contentSection}>
-        {/* Contenido de Puembo Kids */}
-      </div>
-    </section>
+      <PuemboKidsIntroSection />
+      <PuemboKidsActivitiesSection />
+    </main>
   );
 }
