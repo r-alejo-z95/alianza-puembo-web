@@ -1,4 +1,5 @@
-import { contentSection } from "@/lib/styles";
+import { MatIntroSection } from "@/components/public/layout/pages/ministerios/mat/MatIntroSection";
+import { MatActivitiesSection } from "@/components/public/layout/pages/ministerios/mat/MatActivitiesSection";
 import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 
 export const metadata = {
@@ -11,16 +12,15 @@ export const metadata = {
 
 export default function Mat() {
   return (
-    <section>
+    <main>
       <PageHeader
         title="Ministerio de Música, Artes y Tecnología"
         description="Un ministerio dedicado a la adoración y el servicio a través de la música y las artes."
         imageUrl="/ministerios/mat/Mat.jpg"
         imageAlt="Cantantes adorando"
       />
-      <div className={contentSection}>
-        {/* Contenido del ministerio MAT */}
-      </div>
-    </section>
+      <MatIntroSection />
+      <MatActivitiesSection />
+    </main>
   );
 }
