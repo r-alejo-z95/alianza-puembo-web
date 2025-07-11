@@ -1,6 +1,7 @@
 
 import ContactForm from '@/components/public/forms/ContactForm';
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
+import { contentSection } from "@/lib/styles";
+import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 
 export const metadata = {
   title: "Contáctanos",
@@ -12,15 +13,15 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <section className={pageSection}>
-      <div className={pageHeaderContainer}>
-        <h1 className={pageTitle}>Contáctanos</h1>
-        <p className={pageDescription}>
-          Estamos aquí para servirte. Envíanos un mensaje y nos pondremos en contacto contigo.
-        </p>
-      </div>
+    <section>
+      <PageHeader
+        title="Contáctanos"
+        description="Estamos aquí para servirte. Envíanos un mensaje y nos pondremos en contacto contigo."
+        imageUrl="/contacto/Contacto.jpg"
+        imageAlt="Personas interactuando en un evento de la iglesia"
+      />
 
-      <div className="flex flex-col items-center">
+      <div className={contentSection + " items-center"}>
         <ContactForm />
       </div>
     </section>

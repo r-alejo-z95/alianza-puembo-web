@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import UserCalendar from '@/components/public/calendar/UserCalendar';
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
+import { contentSection } from "@/lib/styles";
+import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 
 export const metadata = {
   title: "Calendario de Eventos",
@@ -43,16 +44,16 @@ export default async function CalendarPage() {
   const events = await getEvents();
 
   return (
-    <section className={pageSection}>
-      <div className={pageHeaderContainer}>
-        <h1 className={pageTitle}>
-          Calendario de Eventos
-        </h1>
-        <p className={pageDescription}>
-          Descubre los próximos eventos de la iglesia y marca tu calendario.
-        </p>
+    <section>
+      <PageHeader
+        title="Calendario de Eventos"
+        description="Descubre los próximos eventos de la iglesia y marca tu calendario."
+        imageUrl="/eventos/Calendario.jpg"
+        imageAlt="Evento en la iglesia"
+      />
+      <div className={contentSection}>
+        <UserCalendar events={events} />
       </div>
-      <UserCalendar events={events} />
     </section>
   );
 }

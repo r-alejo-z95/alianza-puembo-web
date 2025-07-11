@@ -4,7 +4,8 @@ import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { pageHeaderContainer, pageTitle, pageSection } from '@/lib/styles';
+import { contentSection } from '@/lib/styles';
+import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export async function generateMetadata({ params }) {
@@ -86,38 +87,42 @@ export default async function LomPostPage({ params }) {
   });
 
   return (
-    <section className={pageSection}>
-      <div className={pageHeaderContainer}>
-        <h1 className={pageTitle}>{post.title}</h1>
-        <p className="text-lg text-gray-600 font-light">{publicationDate}</p>
-      </div>
-
-      <div
-        className="text-gray-700 mb-4 text-justify tiptap max-w-4xl mx-auto"
-        dangerouslySetInnerHTML={{ __html: post.content }}
+    <section>
+      <PageHeader
+        title={post.title}
+        description={publicationDate}
+        imageUrl="/recursos/lom/Lom.png"
+        imageAlt="Nubes en el cielo con luz del sol"
       />
 
-      <div className="flex justify-between items-center mt-12 border-t pt-6 md:px-16">
-        {prevPost ? (
-          <Button asChild variant="green">
-            <Link href={`/recursos/lom/${prevPost.slug}`} className="flex items-center gap-2">
-              <ChevronLeft size={16} />
-              Anterior
-            </Link>
-          </Button>
-        ) : (
-          <div />
-        )}
-        {nextPost ? (
-          <Button asChild variant="green">
-            <Link href={`/recursos/lom/${nextPost.slug}`} className="flex items-center gap-2">
-              Siguiente
-              <ChevronRight size={16} />
-            </Link>
-          </Button>
-        ) : (
-          <div />
-        )}
+      <div className={contentSection}>
+        <div
+          className="text-gray-700 mb-4 text-justify tiptap max-w-4xl mx-auto"
+          dangerouslySetInnerHTML={{ __html: post.content }}
+        />
+
+        <div className="flex justify-between items-center mt-12 border-t pt-6 md:px-16">
+          {prevPost ? (
+            <Button asChild variant="green">
+              <Link href={`/recursos/lom/${prevPost.slug}`} className="flex items-center gap-2">
+                <ChevronLeft size={16} />
+                Anterior
+              </Link>
+            </Button>
+          ) : (
+            <div />
+          )}
+          {nextPost ? (
+            <Button asChild variant="green">
+              <Link href={`/recursos/lom/${nextPost.slug}`} className="flex items-center gap-2">
+                Siguiente
+                <ChevronRight size={16} />
+              </Link>
+            </Button>
+          ) : (
+            <div />
+          )}
+        </div>
       </div>
     </section>
   );

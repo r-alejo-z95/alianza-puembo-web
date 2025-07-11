@@ -4,8 +4,9 @@ import { createClient } from '@/lib/supabase/server';
 import { cn } from '@/lib/utils';
 import { sectionTitle, sectionText } from "@/lib/styles";
 import { Button } from '@/components/ui/button';
-import { EventosHeader } from "@/components/public/layout/pages/eventos/EventosHeader";
+import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 import { PaginationControls } from "@/components/public/PaginationControls";
+import { notAvailableText } from "@/lib/styles";
 
 export const metadata = {
   title: "Próximos Eventos",
@@ -45,9 +46,14 @@ export default async function ProximosEventos({ searchParams }) {
 
   return (
     <section>
-      <EventosHeader />
+      <PageHeader
+        title="Próximos Eventos"
+        description="Mantente al tanto de lo que viene en nuestra comunidad."
+        imageUrl="/eventos/Eventos.jpg"
+        imageAlt="Personas en un evento de la iglesia"
+      />
       {paginatedEvents.length === 0 ? (
-        <p className="text-center text-lg min-h-[60vh] flex items-center justify-center">No hay eventos próximamente.</p>
+        <p className={notAvailableText}>No hay eventos próximamente.</p>
       ) : (
         <div className="flex flex-col gap-10 md:gap-16 w-full mx-auto px-8 md:px-28 pt-8 md:pt-16 pb-16 md:pb-24">
           {paginatedEvents.map(event => (

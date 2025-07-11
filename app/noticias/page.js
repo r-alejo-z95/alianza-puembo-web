@@ -1,4 +1,6 @@
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
+import { contentSection } from "@/lib/styles";
+import { PageHeader } from "@/components/public/layout/pages/PageHeader";
+import { notAvailableText } from "@/lib/styles";
 
 export const metadata = {
   title: "Noticias",
@@ -10,16 +12,17 @@ export const metadata = {
 
 export default function Noticias() {
   return (
-    <section className={pageSection}>
-      <div className={pageHeaderContainer}>
-        <h1 className={pageTitle}>
-          Noticias
-        </h1>
-        <p className={pageDescription}>
-          Mantente informado sobre los últimos acontecimientos de nuestra iglesia.
-        </p>
+    <section>
+      <PageHeader
+        title="Noticias"
+        description="Mantente informado sobre los últimos acontecimientos de nuestra iglesia."
+        imageUrl="/noticias/Noticias.jpg"
+        imageAlt="Personas compartiendo"
+      />
+      <div className={contentSection}>
+        {/* Contenido de noticias */}
+        <p className={notAvailableText}>No hay noticias para mostrar.</p>
       </div>
-      {/* Contenido de noticias */}
     </section>
   );
 }

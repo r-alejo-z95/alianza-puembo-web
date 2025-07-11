@@ -1,4 +1,5 @@
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
+import { contentSection } from "@/lib/styles";
+import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 
 export const metadata = {
   title: "Ministerio de Jóvenes",
@@ -10,16 +11,16 @@ export const metadata = {
 
 export default function Jovenes() {
   return (
-    <section className={pageSection}>
-      <div className={pageHeaderContainer}>
-        <h1 className={pageTitle}>
-          Ministerio de Jóvenes
-        </h1>
-        <p className={pageDescription}>
-          Un espacio para crecer en fe, amistad y propósito.
-        </p>
+    <section>
+      <PageHeader
+        title="Ministerio de Jóvenes"
+        description="Un espacio para crecer en fe, amistad y propósito."
+        imageUrl="/ministerios/jovenes/Jovenes.jpg"
+        imageAlt="Jóvenes en un campamento"
+      />
+      <div className={contentSection}>
+        {/* Contenido del ministerio de jóvenes */}
       </div>
-      {/* Contenido del ministerio de jóvenes */}
     </section>
   );
 }

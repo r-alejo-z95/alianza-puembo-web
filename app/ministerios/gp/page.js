@@ -1,4 +1,5 @@
-import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
+import { contentSection } from "@/lib/styles";
+import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 
 export const metadata = {
   title: "Grupos Pequeños",
@@ -10,16 +11,16 @@ export const metadata = {
 
 export default function GruposPequenos() {
   return (
-    <section className={pageSection}>
-      <div className={pageHeaderContainer}>
-        <h1 className={pageTitle}>
-          Grupos Pequeños
-        </h1>
-        <p className={pageDescription}>
-          Crece en comunidad y fe a través de nuestros grupos pequeños.
-        </p>
+    <section>
+      <PageHeader
+        title="Grupos Pequeños"
+        description="Crece en comunidad y fe a través de nuestros grupos pequeños."
+        imageUrl="/ministerios/gp/gp.jpg"
+        imageAlt="Grupo pequeño"
+      />
+      <div className={contentSection}>
+        {/* Contenido de grupos pequeños */}
       </div>
-      {/* Contenido de grupos pequeños */}
     </section>
   );
 }
