@@ -1,5 +1,8 @@
+'use client';
+
 import { Youtube } from "lucide-react";
 import GoogleMapView from "@/components/public/map/InteractiveMap";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   sectionPx,
@@ -21,9 +24,14 @@ export default function Ubicacion() {
           ¡Queremos conocerte! Visítanos
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-0 w-full mx-auto">
-          <div className="overflow-scroll">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="overflow-scroll"
+          >
             <GoogleMapView />
-          </div>
+          </motion.div>
           <div className="flex flex-col gap-4 md:gap-8 justify-center items-center text-center">
             <div className="flex flex-col md:gap-4">
               <p
