@@ -12,7 +12,7 @@ import { motion } from 'framer-motion';
 
 export default function Info() {
   return (
-    <motion.section 
+    <motion.section
       initial={{ opacity: 0, y: 50 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.3 }}
@@ -40,7 +40,7 @@ export default function Info() {
         </div>
         <div className="relative max-w-full w-full md:w-[300px] lg:w-[500px] xl:w-[700px] 2xl:w-[900px] 3xl:w-[1100px] 4xl:w-[1300px] 5xl:w-[1500px] aspect-[3/2] rounded-md overflow-hidden flex-shrink-0">
           <Image
-            src="https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images/homepage/Info-section.jpg"
+            src="homepage/Info-section.jpg"
             alt="Mujer abrazando a otra"
             fill
             quality={100}

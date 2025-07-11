@@ -15,7 +15,7 @@ export default function Grupos() {
   return (
     <section className="relative w-full h-screen flex flex-col text-primary-foreground bg-primary">
       <Image
-        src="https://gxziassnnbwnbzfrzcnx.supabase.co/storage/v1/object/public/public-images/homepage/Group-section.webp"
+        src="/homepage/Group-section.webp"
         alt="Grupos Pequeños"
         fill
         quality={100}
