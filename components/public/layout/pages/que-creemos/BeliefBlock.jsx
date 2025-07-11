@@ -1,14 +1,14 @@
 import Image from "next/image";
 import { BookOpenText } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { subSectionTitle, blockquote } from "@/lib/styles";
+import { subSectionTitle, blockquote, sectionPy } from "@/lib/styles";
 
 export function BeliefBlock({ belief, index }) {
     const { name, detail, verse, citation, image } = belief;
     const isReversed = index % 2 !== 0;
 
     return (
-        <div className="py-12 md:py-16">
+        <div className={sectionPy}>
             <div className={cn("grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center", isReversed && "md:grid-flow-col-dense")}>
                 <div className={cn("relative w-full h-64 md:h-96 rounded-lg overflow-hidden shadow-lg", isReversed ? "md:col-start-2" : "")}>
                     <Image

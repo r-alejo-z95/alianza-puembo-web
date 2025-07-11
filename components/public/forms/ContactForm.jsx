@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const initialState = {
   errors: {},
@@ -29,49 +28,44 @@ export default function ContactForm() {
   const [state, formAction] = useActionState(submitContactForm, initialState);
 
   return (
-    <Card className="w-full max-w-2xl">
-      <CardHeader>
-        <CardTitle>Envíanos un Mensaje</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {state.success ? (
-          <div className="text-center bg-green-100 text-green-800 p-4 rounded-md">
-            {state.message}
+    <div className="w-full max-w-2xl mx-auto py-4">
+      {state.success ? (
+        <div className="text-center bg-green-100 text-green-800 p-4 rounded-md">
+          {state.message}
+        </div>
+      ) : (
+        <form action={formAction} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre</Label>
+            <Input id="name" name="name" placeholder="Tu nombre" />
+            {state.errors?.name && (
+              <p className="text-sm text-red-500">{state.errors.name[0]}</p>
+            )}
           </div>
-        ) : (
-          <form action={formAction} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre</Label>
-              <Input id="name" name="name" placeholder="Tu nombre" />
-              {state.errors?.name && (
-                <p className="text-sm text-red-500">{state.errors.name[0]}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Correo Electrónico</Label>
-              <Input id="email" name="email" type="email" placeholder="tu@correo.com" />
-              {state.errors?.email && (
-                <p className="text-sm text-red-500">{state.errors.email[0]}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Teléfono (Opcional)</Label>
-              <Input id="phone" name="phone" type="tel" placeholder="Tu número de teléfono" />
-              {state.errors?.phone && (
-                <p className="text-sm text-red-500">{state.errors.phone[0]}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="message">Mensaje</Label>
-              <Textarea id="message" name="message" placeholder="Escribe tu mensaje aquí..." rows={6} />
-              {state.errors?.message && (
-                <p className="text-sm text-red-500">{state.errors.message[0]}</p>
-              )}
-            </div>
-            <SubmitButton />
-          </form>
-        )}
-      </CardContent>
-    </Card>
+          <div className="space-y-2">
+            <Label htmlFor="email">Correo Electrónico</Label>
+            <Input id="email" name="email" type="email" placeholder="tu@correo.com" />
+            {state.errors?.email && (
+              <p className="text-sm text-red-500">{state.errors.email[0]}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="phone">Teléfono (Opcional)</Label>
+            <Input id="phone" name="phone" type="tel" placeholder="Tu número de teléfono" />
+            {state.errors?.phone && (
+              <p className="text-sm text-red-500">{state.errors.phone[0]}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="message">Mensaje</Label>
+            <Textarea id="message" name="message" placeholder="Escribe tu mensaje aquí..." rows={6} />
+            {state.errors?.message && (
+              <p className="text-sm text-red-500">{state.errors.message[0]}</p>
+            )}
+          </div>
+          <SubmitButton />
+        </form>
+      )}
+    </div>
   );
 }

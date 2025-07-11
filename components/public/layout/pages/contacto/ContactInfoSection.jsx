@@ -1,30 +1,20 @@
-import { Mail, Phone, MapPin } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { contentSection, sectionTitle, sectionText } from "@/lib/styles";
+import { sectionTitle, sectionText } from "@/lib/styles";
+import { ContactCards } from "@/components/public/layout/pages/contacto/ContactCards";
 
 export function ContactInfoSection() {
   return (
-    <section className={cn(contentSection, "bg-gray-100 py-16 md:py-24")}>
-      <h2 className={cn(sectionTitle, "text-center mb-12")}>
-        Nuestra Información de Contacto
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto text-center">
-        <div className="flex flex-col items-center p-6 bg-white rounded-lg shadow-md">
-          <Mail className="h-12 w-12 text-puembo-green mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Correo Electrónico</h3>
-          <p className={sectionText}>info@alianzapuembo.org</p>
-        </div>
-        <div className="flex flex-col items-center p-6 bg-white rounded-lg shadow-md">
-          <Phone className="h-12 w-12 text-puembo-green mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Teléfono</h3>
-          <p className={sectionText}>+593 2 2345 678</p>
-        </div>
-        <div className="flex flex-col items-center p-6 bg-white rounded-lg shadow-md">
-          <MapPin className="h-12 w-12 text-puembo-green mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Dirección</h3>
-          <p className={sectionText}>Julio Tobar Donoso y 24 de Mayo, Puembo, Ecuador</p>
+    <div className="bg-gray-50">
+      <div className="container mx-auto px-4 divide-y divide-gray-200">
+        <div className="py-16 md:py-24 text-center">
+          <h2 className={`${sectionTitle} text-sky-800`}>
+            Nuestra Información de Contacto
+          </h2>
+          <p className={`${sectionText} max-w-3xl mx-auto`}>
+            Si tienes preguntas, sugerencias o simplemente quieres saber más sobre nuestra iglesia, no dudes en contactarnos. Estamos aquí para ayudarte y servirte.
+          </p>
         </div>
       </div>
-    </section>
+      <ContactCards />
+    </div>
   );
 }

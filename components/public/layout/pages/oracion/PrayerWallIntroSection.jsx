@@ -3,7 +3,7 @@ import { contentSection, sectionTitle, sectionText } from "@/lib/styles";
 
 export function PrayerWallIntroSection() {
   return (
-    <section className={cn(contentSection, "bg-white py-16 md:py-24 text-center")}>
+    <section className={cn(contentSection, "bg-blue-100 py-16 md:py-24 text-center")}>
       <h2 className={cn(sectionTitle, "mb-8")}>
         Unidos en Oración
       </h2>

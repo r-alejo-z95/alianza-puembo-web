@@ -19,6 +19,7 @@ export function PageHeader({ title, description, imageUrl, imageAlt }) {
                     fill
                     priority
                     className="object-cover object-center"
+                    unoptimized
                 />
             </motion.div>
             <div className="absolute inset-0 bg-black/30 z-10" />

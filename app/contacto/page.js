@@ -1,4 +1,4 @@
-
+import { ContactIntroSection } from "@/components/public/layout/pages/contacto/ContactIntroSection";
 import { ContactFormSection } from "@/components/public/layout/pages/contacto/ContactFormSection";
 import { ContactInfoSection } from "@/components/public/layout/pages/contacto/ContactInfoSection";
 import { PageHeader } from "@/components/public/layout/pages/PageHeader";
@@ -20,6 +20,7 @@ export default function ContactPage() {
         imageUrl="/contacto/Contacto.jpg"
         imageAlt="Personas interactuando en un evento de la iglesia"
       />
+      <ContactIntroSection />
       <ContactFormSection />
       <ContactInfoSection />
     </main>
