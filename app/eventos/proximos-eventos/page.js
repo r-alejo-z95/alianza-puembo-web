@@ -7,6 +7,14 @@ import { Button } from '@/components/ui/button';
 import { EventosHeader } from "@/components/public/layout/pages/eventos/EventosHeader";
 import { PaginationControls } from "@/components/public/PaginationControls";
 
+export const metadata = {
+  title: "Próximos Eventos",
+  description: "Mantente al tanto de los próximos eventos y actividades especiales en Alianza Puembo. ¡No te pierdas nada!",
+  alternates: {
+    canonical: "/eventos/proximos-eventos",
+  },
+};
+
 export default async function ProximosEventos({ searchParams }) {
   const cookieStore = cookies();
   const supabase = await createClient(cookieStore);

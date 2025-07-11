@@ -6,6 +6,14 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { pageSection, pageHeaderContainer, pageTitle, pageDescription } from "@/lib/styles";
 
+export const metadata = {
+  title: "Muro de Oración",
+  description: "Comparte tus peticiones de oración y únete a nosotros para orar por las necesidades de otros. Un espacio de fe y apoyo mutuo.",
+  alternates: {
+    canonical: "/oracion",
+  },
+};
+
 async function getPublicPrayerRequests() {
   const cookieStore = cookies();
   const supabase = await createClient(cookieStore);

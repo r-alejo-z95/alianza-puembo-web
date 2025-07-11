@@ -1,6 +1,15 @@
 import { getSessionUser } from "@/lib/auth/getSessionUser";
 import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles";
 
+export const metadata = {
+  title: "Dashboard",
+  description: "Panel de administración de Alianza Puembo.",
+  robots: { 
+    index: false, 
+    follow: false 
+  },
+};
+
 export default async function AdminHomePage() {
   const user = await getSessionUser();
 

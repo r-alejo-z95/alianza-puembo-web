@@ -1,6 +1,15 @@
 import PrayerRequestManager from '@/components/admin/managers/PrayerRequestManager';
 import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles";
 
+export const metadata = {
+  title: "Gestionar Peticiones de Oración",
+  description: "Administra las peticiones de oración enviadas por los usuarios: revisa, aprueba o elimina.",
+  robots: { 
+    index: false, 
+    follow: false 
+  },
+};
+
 export default function OracionAdminPage() {
   return (
     <section className={adminPageSection}>
