@@ -1,6 +1,6 @@
 'use client';
 
-import NavbarWrapper from "@/components/public/layout/NavbarWrapper";
+import { Navbar } from "@/components/public/layout/navbar/Navbar";
 import Footer from "@/components/public/layout/Footer";
 import "@/app/globals.css";
 import { Poppins, Merriweather } from "next/font/google";
@@ -22,13 +22,14 @@ const merriweather = Merriweather({
 export default function RootLayoutClient({ children }) {
   const pathname = usePathname();
   const isAuthRoute = pathname.startsWith('/admin') || pathname === '/login';
+
   return (
     <html
       lang="es"
       className={`${poppins.variable} ${merriweather.variable}`}
     >
       <body className="font-poppins">
-        {!isAuthRoute && <NavbarWrapper />}
+        {!isAuthRoute && <Navbar />}
         <main>
           {children}
         </main>

@@ -16,6 +16,12 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion";
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -23,36 +29,85 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { menuItems, socialLinks } from "./config";
 import { MenuIcon } from "lucide-react";
+import { dropShadow, textShadow } from "@/lib/styles";
 
 export function Navbar() {
   const pathname = usePathname();
+  const [scrolled, setScrolled] = React.useState(false);
+  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
+
+  const isHomepage = pathname === "/";
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 0);
+    };
+
+    if (isHomepage) {
+      setScrolled(window.scrollY > 0); // Immediately set scrolled based on current scroll position
+      window.addEventListener("scroll", handleScroll);
+    } else {
+      setScrolled(true); // Always show background on non-homepage routes
+    }
+
+    return () => {
+      if (isHomepage) {
+        window.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, [isHomepage]);
+
+
+
+  const headerClasses = cn(
+    "top-0 z-50 w-full transition-colors duration-300 py-1 px-8 lg:px-12",
+    {
+      "fixed": isHomepage,
+      "sticky": !isHomepage,
+      "bg-transparent": isHomepage && !scrolled,
+      "bg-black":
+        !isHomepage || scrolled,
+    }
+  );
+
+
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Image
-            src="/brand/logo-puembo.png"
-            alt="Alianza Puembo Logo"
-            width={40}
-            height={40}
-            className="h-10 w-10"
-          />
-          <span className="hidden font-bold sm:inline-block">
-            Alianza Puembo
-          </span>
-        </Link>
+    <header className={headerClasses}>
+      <div className="container flex h-16 items-center justify-between mx-auto">
 
+        <div className="lg:hidden w-6" />
+        <motion.div
+          initial={{ opacity: 0, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className={cn(
+            "hover:scale-105 transition duration-700"
+          )}
+        >
+          <Link href="/" className="flex items-center lg:flex-shrink-0">
+            <Image
+              src="/brand/logo-puembo-white.png"
+              alt="Alianza Puembo Logo"
+              width={150}
+              height={150}
+              priority
+              quality={100}
+              className={`${dropShadow} h-14 w-auto`}
+            />
+          </Link>
+        </motion.div>
         {/* Desktop Navigation */}
         <NavigationMenu className="hidden lg:flex">
           <NavigationMenuList>
             {menuItems.map((item) =>
               item.subroutes ? (
                 <NavigationMenuItem key={item.name}>
-                  <NavigationMenuTrigger>{item.name}</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className={`${textShadow} text-white bg-transparent hover:text-white focus:text-white hover:[text-shadow:none] focus:[text-shadow:none] focus:bg-transparent hover:bg-transparent`}>{item.name}</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
                       {item.subroutes.map((subroute) => (
@@ -69,16 +124,17 @@ export function Navbar() {
                 </NavigationMenuItem>
               ) : (
                 <NavigationMenuItem key={item.name}>
-                  <Link href={item.href} legacyBehavior passHref>
-                    <NavigationMenuLink
-                      className={cn(
-                        navigationMenuTriggerStyle(),
-                        pathname === item.href && "font-bold text-primary"
-                      )}
-                    >
-                      {item.name}
-                    </NavigationMenuLink>
-                  </Link>
+                  <NavigationMenuLink
+                    className={cn(
+                      navigationMenuTriggerStyle(),
+                      "text-white bg-transparent",
+                      "hover:[text-shadow:none] focus:[text-shadow:none] hover:text-white focus:text-white focus:bg-transparent hover:bg-transparent",
+                      textShadow,
+                    )}
+                    href={item.href}
+                  >
+                    {item.name}
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               )
             )}
@@ -86,100 +142,81 @@ export function Navbar() {
         </NavigationMenu>
 
         {/* Social Links */}
-        <div className="hidden items-center space-x-4 lg:flex">
+        {/* <div className="hidden items-center lg:flex">
           {socialLinks.map((link) => (
             <Button key={link.name} variant="ghost" size="icon" asChild>
               <a href={link.href} target="_blank" rel="noopener noreferrer">
-                <link.icon className="h-5 w-5" />
+                <link.icon className={`${dropShadow} h-5 w-5 text-white`} />
                 <span className="sr-only">{link.name}</span>
               </a>
             </Button>
           ))}
-        </div>
+        </div> */}
 
         {/* Mobile Navigation */}
-        <Sheet>
+        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
           <SheetTrigger asChild className="lg:hidden">
             <Button variant="ghost" size="icon">
-              <MenuIcon className="h-6 w-6" />
+              <MenuIcon className={`${dropShadow} h-6 w-6 text-white`} />
               <span className="sr-only">Toggle Menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right">
+          <SheetContent side="top" className="bg-black border-none">
             <SheetHeader>
               <SheetTitle>
-                <Link href="/" className="flex items-center space-x-2">
+                <Link href="/" className="flex items-center justify-center space-x-2" onClick={() => setIsSheetOpen(false
+                )}>
                   <Image
-                    src="/brand/logo-puembo.png"
+                    src="/brand/logo-puembo-white.png"
                     alt="Alianza Puembo Logo"
-                    width={30}
-                    height={30}
-                    className="h-8 w-8"
+                    width={150}
+                    height={150}
+                    priority
+                    quality={100}
+                    className={`${dropShadow} h-16 w-auto`}
                   />
-                  <span className="font-bold">Alianza Puembo</span>
                 </Link>
               </SheetTitle>
               <SheetDescription className="sr-only">
                 Navegación principal del sitio.
               </SheetDescription>
             </SheetHeader>
-            <nav className="grid gap-4 py-6">
-              {menuItems.map((item) =>
-                item.subroutes ? (
-                  <div key={item.name}>
-                    <h4 className="mb-2 text-sm font-medium leading-none">
-                      {item.name}
-                    </h4>
-                    <ul className="grid gap-2 pl-4">
-                      {item.subroutes.map((subroute) => (
-                        <li key={subroute.name}>
+
+            <div className="w-full md:w-2/3 max-h-[calc(100vh-160px)] mx-auto flex flex-col px-4 overflow-y-auto lg:hidden">
+              <Accordion type="single" collapsible>
+                {menuItems.map((item) =>
+                  item.subroutes ? (
+                    <AccordionItem key={item.name} value={item.name}>
+                      <AccordionTrigger className="text-primary-foreground uppercase font-medium text-lg">
+                        {item.name}
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        {item.subroutes.map((subroute) => (
                           <Link
+                            key={subroute.name}
                             href={subroute.href}
-                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          >
-                            <div className="text-sm font-medium leading-none">
-                              {subroute.name}
-                            </div>
-                            {subroute.description && (
-                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                                {subroute.description}
-                              </p>
-                            )}
+                            className="block px-4 py-4 border-b border-accent-foreground bg-background last:border-b-0"
+                            onClick={() => setIsSheetOpen(false
+                            )}>
+                            {subroute.name}
                           </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                      pathname === item.href && "font-bold text-primary"
-                    )}
-                  >
-                    <div className="text-sm font-medium leading-none">
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ) : (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="text-primary-foreground uppercase font-medium text-lg py-4 block border-b last:border-b-0"
+                      onClick={() => setIsSheetOpen(false
+                      )}>
                       {item.name}
-                    </div>
-                  </Link>
-                )
-              )}
-            </nav>
-            <div className="flex justify-center space-x-4 border-t pt-4">
-              {socialLinks.map((link) => (
-                <Button key={link.name} variant="ghost" size="icon" asChild>
-                  <a
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <link.icon className="h-6 w-6" />
-                    <span className="sr-only">{link.name}</span>
-                  </a>
-                </Button>
-              ))}
+                    </Link>
+                  )
+                )}
+              </Accordion>
             </div>
+
           </SheetContent>
         </Sheet>
       </div>
@@ -196,7 +233,7 @@ const ListItem = React.forwardRef(
             ref={ref}
             href={href}
             className={cn(
-              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors",
               className
             )}
             {...props}
