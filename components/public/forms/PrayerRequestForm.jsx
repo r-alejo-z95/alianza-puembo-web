@@ -11,6 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { sectionTitle } from '@/lib/styles';
 
 const prayerRequestSchema = z.object({
   name: z.string().optional(),
@@ -52,52 +53,54 @@ export default function PrayerRequestForm({ action }) {
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
-        <CardTitle>Pide Oración</CardTitle>
+        <CardTitle><h2 className={`${sectionTitle} text-center mb-8 text-emerald-700`}>
+          Envía tu Petición
+        </h2></CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="text-left">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-            <div className="flex items-center space-x-4">
-                <FormField
+          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6 flex flex-col items-center justify-center">
+            <div className="flex flex-col md:flex-row items-start justify-center space-y-4 md:space-x-4">
+              <FormField
                 control={form.control}
                 name="is_public"
                 render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
-                        <Checkbox
+                      <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        />
+                      />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                        <FormLabel>¿Petición Pública?</FormLabel>
-                        <p className="text-sm text-muted-foreground">
-                        Si marcas esta opción, tu petición podrá ser vista por otros en la cartelera de oración.
-                        </p>
+                      <FormLabel>¿Petición Pública?</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Tu petición se verá en la cartelera.
+                      </p>
                     </div>
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
-                 <FormField
+              />
+              <FormField
                 control={form.control}
                 name="is_anonymous"
                 render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
-                        <Checkbox
+                      <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
-                        />
+                      />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                        <FormLabel>¿Petición Anónima?</FormLabel>
-                         <p className="text-sm text-muted-foreground">
-                         Tu nombre no será visible públicamente si marcas esta opción.
-                        </p>
+                      <FormLabel>¿Petición Anónima?</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        Tu nombre no será visible.
+                      </p>
                     </div>
-                    </FormItem>
+                  </FormItem>
                 )}
-                />
+              />
             </div>
             {!isAnonymous && (
               <FormField
@@ -131,9 +134,11 @@ export default function PrayerRequestForm({ action }) {
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Enviando...' : 'Enviar Petición'}
-            </Button>
+            <div className='w-full flex justify-center'>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Enviando...' : 'Enviar Petición'}
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>

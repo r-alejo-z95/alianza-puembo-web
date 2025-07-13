@@ -13,7 +13,7 @@ export const metadata = {
 
 export default function Donaciones() {
   return (
-    <main>
+    <>
       <PageHeader
         title="Donaciones"
         description="Tu generosidad nos ayuda a seguir extendiendo el Reino de Dios."
@@ -23,6 +23,6 @@ export default function Donaciones() {
       <DonationIntroSection />
       <DonationVerseSection />
       <DonationAccountsDetailsSection />
-    </main>
+    </>
   );
 }

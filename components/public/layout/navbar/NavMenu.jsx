@@ -1,17 +1,15 @@
-// Menú de navegación que agrupa los elementos
+// Menú de navegación que agrupa los elementos para desktop
 
 import NavItem from "./NavItem";
 
-const NavMenu = ({ items, mobile, onLinkClick }) => (
-  <nav
-    className={`items-center ${mobile ? "flex-col space-y-4" : "hidden lg:flex gap-8"}`}>
+const NavMenu = ({ items, onLinkClick }) => (
+  <nav className="flex items-center flex-wrap justify-end gap-x-6 gap-y-2">
     {items.map((item, idx) => (
       <NavItem
         key={idx}
         title={item.name}
         href={item.href}
         subroutes={item.subroutes}
-        mobile={mobile}
         onLinkClick={onLinkClick}
       />
     ))}

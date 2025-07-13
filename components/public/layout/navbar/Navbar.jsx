@@ -1,144 +1,216 @@
-// Componente principal de la barra de navegación
-
 "use client";
 
-import { useEffect } from "react";
+import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import NavMenu from "./NavMenu";
-import MobileMenu from "./MobileMenu";
-import { socialLinks, menuItems } from "./config";
+import { usePathname } from "next/navigation";
+
 import { cn } from "@/lib/utils";
-import { useNavbarLogic } from "@/lib/hooks/useNavbarLogic";
-import { dropShadow } from "@/lib/styles";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { menuItems, socialLinks } from "./config";
+import { MenuIcon } from "lucide-react";
 
-const Navbar = ({ setNavbarHeight }) => {
-  const {
-    mobileOpen,
-    navbarRef,
-    bgClass,
-    toggleMobileMenu,
-    closeMobileMenu,
-    setNavbarHeight: setNavbarHeightFromHook,
-  } = useNavbarLogic();
-
-  // Pasar setNavbarHeight del hook al prop del componente padre
-  // Esto asegura que el NavbarWrapper reciba la altura correcta
-  useEffect(() => {
-    if (navbarRef.current) {
-      setNavbarHeight(navbarRef.current.offsetHeight);
-    }
-  }, [navbarRef, setNavbarHeight]);
-
-  const leftItems = menuItems.filter((item) => item.position === "left");
-  const rightItems = menuItems.filter((item) => item.position === "right");
+export function Navbar() {
+  const pathname = usePathname();
 
   return (
-    <header
-      ref={navbarRef}
-      className={cn(
-        "fixed top-0 left-0 w-full z-50 transition-all duration-300 py-1",
-        bgClass
-      )}
-    >
-      <div className="flex flex-col">
-        {/* Social */}
-        <div className="flex justify-end pt-2 pr-4 absolute right-0 z-1">
-          <div className="flex gap-2">
-            {socialLinks.map(({ name, href, icon: Icon }) => (
-              <a
-                key={name}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={name}
-                className={cn(
-                  "text-primary-foreground hover:text-accent",
-                  dropShadow
-                )}
-              >
-                <Icon className="h-4 w-4" />
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
+        <Link href="/" className="mr-6 flex items-center space-x-2">
+          <Image
+            src="/brand/logo-puembo.png"
+            alt="Alianza Puembo Logo"
+            width={40}
+            height={40}
+            className="h-10 w-10"
+          />
+          <span className="hidden font-bold sm:inline-block">
+            Alianza Puembo
+          </span>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <NavigationMenu className="hidden lg:flex">
+          <NavigationMenuList>
+            {menuItems.map((item) =>
+              item.subroutes ? (
+                <NavigationMenuItem key={item.name}>
+                  <NavigationMenuTrigger>{item.name}</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                      {item.subroutes.map((subroute) => (
+                        <ListItem
+                          key={subroute.name}
+                          title={subroute.name}
+                          href={subroute.href}
+                        >
+                          {subroute.description}
+                        </ListItem>
+                      ))}
+                    </ul>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              ) : (
+                <NavigationMenuItem key={item.name}>
+                  <Link href={item.href} legacyBehavior passHref>
+                    <NavigationMenuLink
+                      className={cn(
+                        navigationMenuTriggerStyle(),
+                        pathname === item.href && "font-bold text-primary"
+                      )}
+                    >
+                      {item.name}
+                    </NavigationMenuLink>
+                  </Link>
+                </NavigationMenuItem>
+              )
+            )}
+          </NavigationMenuList>
+        </NavigationMenu>
+
+        {/* Social Links */}
+        <div className="hidden items-center space-x-4 lg:flex">
+          {socialLinks.map((link) => (
+            <Button key={link.name} variant="ghost" size="icon" asChild>
+              <a href={link.href} target="_blank" rel="noopener noreferrer">
+                <link.icon className="h-5 w-5" />
+                <span className="sr-only">{link.name}</span>
               </a>
-            ))}
-          </div>
+            </Button>
+          ))}
         </div>
 
-        {/* Main Nav */}
-        <div className="container mx-auto px-4 lg:px-20 h-[70px] flex items-center lg:justify-around">
-          {/* Left Menu & Mobile Toggle */}
-          <div className="flex-1 flex justify-start items-center">
-            <div className="lg:hidden flex">
-              <button
-                onClick={toggleMobileMenu}
-                className={cn(
-                  "text-primary-foreground p-2",
-                  dropShadow
-                )}
-              >
-                {mobileOpen ? (
-                  <X className="w-6 h-6" />
+        {/* Mobile Navigation */}
+        <Sheet>
+          <SheetTrigger asChild className="lg:hidden">
+            <Button variant="ghost" size="icon">
+              <MenuIcon className="h-6 w-6" />
+              <span className="sr-only">Toggle Menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right">
+            <SheetHeader>
+              <SheetTitle>
+                <Link href="/" className="flex items-center space-x-2">
+                  <Image
+                    src="/brand/logo-puembo.png"
+                    alt="Alianza Puembo Logo"
+                    width={30}
+                    height={30}
+                    className="h-8 w-8"
+                  />
+                  <span className="font-bold">Alianza Puembo</span>
+                </Link>
+              </SheetTitle>
+              <SheetDescription className="sr-only">
+                Navegación principal del sitio.
+              </SheetDescription>
+            </SheetHeader>
+            <nav className="grid gap-4 py-6">
+              {menuItems.map((item) =>
+                item.subroutes ? (
+                  <div key={item.name}>
+                    <h4 className="mb-2 text-sm font-medium leading-none">
+                      {item.name}
+                    </h4>
+                    <ul className="grid gap-2 pl-4">
+                      {item.subroutes.map((subroute) => (
+                        <li key={subroute.name}>
+                          <Link
+                            href={subroute.href}
+                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          >
+                            <div className="text-sm font-medium leading-none">
+                              {subroute.name}
+                            </div>
+                            {subroute.description && (
+                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                                {subroute.description}
+                              </p>
+                            )}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ) : (
-                  <Menu className="w-6 h-6" />
-                )}
-              </button>
-            </div>
-            <div className="hidden lg:flex">
-              <NavMenu items={leftItems} />
-            </div>
-          </div>
-
-          {/* Logo */}
-          <div className="flex-shrink-0 mx-2">
-            <motion.div
-              initial={{ opacity: 0, y: 0 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className={cn(
-                "hover:scale-105 transition duration-700",
-                dropShadow
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                      pathname === item.href && "font-bold text-primary"
+                    )}
+                  >
+                    <div className="text-sm font-medium leading-none">
+                      {item.name}
+                    </div>
+                  </Link>
+                )
               )}
-            >
-              <Link href="/" onClick={closeMobileMenu}>
-                <Image
-                  src="/brand/logo-puembo-white.png"
-                  alt="Iglesia Alianza Puembo"
-                  width={150}
-                  height={97}
-                  priority
-                  className={cn("w-24 h-auto", dropShadow)}
-                  sizes="100px"
-                />
-              </Link>
-            </motion.div>
-          </div>
-
-          {/* Right Menu */}
-          <div className="flex-1 flex justify-end items-center">
-            <div className="hidden lg:flex">
-              <NavMenu items={rightItems} />
+            </nav>
+            <div className="flex justify-center space-x-4 border-t pt-4">
+              {socialLinks.map((link) => (
+                <Button key={link.name} variant="ghost" size="icon" asChild>
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <link.icon className="h-6 w-6" />
+                    <span className="sr-only">{link.name}</span>
+                  </a>
+                </Button>
+              ))}
             </div>
-          </div>
-        </div>
+          </SheetContent>
+        </Sheet>
       </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "auto" }}
-            exit={{ height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden bg-primary"
-          >
-            <MobileMenu items={menuItems} onLinkClick={closeMobileMenu} />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </header>
   );
-};
+}
 
-export default Navbar;
+const ListItem = React.forwardRef(
+  ({ className, title, children, href, ...props }, ref) => {
+    return (
+      <li>
+        <NavigationMenuLink asChild>
+          <a
+            ref={ref}
+            href={href}
+            className={cn(
+              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+              className
+            )}
+            {...props}
+          >
+            <div className="text-sm font-medium leading-none">{title}</div>
+            {children && (
+              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                {children}
+              </p>
+            )}
+          </a>
+        </NavigationMenuLink>
+      </li>
+    );
+  }
+);
+ListItem.displayName = "ListItem";

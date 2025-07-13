@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
 import { PrayerWallIntroSection } from "@/components/public/layout/pages/oracion/PrayerWallIntroSection";
-import { PrayerRequestsSection } from "@/components/public/layout/pages/oracion/PrayerRequestsSection";
+import { PrayerRequestSection } from "@/components/public/layout/pages/oracion/PrayerRequestSection";
 import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 
 export const metadata = {
@@ -32,7 +32,7 @@ export default async function OracionPage() {
   const requests = await getPublicPrayerRequests();
 
   return (
-    <main>
+    <>
       <PageHeader
         title="Muro de Oración"
         description="Unámonos en oración. Aquí puedes compartir tus peticiones y orar por las de otros."
@@ -41,7 +41,7 @@ export default async function OracionPage() {
       />
 
       <PrayerWallIntroSection />
-      <PrayerRequestsSection requests={requests} />
-    </main>
+      <PrayerRequestSection requests={requests} />
+    </>
   );
 }

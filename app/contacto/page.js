@@ -13,7 +13,7 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <main>
+    <>
       <PageHeader
         title="Contáctanos"
         description="Estamos aquí para servirte. Envíanos un mensaje y nos pondremos en contacto contigo."
@@ -23,6 +23,6 @@ export default function ContactPage() {
       <ContactIntroSection />
       <ContactFormSection />
       <ContactInfoSection />
-    </main>
+    </>
   );
 }

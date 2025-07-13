@@ -22,7 +22,6 @@ export const socialLinks = [
 
 export const menuItems = [
   {
-    position: "left",
     name: "Conócenos",
     subroutes: [
       { name: "Equipo", href: "/conocenos/equipo" },
@@ -30,7 +29,6 @@ export const menuItems = [
     ],
   },
   {
-    position: "left",
     name: "Eventos",
     subroutes: [
       { name: "Próximos eventos", href: "/eventos/proximos-eventos" },
@@ -38,7 +36,6 @@ export const menuItems = [
     ],
   },
   {
-    position: "left",
     name: "Ministerios",
     subroutes: [
       { name: "Puembo Kids", href: "/ministerios/puembo-kids" },
@@ -49,12 +46,10 @@ export const menuItems = [
     ],
   },
   {
-    position: "left",
     name: "Noticias",
     href: "/noticias",
   },
   {
-    position: "right",
     name: "Recursos",
     subroutes: [
       {
@@ -65,7 +60,7 @@ export const menuItems = [
       { name: "Galería", href: "https://iglesiaalianzapuembo.pixieset.com/" },
     ],
   },
-  { position: "right", name: "Donaciones", href: "/donaciones" },
-  { position: "right", name: "Oración", href: "/oracion" },
-  { position: "right", name: "Contacto", href: "/contacto" },
+  { name: "Donaciones", href: "/donaciones" },
+  { name: "Oración", href: "/oracion" },
+  { name: "Contacto", href: "/contacto" },
 ];

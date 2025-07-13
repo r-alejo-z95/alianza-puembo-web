@@ -43,17 +43,17 @@ const donationSections = [
 
 export function DonationAccountsDetailsSection() {
   return (
-    <section className={cn(contentSection, "bg-gray-100 py-16 md:py-24")}>
-      <h2 className={cn(sectionTitle, "text-center mb-12")}>
+    <section className={cn(contentSection, "bg-white py-16 md:py-24")}>
+      <h2 className={cn(sectionTitle, "text-center text-orange-600")}>
         Cuentas Bancarias
       </h2>
       <div className="mb-8 max-w-3xl mx-auto text-center">
         <p className={sectionText}>Para todas las transacciones:</p>
         <p className={sectionText}><strong>RUC:</strong> {commonDetails.ruc}</p>
         <div className="flex flex-col md:flex-row space-x-2 text-lg justify-center items-center">
-          <div className="flex flex-row items-center gap-1">
-            <Mail className="h-5 w-5 text-puembo-green" />
-            <p><strong>Email:</strong></p>
+          <div className={`flex flex-row items-center gap-1 ${sectionText}`}>
+            <Mail className="h-4 w-4" />
+            <p>Email:</p>
           </div>
           <p className={sectionText}>{commonDetails.email}</p>
         </div>
@@ -61,21 +61,21 @@ export function DonationAccountsDetailsSection() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
         {donationSections.map((section, index) => (
-          <Card key={index} className="shadow-lg">
-            <CardHeader>
-              <CardTitle className={sectionTitle}>{section.title}</CardTitle>
-              <CardDescription>{section.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-sm">
+          <div key={index} className="text-gray-800 mt-6 border-l-4 rounded-none border-orange-300 pl-4 text-sm md:text-base">
+            <div>
+              <div className={sectionTitle}>{section.title}</div>
+              <div className="text-gray-500">{section.description}</div>
+            </div>
+            <div className="space-y-4 text-sm">
               {section.accounts.map((account, accIndex) => (
                 <div key={accIndex} className="space-y-1">
                   <p className="font-bold text-base">{account.bank}</p>
-                  <p><strong>{account.type}:</strong> {account.number}</p>
-                  <p><strong>A nombre de:</strong> {account.name}</p>
+                  <p className="text-gray-500"><strong className="text-gray-600">{account.type}:</strong> {account.number}</p>
+                  <p className="text-gray-500"><strong className="text-gray-600">A nombre de:</strong> {account.name}</p>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
     </section>
