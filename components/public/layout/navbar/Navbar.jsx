@@ -107,7 +107,7 @@ export function Navbar() {
             {menuItems.map((item) =>
               item.subroutes ? (
                 <NavigationMenuItem key={item.name}>
-                  <NavigationMenuTrigger className={`${textShadow} cursor-pointer text-white bg-transparent hover:text-white focus:text-white hover:[text-shadow:none] focus:[text-shadow:none] focus:bg-transparent hover:bg-transparent`}>{item.name}</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className={`${textShadow} cursor-pointer text-white bg-transparent hover:text-(--puembo-green) focus:text-(--puembo-green) hover:[text-shadow:none] focus:[text-shadow:none] focus:bg-transparent hover:bg-transparent`}>{item.name}</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                       {item.subroutes.map((subroute) => (
@@ -128,7 +128,7 @@ export function Navbar() {
                     className={cn(
                       navigationMenuTriggerStyle(),
                       "text-white bg-transparent",
-                      "hover:[text-shadow:none] focus:[text-shadow:none] hover:text-white focus:text-white focus:bg-transparent hover:bg-transparent",
+                      "hover:[text-shadow:none] focus:[text-shadow:none] hover:text-(--puembo-green) focus:text-(--puembo-green) focus:bg-transparent hover:bg-transparent",
                       textShadow,
                     )}
                     href={item.href}
@@ -143,7 +143,7 @@ export function Navbar() {
 
         {/* Mobile Navigation */}
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild className="lg:hidden">
+          <SheetTrigger asChild className="lg:hidden hover:bg-transparent">
             <Button variant="ghost" size="icon">
               <MenuIcon className={`${dropShadow} h-6 w-6 text-white`} />
               <span className="sr-only">Toggle Menu</span>
@@ -175,7 +175,7 @@ export function Navbar() {
                 {menuItems.map((item) =>
                   item.subroutes ? (
                     <AccordionItem key={item.name} value={item.name}>
-                      <AccordionTrigger className="text-primary-foreground uppercase font-medium text-lg">
+                      <AccordionTrigger className="text-primary-foreground font-medium text-lg">
                         {item.name}
                       </AccordionTrigger>
                       <AccordionContent>
@@ -221,12 +221,12 @@ const ListItem = React.forwardRef(
             ref={ref}
             href={href}
             className={cn(
-              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100",
+              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/60 group",
               className
             )}
             {...props}
           >
-            <div className="text-sm font-medium leading-none hover:text-(--puembo-green)">{title}</div>
+            <div className="text-sm font-medium leading-none group-hover:text-(--puembo-green) transition-colors duration-200">{title}</div>
             {children && (
               <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                 {children}

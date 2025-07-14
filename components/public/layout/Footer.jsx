@@ -57,7 +57,7 @@ export default function Footer() {
               {isHomePage && (
                 <div>
                   <Link href="/admin">
-                    <Button variant="link" size="xs" className="text-primary-foreground underline hover:text-primary-foreground/80">
+                    <Button variant="link" size="xs" className="text-primary-foreground underline hover:text-(--puembo-green)">
                       Admin
                     </Button>
                   </Link>
@@ -85,7 +85,7 @@ export default function Footer() {
               <Link
                 key={index}
                 href={link.href}
-                className="text-primary-foreground hover:text-accent block duration-150"
+                className="text-primary-foreground hover:text-(--puembo-green) block duration-150"
               >
                 <span>{link.title}</span>
               </Link>
@@ -94,7 +94,7 @@ export default function Footer() {
           </div>
           <div className="items-center flex">
             {socialLinks.map((link) => (
-              <Button key={link.name} variant="ghost" size="icon" asChild>
+              <Button key={link.name} variant="ghost" size="icon" className="hover:bg-(--puembo-green)" asChild>
                 <a href={link.href} target="_blank" rel="noopener noreferrer">
                   <link.icon className={`${dropShadow} h-5 w-5 text-white`} />
                   <span className="sr-only">{link.name}</span>
