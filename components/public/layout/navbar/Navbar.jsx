@@ -183,7 +183,7 @@ export function Navbar() {
                           <Link
                             key={subroute.name}
                             href={subroute.href}
-                            className="block px-4 py-4 border-b border-accent-foreground bg-background last:border-b-0"
+                            className="block px-4 py-4 border-b border-gray-100 bg-background last:border-b-0"
                             onClick={() => setIsSheetOpen(false
                             )}>
                             {subroute.name}
@@ -195,7 +195,7 @@ export function Navbar() {
                     <Link
                       key={item.name}
                       href={item.href}
-                      className="text-primary-foreground uppercase font-medium text-lg py-4 block border-b last:border-b-0"
+                      className="text-primary-foreground font-medium text-lg py-4 block border-b last:border-b-0"
                       onClick={() => setIsSheetOpen(false
                       )}>
                       {item.name}
