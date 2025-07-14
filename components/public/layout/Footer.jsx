@@ -2,8 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { footerTextSizes } from "@/lib/styles";
+import { footerTextSizes, dropShadow } from "@/lib/styles";
 import { usePathname } from "next/navigation";
+import { socialLinks } from "./navbar/config";
 
 const links = [
   {
@@ -53,16 +54,16 @@ export default function Footer() {
                 />
                 <p>Puembo - {new Date().getFullYear()}</p>
               </div>
-            {isHomePage && (
-              <div>
-                <Link href="/admin">
-                  <Button variant="link" size="xs" className="text-primary-foreground underline hover:text-primary-foreground/80">
-                    Admin
-                  </Button>
-                </Link>
-              </div>
-            )}
-            {/* {isHomePage && (
+              {isHomePage && (
+                <div>
+                  <Link href="/admin">
+                    <Button variant="link" size="xs" className="text-primary-foreground underline hover:text-primary-foreground/80">
+                      Admin
+                    </Button>
+                  </Link>
+                </div>
+              )}
+              {/* {isHomePage && (
               <Link href="https://github.com/r-alejo-z95">
                 <Button
                   variant="link"
@@ -88,6 +89,17 @@ export default function Footer() {
               >
                 <span>{link.title}</span>
               </Link>
+            ))}
+            {/* Social Links */}
+          </div>
+          <div className="items-center flex">
+            {socialLinks.map((link) => (
+              <Button key={link.name} variant="ghost" size="icon" asChild>
+                <a href={link.href} target="_blank" rel="noopener noreferrer">
+                  <link.icon className={`${dropShadow} h-5 w-5 text-white`} />
+                  <span className="sr-only">{link.name}</span>
+                </a>
+              </Button>
             ))}
           </div>
         </div>

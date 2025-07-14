@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/sheet";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { menuItems, socialLinks } from "./config";
+import { menuItems } from "./config";
 import { MenuIcon } from "lucide-react";
 import { dropShadow, textShadow } from "@/lib/styles";
 
@@ -89,7 +89,7 @@ export function Navbar() {
             "hover:scale-105 transition duration-700"
           )}
         >
-          <Link href="/" className="flex items-center lg:flex-shrink-0">
+          <Link href="/" className="flex items-center">
             <Image
               src="/brand/logo-puembo-white.png"
               alt="Alianza Puembo Logo"
@@ -97,7 +97,7 @@ export function Navbar() {
               height={150}
               priority
               quality={100}
-              className={`${dropShadow} h-14 w-auto`}
+              className={`${dropShadow} h-auto w-22 flex-shrink-0`}
             />
           </Link>
         </motion.div>
@@ -107,9 +107,9 @@ export function Navbar() {
             {menuItems.map((item) =>
               item.subroutes ? (
                 <NavigationMenuItem key={item.name}>
-                  <NavigationMenuTrigger className={`${textShadow} text-white bg-transparent hover:text-white focus:text-white hover:[text-shadow:none] focus:[text-shadow:none] focus:bg-transparent hover:bg-transparent`}>{item.name}</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className={`${textShadow} cursor-pointer text-white bg-transparent hover:text-white focus:text-white hover:[text-shadow:none] focus:[text-shadow:none] focus:bg-transparent hover:bg-transparent`}>{item.name}</NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
+                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
                       {item.subroutes.map((subroute) => (
                         <ListItem
                           key={subroute.name}
@@ -140,18 +140,6 @@ export function Navbar() {
             )}
           </NavigationMenuList>
         </NavigationMenu>
-
-        {/* Social Links */}
-        {/* <div className="hidden items-center lg:flex">
-          {socialLinks.map((link) => (
-            <Button key={link.name} variant="ghost" size="icon" asChild>
-              <a href={link.href} target="_blank" rel="noopener noreferrer">
-                <link.icon className={`${dropShadow} h-5 w-5 text-white`} />
-                <span className="sr-only">{link.name}</span>
-              </a>
-            </Button>
-          ))}
-        </div> */}
 
         {/* Mobile Navigation */}
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -233,12 +221,12 @@ const ListItem = React.forwardRef(
             ref={ref}
             href={href}
             className={cn(
-              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors",
+              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-gray-100",
               className
             )}
             {...props}
           >
-            <div className="text-sm font-medium leading-none">{title}</div>
+            <div className="text-sm font-medium leading-none hover:text-(--puembo-green)">{title}</div>
             {children && (
               <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                 {children}

@@ -24,25 +24,25 @@ export const menuItems = [
   {
     name: "Conócenos",
     subroutes: [
-      { name: "Equipo", href: "/conocenos/equipo" },
-      { name: "¿En qué creemos?", href: "/conocenos/que-creemos" },
+      { name: "Equipo", href: "/conocenos/equipo", description: "Pastores y líderes que te acompañan" },
+      { name: "¿En qué creemos?", href: "/conocenos/que-creemos", description: "Nuestras creencias fundamentales" },
     ],
   },
   {
     name: "Eventos",
     subroutes: [
-      { name: "Próximos eventos", href: "/eventos/proximos-eventos" },
-      { name: "Calendario", href: "/eventos/calendario" },
+      { name: "Próximos eventos", href: "/eventos/proximos-eventos", description: "No te pierdas lo que viene" },
+      { name: "Calendario", href: "/eventos/calendario", description: "Consulta todas las fechas importantes" },
     ],
   },
   {
     name: "Ministerios",
     subroutes: [
-      { name: "Puembo Kids", href: "/ministerios/puembo-kids" },
-      { name: "Jóvenes", href: "/ministerios/jovenes" },
-      { name: "Música, artes, tecnología", href: "/ministerios/mat" },
-      { name: "Grupos Pequeños", href: "/ministerios/gp" },
-      { name: "Misión Dignidad", href: "/ministerios/mision-dignidad" },
+      { name: "Puembo Kids", href: "/ministerios/puembo-kids", description: "Iglesia para los más pequeños" },
+      { name: "Jóvenes", href: "/ministerios/jovenes", description: "Espacio para adolescentes y jóvenes" },
+      { name: "Música, artes, tecnología", href: "/ministerios/mat", description: "Expresiones creativas al servicio de Dios" },
+      { name: "Grupos Pequeños", href: "/ministerios/gp", description: "Conéctate en comunidad más cerca" },
+      { name: "Misión Dignidad", href: "/ministerios/mision-dignidad", description: "Ayudamos a personas en situación vulnerable" },
     ],
   },
   {
@@ -55,9 +55,18 @@ export const menuItems = [
       {
         name: "Prédicas",
         href: "https://www.youtube.com/@IglesiaAlianzaPuembo/playlists",
+        description: "Escucha mensajes que transforman"
       },
-      { name: "Lee, Ora, Medita", href: "/recursos/lom" },
-      { name: "Galería", href: "https://iglesiaalianzapuembo.pixieset.com/" },
+      {
+        name: "Lee, Ora, Medita",
+        href: "/recursos/lom",
+        description: "Guías diarias para tu devoción personal"
+      },
+      {
+        name: "Galería",
+        href: "https://iglesiaalianzapuembo.pixieset.com/",
+        description: "Revive los mejores momentos en imágenes"
+      },
     ],
   },
   { name: "Donaciones", href: "/donaciones" },
