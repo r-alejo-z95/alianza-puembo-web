@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { paginationButton, paginationContainer } from "@/lib/styles";
 
-export function PaginationControls({ hasNextPage, totalPages, currentPage, setCurrentPage, basePath }) {
+export function PaginationControls({ hasNextPage, totalPages, currentPage, setCurrentPage, basePath, onPageChange }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -14,7 +14,9 @@ export function PaginationControls({ hasNextPage, totalPages, currentPage, setCu
   const page = basePath ? parseInt(searchParams.get("page") || "1") : currentPage;
 
   const handlePrevious = () => {
-    if (basePath) {
+    if (onPageChange) {
+      onPageChange(page - 1);
+    } else if (basePath) {
       router.push(`${basePath}?page=${page - 1}`);
     } else {
       setCurrentPage(prev => Math.max(prev - 1, 1));
@@ -22,7 +24,9 @@ export function PaginationControls({ hasNextPage, totalPages, currentPage, setCu
   };
 
   const handleNext = () => {
-    if (basePath) {
+    if (onPageChange) {
+      onPageChange(page + 1);
+    } else if (basePath) {
       router.push(`${basePath}?page=${page + 1}`);
     } else {
       setCurrentPage(prev => Math.min(prev + 1, totalPages));
@@ -43,7 +47,7 @@ export function PaginationControls({ hasNextPage, totalPages, currentPage, setCu
       </span>
       <Button
         onClick={handleNext}
-        disabled={!hasNextPage}
+        disabled={onPageChange ? page === totalPages : !hasNextPage}
         className={cn(paginationButton)}
       >
         <ChevronRight className="h-5 w-5" />

@@ -20,7 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { LomRow } from './table-cells/LomRow';
-import { useIsLargeScreen } from '@/lib/hooks/useIsLargeScreen';
+import { useScreenSize } from '@/lib/hooks/useScreenSize';
 import { PaginationControls } from "@/components/shared/PaginationControls";
 
 const lomSchema = z.object({
@@ -34,7 +34,7 @@ export default function LomManager() {
   const [selectedPost, setSelectedPost] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const isLargeScreen = useIsLargeScreen();
+  const { isLg } = useScreenSize();
   const itemsPerPage = 3; // Always 3 for LOM posts
 
   const supabase = createClient();

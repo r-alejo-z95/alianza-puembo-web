@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useIsLargeScreen } from '@/lib/hooks/useIsLargeScreen';
+import { useScreenSize } from '@/lib/hooks/useScreenSize';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -19,8 +19,8 @@ export default function EventManager() {
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
 
-    const isLargeScreen = useIsLargeScreen();
-    const itemsPerPage = isLargeScreen ? 5 : 3;
+    const { isLg } = useScreenSize();
+    const itemsPerPage = isLg ? 5 : 3;
 
     const supabase = createClient();
 

@@ -2,12 +2,12 @@
 
 import { useRef, useState } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useIsLargeScreen } from '@/lib/hooks/useIsLargeScreen';
+import { useScreenSize } from '@/lib/hooks/useScreenSize';
 import { useIsOverflowing } from '@/lib/hooks/useIsOverflowing';
 
 export function OverflowCell({ children }: { children: string }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const isLarge = useIsLargeScreen(); // default breakpoint: 1024px
+  const { isLg } = useScreenSize();
   const isOverflowing = useIsOverflowing(ref);
   const [open, setOpen] = useState(false);
 
@@ -16,11 +16,11 @@ export function OverflowCell({ children }: { children: string }) {
   }
 
   const togglePopover = () => {
-    if (!isLarge) setOpen(!open);
+    if (!isLg) setOpen(!open);
   };
 
   return (
-    <Popover open={isLarge ? undefined : open} onOpenChange={setOpen}>
+    <Popover open={isLg ? undefined : open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <span
           ref={ref}
