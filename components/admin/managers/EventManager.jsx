@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import EventForm from '@/components/admin/forms/EventForm';
 import { toast } from 'sonner';
 import { EventRow } from './table-cells/EventRows';
-import { PaginationControls } from "@/components/admin/PaginationControls";
+import { PaginationControls } from "@/components/shared/PaginationControls";
 
 export default function EventManager() {
     const [events, setEvents] = useState([]);

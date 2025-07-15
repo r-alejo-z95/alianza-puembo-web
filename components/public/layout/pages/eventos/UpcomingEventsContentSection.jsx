@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { sectionTitle, sectionText, contentSection, notAvailableText } from "@/lib/styles";
 import { Button } from '@/components/ui/button';
-import { PaginationControls } from "@/components/public/PaginationControls";
+import { PaginationControls } from "@/components/shared/PaginationControls";
 
 export function UpcomingEventsContentSection({ paginatedEvents, totalPages, hasNextPage }) {
   return (

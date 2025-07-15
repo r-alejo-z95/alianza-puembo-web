@@ -21,7 +21,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components
 import { toast } from 'sonner';
 import { LomRow } from './table-cells/LomRow';
 import { useIsLargeScreen } from '@/lib/hooks/useIsLargeScreen';
-import { PaginationControls } from "@/components/admin/PaginationControls";
+import { PaginationControls } from "@/components/shared/PaginationControls";
 
 const lomSchema = z.object({
   title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),

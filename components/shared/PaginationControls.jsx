@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -6,18 +6,27 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { paginationButton, paginationContainer } from "@/lib/styles";
 
-export function PaginationControls({ hasNextPage, totalPages, basePath }) {
+export function PaginationControls({ hasNextPage, totalPages, currentPage, setCurrentPage, basePath }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const page = parseInt(searchParams.get("page") || "1");
+  // Determine the current page based on whether basePath is provided (Next.js router pagination)
+  const page = basePath ? parseInt(searchParams.get("page") || "1") : currentPage;
 
   const handlePrevious = () => {
-    router.push(`${basePath}?page=${page - 1}`);
+    if (basePath) {
+      router.push(`${basePath}?page=${page - 1}`);
+    } else {
+      setCurrentPage(prev => Math.max(prev - 1, 1));
+    }
   };
 
   const handleNext = () => {
-    router.push(`${basePath}?page=${page + 1}`);
+    if (basePath) {
+      router.push(`${basePath}?page=${page + 1}`);
+    } else {
+      setCurrentPage(prev => Math.min(prev + 1, totalPages));
+    }
   };
 
   return (

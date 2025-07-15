@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { PrayerRequestRow } from './table-cells/PrayerRequestRow';
-import { PaginationControls } from "@/components/admin/PaginationControls";
+import { PaginationControls } from "@/components/shared/PaginationControls";
 
 export default function PrayerRequestManager() {
   const [requests, setRequests] = useState([]);
