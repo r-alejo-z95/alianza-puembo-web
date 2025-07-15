@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 import { paginationButton, paginationContainer } from "@/lib/styles";
 
 export function PaginationControls({ hasNextPage, totalPages, currentPage, setCurrentPage, basePath }) {

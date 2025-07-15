@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { BookOpenText } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 import { subSectionTitle, blockquote, sectionPy } from "@/lib/styles";
 
 export function BeliefBlock({ belief, index }) {

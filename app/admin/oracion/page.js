@@ -1,5 +1,5 @@
 import PrayerRequestManager from '@/components/admin/managers/PrayerRequestManager';
-import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles";
+import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles.ts";
 
 export const metadata = {
   title: "Gestionar Peticiones de Oración",

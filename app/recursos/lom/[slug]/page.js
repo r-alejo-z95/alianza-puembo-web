@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { contentSection } from '@/lib/styles';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
-import { getLomPostBySlug, getLomNavigationPosts } from '@/lib/data/lom';
+import { getLomPostBySlug, getLomNavigationPosts } from '@/lib/data/lom.ts';
 
 // Generate metadata for the page
 export async function generateMetadata({ params }) {

@@ -4,7 +4,7 @@ import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { btnStyles } from "@/lib/styles";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 
 const containerStyle = {
   width: "100%",

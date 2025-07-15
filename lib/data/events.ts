@@ -1,14 +1,23 @@
-
 import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+
+interface Event {
+  id: string;
+  title: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  poster_url?: string;
+  poster_w?: number;
+  poster_h?: number;
+  registration_link?: string;
+}
 
 /**
  * @description Obtiene todos los eventos para el calendario público.
  * @returns {Promise<Array>} Una promesa que se resuelve en un array de eventos formateados para FullCalendar.
  */
-export async function getEventsForCalendar() {
-  const cookieStore = cookies();
-  const supabase = await createClient(cookieStore);
+export async function getEventsForCalendar(): Promise<Array<any>> {
+  const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('events')
@@ -36,9 +45,8 @@ export async function getEventsForCalendar() {
  * @param {number} eventsPerPage - El número de eventos por página.
  * @returns {Promise<{paginatedEvents: Array, totalPages: number, hasNextPage: boolean}>} Un objeto con los eventos paginados y la información de paginación.
  */
-export async function getUpcomingEvents(page = 1, eventsPerPage = 3) {
-  const cookieStore = cookies();
-  const supabase = await createClient(cookieStore);
+export async function getUpcomingEvents(page: number = 1, eventsPerPage: number = 3): Promise<{ paginatedEvents: Event[], totalPages: number, hasNextPage: boolean }> {
+  const supabase = await createClient();
 
   const { data: events, error } = await supabase
     .from('events')
@@ -51,7 +59,7 @@ export async function getUpcomingEvents(page = 1, eventsPerPage = 3) {
   }
 
   const now = new Date();
-  const upcomingEvents = events.filter(event => new Date(event.start_time) >= now);
+  const upcomingEvents = (events as Event[]).filter(event => new Date(event.start_time) >= now);
 
   const totalPages = Math.ceil(upcomingEvents.length / eventsPerPage);
   const paginatedEvents = upcomingEvents.slice(

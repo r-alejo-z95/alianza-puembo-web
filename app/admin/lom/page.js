@@ -1,5 +1,5 @@
 import LomManager from '@/components/admin/managers/LomManager'
-import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles";
+import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles.ts";
 
 export const metadata = {
   title: "Gestionar Devocionales (LOM)",

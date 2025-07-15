@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { footerTextSizes, dropShadow } from "@/lib/styles";
+import { cn } from "@/lib/utils.ts";
+import { footerTextSizes, dropShadow } from "@/lib/styles.ts";
 import { usePathname } from "next/navigation";
 import { socialLinks } from "./navbar/config";
 

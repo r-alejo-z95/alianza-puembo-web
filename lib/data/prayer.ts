@@ -1,14 +1,20 @@
-
 import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+
+interface PrayerRequest {
+  id: string;
+  name: string | null;
+  request_text: string;
+  is_public: boolean;
+  is_anonymous: boolean;
+  created_at: string;
+}
 
 /**
  * @description Obtiene todas las peticiones de oración públicas.
  * @returns {Promise<Array>} Una promesa que se resuelve en un array de peticiones de oración.
  */
-export async function getPublicPrayerRequests() {
-  const cookieStore = cookies();
-  const supabase = await createClient(cookieStore);
+export async function getPublicPrayerRequests(): Promise<PrayerRequest[]> {
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('prayer_requests')
     .select('*')

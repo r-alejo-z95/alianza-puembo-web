@@ -3,13 +3,13 @@
 import { Youtube } from "lucide-react";
 import GoogleMapView from "@/components/public/map/InteractiveMap";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 import {
   sectionPx,
   secondaryTextSizes,
   subTitleSizes,
   secondSubTitleSizes,
-} from "@/lib/styles";
+} from "@/lib/styles.ts";
 
 export default function Ubicacion() {
   return (

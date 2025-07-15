@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils.ts';
 import { sectionTitle, sectionText, contentSection, notAvailableText } from "@/lib/styles";
 import { Button } from '@/components/ui/button';
 import { PaginationControls } from "@/components/shared/PaginationControls";

@@ -1,6 +1,6 @@
 import { UpcomingEventsIntroSection } from "@/components/public/layout/pages/eventos/UpcomingEventsIntroSection";
 import { UpcomingEventsContentSection } from "@/components/public/layout/pages/eventos/UpcomingEventsContentSection";
-import { getUpcomingEvents } from '@/lib/data/events';
+import { getUpcomingEvents } from '@/lib/data/events.ts';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 
 export const metadata = {

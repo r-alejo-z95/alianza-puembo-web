@@ -5,8 +5,8 @@ import {
   sectionPx,
   secondaryTextSizes,
   subTitleSizes,
-} from "@/lib/styles";
-import { cn } from "@/lib/utils";
+} from "@/lib/styles.ts";
+import { cn } from "@/lib/utils.ts";
 import Image from "next/image";
 import { motion } from 'framer-motion';
 

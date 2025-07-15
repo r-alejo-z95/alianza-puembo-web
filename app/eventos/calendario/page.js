@@ -1,6 +1,6 @@
 import UserCalendar from '@/components/public/calendar/UserCalendar';
 import { contentSection } from "@/lib/styles";
-import { getEventsForCalendar } from '@/lib/data/events';
+import { getEventsForCalendar } from '@/lib/data/events.ts';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 
 export const metadata = {

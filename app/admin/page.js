@@ -1,5 +1,5 @@
 import { getSessionUser } from "@/lib/auth/getSessionUser";
-import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles";
+import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles.ts";
 
 export const metadata = {
   title: "Dashboard",

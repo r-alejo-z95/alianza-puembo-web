@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 import { sectionTitle, sectionText, pageSection } from "@/lib/styles";
 
 export function PageIntroSection({ title, description, titleColor }) {

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 import { contentSection, sectionTitle, sectionText, notAvailableText } from "@/lib/styles";
 
 export function NewsIntroSection() {

@@ -1,5 +1,5 @@
 import EventManager from '@/components/admin/managers/EventManager';
-import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles";
+import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles.ts";
 
 export const metadata = {
   title: "Gestionar Eventos",

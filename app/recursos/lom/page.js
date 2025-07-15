@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation';
 import { notAvailableText, contentSection } from '@/lib/styles';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
-import { getLatestLomPost } from '@/lib/data/lom';
+import { getLatestLomPost } from '@/lib/data/lom.ts';
 
 
 // This page will fetch the latest LOM post and redirect to its dynamic route.

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 import { contentSection, sectionTitle, sectionText } from "@/lib/styles";
 
 export function MatIntroSection() {

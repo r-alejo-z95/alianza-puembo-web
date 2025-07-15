@@ -1,14 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils.ts';
 import {
   btnStyles,
   sectionPx,
   mainTitleSizes,
   secondaryTextSizes,
   textShadow,
-} from '@/lib/styles';
+} from '@/lib/styles.ts';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 

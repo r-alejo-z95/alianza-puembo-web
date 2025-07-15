@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { sectionTitle, contentSection } from "@/lib/styles";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 

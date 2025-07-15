@@ -1,6 +1,6 @@
 import { PrayerWallIntroSection } from "@/components/public/layout/pages/oracion/PrayerWallIntroSection";
 import { PrayerRequestSection } from "@/components/public/layout/pages/oracion/PrayerRequestSection";
-import { getPublicPrayerRequests } from '@/lib/data/prayer';
+import { getPublicPrayerRequests } from '@/lib/data/prayer.ts';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 
 export const metadata = {

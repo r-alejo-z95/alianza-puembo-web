@@ -1,6 +1,6 @@
 import { Mail } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils.ts";
 import { sectionTitle, sectionText, contentSection } from "@/lib/styles";
 
 const commonDetails = {
