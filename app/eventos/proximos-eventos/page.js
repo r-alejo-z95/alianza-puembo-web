@@ -1,8 +1,7 @@
-import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 import { UpcomingEventsIntroSection } from "@/components/public/layout/pages/eventos/UpcomingEventsIntroSection";
 import { UpcomingEventsContentSection } from "@/components/public/layout/pages/eventos/UpcomingEventsContentSection";
+import { getUpcomingEvents } from '@/lib/data/events';
 
 export const metadata = {
   title: "Próximos Eventos",
@@ -13,32 +12,9 @@ export const metadata = {
 };
 
 export default async function ProximosEventos({ searchParams }) {
-  const cookieStore = cookies();
-  const supabase = await createClient(cookieStore);
   const resolvedSearchParams = await searchParams;
   const page = parseInt(resolvedSearchParams.page) || 1;
-  const eventsPerPage = 3;
-
-  const { data: events, error, count } = await supabase
-    .from('events')
-    .select('*')
-    .order('start_time', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching events:', error);
-    return <p>Error al cargar los eventos.</p>;
-  }
-
-  const now = new Date();
-  const upcomingEvents = events.filter(event => new Date(event.start_time) >= now);
-
-  const totalPages = Math.ceil(upcomingEvents.length / eventsPerPage);
-  const paginatedEvents = upcomingEvents.slice(
-    (page - 1) * eventsPerPage,
-    page * eventsPerPage
-  );
-
-  const hasNextPage = page * eventsPerPage < upcomingEvents.length;
+  const { paginatedEvents, totalPages, hasNextPage } = await getUpcomingEvents(page);
 
   return (
     <main>

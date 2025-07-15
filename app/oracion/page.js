@@ -1,8 +1,7 @@
-import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 import { PrayerWallIntroSection } from "@/components/public/layout/pages/oracion/PrayerWallIntroSection";
 import { PrayerRequestSection } from "@/components/public/layout/pages/oracion/PrayerRequestSection";
 import { PageHeader } from "@/components/public/layout/pages/PageHeader";
+import { getPublicPrayerRequests } from '@/lib/data/prayer';
 
 export const metadata = {
   title: "Muro de Oración",
@@ -11,22 +10,6 @@ export const metadata = {
     canonical: "/oracion",
   },
 };
-
-async function getPublicPrayerRequests() {
-  const cookieStore = cookies();
-  const supabase = await createClient(cookieStore);
-  const { data, error } = await supabase
-    .from('prayer_requests')
-    .select('*')
-    .eq('is_public', true)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching prayer requests:', error);
-    return [];
-  }
-  return data;
-}
 
 export default async function OracionPage() {
   const requests = await getPublicPrayerRequests();

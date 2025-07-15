@@ -1,16 +1,16 @@
 
-import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { contentSection } from '@/lib/styles';
-import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { contentSection, sectionTitle } from '@/lib/styles';
+import { PageHeader } from "@/components/public/layout/pages/PageHeader";
+import { getLomPostBySlug, getLomNavigationPosts } from '@/lib/data/lom';
 
+// Generate metadata for the page
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const post = await getLomPost(slug);
+  const post = await getLomPostBySlug(slug);
 
   if (!post) {
     return {
@@ -22,62 +22,26 @@ export async function generateMetadata({ params }) {
     title: {
       absolute: `${post.title} | Devocionales LOM | Alianza Puembo`,
     },
-    description: post.content.substring(0, 160), // Basic description from content
+    description: `Lee, ora y medita con el devocional "${post.title}" de Alianza Puembo.`,
     openGraph: {
       title: post.title,
-      description: post.content.substring(0, 160),
+      description: `Lee, ora y medita con el devocional "${post.title}" de Alianza Puembo.`,
+    },
+    alternates: {
+      canonical: `/recursos/lom/${slug}`,
     },
   };
 }
 
-async function getLomPost(slug) {
-  const cookieStore = cookies();
-  const supabase = await createClient(cookieStore);
-  const { data, error } = await supabase
-    .from('lom_posts')
-    .select('*')
-    .eq('slug', slug)
-    .single();
-
-  if (error || !data) {
-    return null;
-  }
-  return data;
-}
-
-async function getAdjacentPosts(currentPostDate) {
-  const cookieStore = cookies();
-  const supabase = await createClient(cookieStore);
-
-  const { data: prevPost } = await supabase
-    .from('lom_posts')
-    .select('slug, title')
-    .order('created_at', { ascending: false })
-    .lt('created_at', currentPostDate)
-    .limit(1)
-    .single();
-
-  const { data: nextPost } = await supabase
-    .from('lom_posts')
-    .select('slug, title')
-    .order('created_at', { ascending: true })
-    .gt('created_at', currentPostDate)
-    .limit(1)
-    .single();
-
-  return { prevPost, nextPost };
-}
-
-
 export default async function LomPostPage({ params }) {
   const { slug } = await params;
-  const post = await getLomPost(slug);
+  const post = await getLomPostBySlug(slug);
 
   if (!post) {
     notFound();
   }
 
-  const { prevPost, nextPost } = await getAdjacentPosts(post.created_at);
+  const { prevPost, nextPost } = await getLomNavigationPosts(post.created_at);
 
   const publicationDate = new Date(post.created_at).toLocaleDateString('es-ES', {
     year: 'numeric',
@@ -101,7 +65,7 @@ export default async function LomPostPage({ params }) {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
-        <div className="flex justify-between items-center mt-12 border-t pt-6 md:px-16">
+        <nav className="flex justify-between items-center mt-12 border-t pt-6">
           {prevPost ? (
             <Button asChild variant="green">
               <Link href={`/recursos/lom/${prevPost.slug}`} className="flex items-center gap-2">
@@ -122,7 +86,7 @@ export default async function LomPostPage({ params }) {
           ) : (
             <div />
           )}
-        </div>
+        </nav>
       </div>
     </section>
   );

@@ -1,24 +1,15 @@
 
-import { createClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { notAvailableText, contentSection } from '@/lib/styles';
 import { PageHeader } from "@/components/public/layout/pages/PageHeader";
+import { getLatestLomPost } from '@/lib/data/lom';
 
 
 // This page will fetch the latest LOM post and redirect to its dynamic route.
 export default async function LomRedirectPage() {
-  const cookieStore = cookies();
-  const supabase = await createClient(cookieStore);
+  const latestPost = await getLatestLomPost();
 
-  const { data, error } = await supabase
-    .from('lom_posts')
-    .select('slug')
-    .order('publication_date', { ascending: false })
-    .limit(1)
-    .single();
-
-  if (error || !data) {
+  if (!latestPost) {
     return (
       <section>
         <PageHeader
@@ -38,5 +29,5 @@ export default async function LomRedirectPage() {
   }
 
   // Redirect to the latest post's slugified URL.
-  redirect(`/recursos/lom/${data.slug}`);
+  redirect(`/recursos/lom/${latestPost.slug}`);
 }
