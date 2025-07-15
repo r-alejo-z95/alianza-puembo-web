@@ -121,7 +121,7 @@ export default function PrayerRequestForm({ action }) {
               control={form.control}
               name="request_text"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="w-full">
                   <FormLabel>Tu petición</FormLabel>
                   <FormControl>
                     <Textarea
