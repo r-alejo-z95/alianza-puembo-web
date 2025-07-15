@@ -1,7 +1,7 @@
 
 import { redirect } from 'next/navigation';
 import { notAvailableText, contentSection } from '@/lib/styles';
-import { PageHeader } from "@/components/public/layout/pages/PageHeader";
+import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { getLatestLomPost } from '@/lib/data/lom';
 
 
@@ -11,20 +11,19 @@ export default async function LomRedirectPage() {
 
   if (!latestPost) {
     return (
-      <section>
-        <PageHeader
-          title="Devocionales LOM"
-          description="Profundiza en la lectura y meditación de la Biblia."
-          imageUrl="/recursos/lom/Lom.png"
-          imageAlt="Nubes en el cielo con luz del sol"
-        />
+      <PublicPageLayout
+        title="Devocionales LOM"
+        description="Profundiza en la lectura y meditación de la Biblia."
+        imageUrl="/recursos/lom/Lom.png"
+        imageAlt="Nubes en el cielo con luz del sol"
+      >
 
         <div className={contentSection}>
           <p className={notAvailableText}>
             No hay devocionales disponibles.
           </p>
         </div>
-      </section>
+      </PublicPageLayout>
     );
   }
 

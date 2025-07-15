@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { contentSection, sectionTitle } from '@/lib/styles';
-import { PageHeader } from "@/components/public/layout/pages/PageHeader";
+import { contentSection } from '@/lib/styles';
+import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { getLomPostBySlug, getLomNavigationPosts } from '@/lib/data/lom';
 
 // Generate metadata for the page
@@ -51,13 +51,12 @@ export default async function LomPostPage({ params }) {
   });
 
   return (
-    <section>
-      <PageHeader
-        title={post.title}
-        description={publicationDate}
-        imageUrl="/recursos/lom/Lom.png"
-        imageAlt="Nubes en el cielo con luz del sol"
-      />
+    <PublicPageLayout
+      title={post.title}
+      description={publicationDate}
+      imageUrl="/recursos/lom/Lom.png"
+      imageAlt="Nubes en el cielo con luz del sol"
+    >
 
       <div className={contentSection}>
         <div
@@ -88,6 +87,6 @@ export default async function LomPostPage({ params }) {
           )}
         </nav>
       </div>
-    </section>
+    </PublicPageLayout>
   );
 }

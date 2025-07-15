@@ -1,6 +1,6 @@
 import { YouthIntroSection } from "@/components/public/layout/pages/ministerios/jovenes/YouthIntroSection";
 import { YouthActivitiesSection } from "@/components/public/layout/pages/ministerios/jovenes/YouthActivitiesSection";
-import { PageHeader } from "@/components/public/layout/pages/PageHeader";
+import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 
 export const metadata = {
   title: "Ministerio de Jóvenes",
@@ -12,15 +12,14 @@ export const metadata = {
 
 export default function Jovenes() {
   return (
-    <main>
-      <PageHeader
-        title="Ministerio de Jóvenes"
-        description="Un espacio para crecer en fe, amistad y propósito."
-        imageUrl="/ministerios/jovenes/Jovenes.jpg"
-        imageAlt="Jóvenes en un campamento"
-      />
+    <PublicPageLayout
+      title="Ministerio de Jóvenes"
+      description="Un espacio para crecer en fe, amistad y propósito."
+      imageUrl="/ministerios/jovenes/Jovenes.jpg"
+      imageAlt="Jóvenes en un campamento"
+    >
       <YouthIntroSection />
       <YouthActivitiesSection />
-    </main>
+    </PublicPageLayout>
   );
 }

@@ -1,7 +1,7 @@
 import { ContactIntroSection } from "@/components/public/layout/pages/contacto/ContactIntroSection";
 import { ContactFormSection } from "@/components/public/layout/pages/contacto/ContactFormSection";
 import { ContactInfoSection } from "@/components/public/layout/pages/contacto/ContactInfoSection";
-import { PageHeader } from "@/components/public/layout/pages/PageHeader";
+import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 
 export const metadata = {
   title: "Contáctanos",
@@ -13,16 +13,15 @@ export const metadata = {
 
 export default function ContactPage() {
   return (
-    <>
-      <PageHeader
-        title="Contáctanos"
-        description="Estamos aquí para servirte. Envíanos un mensaje y nos pondremos en contacto contigo."
-        imageUrl="/contacto/Contacto.jpg"
-        imageAlt="Personas interactuando en un evento de la iglesia"
-      />
+    <PublicPageLayout
+      title="Contáctanos"
+      description="Estamos aquí para servirte. Envíanos un mensaje y nos pondremos en contacto contigo."
+      imageUrl="/contacto/Contacto.jpg"
+      imageAlt="Personas interactuando en un evento de la iglesia"
+    >
       <ContactIntroSection />
       <ContactFormSection />
       <ContactInfoSection />
-    </>
+    </PublicPageLayout>
   );
 }

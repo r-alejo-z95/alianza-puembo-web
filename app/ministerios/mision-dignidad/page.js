@@ -1,6 +1,6 @@
 import { MissionDignityIntroSection } from "@/components/public/layout/pages/ministerios/mision-dignidad/MissionDignityIntroSection";
 import { MissionDignityProjectsSection } from "@/components/public/layout/pages/ministerios/mision-dignidad/MissionDignityProjectsSection";
-import { PageHeader } from "@/components/public/layout/pages/PageHeader";
+import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 
 export const metadata = {
   title: "Misión Dignidad",
@@ -12,15 +12,14 @@ export const metadata = {
 
 export default function MisionDignidad() {
   return (
-    <main>
-      <PageHeader
-        title="Misión Dignidad"
-        description="Extendiendo el amor de Cristo a los más necesitados."
-        imageUrl="/ministerios/mision-dignidad/Mision-dignidad.jpg"
-        imageAlt="Personas ayudando a los necesitados"
-      />
+    <PublicPageLayout
+      title="Misión Dignidad"
+      description="Extendiendo el amor de Cristo a los más necesitados."
+      imageUrl="/ministerios/mision-dignidad/Mision-dignidad.jpg"
+      imageAlt="Personas ayudando a los necesitados"
+    >
       <MissionDignityIntroSection />
       <MissionDignityProjectsSection />
-    </main>
+    </PublicPageLayout>
   );
 }

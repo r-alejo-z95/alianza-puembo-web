@@ -1,7 +1,7 @@
-import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 import { UpcomingEventsIntroSection } from "@/components/public/layout/pages/eventos/UpcomingEventsIntroSection";
 import { UpcomingEventsContentSection } from "@/components/public/layout/pages/eventos/UpcomingEventsContentSection";
 import { getUpcomingEvents } from '@/lib/data/events';
+import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 
 export const metadata = {
   title: "Próximos Eventos",
@@ -17,19 +17,18 @@ export default async function ProximosEventos({ searchParams }) {
   const { paginatedEvents, totalPages, hasNextPage } = await getUpcomingEvents(page);
 
   return (
-    <main>
-      <PageHeader
-        title="Próximos Eventos"
-        description="Mantente al tanto de lo que viene en nuestra comunidad."
-        imageUrl="/eventos/Eventos.jpg"
-        imageAlt="Personas en un evento de la iglesia"
-      />
+    <PublicPageLayout
+      title="Próximos Eventos"
+      description="Mantente al tanto de lo que viene en nuestra comunidad."
+      imageUrl="/eventos/Eventos.jpg"
+      imageAlt="Personas en un evento de la iglesia"
+    >
       <UpcomingEventsIntroSection />
       <UpcomingEventsContentSection
         paginatedEvents={paginatedEvents}
         totalPages={totalPages}
         hasNextPage={hasNextPage}
       />
-    </main>
+    </PublicPageLayout>
   );
 }

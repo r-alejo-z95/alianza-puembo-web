@@ -1,8 +1,8 @@
 import Image from "next/image";
 import { sectionTitle, contentSection } from "@/lib/styles";
-import { PageHeader } from "@/components/public/layout/pages/PageHeader";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 
 export const metadata = {
   title: "Equipo Ministerial",
@@ -53,13 +53,12 @@ export default function Equipo() {
   ];
 
   return (
-    <section>
-      <PageHeader
-        title="Equipo Ministerial"
-        description="Conoce al equipo que lidera nuestra Iglesia"
-        imageUrl="/conocenos/equipo/Equipo.jpg"
-        imageAlt="Equipo ministerial en el aniversario de la iglesia"
-      />
+    <PublicPageLayout
+      title="Equipo Ministerial"
+      description="Conoce al equipo que lidera nuestra Iglesia"
+      imageUrl="/conocenos/equipo/Equipo.jpg"
+      imageAlt="Equipo ministerial en el aniversario de la iglesia"
+    >
       <div className={contentSection}>
         <Card className="flex flex-col gap-4 flex-1 w-full max-w-[600px] mx-auto">
           <CardHeader>
@@ -126,6 +125,6 @@ export default function Equipo() {
           })}
         </div>
       </div>
-    </section>
+    </PublicPageLayout>
   );
 }
