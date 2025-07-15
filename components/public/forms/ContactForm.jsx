@@ -3,7 +3,7 @@
 
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { submitContactForm } from '@/app/contacto/actions';
+import { submitContactForm } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

@@ -1,7 +1,7 @@
 import { PrayerWallSection } from "@/components/public/layout/pages/oracion/PrayerWallSection";
 import { sectionTitle, sectionPy } from "@/lib/styles";
 import PrayerRequestForm from '@/components/public/forms/PrayerRequestForm';
-import { addPrayerRequest } from '@/app/oracion/actions';
+import { addPrayerRequest } from '@/lib/actions';
 
 
 export function PrayerRequestSection({ requests }) {

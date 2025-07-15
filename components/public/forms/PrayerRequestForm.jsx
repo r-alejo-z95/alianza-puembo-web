@@ -35,7 +35,7 @@ export default function PrayerRequestForm({ action }) {
 
   const handleFormSubmit = async (data) => {
     const formData = new FormData();
-    formData.append('name', isAnonymous ? '' : data.name);
+    formData.append('name', isAnonymous || !data.name ? '' : data.name);
     formData.append('request_text', data.request_text);
     formData.append('is_public', data.is_public);
     formData.append('is_anonymous', data.is_anonymous);
