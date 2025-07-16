@@ -1,110 +1,137 @@
-# Proyecto: Alianza Puembo Web
+# 📘 Project: Alianza Puembo Web
 
-Este es el sitio web oficial de la iglesia "Alianza Puembo", desarrollado para proporcionar una plataforma centralizada de comunicación e interacción con la comunidad. Incluye secciones informativas, ministerios, eventos, recursos, donaciones, contacto y oración.
+This is the official website of *Alianza Puembo*, a church committed to community engagement. The platform provides centralized access to church information, ministries, events, devotionals, donations, prayer requests, and contact forms.
 
-## 🚀 Tecnologías Clave
+---
 
-El proyecto está construido utilizando las siguientes tecnologías:
+## 🚀 Key Technologies
 
--   **Framework**: Next.js (v15.x, App Router)
--   **Librería UI**: React (v19.x)
--   **Estilizado**: Tailwind CSS
--   **Componentes UI**: shadcn/ui (basado en Radix UI)
--   **Autenticación**: Supabase Auth
--   **Base de Datos**: Supabase (PostgreSQL)
--   **Almacenamiento de Archivos**: Supabase Storage
--   **Calendario**: FullCalendar
--   **Animaciones**: Framer Motion
--   **Validación de Esquemas**: Zod
--   **Supabase SSR Helpers**: `@supabase/ssr`
+This project is built using the following tools and technologies:
 
-## ✨ Características Principales
+- **Framework**: Next.js (v15.x, App Router)
+- **UI Library**: React (v19.x)
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui (based on Radix UI)
+- **Authentication**: Supabase Auth
+- **Database**: Supabase (PostgreSQL)
+- **File Storage**: Supabase Storage
+- **Calendar Integration**: FullCalendar
+- **Animations**: Framer Motion
+- **Schema Validation**: Zod
+- **SSR Helpers**: `@supabase/ssr`
+- **Email Handling**: Resend (for contact form submissions)
+- **YouTube API**: For livestreams
+- **Google Maps API**: For location display
 
--   **Secciones Informativas**: Conócenos (Equipo, Qué Creemos), Noticias.
--   **Ministerios**: Grupos Pequeños, Jóvenes, MAT, Misión Dignidad, Puembo Kids.
--   **Eventos**: Calendario de eventos, próximos eventos.
--   **Recursos**: LoM (Lee, ora y medita).
--   **Interacción**: Formularios de contacto y oración.
--   **Donaciones**: Información para apoyar la iglesia.
--   **Panel de Administración**: Rutas protegidas para la gestión de eventos, publicaciones LoM y peticiones de oración.
+---
 
-## 🛠️ Configuración y Desarrollo
+## ✨ Main Features
 
-### Requisitos
+- **Informational Pages**: About Us (Team, Beliefs), News
+- **Ministries**: Small Groups, Youth, MAT, Misión Dignidad, Puembo Kids
+- **Events**: Interactive calendar, upcoming events
+- **Devotionals**: LoM (Read, Pray, and Meditate)
+- **User Interaction**: Contact and prayer request forms
+- **Donations**: Info on how to support the church
+- **Admin Panel**: Protected routes for managing events, LoM posts, and prayer requests
 
--   Node.js (v18.x o superior)
--   npm (o yarn/pnpm)
+---
 
-### Instalación
+## 🛠️ Setup & Development
 
-1.  Clona el repositorio (acceso restringido para miembros del equipo):
-    ```bash
-    git clone [URL_DEL_REPOSITORIO_PRIVADO]
-    cd alianza-puembo-web
-    ```
-2.  Instala las dependencias:
-    ```bash
-    npm install
-    ```
+### Requirements
 
-### Configuración de Supabase
+- Node.js (v18.x or newer)
+- npm (or yarn/pnpm)
 
-Crea un archivo `.env` en la raíz del proyecto y añade tus credenciales de Supabase. Estas credenciales deben ser proporcionadas por el administrador del proyecto:
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/r-alejo-z95/alianza-puembo-web.git
+   cd alianza-puembo-web
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Environment Variables
+
+Create a `.env` file in the root of the project and add the following variables:
 
 ```
-NEXT_PUBLIC_SUPABASE_URL=tu_url_de_supabase
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key_de_supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+NEXT_PUBLIC_GOOGLE_MAP_ID=your_google_maps_map_id
+NEXT_PUBLIC_YOUTUBE_API_KEY=your_youtube_api_key
+RESEND_API_KEY=your_resend_api_key
 ```
 
-### Ejecutar el proyecto
+### Run the project locally
 
-Para iniciar el servidor de desarrollo:
+Start the development server:
 
 ```bash
 npm run dev
 ```
 
-El sitio estará disponible en `http://localhost:3000`.
+The app will be available at `http://localhost:3000`.
 
-### Comandos Adicionales
+### Additional Commands
 
--   Compilar para producción:
-    ```bash
-    npm run build
-    ```
--   Iniciar el servidor de producción:
-    ```bash
-    npm run start
-    ```
--   Ejecutar el linter:
-    ```bash
-    npm run lint
-    ```
+- Build for production:
+  ```bash
+  npm run build
+  ```
+- Start the production server:
+  ```bash
+  npm run start
+  ```
+- Run the linter:
+  ```bash
+  npm run lint
+  ```
 
-## 🔒 Autenticación
+---
 
-El proyecto utiliza Supabase Auth para la gestión de usuarios. La ruta `/admin` y sus sub-rutas están protegidas y requieren autenticación. Los usuarios no autenticados son redirigidos a la página de login (`/login`).
+## 🔐 Authentication
 
-## 📂 Estructura del Proyecto
+Supabase Auth is used to handle user authentication. The `/admin` route and all its sub-routes are protected and require authentication. Unauthenticated users are redirected to the login page (`/login`).
+
+---
+
+## 📂 Project Structure
 
 ```
 alianza-puembo-web/
-├── app/                 # Páginas y rutas de la aplicación (Next.js App Router)
-├── components/          # Componentes React reutilizables, organizados en `admin/` y `public/`
-├── lib/                 # Utilidades, clientes Supabase, hooks, esquemas
-├── public/              # Archivos estáticos (imágenes, iconos)
-├── styles/              # Estilos globales y de Tailwind CSS
-├── .env                 # Variables de entorno (no versionado)
-├── middleware.ts        # Middleware de Next.js para protección de rutas
-├── next.config.mjs      # Configuración de Next.js
-├── package.json         # Dependencias y scripts del proyecto
-└── tailwind.config.js   # Configuración de Tailwind CSS
+├── app/                 # Application routes and pages (App Router)
+├── components/          # Reusable UI components
+├── lib/                 # Utilities, Supabase client, hooks, schema validators
+├── public/              # Static assets (images, icons, etc.)
+├── .gitignore           # Git ignored files
+├── components.json      # UI component registry
+├── eslint.config.mjs    # ESLint configuration
+├── jsconfig.json        # JS project configuration
+├── middleware.ts        # Next.js middleware for route protection
+├── next.config.mjs      # Next.js configuration
+├── package.json         # Project metadata and scripts
+├── package-lock.json    # Dependency lock file
+├── postcss.config.mjs   # PostCSS configuration
+├── README.md            # Project documentation
+├── tsconfig.json        # TypeScript configuration
 ```
 
-## 🤝 Contribución
+---
 
-Este es un proyecto privado. Las contribuciones deben ser coordinadas con el equipo de desarrollo de la Iglesia Alianza Puembo. Por favor, sigue los estándares de código existentes y comunica cualquier cambio o mejora a través de los canales internos.
+## 🤝 Contributing
 
-## 📄 Licencia
+This is a **public project** intended to demonstrate professional-level web development. If you'd like to suggest improvements or contribute, feel free to open an issue or pull request.
 
-Este proyecto es propiedad de la Iglesia Alianza Puembo y su código es privado. No está destinado para distribución pública o uso sin autorización expresa. Todos los derechos reservados.
+---
+
+## 📄 License
+
+This project is developed and maintained by **R. Alejandro Zambrano** for **Iglesia Alianza Puembo**. Code is open for review but not for commercial reuse without permission. All rights reserved.
