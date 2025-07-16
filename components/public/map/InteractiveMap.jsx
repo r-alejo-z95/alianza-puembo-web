@@ -1,10 +1,10 @@
 'use client';
 
 import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { btnStyles } from "@/lib/styles";
 import { cn } from "@/lib/utils.ts";
+import Image from "next/image";
 
 const containerStyle = {
   width: "100%",
@@ -34,13 +34,14 @@ export default function GoogleMapView() {
           mapContainerStyle={containerStyle}
         >
           <AdvancedMarker position={markerPosition}>
-            <motion.div
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 4 }}
-            >
-              <img src="/icons/church-icon.png" alt="Church Icon" style={{ width: '36px', height: '36px' }} />
-            </motion.div>
+            <Image
+              src="/icons/church-icon.png"
+              alt="Church Icon"
+              width={36}
+              height={36}
+              sizes="(max-width: 768px) 10vw, (max-width: 1200px) 10vw, 10vw"
+              quality={100}
+            />
           </AdvancedMarker>
         </Map>
         <a

@@ -15,6 +15,7 @@ export function YouthActivitiesSection() {
               src="/ministerios/jovenes/youth-activity-1.jpg"
               alt="Estudio Bíblico"
               fill
+              sizes="(max-width: 768px) 768px, (max-width: 600px) 1200px, 960px"
               className="object-cover"
             />
           </div>
@@ -27,6 +28,7 @@ export function YouthActivitiesSection() {
               src="/ministerios/jovenes/youth-activity-2.jpg"
               alt="Noches de Adoración"
               fill
+              sizes="(max-width: 768px) 768px, (max-width: 1200px) 600px, 960px"
               className="object-cover"
             />
           </div>
@@ -39,6 +41,7 @@ export function YouthActivitiesSection() {
               src="/ministerios/jovenes/youth-activity-3.jpg"
               alt="Eventos Sociales"
               fill
+              sizes="(max-width: 768px) 768px, (max-width: 600px) 1200px, 960px"
               className="object-cover"
             />
           </div>

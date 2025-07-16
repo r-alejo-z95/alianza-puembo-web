@@ -48,8 +48,9 @@ export default function Footer() {
                 <Image
                   src="/brand/iso-white.png"
                   alt="Isotipo Puembo"
-                  width={300}
-                  height={300}
+                  width={14}
+                  height={14}
+                  sizes="(max-width: 768px) 10vw, (max-width: 1200px) 10vw, 10vw"
                   className="size-3.5 xl:size-5"
                 />
                 <p>Puembo - {new Date().getFullYear()}</p>

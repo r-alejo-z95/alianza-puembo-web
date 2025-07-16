@@ -54,7 +54,7 @@ export default function LoginPage() {
               alt="Alianza Puembo Logo"
               width={150}
               height={97}
-              sizes="150px"
+              sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
               className="w-[150px] h-auto"
               priority
             />

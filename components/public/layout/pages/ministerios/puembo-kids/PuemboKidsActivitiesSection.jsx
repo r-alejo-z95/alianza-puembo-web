@@ -15,6 +15,7 @@ export function PuemboKidsActivitiesSection() {
               src="/ministerios/puembo-kids/puembo-kids-activity-1.jpg"
               alt="Clases Bíblicas"
               fill
+              sizes="(max-width: 768px) 768px, (max-width: 1200px) 600px, 960px"
               className="object-cover"
             />
           </div>
@@ -27,6 +28,7 @@ export function PuemboKidsActivitiesSection() {
               src="/ministerios/puembo-kids/puembo-kids-activity-2.jpg"
               alt="Juegos y Recreación"
               fill
+              sizes="(max-width: 768px) 768px, (max-width: 1200px) 600px, 960px"
               className="object-cover"
             />
           </div>
@@ -39,6 +41,7 @@ export function PuemboKidsActivitiesSection() {
               src="/ministerios/puembo-kids/puembo-kids-activity-3.jpg"
               alt="Eventos Especiales"
               fill
+              sizes="(max-width: 768px) 768px, (max-width: 1200px) 600px, 960px"
               className="object-cover"
             />
           </div>

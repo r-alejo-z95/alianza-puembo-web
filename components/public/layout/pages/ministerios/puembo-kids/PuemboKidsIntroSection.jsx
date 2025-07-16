@@ -21,7 +21,7 @@ export function PuemboKidsIntroSection() {
           src="/ministerios/puembo-kids/puembo-kids-intro.jpg"
           alt="Niños jugando y aprendiendo"
           fill
-          sizes="(max-width: 768px) 100vw, 50vw"
+          sizes="(max-width: 768px) 768px, (max-width: 1200px) 600px, 960px"
           className="object-cover"
         />
       </div>

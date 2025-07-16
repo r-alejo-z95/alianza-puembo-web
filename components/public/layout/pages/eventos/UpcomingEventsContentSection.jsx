@@ -19,10 +19,8 @@ export function UpcomingEventsContentSection({ paginatedEvents, totalPages, hasN
                     src={event.poster_url}
                     alt={event.title}
                     fill
-                    sizes="(max-width: 768px) 576px, (max-width: 1200px) 50vw, 1000px"
-                    quality={100}
+                    sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
                     className="rounded-lg object-contain"
-                    unoptimized
                     priority
                   />
                 </div>

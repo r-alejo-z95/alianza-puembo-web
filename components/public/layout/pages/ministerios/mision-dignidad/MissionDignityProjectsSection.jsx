@@ -15,6 +15,7 @@ export function MissionDignityProjectsSection() {
               src="/ministerios/mision-dignidad/mission-dignity-project-1.jpg"
               alt="Atención a pacientes médicos en vulnerabilidad"
               fill
+              sizes="(max-width: 768px) 768px, (max-width: 1200px) 600px, 960px"
               className="object-cover"
             />
           </div>
@@ -27,6 +28,7 @@ export function MissionDignityProjectsSection() {
               src="/ministerios/mision-dignidad/mission-dignity-project-2.jpg"
               alt="Donación de Ropa y Artículos"
               fill
+              sizes="(max-width: 768px) 768px, (max-width: 600px) 1200px, 960px"
               className="object-cover"
             />
           </div>
@@ -39,6 +41,7 @@ export function MissionDignityProjectsSection() {
               src="/ministerios/mision-dignidad/mission-dignity-project-3.jpg"
               alt="Apoyo a ancianos"
               fill
+              sizes="(max-width: 768px) 768px, (max-width: 600px) 1200px, 960px"
               className="object-cover"
             />
           </div>

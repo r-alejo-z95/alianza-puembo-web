@@ -26,9 +26,8 @@ export default function Grupos() {
         alt="Grupos Pequeños"
         fill
         quality={100}
-        sizes="100vw"
+        sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
         className="object-cover object-center"
-        unoptimized
       />
       <div
         className={cn(

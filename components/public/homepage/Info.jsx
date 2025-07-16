@@ -40,13 +40,12 @@ export default function Info() {
         </div>
         <div className="relative w-full md:w-1/2 aspect-[3/2] rounded-md overflow-hidden">
           <Image
-            src="homepage/Info-section.jpg"
+            src="/homepage/Info-section.jpg"
             alt="Mujer abrazando a otra"
             fill
             quality={100}
-            sizes="(max-width: 768px) 100vw, 50vw"
+            sizes="(max-width: 768px) 768px, (max-width: 1200px) 600px, 960px"
             className="object-cover"
-            unoptimized
           />
         </div>
       </div>

@@ -51,11 +51,10 @@ export default function Hero() {
             src={src}
             alt={`Hero ${i}`}
             fill
-            sizes="100vw"
+            sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
             priority={i === 0}
             quality={100}
             className="object-cover object-top transition-opacity duration-500"
-            unoptimized
           />
         </motion.div>
       ))}

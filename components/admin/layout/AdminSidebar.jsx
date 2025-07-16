@@ -47,11 +47,10 @@ export default function AdminSidebar({ user, children }) {
             <Image
               src="/brand/logo-puembo-white.png"
               alt="Alianza Puembo Admin"
-              width={150}
-              height={97}
+              fill
               className="object-contain w-[150px] h-auto"
               priority
-              sizes="150px"
+              sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
             />
           </Link>
         </div>

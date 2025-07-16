@@ -19,7 +19,7 @@ export function PageHeader({ title, description, imageUrl, imageAlt }) {
                     fill
                     priority
                     className="object-cover object-center"
-                    unoptimized
+                    sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
                 />
             </motion.div>
             <div className="absolute inset-0 bg-black/40 z-10" />
