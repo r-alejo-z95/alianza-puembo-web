@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   btnStyles,
@@ -12,6 +13,12 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 export default function Grupos() {
+  const router = useRouter();
+
+  const handleButtonClick = () => {
+    router.push('/ministerios/gp');
+  };
+
   return (
     <section className="relative w-full h-screen flex flex-col text-primary-foreground bg-primary">
       <Image
@@ -56,15 +63,9 @@ export default function Grupos() {
           Tenemos un lugar para ti
         </motion.p>
         <div className="max-w-screen mx-auto">
-          <a
-            href="https://forms.office.com/Pages/ResponsePage.aspx?id=TmWoelp7PUyMjKoX21uYwVMTAcOtIU5Nr5xM06Zvtd9UNURNTktFVkUwNzY5NDk4RkxNUEwxTUJBSS4u"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button variant="outline" className={btnStyles + " text-black"}>
-              Conecta con un GP
-            </Button>
-          </a>
+          <Button variant="green" className={btnStyles} onClick={handleButtonClick}>
+            Encuentra un GP
+          </Button>
         </div>
       </div>
     </section>
