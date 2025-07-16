@@ -15,7 +15,7 @@ export default function GruposPequenos() {
     <PublicPageLayout
       title="Grupos Pequeños"
       description="Crece en comunidad y fe a través de nuestros grupos pequeños."
-      imageUrl="/ministerios/gp/gp.jpg"
+      imageUrl="/ministerios/gp/Gp.jpg"
       imageAlt="Grupo pequeño"
     >
       <SmallGroupsIntroSection />

@@ -80,7 +80,7 @@ export default function AdminSidebar({ user, children }) {
             <DropdownMenuContent className="w-56 bg-(--puembo-black)/30 backdrop-blur-md text-white shadow-md">
               <DropdownMenuLabel className="font-bold">Mi Cuenta</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => redirect('/admin/preferencias')} className="cursor-pointer transition-colors rounded-md hover:shadow-xl hover:bg-gray-100">Preferencias</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/admin/preferencias')} className="cursor-pointer transition-colors rounded-md hover:shadow-xl hover:bg-gray-100">Preferencias</DropdownMenuItem>
               <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer transition-colors rounded-md hover:shadow-xl hover:bg-gray-100">Cerrar Sesión</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
