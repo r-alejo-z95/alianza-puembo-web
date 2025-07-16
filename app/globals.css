@@ -5,8 +5,7 @@
 
 @theme {
   
-  --font-poppins: "Poppins", sans-serif;
-  --font-merriweather: "Merriweather", "serif";
+
   --puembo-green: hsl(92, 45.9%, 47.8%);
   --puembo-brown: hsl(34, 57%, 30%);
   --puembo-black: hsl(345, 6%, 13%);
