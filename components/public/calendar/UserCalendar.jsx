@@ -75,17 +75,30 @@ export default function UserCalendar({ events }) {
           border-style: none;
           color: white;
           box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+          border-radius:0px;
+          padding-left: 13px;
+          padding-right: 13px;
         }
         .fc .fc-button-primary:hover {
           background-color: hsl(92, 45.9%, 37.8%); /* Darker puembo-green */
-          border-color: hsl(92, 45.9%, 37.8%);
-          box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.15);
-          
         }
         .fc .fc-button-primary:not(:disabled).fc-button-active {
           background-color: hsl(92, 45.9%, 37.8%); /* Darker puembo-green for active state */
-          border-color: hsl(92, 45.9%, 37.8%);
         }
+        .fc .fc-button .fc-icon {
+          font-size: 1em;
+          vertical-align: middle;
+        }
+        .fc:active .fc-button-primary:active {
+          outline: none;
+          border-style: none;
+          background-color: hsl(92, 45.9%, 47.8%);
+          }
+        .fc:focus .fc-button-primary:focus {
+          outline: none;
+          border-style: none;
+          background-color: hsl(92, 45.9%, 47.8%);
+          }
       `}</style>
     </div>
   );
