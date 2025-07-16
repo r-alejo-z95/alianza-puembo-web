@@ -18,7 +18,7 @@ export function UpcomingEventsIntroSection() {
       </div>
       <div className="md:w-1/2 relative aspect-video w-full rounded-lg overflow-hidden shadow-lg">
         <Image
-          src="/placeholder/upcoming-events-intro.jpg"
+          src="/eventos/upcoming-events-intro.jpg"
           alt="Personas en un evento de la iglesia"
           fill
           sizes="(max-width: 768px) 100vw, 50vw"

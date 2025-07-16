@@ -5,14 +5,14 @@ import { contentSection, sectionTitle, sectionText } from "@/lib/styles";
 export function YouthActivitiesSection() {
   return (
     <section className={cn(contentSection, "bg-gray-100 py-16 md:py-24")}>
-      <h2 className={cn(sectionTitle, "text-center text-white mb-12")}>
+      <h2 className={cn(sectionTitle, "text-center mb-12")}>
         Actividades y Eventos
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/youth-activity-1.jpg"
+              src="/ministerios/jovenes/youth-activity-1.jpg"
               alt="Estudio Bíblico"
               fill
               className="object-cover"
@@ -24,7 +24,7 @@ export function YouthActivitiesSection() {
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/youth-activity-2.jpg"
+              src="/ministerios/jovenes/youth-activity-2.jpg"
               alt="Noches de Adoración"
               fill
               className="object-cover"
@@ -36,7 +36,7 @@ export function YouthActivitiesSection() {
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/youth-activity-3.jpg"
+              src="/ministerios/jovenes/youth-activity-3.jpg"
               alt="Eventos Sociales"
               fill
               className="object-cover"

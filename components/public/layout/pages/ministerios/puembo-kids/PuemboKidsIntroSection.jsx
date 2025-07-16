@@ -18,7 +18,7 @@ export function PuemboKidsIntroSection() {
       </div>
       <div className="md:w-1/2 relative aspect-video w-full rounded-lg overflow-hidden shadow-lg">
         <Image
-          src="/placeholder/puembo-kids-intro.jpg"
+          src="/ministerios/puembo-kids/puembo-kids-intro.jpg"
           alt="Niños jugando y aprendiendo"
           fill
           sizes="(max-width: 768px) 100vw, 50vw"

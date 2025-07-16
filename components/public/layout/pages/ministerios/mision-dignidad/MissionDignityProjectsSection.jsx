@@ -12,19 +12,19 @@ export function MissionDignityProjectsSection() {
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/mission-dignity-project-1.jpg"
-              alt="Comedores Comunitarios"
+              src="/ministerios/mision-dignidad/mission-dignity-project-1.jpg"
+              alt="Atención a pacientes médicos en vulnerabilidad"
               fill
               className="object-cover"
             />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Comedores Comunitarios</h3>
-          <p className={sectionText}>Proporcionamos alimentos nutritivos a familias y personas en situación de vulnerabilidad.</p>
+          <h3 className="text-xl font-semibold mb-2">Brigadas Médicas</h3>
+          <p className={sectionText}>Atendemos a cientos de personas de la comunidad que están en necesidad.</p>
         </div>
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/mission-dignity-project-2.jpg"
+              src="/ministerios/mision-dignidad/mission-dignity-project-2.jpg"
               alt="Donación de Ropa y Artículos"
               fill
               className="object-cover"
@@ -36,14 +36,14 @@ export function MissionDignityProjectsSection() {
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/mission-dignity-project-3.jpg"
-              alt="Apoyo Educativo"
+              src="/ministerios/mision-dignidad/mission-dignity-project-3.jpg"
+              alt="Apoyo a ancianos"
               fill
               className="object-cover"
             />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Apoyo Educativo</h3>
-          <p className={sectionText}>Programas de tutorías y entrega de útiles escolares para niños y jóvenes.</p>
+          <h3 className="text-xl font-semibold mb-2">Visitas a Abuelitos</h3>
+          <p className={sectionText}>Apadrinamos a ancianos que viven en escasez.</p>
         </div>
       </div>
     </section>

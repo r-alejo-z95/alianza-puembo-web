@@ -18,7 +18,7 @@ export function YouthIntroSection() {
       </div>
       <div className="md:w-1/2 relative aspect-video w-full rounded-lg overflow-hidden shadow-lg">
         <Image
-          src="/placeholder/youth-intro.jpg"
+          src="/ministerios/jovenes/youth-intro.jpg"
           alt="Jóvenes interactuando en un evento"
           fill
           sizes="(max-width: 768px) 100vw, 50vw"

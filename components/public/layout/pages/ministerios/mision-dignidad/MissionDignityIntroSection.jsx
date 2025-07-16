@@ -18,8 +18,8 @@ export function MissionDignityIntroSection() {
       </div>
       <div className="md:w-1/2 relative aspect-video w-full rounded-lg overflow-hidden shadow-lg">
         <Image
-          src="/placeholder/mission-dignity-intro.jpg"
-          alt="Personas ayudando en un comedor social"
+          src="/ministerios/mision-dignidad/mission-dignity-intro.jpg"
+          alt="Miembros de la brigada médica internacional"
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
           className="object-cover"

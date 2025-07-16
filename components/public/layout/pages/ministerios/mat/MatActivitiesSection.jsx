@@ -12,7 +12,7 @@ export function MatActivitiesSection() {
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/mat-activity-1.jpg"
+              src="/ministerios/mat/mat-activity-1.jpg"
               alt="Música y Canto"
               fill
               className="object-cover"
@@ -24,7 +24,7 @@ export function MatActivitiesSection() {
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/mat-activity-2.jpg"
+              src="/ministerios/mat/mat-activity-2.jpg"
               alt="Producción Audiovisual"
               fill
               className="object-cover"
@@ -36,14 +36,14 @@ export function MatActivitiesSection() {
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/mat-activity-3.jpg"
-              alt="Diseño y Creatividad"
+              src="/ministerios/mat/mat-activity-3.jpg"
+              alt="Teatro"
               fill
               className="object-cover"
             />
           </div>
-          <h3 className="text-xl font-semibold mb-2">Diseño y Creatividad</h3>
-          <p className={sectionText}>Desarrollo de materiales gráficos, presentaciones y elementos visuales para la iglesia.</p>
+          <h3 className="text-xl font-semibold mb-2">Teatro</h3>
+          <p className={sectionText}>Producción de obras de teatro para eventos especiales en la iglesia.</p>
         </div>
       </div>
     </section>

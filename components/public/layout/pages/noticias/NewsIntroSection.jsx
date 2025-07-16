@@ -18,8 +18,8 @@ export function NewsIntroSection() {
       </div>
       <div className="md:w-1/2 relative aspect-video w-full rounded-lg overflow-hidden shadow-lg">
         <Image
-          src="/placeholder/news-intro.jpg"
-          alt="Personas leyendo noticias"
+          src="/noticias/news-intro.jpg"
+          alt="Chica tomando fotos"
           fill
           sizes="(max-width: 768px) 100vw, 50vw"
           className="object-cover"

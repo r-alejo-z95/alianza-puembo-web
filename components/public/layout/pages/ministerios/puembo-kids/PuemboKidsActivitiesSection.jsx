@@ -12,7 +12,7 @@ export function PuemboKidsActivitiesSection() {
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/puembo-kids-activity-1.jpg"
+              src="/ministerios/puembo-kids/puembo-kids-activity-1.jpg"
               alt="Clases Bíblicas"
               fill
               className="object-cover"
@@ -24,7 +24,7 @@ export function PuemboKidsActivitiesSection() {
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/puembo-kids-activity-2.jpg"
+              src="/ministerios/puembo-kids/puembo-kids-activity-2.jpg"
               alt="Juegos y Recreación"
               fill
               className="object-cover"
@@ -36,7 +36,7 @@ export function PuemboKidsActivitiesSection() {
         <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
           <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-4">
             <Image
-              src="/placeholder/puembo-kids-activity-3.jpg"
+              src="/ministerios/puembo-kids/puembo-kids-activity-3.jpg"
               alt="Eventos Especiales"
               fill
               className="object-cover"
