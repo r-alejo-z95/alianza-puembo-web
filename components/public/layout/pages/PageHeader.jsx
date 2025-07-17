@@ -20,7 +20,6 @@ export function PageHeader({ title, description, imageUrl, imageAlt }) {
                     priority
                     className="object-cover object-center lg:object-[center_30%]"
                     sizes="(max-width: 768px) 100vw, 100vw"
-                    quality={85}
                 />
             </motion.div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10" />

@@ -43,7 +43,6 @@ export default function Info() {
             src="/homepage/Info-section.jpg"
             alt="Mujer abrazando a otra"
             fill
-            quality={100}
             sizes="(max-width: 768px) 768px, (max-width: 1200px) 600px, 960px"
             className="object-cover"
           />

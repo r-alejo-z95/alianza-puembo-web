@@ -25,7 +25,6 @@ export default function Grupos() {
         src="/homepage/Group-section.webp"
         alt="Grupos Pequeños"
         fill
-        quality={100}
         sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
         className="object-cover object-center"
       />

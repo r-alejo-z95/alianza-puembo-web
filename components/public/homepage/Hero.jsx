@@ -53,7 +53,6 @@ export default function Hero() {
             fill
             sizes="(max-width: 768px) 200vw, (max-width: 1200px) 100vw, 100vw"
             priority={i === 0}
-            quality={85}
             className="object-cover object-center lg:object-[center_70%] transition-opacity duration-500"
           />
         </motion.div>
