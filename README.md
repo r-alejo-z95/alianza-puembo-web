@@ -134,4 +134,4 @@ This is a **public project** intended to demonstrate professional-level web deve
 
 ## 📄 License
 
-This project is developed and maintained by **R. Alejandro Zambrano** for **Iglesia Alianza Puembo**. Code is open for review but not for commercial reuse without permission. All rights reserved.
+This project is developed and maintained by **Ramon Zambrano** for **Iglesia Alianza Puembo**. Code is open for review but not for commercial reuse without permission. All rights reserved.
