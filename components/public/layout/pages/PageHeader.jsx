@@ -18,8 +18,8 @@ export function PageHeader({ title, description, imageUrl, imageAlt }) {
                     alt={imageAlt}
                     fill
                     priority
-                    className="object-cover object-center"
-                    sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
+                    className="object-cover object-center lg:object-[center_30%]"
+                    sizes="(max-width: 768px) 100vw, 100vw"
                     quality={85}
                 />
             </motion.div>
