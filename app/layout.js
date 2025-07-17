@@ -1,7 +1,7 @@
 import RootLayoutClient from "@/components/public/layout/RootLayoutClient";
 import "@/app/globals.css";
 import { poppins, merriweather } from '@/lib/fonts';
-import { Toaster } from "@/components/ui/sonner";
+
 
 
 
@@ -58,8 +58,7 @@ export default function RootLayout({ children }) {
     <html lang="es" className={`${poppins.variable} ${merriweather.variable}`}>
       <body className="font-sans">
         <RootLayoutClient>{children}</RootLayoutClient>
-        <Toaster />
-      </body>
+        </body>
     </html>
   );
 }

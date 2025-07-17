@@ -97,7 +97,7 @@ export default function LomManager() {
         console.error('Error updating LOM post:', error);
         toast.error('Error al actualizar el devocional.');
       } else {
-        toast('Devocional actualizado con éxito.');
+        toast.success('Devocional actualizado con éxito.');
       }
     } else {
       const { error } = await supabase.from('lom_posts').insert([dataToSave]);
@@ -105,7 +105,7 @@ export default function LomManager() {
         console.error('Error creating LOM post:', error);
         toast.error('Error al crear el devocional.');
       } else {
-        toast('Devocional creado con éxito.');
+        toast.success('Devocional creado con éxito.');
       }
     }
     setSelectedPost(null);
@@ -131,7 +131,7 @@ export default function LomManager() {
       console.error('Error deleting LOM post:', error);
       toast.error('Error al eliminar el devocional.');
     } else {
-      toast('Devocional eliminado con éxito.');
+      toast.success('Devocional eliminado con éxito.');
     }
     fetchPosts();
   };

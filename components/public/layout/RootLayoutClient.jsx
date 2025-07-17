@@ -2,8 +2,10 @@
 
 import { Navbar } from "@/components/public/layout/navbar/Navbar";
 import Footer from "@/components/public/layout/Footer";
+import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 
+const Toaster = dynamic(() => import('@/components/ui/sonner').then(mod => mod.Toaster), { ssr: false });
 
 export default function RootLayoutClient({ children }) {
   const pathname = usePathname();
@@ -16,7 +18,7 @@ export default function RootLayoutClient({ children }) {
         {children}
       </main>
       {!isAuthRoute && <Footer />}
-
+      <Toaster />
     </>
   );
 }
