@@ -66,12 +66,7 @@ export default function Hero() {
           'relative z-10 w-full h-full flex flex-col justify-center items-start text-primary-foreground gap-4'
         )}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, ease: 'easeInOut' }}
-          className="flex flex-col gap-2 mb-4"
-        >
+        <div className="flex flex-col gap-2 mb-4">
           <h2 className={cn(secondaryTextSizes, textShadow)}>
             Experimenta la presencia de Dios en casa
           </h2>
@@ -84,7 +79,7 @@ export default function Hero() {
           >
             Bienvenido
           </h1>
-        </motion.div>
+        </div>
         <div className="flex flex-col md:flex-row gap-4 lg:gap-6 2xl:gap-8">
           <Button
             className={btnStyles}
