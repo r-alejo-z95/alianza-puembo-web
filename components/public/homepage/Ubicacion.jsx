@@ -10,12 +10,40 @@ import {
   subTitleSizes,
   secondSubTitleSizes,
 } from "@/lib/styles.ts";
+import { useEffect, useRef, useState } from "react";
 
 const GoogleMapView = dynamic(() => import('@/components/public/map/InteractiveMap'), { ssr: false });
 
 export default function Ubicacion() {
+  const sectionRef = useRef(null);
+  const [showMap, setShowMap] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setShowMap(true);
+            observer.disconnect(); // Stop observing once it's in view
+          }
+        });
+      },
+      { threshold: 0.1 } // Trigger when 10% of the section is visible
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <section id="ubicacion" className={cn(sectionPx, "w-full h-[50%] py-16")}>
+    <section id="ubicacion" ref={sectionRef} className={cn(sectionPx, "w-full h-[50%] py-16")}>
       <div className="mx-auto flex flex-col gap-8">
         <h2
           className={cn(
@@ -32,7 +60,7 @@ export default function Ubicacion() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="overflow-scroll"
           >
-            <GoogleMapView />
+            {showMap && <GoogleMapView />}
           </motion.div>
           <div className="flex flex-col gap-4 md:gap-8 justify-center items-center text-center">
             <div className="flex flex-col md:gap-4">
