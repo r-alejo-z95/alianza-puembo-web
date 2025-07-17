@@ -1,5 +1,7 @@
-import ContactForm from '@/components/public/forms/ContactForm';
 import { sectionTitle, sectionPy, formSection } from "@/lib/styles";
+import dynamic from 'next/dynamic';
+
+const ContactForm = dynamic(() => import('@/components/public/forms/ContactForm'), { ssr: false });
 
 export function ContactFormSection() {
   return (

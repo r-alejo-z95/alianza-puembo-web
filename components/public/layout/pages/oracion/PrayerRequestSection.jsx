@@ -1,8 +1,9 @@
 import { PrayerWallSection } from "@/components/public/layout/pages/oracion/PrayerWallSection";
 import { sectionTitle, sectionPy } from "@/lib/styles";
-import PrayerRequestForm from '@/components/public/forms/PrayerRequestForm';
 import { addPrayerRequest } from '@/lib/actions';
+import dynamic from 'next/dynamic';
 
+const PrayerRequestForm = dynamic(() => import('@/components/public/forms/PrayerRequestForm'), { ssr: false });
 
 export function PrayerRequestSection({ requests }) {
     return (

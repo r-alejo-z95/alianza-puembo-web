@@ -1,7 +1,7 @@
+import dynamic from 'next/dynamic';
 import Hero from "@/components/public/homepage/Hero";
-import Info from "@/components/public/homepage/Info";
-import Grupos from "@/components/public/homepage/Grupos";
-import Ubicacion from "@/components/public/homepage/Ubicacion";
+
+const HomepageSections = dynamic(() => import("@/components/public/homepage/HomepageSections"), { ssr: false });
 
 export const metadata = {
   title: "Alianza Puembo - Una Familia de Familias", // Overwrites the default in layout
@@ -15,9 +15,7 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <Info />
-      <Grupos />
-      <Ubicacion />
+      <HomepageSections />
     </>
   );
 }
