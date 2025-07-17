@@ -1,19 +1,9 @@
 import RootLayoutClient from "@/components/public/layout/RootLayoutClient";
 import "@/app/globals.css";
-import { Poppins, Merriweather } from "next/font/google";
+import { poppins, merriweather } from '@/lib/fonts';
 import { Toaster } from "@/components/ui/sonner";
 
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
-});
 
-const merriweather = Merriweather({
-  subsets: ["latin"],
-  weight: ["300", "400", "700", "900"],
-  variable: "--font-merriweather",
-});
 
 export const metadata = {
   metadataBase: new URL("https://www.alianzapuembo.org"),
@@ -66,7 +56,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es" className={`${poppins.variable} ${merriweather.variable}`}>
-      <body className="font-poppins">
+      <body className="font-sans">
         <RootLayoutClient>{children}</RootLayoutClient>
         <Toaster />
       </body>
