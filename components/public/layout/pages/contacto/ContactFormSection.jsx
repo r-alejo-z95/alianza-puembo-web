@@ -1,3 +1,5 @@
+'use client';
+
 import { sectionTitle, sectionPy, formSection } from "@/lib/styles";
 import dynamic from 'next/dynamic';
 

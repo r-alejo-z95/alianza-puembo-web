@@ -1,3 +1,5 @@
+'use client';
+
 import { PrayerWallSection } from "@/components/public/layout/pages/oracion/PrayerWallSection";
 import { sectionTitle, sectionPy } from "@/lib/styles";
 import { addPrayerRequest } from '@/lib/actions';
