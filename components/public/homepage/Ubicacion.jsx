@@ -1,7 +1,7 @@
 'use client';
 
 import { Youtube } from "lucide-react";
-import GoogleMapView from "@/components/public/map/InteractiveMap";
+import dynamic from 'next/dynamic';
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils.ts";
 import {
@@ -10,6 +10,8 @@ import {
   subTitleSizes,
   secondSubTitleSizes,
 } from "@/lib/styles.ts";
+
+const GoogleMapView = dynamic(() => import('@/components/public/map/InteractiveMap'), { ssr: false });
 
 export default function Ubicacion() {
   return (

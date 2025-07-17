@@ -1,12 +1,14 @@
 'use client';
 
-import FullCalendar from '@fullcalendar/react';
+import dynamic from 'next/dynamic';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import esLocale from '@fullcalendar/core/locales/es';
 import Link from 'next/link';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+const FullCalendar = dynamic(() => import('@fullcalendar/react'), { ssr: false });
 
 export default function UserCalendar({ events }) {
   return (

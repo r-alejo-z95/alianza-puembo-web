@@ -7,7 +7,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import RichTextEditor from '@/components/admin/forms/RichTextEditor';
+import dynamic from 'next/dynamic';
+
+const RichTextEditor = dynamic(
+  () => import('@/components/admin/forms/RichTextEditor'),
+  { ssr: false }
+);
 import {
   Form,
   FormControl,
