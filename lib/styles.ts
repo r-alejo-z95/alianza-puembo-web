@@ -5,7 +5,7 @@ export const headerTextSizes: string = "text-sm";
 export const footerTextSizes: string = "text-sm";
 
 export const btnStyles: string =
-  "w-fit px-8 py-4 text-lg md:px-10 md:py-5 md:text-xl lg:text-2xl";
+  "w-fit px-6 py-4 text-lg md:py-5 md:text-xl lg:text-2xl";
 
 export const mainTitleSizes: string =
   "text-4xl font-bold md:text-5xl lg:text-6xl xl:text-7xl";

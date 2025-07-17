@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { btnStyles } from "@/lib/styles";
 import { cn } from "@/lib/utils.ts";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 const containerStyle = {
   width: "100%",
@@ -22,16 +23,22 @@ const markerPosition = {
   lng: -78.36375798200926,
 };
 
-export default function GoogleMapView() {
+export default function GoogleMapView({ onMapLoad }) {
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} libraries={["marker"]}>
-      <div className="w-[280px] md:w-full aspect-[3/2] mx-auto rounded-md overflow-hidden flex">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 2 }}
+        className="w-[280px] md:w-full aspect-[3/2] mx-auto rounded-md overflow-hidden flex"
+      >
         <Map
           mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID} // Reemplaza con tu Map ID de Google Cloud Console
           defaultCenter={centerMap}
           defaultZoom={18}
           disableDefaultUI={true}
           mapContainerStyle={containerStyle}
+          onLoad={onMapLoad}
         >
           <AdvancedMarker position={markerPosition}>
             <Image
@@ -52,7 +59,7 @@ export default function GoogleMapView() {
         >
           <Button className={cn(btnStyles)}>Cómo llegar</Button>
         </a>
-      </div>
+      </motion.div>
     </APIProvider>
   );
 }
