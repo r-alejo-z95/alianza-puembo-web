@@ -45,7 +45,7 @@ export default function GoogleMapView({ onMapLoad }) {
 
     try {
       const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
       });
       const { latitude, longitude } = position.coords;
       const mapsUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/${destinationLat},${destinationLng}`;
