@@ -23,7 +23,32 @@ const markerPosition = {
   lng: -78.36375798200926,
 };
 
+const destination = "Iglesia+Alianza+Puembo"
+
 export default function GoogleMapView({ onMapLoad }) {
+  const handleGetDirections = async () => {
+    const fallbackUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by this browser.");
+      window.open(fallbackUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject);
+      });
+
+      const { latitude, longitude } = position.coords;
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${destination}`;
+      window.open(mapsUrl, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      console.error("Error getting user location:", error.message);
+      window.open(fallbackUrl, "_blank", "noopener,noreferrer");
+    }
+  };
+
   return (
     <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} libraries={["marker"]}>
       <motion.div
@@ -51,14 +76,11 @@ export default function GoogleMapView({ onMapLoad }) {
             />
           </AdvancedMarker>
         </Map>
-        <a
-          href={`https://www.google.com/maps/dir/?api=1&destination=Iglesia+Alianza+Puembo`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute mt-4 ml-4 xl:mt-6 xl:ml-6"
-        >
-          <Button className={cn(btnStyles)}>Cómo llegar</Button>
-        </a>
+        <div className="absolute mt-4 ml-4 xl:mt-6 xl:ml-6">
+          <Button className={cn(btnStyles)} onClick={handleGetDirections}>
+            Cómo llegar
+          </Button>
+        </div>
       </motion.div>
     </APIProvider>
   );
