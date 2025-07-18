@@ -2,6 +2,7 @@ import Hero from "@/components/public/homepage/Hero";
 import Info from "@/components/public/homepage/Info";
 import Grupos from "@/components/public/homepage/Grupos";
 import Ubicacion from "@/components/public/homepage/Ubicacion";
+import { getYouTubeChannelStatus } from "@/lib/youtube";
 
 export const metadata = {
   title: "Alianza Puembo - Una Familia de Familias",
@@ -11,10 +12,12 @@ export const metadata = {
   },
 };
 
-export default function Home() {
+export default async function Home() {
+  const youtubeStatus = await getYouTubeChannelStatus();
+
   return (
     <>
-      <Hero />
+      <Hero youtubeStatus={youtubeStatus} />
       <Info />
       <Grupos />
       <Ubicacion />

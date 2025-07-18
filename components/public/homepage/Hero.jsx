@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Link from "next/link";
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils.ts';
 import {
@@ -22,7 +23,7 @@ const heroImages = [
   '/homepage/hero/Hero7.jpg',
 ];
 
-export default function Hero() {
+export default function Hero({ youtubeStatus }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
@@ -34,6 +35,8 @@ export default function Hero() {
 
     return () => clearInterval(timer);
   }, []);
+
+  const { isLive, videoUrl } = youtubeStatus;
 
   return (
     <section className="relative w-full h-screen overflow-hidden">
@@ -89,13 +92,12 @@ export default function Hero() {
           >
             Visítanos
           </Button>
-          <a
-            href="https://www.youtube.com/@IglesiaAlianzaPuembo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button className={btnStyles}>Servicio On-line</Button>
-          </a>
+          <Link href={videoUrl} target="_blank" rel="noopener noreferrer">
+            <Button className={cn(btnStyles, "flex items-center gap-2")}>
+              {isLive ? "Ver En Vivo" : "Último Servicio"}
+              {isLive && <span className="live-indicator"></span>}
+            </Button>
+          </Link>
         </div>
       </div>
     </section>
