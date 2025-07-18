@@ -55,7 +55,8 @@ export const menuItems = [
       {
         name: "Prédicas",
         href: "https://www.youtube.com/@IglesiaAlianzaPuembo/playlists",
-        description: "Escucha mensajes que transforman"
+        description: "Escucha mensajes que transforman",
+        external: true,
       },
       {
         name: "Lee, Ora, Medita",
@@ -65,7 +66,8 @@ export const menuItems = [
       {
         name: "Galería",
         href: "https://iglesiaalianzapuembo.pixieset.com/",
-        description: "Revive los mejores momentos en imágenes"
+        description: "Revive los mejores momentos en imágenes",
+        external: true,
       },
     ],
   },

@@ -116,6 +116,7 @@ export function Navbar() {
                           key={subroute.name}
                           title={subroute.name}
                           href={subroute.href}
+                          external={subroute.external}
                         >
                           {subroute.description}
                         </ListItem>
@@ -181,16 +182,22 @@ export function Navbar() {
                         {item.name}
                       </AccordionTrigger>
                       <AccordionContent>
-                        {item.subroutes.map((subroute) => (
-                          <Link
-                            key={subroute.name}
-                            href={subroute.href}
-                            className="block px-4 py-4 border-b border-gray-100 bg-background last:border-b-0"
-                            onClick={() => setIsSheetOpen(false
-                            )}>
-                            {subroute.name}
-                          </Link>
-                        ))}
+                        {item.subroutes.map((subroute) => {
+                          const linkProps = subroute.external
+                            ? { target: "_blank", rel: "noopener noreferrer" }
+                            : {};
+                          return (
+                            <Link
+                              key={subroute.name}
+                              href={subroute.href}
+                              className="block px-4 py-4 border-b border-gray-100 bg-background last:border-b-0"
+                              onClick={() => setIsSheetOpen(false)}
+                              {...linkProps}
+                            >
+                              {subroute.name}
+                            </Link>
+                          );
+                        })}
                       </AccordionContent>
                     </AccordionItem>
                   ) : (
@@ -215,7 +222,11 @@ export function Navbar() {
 }
 
 const ListItem = React.forwardRef(
-  ({ className, title, children, href, ...props }, ref) => {
+  ({ className, title, children, href, external = false, ...props }, ref) => {
+    const linkProps = external
+      ? { target: "_blank", rel: "noopener noreferrer" }
+      : {};
+
     return (
       <li>
         <NavigationMenuLink asChild>
@@ -226,6 +237,7 @@ const ListItem = React.forwardRef(
               "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/60 group",
               className
             )}
+            {...linkProps}
             {...props}
           >
             <div className="text-sm font-medium leading-none group-hover:text-(--puembo-green) transition-colors duration-200">{title}</div>
