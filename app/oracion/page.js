@@ -1,4 +1,3 @@
-import { PrayerWallIntroSection } from "@/components/public/layout/pages/oracion/PrayerWallIntroSection";
 import { PrayerRequestSection } from "@/components/public/layout/pages/oracion/PrayerRequestSection";
 import { getPublicPrayerRequests } from '@/lib/data/prayer.ts';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
@@ -14,14 +13,20 @@ export const metadata = {
 export default async function OracionPage() {
   const requests = await getPublicPrayerRequests();
 
+  const introSectionData = {
+    title: "Unidos en Oración",
+    description: "En nuestro Muro de Oración, puedes compartir tus peticiones y unirte a la comunidad en oración. Cada petición es una oportunidad para fortalecer nuestra fe y apoyarnos mutuamente. Te invitamos a participar y ser parte de este espacio sagrado.",
+    titleColor: "text-emerald-700",
+  };
+
   return (
     <PublicPageLayout
       title="Muro de Oración"
       description="Unámonos en oración. Aquí puedes compartir tus peticiones y orar por las de otros."
       imageUrl="/oracion/Oracion.jpg"
       imageAlt="Personas orando"
+      introSectionData={introSectionData}
     >
-      <PrayerWallIntroSection />
       <PrayerRequestSection requests={requests} />
     </PublicPageLayout>
   );
