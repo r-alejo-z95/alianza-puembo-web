@@ -6,7 +6,7 @@ import { btnStyles } from "@/lib/styles";
 import { cn } from "@/lib/utils.ts";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 
 const containerStyle = {
@@ -56,30 +56,36 @@ export default function GoogleMapView({ onMapLoad }) {
     }
   };
 
-  // Logic for Mobile (shows app choice dialog)
-  const handleGetDirectionsMobile = async () => {
-    const webFallbackUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
-
-    if (!navigator.geolocation) {
-      console.error("Geolocation is not supported by this browser.");
-      // If geolocation is not supported, still show dialog but only web option will work
-      setOriginCoords(null); // Ensure originCoords is null
-      setShowAppChoice(true);
-      return;
-    }
-
-    try {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
-      });
-      setOriginCoords({ latitude: position.coords.latitude, longitude: position.coords.longitude });
-    } catch (error) {
-      console.error("Error getting user location:", error.message);
-      setOriginCoords(null); // Geolocation failed, set to null
-    } finally {
-      setShowAppChoice(true); // Always show the dialog on mobile
-    }
+  // Logic for Mobile (shows app choice dialog immediately, geolocation happens in useEffect)
+  const handleGetDirectionsMobile = () => {
+    setShowAppChoice(true); // Show dialog immediately
   };
+
+  // Effect to get geolocation when the dialog is opened
+  useEffect(() => {
+    if (showAppChoice) {
+      // Reset originCoords when dialog opens to ensure fresh attempt
+      setOriginCoords(null);
+
+      if (!navigator.geolocation) {
+        console.error("Geolocation is not supported by this browser.");
+        return;
+      }
+
+      const getPosition = async () => {
+        try {
+          const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 }); // Reduced timeout for quicker fallback
+          });
+          setOriginCoords({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+        } catch (error) {
+          console.error("Error getting user location:", error.message);
+          // If geolocation fails, originCoords remains null, which openMapApp handles
+        }
+      };
+      getPosition();
+    }
+  }, [showAppChoice]);
 
   const openMapApp = (appType) => {
     setShowAppChoice(false); // Close dialog after selection
