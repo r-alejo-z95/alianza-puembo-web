@@ -1,5 +1,5 @@
-import { PuemboKidsActivitiesSection } from "@/components/public/layout/pages/ministerios/puembo-kids/PuemboKidsActivitiesSection";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
+import { MinistryContentSection } from "@/components/public/layout/pages/ministerios/MinistryContentSection";
 
 export const metadata = {
   title: "Puembo Kids",
@@ -21,6 +21,33 @@ export default function PuemboKids() {
     imagePosition: "right",
   };
 
+  const activitiesData = {
+    title: "Nuestras Actividades",
+    items: [
+      {
+        type: "image",
+        imageUrl: "/ministerios/puembo-kids/puembo-kids-activity-1.jpg",
+        imageAlt: "Clases Bíblicas",
+        itemTitle: "Clases Bíblicas",
+        itemDescription: "Enseñanza de la Palabra de Dios adaptada a cada edad, con dinámicas y juegos.",
+      },
+      {
+        type: "image",
+        imageUrl: "/ministerios/puembo-kids/puembo-kids-activity-2.jpg",
+        imageAlt: "Juegos y Recreación",
+        itemTitle: "Juegos y Recreación",
+        itemDescription: "Actividades lúdicas que fomentan la amistad, el trabajo en equipo y el desarrollo integral.",
+      },
+      {
+        type: "image",
+        imageUrl: "/ministerios/puembo-kids/puembo-kids-activity-3.jpg",
+        imageAlt: "Eventos Especiales",
+        itemTitle: "Eventos Especiales",
+        itemDescription: "Celebraciones, campamentos y salidas diseñadas para crear recuerdos inolvidables.",
+      },
+    ],
+  };
+
   return (
     <PublicPageLayout
       title="Puembo Kids"
@@ -29,7 +56,7 @@ export default function PuemboKids() {
       imageAlt="Celebración de Puembo Kids"
       introSectionData={introSectionData}
     >
-      <PuemboKidsActivitiesSection />
+      <MinistryContentSection {...activitiesData} />
     </PublicPageLayout>
   );
 }

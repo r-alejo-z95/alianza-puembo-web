@@ -1,5 +1,5 @@
-import { YouthActivitiesSection } from "@/components/public/layout/pages/ministerios/jovenes/YouthActivitiesSection";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
+import { MinistryContentSection } from "@/components/public/layout/pages/ministerios/MinistryContentSection";
 
 export const metadata = {
   title: "Ministerio de Jóvenes",
@@ -21,6 +21,33 @@ export default function Jovenes() {
     imagePosition: "right",
   };
 
+  const activitiesData = {
+    title: "Actividades y Eventos",
+    items: [
+      {
+        type: "image",
+        imageUrl: "/ministerios/jovenes/youth-activity-1.jpg",
+        imageAlt: "Estudio Bíblico",
+        itemTitle: "Estudios Bíblicos",
+        itemDescription: "Profundizamos en la Palabra de Dios de manera interactiva y relevante para tu vida diaria.",
+      },
+      {
+        type: "image",
+        imageUrl: "/ministerios/jovenes/youth-activity-2.jpg",
+        imageAlt: "Noches de Adoración",
+        itemTitle: "Noches de Adoración",
+        itemDescription: "Momentos especiales para conectar con Dios a través de la música y la alabanza.",
+      },
+      {
+        type: "image",
+        imageUrl: "/ministerios/jovenes/youth-activity-3.jpg",
+        imageAlt: "Eventos Sociales",
+        itemTitle: "Eventos Sociales",
+        itemDescription: "Actividades divertidas y recreativas para fortalecer la amistad y la comunidad.",
+      },
+    ],
+  };
+
   return (
     <PublicPageLayout
       title="Ministerio de Jóvenes"
@@ -29,7 +56,7 @@ export default function Jovenes() {
       imageAlt="Jóvenes en un campamento"
       introSectionData={introSectionData}
     >
-      <YouthActivitiesSection />
+      <MinistryContentSection {...activitiesData} />
     </PublicPageLayout>
   );
 }

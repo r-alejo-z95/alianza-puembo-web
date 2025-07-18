@@ -1,5 +1,5 @@
-import { SmallGroupsBenefitsSection } from "@/components/public/layout/pages/ministerios/gp/SmallGroupsBenefitsSection";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
+import { MinistryContentSection } from "@/components/public/layout/pages/ministerios/MinistryContentSection";
 
 export const metadata = {
   title: "Grupos Pequeños",
@@ -24,6 +24,48 @@ export default function GruposPequenos() {
     buttonVariant: "green",
   };
 
+  const benefitsData = {
+    title: "Beneficios de unirte a un Grupo Pequeño",
+    items: [
+      {
+        type: "icon",
+        iconType: 'CheckCircle',
+        itemTitle: "Crecimiento Espiritual",
+        itemDescription: "Estudia la Biblia en un ambiente íntimo y aplica sus verdades a tu vida diaria.",
+      },
+      {
+        type: "icon",
+        iconType: 'CheckCircle',
+        itemTitle: "Comunidad y Amistad",
+        itemDescription: "Construye relaciones profundas y duraderas con personas que comparten tu fe.",
+      },
+      {
+        type: "icon",
+        iconType: 'CheckCircle',
+        itemTitle: "Apoyo y Oración",
+        itemDescription: "Encuentra un espacio seguro para compartir tus cargas y recibir apoyo en oración.",
+      },
+      {
+        type: "icon",
+        iconType: 'CheckCircle',
+        itemTitle: "Servicio y Misión",
+        itemDescription: "Descubre oportunidades para servir a tu comunidad y extender el Reino de Dios.",
+      },
+      {
+        type: "icon",
+        iconType: 'CheckCircle',
+        itemTitle: "Discipulado Personalizado",
+        itemDescription: "Recibe mentoría y guía en tu desarrollo espiritual de la mano de líderes experimentados.",
+      },
+      {
+        type: "icon",
+        iconType: 'CheckCircle',
+        itemTitle: "Impacto en tu Entorno",
+        itemDescription: "Sé parte de la transformación de tu comunidad, llevando el amor y la esperanza de Cristo a quienes te rodean.",
+      },
+    ],
+  };
+
   return (
     <PublicPageLayout
       title="Grupos Pequeños"
@@ -32,7 +74,7 @@ export default function GruposPequenos() {
       imageAlt="Grupo pequeño"
       introSectionData={introSectionData}
     >
-      <SmallGroupsBenefitsSection />
+      <MinistryContentSection {...benefitsData} />
     </PublicPageLayout>
   );
 }

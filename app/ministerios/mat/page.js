@@ -1,5 +1,5 @@
-import { MatActivitiesSection } from "@/components/public/layout/pages/ministerios/mat/MatActivitiesSection";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
+import { MinistryContentSection } from "@/components/public/layout/pages/ministerios/MinistryContentSection";
 
 export const metadata = {
   title: "Ministerio de Música, Artes y Tecnología",
@@ -21,6 +21,33 @@ export default function Mat() {
     imagePosition: "right",
   };
 
+  const activitiesData = {
+    title: "Áreas de Servicio",
+    items: [
+      {
+        type: "image",
+        imageUrl: "/ministerios/mat/mat-activity-1.jpg",
+        imageAlt: "Música y Canto",
+        itemTitle: "Música y Canto",
+        itemDescription: "Equipos de alabanza que lideran la congregación en la adoración a través de la música.",
+      },
+      {
+        type: "image",
+        imageUrl: "/ministerios/mat/mat-activity-2.jpg",
+        imageAlt: "Producción Audiovisual",
+        itemTitle: "Producción Audiovisual",
+        itemDescription: "Creación de contenido visual, videos y transmisiones en vivo para alcanzar a más personas.",
+      },
+      {
+        type: "image",
+        imageUrl: "/ministerios/mat/mat-activity-3.jpg",
+        imageAlt: "Teatro",
+        itemTitle: "Teatro",
+        itemDescription: "Producción de obras de teatro para eventos especiales en la iglesia.",
+      },
+    ],
+  };
+
   return (
     <PublicPageLayout
       title="Ministerio de Música, Artes y Tecnología"
@@ -29,7 +56,7 @@ export default function Mat() {
       imageAlt="Cantantes adorando"
       introSectionData={introSectionData}
     >
-      <MatActivitiesSection />
+      <MinistryContentSection {...activitiesData} />
     </PublicPageLayout>
   );
 }

@@ -1,5 +1,5 @@
-import { MissionDignityProjectsSection } from "@/components/public/layout/pages/ministerios/mision-dignidad/MissionDignityProjectsSection";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
+import { MinistryContentSection } from "@/components/public/layout/pages/ministerios/MinistryContentSection";
 
 export const metadata = {
   title: "Misión Dignidad",
@@ -21,6 +21,33 @@ export default function MisionDignidad() {
     imagePosition: "left",
   };
 
+  const projectsData = {
+    title: "Nuestros Proyectos",
+    items: [
+      {
+        type: "image",
+        imageUrl: "/ministerios/mision-dignidad/mission-dignity-project-1.jpg",
+        imageAlt: "Atención a pacientes médicos en vulnerabilidad",
+        itemTitle: "Brigadas Médicas",
+        itemDescription: "Atendemos a cientos de personas de la comunidad que están en necesidad.",
+      },
+      {
+        type: "image",
+        imageUrl: "/ministerios/mision-dignidad/mission-dignity-project-2.jpg",
+        imageAlt: "Donación de Ropa y Artículos",
+        itemTitle: "Donación de Ropa y Artículos",
+        itemDescription: "Recolección y distribución de ropa, calzado y artículos de primera necesidad.",
+      },
+      {
+        type: "image",
+        imageUrl: "/ministerios/mision-dignidad/mission-dignity-project-3.jpg",
+        imageAlt: "Apoyo a ancianos",
+        itemTitle: "Visitas a Abuelitos",
+        itemDescription: "Apadrinamos a ancianos que viven en escasez.",
+      },
+    ],
+  };
+
   return (
     <PublicPageLayout
       title="Misión Dignidad"
@@ -29,7 +56,7 @@ export default function MisionDignidad() {
       imageAlt="Personas ayudando a los necesitados"
       introSectionData={introSectionData}
     >
-      <MissionDignityProjectsSection />
+      <MinistryContentSection {...projectsData} />
     </PublicPageLayout>
   );
 }
