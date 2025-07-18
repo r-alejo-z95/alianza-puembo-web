@@ -6,6 +6,8 @@ import { btnStyles } from "@/lib/styles";
 import { cn } from "@/lib/utils.ts";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 
 const containerStyle = {
   width: "100%",
@@ -26,27 +28,86 @@ const markerPosition = {
 const destination = "Iglesia+Alianza+Puembo"
 
 export default function GoogleMapView({ onMapLoad }) {
-  const handleGetDirections = async () => {
-    const fallbackUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+  const [showAppChoice, setShowAppChoice] = useState(false);
+  const [originCoords, setOriginCoords] = useState(null);
+
+  // Logic for Desktop (opens Google Maps web directly)
+  const handleGetDirectionsDesktop = async () => {
+    const destinationLat = markerPosition.lat;
+    const destinationLng = markerPosition.lng;
+    const webFallbackUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
 
     if (!navigator.geolocation) {
       console.error("Geolocation is not supported by this browser.");
-      window.open(fallbackUrl, "_blank", "noopener,noreferrer");
+      window.open(webFallbackUrl, "_blank", "noopener,noreferrer");
       return;
     }
 
     try {
       const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject);
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
       });
-
       const { latitude, longitude } = position.coords;
-      const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${destination}`;
+      const mapsUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/${destinationLat},${destinationLng}`;
       window.open(mapsUrl, "_blank", "noopener,noreferrer");
     } catch (error) {
       console.error("Error getting user location:", error.message);
-      window.open(fallbackUrl, "_blank", "noopener,noreferrer");
+      window.open(webFallbackUrl, "_blank", "noopener,noreferrer");
     }
+  };
+
+  // Logic for Mobile (shows app choice dialog)
+  const handleGetDirectionsMobile = async () => {
+    const webFallbackUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+
+    if (!navigator.geolocation) {
+      console.error("Geolocation is not supported by this browser.");
+      // If geolocation is not supported, still show dialog but only web option will work
+      setOriginCoords(null); // Ensure originCoords is null
+      setShowAppChoice(true);
+      return;
+    }
+
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+      });
+      setOriginCoords({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+    } catch (error) {
+      console.error("Error getting user location:", error.message);
+      setOriginCoords(null); // Geolocation failed, set to null
+    } finally {
+      setShowAppChoice(true); // Always show the dialog on mobile
+    }
+  };
+
+  const openMapApp = (appType) => {
+    setShowAppChoice(false); // Close dialog after selection
+    const destinationLat = markerPosition.lat;
+    const destinationLng = markerPosition.lng;
+
+    let url = '';
+    // If originCoords is null, it means geolocation failed or was not supported.
+    // In this case, app links will fall back to web version.
+    if (!originCoords || appType === 'web') {
+      url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+      if (originCoords) {
+        // If originCoords exist but user chose 'web', use them
+        url = `https://www.google.com/maps/dir/${originCoords.latitude},${originCoords.longitude}/${destinationLat},${destinationLng}`;
+      }
+    } else {
+      const originLat = originCoords.latitude;
+      const originLng = originCoords.longitude;
+      switch (appType) {
+        case 'google':
+          url = `comgooglemaps://?saddr=${originLat},${originLng}&daddr=${destinationLat},${destinationLng}&directionsmode=driving`;
+          break;
+        case 'waze':
+          url = `waze://?ll=${destinationLat},${destinationLng}&navigate=yes`;
+          break;
+      }
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -54,7 +115,7 @@ export default function GoogleMapView({ onMapLoad }) {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 2 }}
+        transition={{ duration: 1.5 }}
         className="w-[280px] md:w-full aspect-[3/2] mx-auto rounded-md overflow-hidden flex"
       >
         <Map
@@ -77,11 +138,43 @@ export default function GoogleMapView({ onMapLoad }) {
           </AdvancedMarker>
         </Map>
         <div className="absolute mt-4 ml-4 xl:mt-6 xl:ml-6">
-          <Button className={cn(btnStyles)} onClick={handleGetDirections}>
+          {/* Desktop Button */}
+          <Button
+            className={cn(btnStyles, "hidden lg:flex")}
+            onClick={handleGetDirectionsDesktop}
+          >
+            Cómo llegar
+          </Button>
+          {/* Mobile Button */}
+          <Button
+            className={cn(btnStyles, "lg:hidden")}
+            onClick={handleGetDirectionsMobile}
+          >
             Cómo llegar
           </Button>
         </div>
       </motion.div>
+
+      <Dialog open={showAppChoice} onOpenChange={setShowAppChoice}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Elige tu aplicación de mapas</DialogTitle>
+            <DialogDescription>
+              Selecciona cómo quieres obtener las indicaciones.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Button onClick={() => openMapApp('google')}>Abrir en Google Maps App</Button>
+            <Button onClick={() => openMapApp('waze')}>Abrir en Waze App</Button>
+            <Button onClick={() => openMapApp('web')}>Abrir en el navegador</Button>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </APIProvider>
   );
 }
