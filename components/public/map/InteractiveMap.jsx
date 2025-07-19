@@ -84,7 +84,7 @@ export default function GoogleMapView({ onMapLoad }) {
           </AdvancedMarker>
         </Map>
         <div className="absolute mt-4 ml-4 xl:mt-6 xl:ml-6">
-          <Button className={cn(btnStyles)} onClick={handleGetDirections}>
+          <Button variant="green" className={cn(btnStyles)} onClick={handleGetDirections}>
             Cómo llegar
           </Button>
         </div>

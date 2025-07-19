@@ -20,7 +20,7 @@ export default async function Home() {
       <Hero youtubeStatus={youtubeStatus} />
       <Info />
       <Grupos />
-      <Ubicacion />
+      <Ubicacion youtubeStatus={youtubeStatus} />
     </>
   );
 }

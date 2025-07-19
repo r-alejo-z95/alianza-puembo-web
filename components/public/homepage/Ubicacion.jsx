@@ -13,7 +13,8 @@ import { useEffect, useRef, useState } from "react";
 
 const GoogleMapView = dynamic(() => import('@/components/public/map/InteractiveMap'), { ssr: false });
 
-export default function Ubicacion() {
+export default function Ubicacion({ youtubeStatus }) {
+  const { videoUrl } = youtubeStatus;
   const sectionRef = useRef(null);
   const [showMap, setShowMap] = useState(false);
   const [mapIsLoaded, setMapIsLoaded] = useState(false);
@@ -85,7 +86,7 @@ export default function Ubicacion() {
               <div className="flex items-center gap-2">
                 <p className={cn(secondaryTextSizes)}>Servicio online</p>
                 <a
-                  href="https://www.youtube.com/c/IglesiaAlianzaPuembo"
+                  href={videoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Youtube channel"

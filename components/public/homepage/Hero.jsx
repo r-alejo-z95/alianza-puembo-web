@@ -84,6 +84,7 @@ export default function Hero({ youtubeStatus }) {
         </div>
         <div className="flex flex-col md:flex-row gap-4 lg:gap-6 2xl:gap-8">
           <Button
+            variant="green"
             className={btnStyles}
             onClick={() => {
               const ubicacion = document.getElementById('ubicacion');
@@ -93,7 +94,10 @@ export default function Hero({ youtubeStatus }) {
             Visítanos
           </Button>
           <Link href={videoUrl} target="_blank" rel="noopener noreferrer">
-            <Button className={cn(btnStyles, "flex items-center gap-2")}>
+            <Button
+              variant="secondary"
+              className={cn(btnStyles, "flex items-center gap-2")}
+            >
               {isLive ? "Ver En Vivo" : "Ver Última Prédica"}
               {isLive && <span className="live-indicator"></span>}
             </Button>

@@ -29,10 +29,10 @@ export default function Info() {
           </p>
           <div className="flex flex-col md:flex-row gap-4 lg:gap-6 2xl:gap-8 mt-4">
             <a href="/noticias">
-              <Button className={btnStyles}>Noticias</Button>
+              <Button variant="green" className={btnStyles}>Noticias</Button>
             </a>
             <a href="/eventos/proximos-eventos">
-              <Button variant="outline" className={btnStyles}>
+              <Button variant="secondary" className={btnStyles}>
                 Próximos eventos
               </Button>
             </a>
