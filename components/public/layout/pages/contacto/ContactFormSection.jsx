@@ -7,10 +7,10 @@ const ContactForm = dynamic(() => import('@/components/public/forms/ContactForm'
 
 export function ContactFormSection() {
   return (
-    <div className="bg-sky-800 text-gray-800">
+    <div className="bg-(--puembo-green) text-gray-800">
       <div className={`container mx-auto px-4 text-center ${sectionPy}`}>
         <div className={formSection}>
-          <h2 className={`${sectionTitle} mb-4 text-sky-800`}>
+          <h2 className={`${sectionTitle} mb-4 text-(--puembo-green)`}>
             Envíanos un Mensaje
           </h2>
           <ContactForm />

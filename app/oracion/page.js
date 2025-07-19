@@ -16,7 +16,7 @@ export default async function OracionPage() {
   const introSectionData = {
     title: "Unidos en Oración",
     description: "En nuestro Muro de Oración, puedes compartir tus peticiones y unirte a la comunidad en oración. Cada petición es una oportunidad para fortalecer nuestra fe y apoyarnos mutuamente. Te invitamos a participar y ser parte de este espacio sagrado.",
-    titleColor: "text-emerald-700",
+    titleColor: "text-(--puembo-green)",
   };
 
   return (

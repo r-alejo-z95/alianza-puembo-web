@@ -6,7 +6,7 @@ export function ContactInfoSection() {
     <div className="bg-gray-50">
       <div className="container mx-auto px-4 divide-y divide-gray-200">
         <div className="py-16 md:py-24 text-center">
-          <h2 className={`${sectionTitle} text-sky-800 mb-4`}>
+          <h2 className={`${sectionTitle} text-(--puembo-green) mb-4`}>
             Nuestra Información de Contacto
           </h2>
           <p className={`${sectionText} max-w-3xl mx-auto`}>

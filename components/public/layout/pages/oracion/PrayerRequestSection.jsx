@@ -10,13 +10,13 @@ const PrayerRequestForm = dynamic(() => import('@/components/public/forms/Prayer
 export function PrayerRequestSection({ requests }) {
     return (
         <div>
-            <div className={`bg-white p-8 max-w-6xl mx-auto ${sectionPy}`}>
-                <h2 className={`${sectionTitle} mb-4 text-emerald-700 text-center`}>
+            <div className="bg-white p-8 max-w-6xl mx-auto pb-16 md:pb-24">
+                <h2 className={`${sectionTitle} mb-4 text-(--puembo-green) text-center`}>
                     Peticiones de Oración
                 </h2>
                 <PrayerWallSection requests={requests} />
             </div>
-            <div className="bg-emerald-700 text-gray-800">
+            <div className="bg-(--puembo-green) text-gray-800">
                 <div className={`flex justify-center ${sectionPy}`}>
                     <div className="p-8 max-w-2xl mx-auto">
                         <PrayerRequestForm action={addPrayerRequest} />

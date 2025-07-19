@@ -38,7 +38,7 @@ export function PrayerWallSection({ requests }) {
     <div className="w-full max-w-7xl mx-auto p-4">
       <div className="grid place-items-center grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-x-4">
         {currentRequests.map((req) => (
-          <div key={req.id} className="text-gray-800 border-r-4 min-h-20 w-3xs max-w-xs border-emerald-500 pb-4 px-2">
+          <div key={req.id} className="text-gray-800 border-r-4 min-h-20 w-3xs max-w-xs border-(--puembo-green) pb-4 px-2">
             <div className="pt-2">
               <p className="text-muted-foreground wrap-break-word">{req.request_text}</p>
             </div>

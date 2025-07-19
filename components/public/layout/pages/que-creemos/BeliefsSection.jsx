@@ -45,7 +45,7 @@ export function BeliefsSection() {
     <div className="bg-gray-50">
       <div className="container mx-auto px-4 divide-y divide-gray-200">
         <div className="py-16 md:py-24 text-center">
-          <h2 className={`${sectionTitle} text-blue-800`}>Lo que Creemos</h2>
+          <h2 className={`${sectionTitle} text-(--puembo-green)`}>Lo que Creemos</h2>
           <p className={`${sectionText} max-w-3xl mx-auto`}>
             Estas son las cuatro verdades fundamentales que guían nuestra fe y ministerio como parte de la Alianza Cristiana y Misionera.
           </p>

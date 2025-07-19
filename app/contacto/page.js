@@ -14,7 +14,7 @@ export default function ContactPage() {
   const introSectionData = {
     title: "Conéctate con Nosotros",
     description: "Estamos aquí para escucharte y servirte. Ya sea que tengas preguntas, sugerencias o necesites apoyo, no dudes en contactarnos. Tu voz es importante para nosotros.",
-    titleColor: "text-sky-800",
+    titleColor: "text-(--puembo-green)",
   };
 
   return (

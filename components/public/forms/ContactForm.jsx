@@ -18,7 +18,7 @@ const initialState = {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} aria-disabled={pending}>
+    <Button variant="secondary" type="submit" disabled={pending} aria-disabled={pending}>
       {pending ? 'Enviando...' : 'Enviar Mensaje'}
     </Button>
   );
@@ -30,7 +30,7 @@ export default function ContactForm() {
   return (
     <div className="w-full max-w-2xl mx-auto py-4">
       {state.success ? (
-        <div className="text-center bg-green-100 text-green-800 p-4 rounded-md">
+        <div className="text-center bg-gray-100 text-gray-600 p-4 rounded-md">
           {state.message}
         </div>
       ) : (

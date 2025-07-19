@@ -1,5 +1,4 @@
 import { Mail } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils.ts";
 import { sectionTitle, sectionText, contentSection } from "@/lib/styles";
 
@@ -44,7 +43,7 @@ const donationSections = [
 export function DonationAccountsDetailsSection() {
   return (
     <section className={cn(contentSection, "bg-white py-16 md:py-24")}>
-      <h2 className={cn(sectionTitle, "text-center text-orange-600")}>
+      <h2 className={cn(sectionTitle, "text-center text-(--puembo-green)")}>
         Cuentas Bancarias
       </h2>
       <div className="mb-8 max-w-3xl mx-auto text-center">
@@ -61,7 +60,7 @@ export function DonationAccountsDetailsSection() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
         {donationSections.map((section, index) => (
-          <div key={index} className="text-gray-800 mt-6 border-l-4 rounded-none border-orange-300 pl-4 text-sm md:text-base">
+          <div key={index} className="text-gray-800 mt-6 border-l-4 rounded-none border-(--puembo-green) pl-4 text-sm md:text-base">
             <div>
               <div className={sectionTitle}>{section.title}</div>
               <div className="text-gray-500">{section.description}</div>

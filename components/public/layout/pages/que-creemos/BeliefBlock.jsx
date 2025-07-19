@@ -21,11 +21,11 @@ export function BeliefBlock({ belief, index }) {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 </div>
                 <div className="flex flex-col justify-center">
-                    <h3 className={`${subSectionTitle} text-blue-800`}>{name}</h3>
+                    <h3 className={`${subSectionTitle} text-(--puembo-green)`}>{name}</h3>
                     <p className="mt-4 text-sm md:text-base text-gray-600">{detail}</p>
                     <blockquote className={blockquote}>
                         <p className="flex items-start gap-3 text-sm md:text-base">
-                            <BookOpenText className="size-5 shrink-0 mt-1 text-yellow-600" />
+                            <BookOpenText className="size-5 shrink-0 mt-1 text-(--puembo-green)" />
                             <span>&quot;{verse}&quot;</span>
                         </p>
                         <cite className="block text-right mt-2 not-italic font-semibold">{citation}</cite>

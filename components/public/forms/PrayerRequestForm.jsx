@@ -53,7 +53,7 @@ export default function PrayerRequestForm({ action }) {
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
-        <CardTitle><h2 className={`${sectionTitle} text-center mb-8 text-emerald-700`}>
+        <CardTitle><h2 className={`${sectionTitle} text-center mb-8 text-(--puembo-green)`}>
           Envía tu Petición
         </h2></CardTitle>
       </CardHeader>
@@ -135,7 +135,7 @@ export default function PrayerRequestForm({ action }) {
               )}
             />
             <div className='w-full flex justify-center'>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button variant="secondary" type="submit" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? 'Enviando...' : 'Enviar Petición'}
               </Button>
             </div>
