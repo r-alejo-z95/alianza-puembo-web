@@ -94,7 +94,7 @@ export default function Hero({ youtubeStatus }) {
           </Button>
           <Link href={videoUrl} target="_blank" rel="noopener noreferrer">
             <Button className={cn(btnStyles, "flex items-center gap-2")}>
-              {isLive ? "Ver En Vivo" : "Último Servicio"}
+              {isLive ? "Ver En Vivo" : "Ver Última Prédica"}
               {isLive && <span className="live-indicator"></span>}
             </Button>
           </Link>

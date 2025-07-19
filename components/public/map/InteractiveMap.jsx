@@ -29,38 +29,30 @@ export default function GoogleMapView({ onMapLoad }) {
   const destinationLabel = "Iglesia Alianza Puembo";
   const fallbackWebUrl = `https://www.google.com/maps/dir/?api=1&destination=${destinationLat},${destinationLng}`;
 
-  // Logic for Desktop (opens Google Maps web directly)
-  const handleGetDirectionsDesktop = async () => {
-    if (!navigator.geolocation) {
-      console.error("Geolocation is not supported by this browser.");
-      window.open(fallbackWebUrl, "_blank", "noopener,noreferrer");
-      return;
-    }
-
-    try {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
-      });
-      const { latitude, longitude } = position.coords;
-      const mapsUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/${destinationLat},${destinationLng}`;
-      window.open(mapsUrl, "_blank", "noopener,noreferrer");
-    } catch (error) {
-      console.error("Error getting user location:", error.message);
-      window.open(fallbackWebUrl, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  // Logic for Mobile (uses geo: URL scheme to trigger OS app chooser)
-  const handleGetDirectionsMobile = () => {
+  const handleGetDirections = async () => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const geoUrl = `geo:${destinationLat},${destinationLng}?q=${destinationLat},${destinationLng}(${encodeURIComponent(destinationLabel)})`;
 
     if (isMobile) {
-      // Open native maps app
+      const geoUrl = `geo:${destinationLat},${destinationLng}?q=${destinationLat},${destinationLng}(${encodeURIComponent(destinationLabel)})`;
       window.location.href = geoUrl;
     } else {
-      // Fallback for non-mobile or failed detection
-      window.open(fallbackWebUrl, "_blank", "noopener,noreferrer");
+      if (!navigator.geolocation) {
+        console.error("Geolocation is not supported by this browser.");
+        window.open(fallbackWebUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+
+      try {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+        });
+        const { latitude, longitude } = position.coords;
+        const mapsUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/${destinationLat},${destinationLng}`;
+        window.open(mapsUrl, "_blank", "noopener,noreferrer");
+      } catch (error) {
+        console.error("Error getting user location:", error.message);
+        window.open(fallbackWebUrl, "_blank", "noopener,noreferrer");
+      }
     }
   };
 
@@ -92,18 +84,7 @@ export default function GoogleMapView({ onMapLoad }) {
           </AdvancedMarker>
         </Map>
         <div className="absolute mt-4 ml-4 xl:mt-6 xl:ml-6">
-          {/* Desktop Button */}
-          <Button
-            className={cn(btnStyles, "hidden lg:flex")}
-            onClick={handleGetDirectionsDesktop}
-          >
-            Cómo llegar
-          </Button>
-          {/* Mobile Button */}
-          <Button
-            className={cn(btnStyles, "lg:hidden")}
-            onClick={handleGetDirectionsMobile}
-          >
+          <Button className={cn(btnStyles)} onClick={handleGetDirections}>
             Cómo llegar
           </Button>
         </div>
