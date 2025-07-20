@@ -40,6 +40,7 @@ export const menuItems = [
     subroutes: [
       {
         name: "Cuidado",
+        description: "Un abrazo para el alma: ministerios donde recibes",
         subroutes: [
           {
             name: "Grupos Pequeños",
@@ -56,13 +57,38 @@ export const menuItems = [
       },
       {
         name: "Servicio",
+        description: "Manos que transforman: ministerios donde das",
         subroutes: [
           {
             name: "Conexión",
             subroutes: [
-              { name: "Eventos", href: "/ministerios/servicio/conexion/eventos", description: "Eventos que conectan y transforman" },
-              { name: "Amor en Acción", href: "/ministerios/servicio/conexion/amor-en-accion", description: "Manos que sirven a la comunidad" },
-              { name: "Redes de Amor (Evangelismo)", href: "/ministerios/servicio/conexion/redes-de-amor", description: "Compartiendo la buena noticia" },
+              {
+                name: "Eventos",
+                subroutes: [
+                  { name: "Alma (Matrimonios)", href: "/ministerios/servicio/conexion/eventos/alma", description: "Uniendo corazones" },
+                  { name: "Legado (Varones)", href: "/ministerios/servicio/conexion/eventos/legado", description: "Hombres con propósito" },
+                  { name: "Cautivante (Mujeres)", href: "/ministerios/servicio/conexion/eventos/cautivante", description: "Descubre tu valor" },
+                  { name: "Eje (Jóvenes)", href: "/ministerios/servicio/conexion/eventos/eje", description: "El punto de encuentro de la nueva generación" },
+                ],
+              },
+              {
+                name: "Amor en Acción",
+                subroutes: [
+                  { name: "Misión Dignidad", href: "/ministerios/servicio/conexion/amor-en-accion/mision-dignidad", description: "Nuestro brazo social principal" },
+                  { name: "Brigadas Médicas", href: "/ministerios/servicio/conexion/amor-en-accion/brigadas-medicas", description: "Salud y esperanza para comunidades" },
+                  { name: "Ropero", href: "/ministerios/servicio/conexion/amor-en-accion/ropero", description: "Vistiendo con dignidad" },
+                  { name: "Navidad Digna", href: "/ministerios/servicio/conexion/amor-en-accion/navidad-digna", description: "Compartiendo la alegría navideña" },
+                  { name: "Canasta de Amor", href: "/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor", description: "Alimentando la esperanza" },
+                  { name: "Hogar Digno", href: "/ministerios/servicio/conexion/amor-en-accion/hogar-digno", description: "Construyendo esperanza en hogares" },
+                ],
+              },
+              {
+                name: "Redes de Amor (Evangelismo)",
+                subroutes: [
+                  { name: "Pescadores", href: "/ministerios/servicio/conexion/redes-de-amor/pescadores", description: "Sembrando la Palabra" },
+                  { name: "Punto de Conexión", href: "/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion", description: "Creando oportunidades" },
+                ],
+              },
             ],
           },
           {
@@ -78,8 +104,24 @@ export const menuItems = [
             name: "Compromiso",
             subroutes: [
               { name: "MAT (Música, Artes y Tecnología)", href: "/ministerios/servicio/compromiso/mat", description: "Adoración, arte y tecnología" },
-              { name: "MDA (Ministerios de Apoyo)", href: "/ministerios/servicio/compromiso/mda", description: "El corazón del servicio" },
-              { name: "Oración", href: "/ministerios/servicio/compromiso/oracion", description: "El motor espiritual de la iglesia" },
+              {
+                name: "MDA (Ministerios de Apoyo)",
+                subroutes: [
+                  { name: "Anfitriones", href: "/ministerios/servicio/compromiso/mda/anfitriones", description: "La primera impresión" },
+                  { name: "Mesa de Información", href: "/ministerios/servicio/compromiso/mda/mesa-de-informacion", description: "Tu centro de ayuda" },
+                  { name: "Santa Cena", href: "/ministerios/servicio/compromiso/mda/santa-cena", description: "Un servicio de reverencia" },
+                  { name: "Bautizos", href: "/ministerios/servicio/compromiso/mda/bautizos", description: "Celebrando un nuevo comienzo" },
+                  { name: "Visitación y Funerales", href: "/ministerios/servicio/compromiso/mda/visitacion-y-funerales", description: "Acompañando en todo momento" },
+                ],
+              },
+              {
+                name: "Oración",
+                subroutes: [
+                  { name: "Círculos de Oración", href: "/ministerios/servicio/compromiso/oracion/circulos-de-oracion", description: "Orando con propósito" },
+                  { name: "Intercesores", href: "/ministerios/servicio/compromiso/oracion/intercesores", description: "Clamando por el Reino" },
+                  { name: "Miércoles de Oración", href: "/ministerios/servicio/compromiso/oracion/miercoles-de-oracion", description: "Un tiempo sagrado" },
+                ],
+              },
             ],
           },
         ],
