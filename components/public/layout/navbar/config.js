@@ -40,6 +40,7 @@ export const menuItems = [
     subroutes: [
       {
         name: "Cuidado",
+        href: "/ministerios/cuidado",
         description: "Un abrazo para el alma: ministerios donde recibes",
         subroutes: [
           {
@@ -57,6 +58,7 @@ export const menuItems = [
       },
       {
         name: "Servicio",
+        href: "/ministerios/servicio",
         description: "Manos que transforman: ministerios donde das",
         subroutes: [
           {

@@ -97,7 +97,7 @@ export function Navbar() {
               height={97}
               priority
               quality={100}
-              sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
+              sizes="33vw"
               className={`${dropShadow} h-auto w-22 flex-shrink-0`}
             />
           </Link>
@@ -161,7 +161,7 @@ export function Navbar() {
                     alt="Alianza Puembo Logo"
                     width={150}
                     height={97}
-                    sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
+                    sizes="33vw"
                     priority
                     quality={100}
                     className={`${dropShadow} h-16 w-auto`}
