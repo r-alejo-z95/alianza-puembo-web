@@ -38,11 +38,52 @@ export const menuItems = [
   {
     name: "Ministerios",
     subroutes: [
-      { name: "Puembo Kids", href: "/ministerios/puembo-kids", description: "Iglesia para los más pequeños" },
-      { name: "Jóvenes", href: "/ministerios/jovenes", description: "Espacio para adolescentes y jóvenes" },
-      { name: "Música, artes, tecnología", href: "/ministerios/mat", description: "Expresiones creativas al servicio de Dios" },
-      { name: "Grupos Pequeños", href: "/ministerios/gp", description: "Conéctate en comunidad más cerca" },
-      { name: "Misión Dignidad", href: "/ministerios/mision-dignidad", description: "Ayudamos a personas en situación vulnerable" },
+      {
+        name: "Cuidado",
+        subroutes: [
+          {
+            name: "Grupos Pequeños",
+            subroutes: [
+              { name: "GP Familiares", href: "/ministerios/cuidado/grupos-pequenos/familiar", description: "Creciendo juntos en familia" },
+              { name: "GP Legado (Varones)", href: "/ministerios/cuidado/grupos-pequenos/legado", description: "Forjando hombres de valor" },
+              { name: "GP Juntas (Mujeres)", href: "/ministerios/cuidado/grupos-pequenos/juntas", description: "Creciendo en comunidad femenina" },
+              { name: "GP Ministeriales", href: "/ministerios/cuidado/grupos-pequenos/ministeriales", description: "Cuidando a los que cuidan" },
+            ],
+          },
+          { name: "Jóvenes", href: "/ministerios/cuidado/jovenes", description: "Espacio para adolescentes y jóvenes" },
+          { name: "Puembo Kids", href: "/ministerios/cuidado/puembo-kids", description: "Iglesia para los más pequeños" },
+        ],
+      },
+      {
+        name: "Servicio",
+        subroutes: [
+          {
+            name: "Conexión",
+            subroutes: [
+              { name: "Eventos", href: "/ministerios/servicio/conexion/eventos", description: "Eventos que conectan y transforman" },
+              { name: "Amor en Acción", href: "/ministerios/servicio/conexion/amor-en-accion", description: "Manos que sirven a la comunidad" },
+              { name: "Redes de Amor (Evangelismo)", href: "/ministerios/servicio/conexion/redes-de-amor", description: "Compartiendo la buena noticia" },
+            ],
+          },
+          {
+            name: "Crecimiento",
+            subroutes: [
+              { name: "Academia Bíblica", href: "/ministerios/servicio/crecimiento/academia-biblica", description: "Profundizando en la Palabra" },
+              { name: "Celebra", href: "/ministerios/servicio/crecimiento/celebra", description: "Restauración y nueva vida" },
+              { name: "Cultura Financiera", href: "/ministerios/servicio/crecimiento/cultura-financiera", description: "Administrando con sabiduría" },
+              { name: "Sanidad", href: "/ministerios/servicio/crecimiento/sanidad", description: "Restaurando el corazón" },
+            ],
+          },
+          {
+            name: "Compromiso",
+            subroutes: [
+              { name: "MAT (Música, Artes y Tecnología)", href: "/ministerios/servicio/compromiso/mat", description: "Adoración, arte y tecnología" },
+              { name: "MDA (Ministerios de Apoyo)", href: "/ministerios/servicio/compromiso/mda", description: "El corazón del servicio" },
+              { name: "Oración", href: "/ministerios/servicio/compromiso/oracion", description: "El motor espiritual de la iglesia" },
+            ],
+          },
+        ],
+      },
     ],
   },
   {
