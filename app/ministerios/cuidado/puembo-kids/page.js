@@ -5,7 +5,7 @@ export const metadata = {
   title: "Puembo Kids",
   description: "Puembo Kids es nuestro ministerio para niños, un lugar lleno de diversión, seguridad y enseñanza bíblica para que los más pequeños conozcan a Jesús.",
   alternates: {
-    canonical: "/ministerios/puembo-kids",
+    canonical: "/ministerios/cuidado/puembo-kids",
   },
 };
 
@@ -21,29 +21,44 @@ export default function PuemboKids() {
     imagePosition: "right",
   };
 
-  const activitiesData = {
-    title: "Nuestras Actividades",
+  const kidsGroups = {
+    title: "Nuestras Clases por Edades",
     items: [
       {
-        type: "image",
-        imageUrl: "/ministerios/puembo-kids/puembo-kids-activity-1.jpg",
-        imageAlt: "Clases Bíblicas",
-        itemTitle: "Clases Bíblicas",
-        itemDescription: "Enseñanza de la Palabra de Dios adaptada a cada edad, con dinámicas y juegos.",
+        type: "icon",
+        iconType: "Baby",
+        itemTitle: "Sala Cuna (0-3 años)",
+        itemDescription: "Un ambiente seguro y lleno de amor para los más pequeños.",
       },
       {
-        type: "image",
-        imageUrl: "/ministerios/puembo-kids/puembo-kids-activity-2.jpg",
-        imageAlt: "Juegos y Recreación",
-        itemTitle: "Juegos y Recreación",
-        itemDescription: "Actividades lúdicas que fomentan la amistad, el trabajo en equipo y el desarrollo integral.",
+        type: "icon",
+        iconType: "Palette",
+        itemTitle: "Mini Kids (3-5 años)",
+        itemDescription: "Aprendizaje a través del juego, canciones y manualidades.",
       },
       {
-        type: "image",
-        imageUrl: "/ministerios/puembo-kids/puembo-kids-activity-3.jpg",
-        imageAlt: "Eventos Especiales",
-        itemTitle: "Eventos Especiales",
-        itemDescription: "Celebraciones, campamentos y salidas diseñadas para crear recuerdos inolvidables.",
+        type: "icon",
+        iconType: "Footprints",
+        itemTitle: "Caminantes (5-7 años)",
+        itemDescription: "Dando sus primeros pasos en la fe y el conocimiento de la Biblia.",
+      },
+      {
+        type: "icon",
+        iconType: "Search",
+        itemTitle: "Indagadores (7-9 años)",
+        itemDescription: "Explorando las grandes historias de la Biblia y haciendo preguntas.",
+      },
+      {
+        type: "icon",
+        iconType: "Compass",
+        itemTitle: "Exploradores (9-11 años)",
+        itemDescription: "Descubriendo su identidad en Cristo y cómo vivir su fe.",
+      },
+      {
+        type: "icon",
+        iconType: "Link",
+        itemTitle: "Conecta2 (11-12 años)",
+        itemDescription: "Un puente hacia la adolescencia, conectando la fe con sus vidas.",
       },
     ],
   };
@@ -56,7 +71,7 @@ export default function PuemboKids() {
       imageAlt="Celebración de Puembo Kids"
       introSectionData={introSectionData}
     >
-      <MinistryContentSection {...activitiesData} />
+      <MinistryContentSection {...kidsGroups} />
     </PublicPageLayout>
   );
 }

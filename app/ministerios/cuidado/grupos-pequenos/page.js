@@ -5,7 +5,7 @@ export const metadata = {
   title: "Grupos Pequeños",
   description: "Únete a nuestros grupos pequeños para crecer en comunidad, estudiar la Biblia y fortalecer tu fe junto a otros miembros de la iglesia.",
   alternates: {
-    canonical: "/ministerios/gp",
+    canonical: "/ministerios/cuidado/grupos-pequenos",
   },
 };
 

@@ -5,7 +5,7 @@ export const metadata = {
   title: "Ministerio de Música, Artes y Tecnología",
   description: "Un ministerio dedicado a la adoración y el servicio a través de la música y las artes.",
   alternates: {
-    canonical: "/ministerios/mat",
+    canonical: "/ministerios/servicio/compromiso/mat",
   },
 };
 

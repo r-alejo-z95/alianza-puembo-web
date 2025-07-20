@@ -5,7 +5,7 @@ export const metadata = {
   title: "Misión Dignidad",
   description: "Conoce y participa en Misión Dignidad, nuestro ministerio de servicio y alcance comunitario que busca llevar ayuda y esperanza a quienes más lo necesitan.",
   alternates: {
-    canonical: "/ministerios/mision-dignidad",
+    canonical: "/ministerios/servicio/conexion/amor-en-accion/mision-dignidad",
   },
 };
 
