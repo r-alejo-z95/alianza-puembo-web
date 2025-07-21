@@ -41,7 +41,7 @@ export const menuItems = [
       { name: "Ruta", href: "/involucrate/ruta", description: "Descubre tu camino en la fe" },
       {
         name: "Ministerios",
-        href: "/ministerios",
+        href: "/involucrate/ministerios",
         description: "Encuentra tu lugar para crecer y servir",
         subroutes: [
           {

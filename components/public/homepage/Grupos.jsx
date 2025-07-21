@@ -16,7 +16,7 @@ export default function Grupos() {
   const router = useRouter();
 
   const handleButtonClick = () => {
-    router.push('/ministerios/gp');
+    router.push('/involucrate/ministerios/cuidado/grupos-pequenos');
   };
 
   return (
