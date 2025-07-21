@@ -27,13 +27,13 @@ export default function Crecimiento() {
     items: [
       {
         type: "link",
-        href: "/ministerios/servicio/crecimiento/academia-biblica",
+        href: "/involucrate/ministerios/servicio/crecimiento/academia-biblica",
         itemTitle: "Academia Bíblica",
         itemDescription: "Cursos y seminarios para profundizar en el conocimiento de la Palabra de Dios.",
       },
       {
         type: "link",
-        href: "/ministerios/servicio/crecimiento/celebra",
+        href: "/involucrate/ministerios/servicio/crecimiento/celebra",
         itemTitle: "Celebra",
         itemDescription: "Un espacio para celebrar la recuperación de adicciones y una nueva vida en Cristo.",
       },
