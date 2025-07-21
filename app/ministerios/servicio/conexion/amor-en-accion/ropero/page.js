@@ -6,7 +6,7 @@ export const metadata = {
   title: "Ropero",
   description: "Donación y distribución de ropa, calzado y artículos de primera necesidad a familias y personas en situación de vulnerabilidad.",
   alternates: {
-    canonical: "/ministerios/servicio/conexion/amor-en-accion/ropero",
+    canonical: "/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero",
   },
 };
 
@@ -17,7 +17,7 @@ export default function Ropero() {
       "El Ropero de Alianza Puembo es un proyecto de servicio que recolecta y distribuye ropa, calzado y artículos de primera necesidad a familias y personas en situación de vulnerabilidad. Creemos que vestir con dignidad es un paso importante para restaurar la autoestima y la esperanza.",
       "Tu donación puede hacer una gran diferencia en la vida de alguien. Únete a nosotros en esta labor de amor.",
     ],
-    imageUrl: "/ministerios/servicio/conexion/amor-en-accion/ropero/Ropero.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero/Ropero.jpg",
     imageAlt: "Ropa organizada para donación",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function Ropero() {
     <PublicPageLayout
       title="Ropero"
       description="Donando ropa y dignidad a quienes lo necesitan."
-      imageUrl="/ministerios/servicio/conexion/amor-en-accion/ropero/Ropero.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero/Ropero.jpg"
       imageAlt="Ropero"
       introSectionData={introSectionData}
     >

@@ -6,7 +6,7 @@ export const metadata = {
   title: "Compromiso",
   description: "Ministerios para creyentes comprometidos en Alianza Puembo. Sirve en áreas como MAT, Ministerios de Apoyo (MDA) y Oración.",
   alternates: {
-    canonical: "/ministerios/servicio/compromiso",
+    canonical: "/involucrate/ministerios/servicio/compromiso",
   },
 };
 
@@ -17,7 +17,7 @@ export default function Compromiso() {
       "El compromiso con el servicio es una marca de madurez cristiana. Nuestros ministerios de Compromiso están diseñados para equipar, apoyar y coordinar a todos aquellos que han decidido dar un paso al frente y servir activamente en la iglesia.",
       "Si ya estás sirviendo o deseas hacerlo, aquí encontrarás los recursos y la comunidad que necesitas para hacerlo con excelencia y pasión.",
     ],
-    imageUrl: "/ministerios/servicio/compromiso/Compromiso.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/Compromiso.jpg",
     imageAlt: "Equipo de voluntarios orando juntos antes de un servicio",
     imagePosition: "right",
   };
@@ -27,19 +27,19 @@ export default function Compromiso() {
     items: [
       {
         type: "link",
-        href: "/ministerios/servicio/compromiso/mat",
+        href: "/involucrate/ministerios/servicio/compromiso/mat",
         itemTitle: "MAT (Música, Artes y Tecnología)",
         itemDescription: "Adoración, creatividad y excelencia técnica al servicio de Dios.",
       },
       {
         type: "link",
-        href: "/ministerios/servicio/compromiso/mda",
+        href: "/involucrate/ministerios/servicio/compromiso/mda",
         itemTitle: "MDA (Ministerios de Apoyo)",
         itemDescription: "Equipos que hacen posible el funcionamiento de nuestros servicios y eventos.",
       },
       {
         type: "link",
-        href: "/ministerios/servicio/compromiso/oracion",
+        href: "/involucrate/ministerios/servicio/compromiso/oracion",
         itemTitle: "Oración",
         itemDescription: "El motor espiritual de nuestra iglesia, intercediendo y buscando a Dios.",
       },
@@ -50,7 +50,7 @@ export default function Compromiso() {
     <PublicPageLayout
       title="Compromiso"
       description="Equipando y apoyando a quienes sirven en la iglesia."
-      imageUrl="/ministerios/servicio/compromiso/Compromiso.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/Compromiso.jpg"
       imageAlt="Ministerios de Compromiso"
       introSectionData={introSectionData}
     >

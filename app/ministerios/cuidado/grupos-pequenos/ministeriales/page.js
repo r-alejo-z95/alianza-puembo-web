@@ -6,7 +6,7 @@ export const metadata = {
   title: "GP Ministeriales",
   description: "Grupos Pequeños para líderes y servidores en Alianza Puembo. Un espacio para el cuidado, la formación y el fortalecimiento del equipo.",
   alternates: {
-    canonical: "/ministerios/cuidado/grupos-pequenos/ministeriales",
+    canonical: "/involucrate/ministerios/cuidado/grupos-pequenos/ministeriales",
   },
 };
 
@@ -17,7 +17,7 @@ export default function GPMinisteriales() {
       "Los Grupos Pequeños Ministeriales están diseñados específicamente para aquellos que sirven activamente en los diferentes ministerios de la iglesia. Entendemos que para dar, primero hay que recibir.",
       "Estos grupos son un espacio vital de recarga espiritual, cuidado pastoral, formación y compañerismo entre líderes y servidores, para que puedan continuar su labor con pasión y fortaleza.",
     ],
-    imageUrl: "/ministerios/cuidado/grupos-pequenos/ministeriales/Ministeriales.jpg",
+    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/ministeriales/Ministeriales.jpg",
     imageAlt: "Líderes de ministerio reunidos en oración y planificación",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function GPMinisteriales() {
     <PublicPageLayout
       title="GP Ministeriales"
       description="Cuidando, formando y fortaleciendo a los que sirven."
-      imageUrl="/ministerios/cuidado/grupos-pequenos/ministeriales/Ministeriales.jpg"
+      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/ministeriales/Ministeriales.jpg"
       imageAlt="GP Ministeriales"
       introSectionData={introSectionData}
     >

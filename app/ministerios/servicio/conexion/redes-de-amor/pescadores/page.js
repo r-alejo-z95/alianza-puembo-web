@@ -6,7 +6,7 @@ export const metadata = {
   title: "Pescadores",
   description: "Grupos de evangelismo personal y relacional en Alianza Puembo. Capacitación y práctica para compartir el evangelio de manera efectiva.",
   alternates: {
-    canonical: "/ministerios/servicio/conexion/redes-de-amor/pescadores",
+    canonical: "/involucrate/ministerios/servicio/conexion/redes-de-amor/pescadores",
   },
 };
 
@@ -17,7 +17,7 @@ export default function Pescadores() {
       "Pescadores es un ministerio dedicado a equipar a los creyentes para el evangelismo personal y relacional. Creemos que cada cristiano es llamado a ser un pescador de hombres, compartiendo el amor de Cristo en su esfera de influencia.",
       "Ofrecemos capacitación práctica, herramientas y acompañamiento para que te sientas seguro y efectivo al compartir tu fe con amigos, familiares y colegas.",
     ],
-    imageUrl: "/ministerios/servicio/conexion/redes-de-amor/pescadores/Pescadores.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/redes-de-amor/pescadores/Pescadores.jpg",
     imageAlt: "Persona compartiendo el evangelio uno a uno",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function Pescadores() {
     <PublicPageLayout
       title="Pescadores"
       description="Equipando para el evangelismo personal y relacional."
-      imageUrl="/ministerios/servicio/conexion/redes-de-amor/pescadores/Pescadores.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/redes-de-amor/pescadores/Pescadores.jpg"
       imageAlt="Pescadores"
       introSectionData={introSectionData}
     >

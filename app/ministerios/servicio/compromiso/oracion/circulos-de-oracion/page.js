@@ -6,7 +6,7 @@ export const metadata = {
   title: "Círculos de Oración",
   description: "Grupos rotativos de oración basados en el devocional 'El Hacedor de Círculos'. Un espacio para orar con propósito y ver la mano de Dios.",
   alternates: {
-    canonical: "/ministerios/servicio/compromiso/oracion/circulos-de-oracion",
+    canonical: "/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion",
   },
 };
 
@@ -17,7 +17,7 @@ export default function CirculosDeOracion() {
       "Los Círculos de Oración son grupos pequeños y rotativos que se reúnen para orar con un propósito específico, inspirados en el devocional 'El Hacedor de Círculos'. Creemos que la oración ferviente y persistente tiene el poder de mover la mano de Dios y transformar circunstancias.",
       "Cada grupo se compromete a orar por un período de 40 días, enfocándose en áreas específicas de la vida personal, familiar, de la iglesia y de la comunidad. Es una oportunidad para experimentar el poder de la oración colectiva.",
     ],
-    imageUrl: "/ministerios/servicio/compromiso/oracion/circulos-de-oracion/CirculosDeOracion.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion/CirculosDeOracion.jpg",
     imageAlt: "Personas formando un círculo de oración",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function CirculosDeOracion() {
     <PublicPageLayout
       title="Círculos de Oración"
       description="Orando con propósito y viendo la mano de Dios."
-      imageUrl="/ministerios/servicio/compromiso/oracion/circulos-de-oracion/CirculosDeOracion.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion/CirculosDeOracion.jpg"
       imageAlt="Círculos de Oración"
       introSectionData={introSectionData}
     >

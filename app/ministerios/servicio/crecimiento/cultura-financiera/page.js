@@ -6,7 +6,7 @@ export const metadata = {
   title: "Cultura Financiera",
   description: "Principios bíblicos para administrar tus finanzas con sabiduría y propósito en Alianza Puembo. Aprende a manejar tu dinero de forma que honre a Dios.",
   alternates: {
-    canonical: "/ministerios/servicio/crecimiento/cultura-financiera",
+    canonical: "/involucrate/ministerios/servicio/crecimiento/cultura-financiera",
   },
 };
 
@@ -17,7 +17,7 @@ export default function CulturaFinanciera() {
       "El ministerio de Cultura Financiera te equipa con principios bíblicos y herramientas prácticas para administrar tus recursos de manera sabia y que honre a Dios. Creemos que la libertad financiera es posible cuando aplicamos la sabiduría divina a nuestras decisiones económicas.",
       "Aprende a presupuestar, ahorrar, invertir y dar con generosidad, transformando tu relación con el dinero y experimentando la bendición de Dios en tus finanzas.",
     ],
-    imageUrl: "/ministerios/servicio/crecimiento/cultura-financiera/CulturaFinanciera.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/crecimiento/cultura-financiera/CulturaFinanciera.jpg",
     imageAlt: "Persona revisando sus finanzas en una computadora",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function CulturaFinanciera() {
     <PublicPageLayout
       title="Cultura Financiera"
       description="Administrando tus finanzas con sabiduría y propósito."
-      imageUrl="/ministerios/servicio/crecimiento/cultura-financiera/CulturaFinanciera.jpg"
+      imageUrl="/involucrate/ministerios/servicio/crecimiento/cultura-financiera/CulturaFinanciera.jpg"
       imageAlt="Cultura Financiera"
       introSectionData={introSectionData}
     >

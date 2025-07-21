@@ -6,7 +6,7 @@ export const metadata = {
   title: "Canasta de Amor",
   description: "Entrega de alimentos y víveres a familias en situación de necesidad. Un gesto de amor que alimenta el cuerpo y el alma.",
   alternates: {
-    canonical: "/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor",
+    canonical: "/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor",
   },
 };
 
@@ -17,7 +17,7 @@ export default function CanastaDeAmor() {
       "El proyecto Canasta de Amor se enfoca en la recolección y distribución regular de alimentos y víveres de primera necesidad a familias que enfrentan inseguridad alimentaria. Creemos que nadie debería pasar hambre y que un plato de comida es un acto de amor.",
       "Tu contribución, por pequeña que sea, puede asegurar que una familia tenga alimento en su mesa. Únete a nosotros para llevar sustento y esperanza.",
     ],
-    imageUrl: "/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor/CanastaDeAmor.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor/CanastaDeAmor.jpg",
     imageAlt: "Voluntarios entregando canastas de alimentos",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function CanastaDeAmor() {
     <PublicPageLayout
       title="Canasta de Amor"
       description="Alimentando la esperanza a través de la Canasta de Amor."
-      imageUrl="/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor/CanastaDeAmor.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor/CanastaDeAmor.jpg"
       imageAlt="Canasta de Amor"
       introSectionData={introSectionData}
     >

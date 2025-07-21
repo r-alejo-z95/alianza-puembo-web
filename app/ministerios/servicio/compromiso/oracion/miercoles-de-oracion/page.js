@@ -6,7 +6,7 @@ export const metadata = {
   title: "Miércoles de Oración",
   description: "Servicio semanal dedicado exclusivamente a la oración y la búsqueda de Dios en Alianza Puembo. Un tiempo para unirse en fe y clamar juntos.",
   alternates: {
-    canonical: "/ministerios/servicio/compromiso/oracion/miercoles-de-oracion",
+    canonical: "/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion",
   },
 };
 
@@ -17,7 +17,7 @@ export default function MiercolesDeOracion() {
       "Cada miércoles, nos reunimos como iglesia para dedicar un tiempo exclusivo a la oración y la búsqueda de Dios. Es un servicio donde la alabanza, la Palabra y la intercesión se unen para crear un ambiente de profunda comunión con el Espíritu Santo.",
       "Te invitamos a unirte a nosotros en este tiempo sagrado, donde juntos presentamos nuestras peticiones, agradecemos por sus bondades y clamamos por avivamiento en nuestras vidas y en nuestra ciudad.",
     ],
-    imageUrl: "/ministerios/servicio/compromiso/oracion/miercoles-de-oracion/MiercolesDeOracion.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion/MiercolesDeOracion.jpg",
     imageAlt: "Congregación orando en un servicio",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function MiercolesDeOracion() {
     <PublicPageLayout
       title="Miércoles de Oración"
       description="Un tiempo sagrado de oración y búsqueda de Dios."
-      imageUrl="/ministerios/servicio/compromiso/oracion/miercoles-de-oracion/MiercolesDeOracion.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion/MiercolesDeOracion.jpg"
       imageAlt="Miércoles de Oración"
       introSectionData={introSectionData}
     >

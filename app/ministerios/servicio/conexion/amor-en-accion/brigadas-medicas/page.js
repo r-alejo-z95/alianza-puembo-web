@@ -6,7 +6,7 @@ export const metadata = {
   title: "Brigadas Médicas",
   description: "Atención médica y de salud para comunidades vulnerables. Llevamos cuidado y esperanza a quienes más lo necesitan.",
   alternates: {
-    canonical: "/ministerios/servicio/conexion/amor-en-accion/brigadas-medicas",
+    canonical: "/involucrate/ministerios/servicio/conexion/amor-en-accion/brigadas-medicas",
   },
 };
 
@@ -17,7 +17,7 @@ export default function BrigadasMedicas() {
       "Nuestras Brigadas Médicas son un esfuerzo continuo para llevar atención de salud integral a comunidades que tienen acceso limitado a servicios médicos. Creemos que la salud es un derecho fundamental y una expresión del amor de Dios.",
       "Un equipo de profesionales de la salud voluntarios ofrece consultas, medicamentos, y educación sanitaria, impactando vidas y restaurando la dignidad.",
     ],
-    imageUrl: "/ministerios/servicio/conexion/amor-en-accion/brigadas-medicas/BrigadasMedicas.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/brigadas-medicas/BrigadasMedicas.jpg",
     imageAlt: "Médicos voluntarios atendiendo a pacientes",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function BrigadasMedicas() {
     <PublicPageLayout
       title="Brigadas Médicas"
       description="Llevando salud y esperanza a comunidades vulnerables."
-      imageUrl="/ministerios/servicio/conexion/amor-en-accion/brigadas-medicas/BrigadasMedicas.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/brigadas-medicas/BrigadasMedicas.jpg"
       imageAlt="Brigadas Médicas"
       introSectionData={introSectionData}
     >

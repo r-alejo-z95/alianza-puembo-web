@@ -6,7 +6,7 @@ export const metadata = {
   title: "Navidad Digna",
   description: "Llevando alegría y esperanza a niños y familias en Navidad a través de regalos, alimentos y un mensaje de amor.",
   alternates: {
-    canonical: "/ministerios/servicio/conexion/amor-en-accion/navidad-digna",
+    canonical: "/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna",
   },
 };
 
@@ -17,7 +17,7 @@ export default function NavidadDigna() {
       "Navidad Digna es uno de nuestros proyectos más queridos, donde buscamos llevar la alegría y el verdadero significado de la Navidad a niños y familias en situación de vulnerabilidad. Creemos que nadie debería pasar la Navidad sin un regalo y sin sentir el amor de Dios.",
       "A través de la recolección de juguetes, ropa y alimentos, y la organización de eventos festivos, hacemos de la Navidad un tiempo de esperanza y dignidad para muchos.",
     ],
-    imageUrl: "/ministerios/servicio/conexion/amor-en-accion/navidad-digna/NavidadDigna.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna/NavidadDigna.jpg",
     imageAlt: "Niños recibiendo regalos de Navidad",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function NavidadDigna() {
     <PublicPageLayout
       title="Navidad Digna"
       description="Llevando alegría y esperanza en Navidad."
-      imageUrl="/ministerios/servicio/conexion/amor-en-accion/navidad-digna/NavidadDigna.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna/NavidadDigna.jpg"
       imageAlt="Navidad Digna"
       introSectionData={introSectionData}
     >

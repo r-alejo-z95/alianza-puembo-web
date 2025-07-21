@@ -6,7 +6,7 @@ export const metadata = {
   title: "Hogar Digno",
   description: "Apoyo para mejorar las condiciones de vivienda de familias necesitadas. Transformando espacios en hogares de esperanza.",
   alternates: {
-    canonical: "/ministerios/servicio/conexion/amor-en-accion/hogar-digno",
+    canonical: "/involucrate/ministerios/servicio/conexion/amor-en-accion/hogar-digno",
   },
 };
 
@@ -17,7 +17,7 @@ export default function HogarDigno() {
       "Hogar Digno es un proyecto que busca mejorar las condiciones de vivienda de familias en situación de vulnerabilidad. Creemos que un hogar seguro y digno es fundamental para el bienestar y el desarrollo de las personas.",
       "A través de reparaciones, adecuaciones y provisión de enseres básicos, transformamos espacios en hogares de esperanza, brindando un ambiente de paz y seguridad.",
     ],
-    imageUrl: "/ministerios/servicio/conexion/amor-en-accion/hogar-digno/HogarDigno.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/hogar-digno/HogarDigno.jpg",
     imageAlt: "Voluntarios trabajando en la mejora de una vivienda",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function HogarDigno() {
     <PublicPageLayout
       title="Hogar Digno"
       description="Transformando espacios en hogares de esperanza."
-      imageUrl="/ministerios/servicio/conexion/amor-en-accion/hogar-digno/HogarDigno.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/hogar-digno/HogarDigno.jpg"
       imageAlt="Hogar Digno"
       introSectionData={introSectionData}
     >

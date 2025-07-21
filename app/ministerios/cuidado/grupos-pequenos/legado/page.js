@@ -6,7 +6,7 @@ export const metadata = {
   title: "GP Legado (Varones)",
   description: "Grupos Pequeños para varones en Alianza Puembo. Un espacio para forjar un legado de fe, integridad y liderazgo.",
   alternates: {
-    canonical: "/ministerios/cuidado/grupos-pequenos/legado",
+    canonical: "/involucrate/ministerios/cuidado/grupos-pequenos/legado",
   },
 };
 
@@ -17,7 +17,7 @@ export default function GPLegado() {
       "Legado es nuestro ministerio de grupos pequeños para varones. Es un espacio de confianza y camaradería donde los hombres son desafiados a crecer en su fe, liderar a sus familias y dejar un legado de integridad.",
       "Nos reunimos para estudiar la Palabra, orar unos por otros y animarnos a vivir como hombres conforme al corazón de Dios.",
     ],
-    imageUrl: "/ministerios/cuidado/grupos-pequenos/legado/Legado.jpg",
+    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/legado/Legado.jpg",
     imageAlt: "Hombres orando juntos",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function GPLegado() {
     <PublicPageLayout
       title="GP Legado (Varones)"
       description="Forjando un legado de fe, integridad y liderazgo."
-      imageUrl="/ministerios/cuidado/grupos-pequenos/legado/Legado.jpg"
+      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/legado/Legado.jpg"
       imageAlt="GP Legado"
       introSectionData={introSectionData}
     >

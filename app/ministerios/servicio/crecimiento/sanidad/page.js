@@ -6,7 +6,7 @@ export const metadata = {
   title: "Sanidad",
   description: "Encuentros de sanidad interior y liberación en Alianza Puembo. Un espacio seguro para hombres y mujeres que buscan restauración y plenitud.",
   alternates: {
-    canonical: "/ministerios/servicio/crecimiento/sanidad",
+    canonical: "/involucrate/ministerios/servicio/crecimiento/sanidad",
   },
 };
 
@@ -17,7 +17,7 @@ export default function Sanidad() {
       "El ministerio de Sanidad ofrece un espacio seguro y confidencial para aquellos que buscan sanidad interior y liberación de heridas del pasado. Creemos en el poder restaurador de Dios para traer plenitud a cada área de nuestras vidas.",
       "A través de encuentros específicos para hombres y mujeres, y el acompañamiento de líderes capacitados, te guiamos en un proceso de perdón, liberación y restauración.",
     ],
-    imageUrl: "/ministerios/servicio/crecimiento/sanidad/Sanidad.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/crecimiento/sanidad/Sanidad.jpg",
     imageAlt: "Personas orando por sanidad",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function Sanidad() {
     <PublicPageLayout
       title="Sanidad"
       description="Restaurando el corazón y viviendo en plenitud."
-      imageUrl="/ministerios/servicio/crecimiento/sanidad/Sanidad.jpg"
+      imageUrl="/involucrate/ministerios/servicio/crecimiento/sanidad/Sanidad.jpg"
       imageAlt="Sanidad"
       introSectionData={introSectionData}
     >

@@ -6,7 +6,7 @@ export const metadata = {
   title: "Evento Legado (Varones)",
   description: "Un evento para varones que buscan forjar un legado de fe, liderazgo y propósito en sus vidas y familias.",
   alternates: {
-    canonical: "/ministerios/servicio/conexion/eventos/legado",
+    canonical: "/involucrate/ministerios/servicio/conexion/eventos/legado",
   },
 };
 
@@ -17,7 +17,7 @@ export default function Legado() {
       "Legado es un evento diseñado para desafiar e inspirar a los varones a vivir una vida de propósito, integridad y liderazgo. Creemos que cada hombre tiene el potencial de dejar un impacto duradero en su familia, iglesia y comunidad.",
       "A través de conferencias, testimonios y actividades dinámicas, buscamos equipar a los hombres para que asuman su rol con valentía y sabiduría.",
     ],
-    imageUrl: "/ministerios/servicio/conexion/eventos/legado/Legado.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/legado/Legado.jpg",
     imageAlt: "Grupo de hombres en una conferencia",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function Legado() {
     <PublicPageLayout
       title="Evento Legado"
       description="Forjando hombres de fe, liderazgo y propósito."
-      imageUrl="/ministerios/servicio/conexion/eventos/legado/Legado.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/legado/Legado.jpg"
       imageAlt="Evento Legado"
       introSectionData={introSectionData}
     >

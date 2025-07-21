@@ -5,7 +5,7 @@ export const metadata = {
   title: "Ministerios",
   description: "Explora los ministerios de Alianza Puembo, diseñados para cada etapa de tu vida espiritual. Encuentra tu lugar en nuestras áreas de Cuidado y Servicio.",
   alternates: {
-    canonical: "/ministerios",
+    canonical: "/involucrate/ministerios",
   },
 };
 
@@ -16,7 +16,7 @@ export default function Ministerios() {
       "En Alianza Puembo, creemos que cada persona tiene un propósito único en el cuerpo de Cristo. Nuestros ministerios están diseñados para cuidarte, equiparte y darte oportunidades para que uses tus dones al servicio de Dios y de los demás.",
       "Te invitamos a explorar nuestras dos grandes áreas de ministerio: Cuidado y Servicio. Descubre cómo puedes conectarte, crecer en tu fe y hacer una diferencia.",
     ],
-    imageUrl: "/ministerios/Ministerios.jpg",
+    imageUrl: "/involucrate/ministerios/Ministerios.jpg",
     imageAlt: "Personas sirviendo en la comunidad",
     imagePosition: "right",
   };
@@ -43,7 +43,7 @@ export default function Ministerios() {
     <PublicPageLayout
       title="Ministerios"
       description="Descubre los ministerios de Alianza Puembo."
-      imageUrl="/ministerios/Ministerios.jpg"
+      imageUrl="/involucrate/ministerios/Ministerios.jpg"
       imageAlt="Ministerios de Alianza Puembo"
       introSectionData={introSectionData}
     >

@@ -6,7 +6,7 @@ export const metadata = {
   title: "Punto de Conexión",
   description: "Eventos y actividades diseñadas para crear oportunidades de evangelismo en Alianza Puembo. Alcanzando a la comunidad de manera creativa.",
   alternates: {
-    canonical: "/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion",
+    canonical: "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion",
   },
 };
 
@@ -17,7 +17,7 @@ export default function PuntoDeConexion() {
       "Punto de Conexión es un ministerio que organiza eventos y actividades creativas para generar oportunidades de evangelismo en nuestra comunidad. Creemos que el evangelio puede ser compartido de muchas maneras, adaptándonos a las necesidades y contextos de las personas.",
       "Desde eventos deportivos hasta ferias de salud, buscamos ser un puente para que las personas conozcan el amor de Dios en un ambiente relajado y amigable.",
     ],
-    imageUrl: "/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion/PuntoDeConexion.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion/PuntoDeConexion.jpg",
     imageAlt: "Evento comunitario con personas interactuando",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function PuntoDeConexion() {
     <PublicPageLayout
       title="Punto de Conexión"
       description="Creando oportunidades para compartir el evangelio."
-      imageUrl="/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion/PuntoDeConexion.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion/PuntoDeConexion.jpg"
       imageAlt="Punto de Conexión"
       introSectionData={introSectionData}
     >

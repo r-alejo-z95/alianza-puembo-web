@@ -6,7 +6,7 @@ export const metadata = {
   title: "Servicio",
   description: "Descubre oportunidades para servir en Alianza Puembo. Únete a nuestros ministerios de Conexión, Crecimiento y Compromiso para hacer una diferencia.",
   alternates: {
-    canonical: "/ministerios/servicio",
+    canonical: "/involucrate/ministerios/servicio",
   },
 };
 
@@ -27,19 +27,19 @@ export default function Servicio() {
     items: [
       {
         type: "link",
-        href: "/ministerios/servicio/conexion",
+        href: "/involucrate/ministerios/servicio/conexion",
         itemTitle: "Conexión",
         itemDescription: "Alcanzando a nuestra comunidad y conectando a las personas con Cristo.",
       },
       {
         type: "link",
-        href: "/ministerios/servicio/crecimiento",
+        href: "/involucrate/ministerios/servicio/crecimiento",
         itemTitle: "Crecimiento",
         itemDescription: "Fomentando la madurez espiritual y el discipulado.",
       },
       {
         type: "link",
-        href: "/ministerios/servicio/compromiso",
+        href: "/involucrate/ministerios/servicio/compromiso",
         itemTitle: "Compromiso",
         itemDescription: "Equipando y apoyando a quienes sirven en la iglesia.",
       },

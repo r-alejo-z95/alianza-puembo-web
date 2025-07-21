@@ -6,7 +6,7 @@ export const metadata = {
   title: "GP Juntas (Mujeres)",
   description: "Grupos Pequeños para mujeres en Alianza Puembo. Un espacio para crecer juntas en fe, amistad y propósito.",
   alternates: {
-    canonical: "/ministerios/cuidado/grupos-pequenos/juntas",
+    canonical: "/involucrate/ministerios/cuidado/grupos-pequenos/juntas",
   },
 };
 
@@ -17,7 +17,7 @@ export default function GPJuntas() {
       "Juntas es nuestro ministerio de grupos pequeños para mujeres. Ofrecemos un ambiente cálido y de apoyo donde las mujeres pueden conectar, compartir sus vidas, y crecer en su relación con Dios y entre ellas.",
       "Creemos que juntas somos más fuertes. Te invitamos a ser parte de esta comunidad de mujeres que se aman, se animan y sirven a Dios con pasión.",
     ],
-    imageUrl: "/ministerios/cuidado/grupos-pequenos/juntas/Juntas.jpg",
+    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/juntas/Juntas.jpg",
     imageAlt: "Mujeres compartiendo y riendo juntas",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function GPJuntas() {
     <PublicPageLayout
       title="GP Juntas (Mujeres)"
       description="Creciendo juntas en fe, amistad y propósito."
-      imageUrl="/ministerios/cuidado/grupos-pequenos/juntas/Juntas.jpg"
+      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/juntas/Juntas.jpg"
       imageAlt="GP Juntas"
       introSectionData={introSectionData}
     >

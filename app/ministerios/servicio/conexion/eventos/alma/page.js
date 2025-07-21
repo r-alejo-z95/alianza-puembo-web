@@ -6,7 +6,7 @@ export const metadata = {
   title: "Evento Alma (Matrimonios)",
   description: "Fortalece tu matrimonio en nuestro evento Alma. Un tiempo para reconectar, crecer y avivar la llama del amor.",
   alternates: {
-    canonical: "/ministerios/servicio/conexion/eventos/alma",
+    canonical: "/involucrate/ministerios/servicio/conexion/eventos/alma",
   },
 };
 
@@ -17,7 +17,7 @@ export default function Alma() {
       "Alma es nuestro evento anual para matrimonios. Es un tiempo especial, lejos de la rutina, para que las parejas puedan reconectar, fortalecer su relación y recibir herramientas prácticas para construir un matrimonio sólido y duradero.",
       "A través de conferencias, talleres y tiempos de calidad, buscamos equipar a los matrimonios para que reflejen el amor de Cristo.",
     ],
-    imageUrl: "/ministerios/servicio/conexion/eventos/alma/Alma.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/alma/Alma.jpg",
     imageAlt: "Pareja de esposos abrazados y sonriendo",
     imagePosition: "right",
   };
@@ -50,7 +50,7 @@ export default function Alma() {
     <PublicPageLayout
       title="Evento Alma"
       description="Fortaleciendo matrimonios para la gloria de Dios."
-      imageUrl="/ministerios/servicio/conexion/eventos/alma/Alma.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/alma/Alma.jpg"
       imageAlt="Evento Alma"
       introSectionData={introSectionData}
     >
