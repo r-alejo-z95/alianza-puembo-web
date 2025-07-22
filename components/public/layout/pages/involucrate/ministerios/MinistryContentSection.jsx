@@ -117,12 +117,12 @@ export function MinistryContentSection({
       <h2 className={cn(sectionTitle, "text-center mb-12")}>
         {title}
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div className="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto">
         {items.map((item, index) => {
           const IconComponent = item.iconType ? IconComponents[item.iconType] : null;
           return (
             (item.href) ? (<Link href={item.href} key={index}>
-              <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
+              <div className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md max-w-xs h-full">
                 {item.type === 'icon' && IconComponent && (
                   <IconComponent className="h-12 w-12 text-(--puembo-green) mb-4" />
                 )}
@@ -141,7 +141,7 @@ export function MinistryContentSection({
                 <p className={sectionText}>{item.itemDescription}</p>
               </div>
             </Link>) :
-              <div key={index} className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md">
+              <div key={index} className="flex flex-col items-center text-center bg-white p-6 rounded-lg shadow-md max-w-xs h-full">
                 {item.type === 'icon' && IconComponent && (
                   <IconComponent className="h-12 w-12 text-(--puembo-green) mb-4" />
                 )}
