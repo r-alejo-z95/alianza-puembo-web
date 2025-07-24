@@ -120,7 +120,7 @@ export async function addPrayerRequest(formData: FormData) {
 
   const { data, error } = await supabase
     .from('prayer_requests')
-    .insert([{ name, request_text, is_public, is_anonymous }])
+    .insert([{ name, request_text, is_public, is_anonymous, status: 'pending' }])
     .select();
 
   if (error) {

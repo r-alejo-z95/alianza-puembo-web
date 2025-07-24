@@ -2,13 +2,13 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { TableRow, TableCell } from '@/components/ui/table';
 import { OverflowCell } from './OverflowCell';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 
 export function LomRow({ post, onEdit, onDelete, compact }) {
     const actions = (
         <>
             <Button variant="outline" size="icon" aria-label="Editar devocional" className="mr-2" onClick={() => onEdit(post)}>
-                <Pencil className="w-4 h-4" />
+                <Edit className="w-4 h-4" />
             </Button>
             <AlertDialog>
                 <AlertDialogTrigger asChild>

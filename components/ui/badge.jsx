@@ -9,6 +9,8 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
+        approved:
+          "border-transparent bg-(--puembo-green) text-primary-foreground [a&]:hover:bg-(--puembo-green)-600/90",
         default:
           "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
         blue:

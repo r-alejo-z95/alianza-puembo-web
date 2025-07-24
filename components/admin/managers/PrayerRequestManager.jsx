@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -40,6 +39,22 @@ export default function PrayerRequestManager() {
     fetchRequests();
   }, []);
 
+  const handleStatusChange = async (id, newStatus) => {
+    setLoading(true);
+    const { error } = await supabase
+      .from('prayer_requests')
+      .update({ status: newStatus })
+      .eq('id', id);
+
+    if (error) {
+      console.error(`Error updating status for request ${id}:`, error);
+      toast.error('Error al actualizar el estado de la petición.');
+    } else {
+      toast.success(`Petición ${newStatus === 'approved' ? 'aprobada' : 'rechazada'} con éxito.`);
+      fetchRequests();
+    }
+  };
+
   const handleDelete = async (requestId) => {
     const { error } = await supabase.from('prayer_requests').delete().eq('id', requestId);
     if (error) {
@@ -77,6 +92,7 @@ export default function PrayerRequestManager() {
                     <TableHead className="font-bold">Petición</TableHead>
                     <TableHead className="font-bold">Nombre</TableHead>
                     <TableHead className="font-bold">Fecha</TableHead>
+                    <TableHead className="font-bold">Tipo</TableHead>
                     <TableHead className="font-bold">Estado</TableHead>
                     <TableHead className="font-bold">Acciones</TableHead>
                   </TableRow>
@@ -87,6 +103,7 @@ export default function PrayerRequestManager() {
                       key={req.id}
                       request={req}
                       onDelete={handleDelete}
+                      onStatusChange={handleStatusChange}
                       compact={false}
                     />
                   ))}
@@ -110,6 +127,7 @@ export default function PrayerRequestManager() {
                     key={req.id}
                     request={req}
                     onDelete={handleDelete}
+                    onStatusChange={handleStatusChange}
                     compact={true}
                   />
                 ))}

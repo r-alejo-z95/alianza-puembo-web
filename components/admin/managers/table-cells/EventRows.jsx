@@ -3,7 +3,7 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import { TableRow, TableCell } from '@/components/ui/table';
 import { OverflowCell } from './OverflowCell';
 import { toast } from 'sonner';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 
 const formatEventDate = (start, end) => {
     const startDate = new Date(start);
@@ -15,8 +15,8 @@ const formatEventDate = (start, end) => {
     const isSameDay = (d1, d2) => {
         if (!d1 || !d2) return false;
         return d1.getFullYear() === d2.getFullYear() &&
-               d1.getMonth() === d2.getMonth() &&
-               d1.getDate() === d2.getDate();
+            d1.getMonth() === d2.getMonth() &&
+            d1.getDate() === d2.getDate();
     };
 
     if (!endDate || isSameDay(startDate, endDate)) {
@@ -62,7 +62,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
     const actions = (
         <>
             <Button variant="outline" size="icon" aria-label="Editar evento" className="mr-2" onClick={onEdit}>
-                <Pencil className="w-4 h-4" />
+                <Edit className="w-4 h-4" />
             </Button>
             <AlertDialog>
                 <AlertDialogTrigger asChild>

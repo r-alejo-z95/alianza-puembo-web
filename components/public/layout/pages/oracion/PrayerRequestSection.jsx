@@ -1,7 +1,7 @@
 'use client';
 
 import { PrayerWallSection } from "@/components/public/layout/pages/oracion/PrayerWallSection";
-import { sectionTitle, sectionPy } from "@/lib/styles";
+import { sectionTitle, sectionPy, contentSection, notAvailableText } from "@/lib/styles";
 import { addPrayerRequest } from '@/lib/actions';
 import dynamic from 'next/dynamic';
 
@@ -14,7 +14,15 @@ export function PrayerRequestSection({ requests }) {
                 <h2 className={`${sectionTitle} mb-4 text-(--puembo-green) text-center`}>
                     Peticiones de Oración
                 </h2>
-                <PrayerWallSection requests={requests} />
+                {requests.length > 0 ? (
+                    <PrayerWallSection requests={requests} />
+                ) : (
+                    <div className={contentSection}>
+                        <p className={`${notAvailableText} !min-h-24`}>
+                            No hay peticiones de oración para mostrar.
+                        </p>
+                    </div>
+                )}
             </div>
             <div className="bg-(--puembo-green) text-gray-800">
                 <div className={`flex justify-center ${sectionPy}`}>
