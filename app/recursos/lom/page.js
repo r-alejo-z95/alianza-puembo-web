@@ -12,6 +12,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { DatePicker } from '@/components/ui/date-picker';
 
+export const metadata = {
+  title: "Devocionales LOM",
+  description: "Profundiza en la lectura y meditación de la Biblia con los devocionales Lee, Ora, Medita de Alianza Puembo.",
+  alternates: {
+    canonical: "https://alianzapuembo.org/recursos/lom",
+  },
+};
+
 export default function LomPage() {
   const [posts, setPosts] = useState([]);
   const [passages, setPassages] = useState([]);
