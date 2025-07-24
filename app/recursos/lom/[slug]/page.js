@@ -59,6 +59,13 @@ export default async function LomPostPage({ params }) {
     >
 
       <div className={contentSection}>
+        <div>
+          <Link href="/recursos/lom">
+            <Button variant="green">
+              Regresar
+            </Button>
+          </Link>
+        </div>
         <div
           className="text-gray-700 mb-4 text-justify tiptap max-w-4xl mx-auto"
           dangerouslySetInnerHTML={{ __html: post.content }}

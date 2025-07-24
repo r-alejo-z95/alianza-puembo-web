@@ -10,11 +10,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PaginationControls } from "@/components/shared/PaginationControls";
+import { DatePicker } from '@/components/ui/date-picker';
 
 export default function LomPage() {
   const [posts, setPosts] = useState([]);
   const [passages, setPassages] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [titleSearchTerm, setTitleSearchTerm] = useState('');
+  const [dateSearchTerm, setDateSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
@@ -40,18 +42,32 @@ export default function LomPage() {
     fetchData();
   }, []);
 
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value);
+  const handleTitleSearch = (e) => {
+    setTitleSearchTerm(e.target.value);
+    setDateSearchTerm(''); // Clear date search when title search is used
     setCurrentPage(1); // Reset to first page on new search
   };
 
-  const filteredPosts = useMemo(() =>
-    posts.filter(post =>
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      new Date(post.publication_date).toLocaleDateString('es-ES', {
-        year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
-      }).toLowerCase().includes(searchTerm.toLowerCase())
-    ), [posts, searchTerm]);
+  const handleDateSearch = (selectedDate) => {
+    setDateSearchTerm(selectedDate);
+    setTitleSearchTerm(''); // Clear title search when date search is used
+    setCurrentPage(1); // Reset to first page on new search
+  };
+
+  const filteredPosts = useMemo(() => {
+    let filtered = posts;
+    if (titleSearchTerm) {
+      filtered = filtered.filter(post =>
+        post.title.toLowerCase().includes(titleSearchTerm.toLowerCase())
+      );
+    } else if (dateSearchTerm) {
+      filtered = filtered.filter(post => {
+        const postDate = new Date(post.publication_date).toISOString().split('T')[0];
+        return postDate === dateSearchTerm;
+      });
+    }
+    return filtered;
+  }, [posts, titleSearchTerm, dateSearchTerm]);
 
   const totalPages = useMemo(() => Math.ceil(filteredPosts.length / itemsPerPage), [filteredPosts.length, itemsPerPage]);
   const currentPosts = useMemo(() => {
@@ -83,12 +99,16 @@ export default function LomPage() {
     >
       <div className={contentSection}>
         <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <Input
-            type="text"
-            placeholder="Buscar por título o fecha..."
-            onChange={handleSearch}
-            className="w-full md:w-1/2"
-          />
+          <div className="flex gap-2 w-full md:w-1/2">
+            <Input
+              type="text"
+              placeholder="Buscar por título..."
+              value={titleSearchTerm}
+              onChange={handleTitleSearch}
+              className="w-full"
+            />
+            <DatePicker onSelectDate={handleDateSearch} />
+          </div>
           <Button onClick={goToLatestPost} variant="green">
             Ir al devocional de hoy
           </Button>
@@ -99,7 +119,9 @@ export default function LomPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2">
-              <h2 className={`${sectionTitle} mb-4`}>{searchTerm ? 'Resultados de la Búsqueda' : 'Últimos Devocionales'}</h2>
+              <h2 className={`${sectionTitle} mb-4`}>
+                {titleSearchTerm || dateSearchTerm ? 'Resultados de la Búsqueda' : 'Últimos Devocionales'}
+              </h2>
               <div className="space-y-4">
                 {currentPosts.length > 0 ? (
                   currentPosts.map(post => (
