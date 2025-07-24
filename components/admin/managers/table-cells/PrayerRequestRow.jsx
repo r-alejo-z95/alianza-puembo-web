@@ -26,7 +26,7 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
 
   const actions = (
     <div className="flex gap-2">
-      {request.is_public && (
+      {request.is_public ? (
         <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="icon" aria-label="Cambiar estado" title="Cambiar estado">
@@ -44,6 +44,10 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
             />
           </DialogContent>
         </Dialog>
+      ) : (
+        <Button disabled variant="outline" size="icon" aria-label="Edicion desactivada" title="Edicion desactivada">
+          <Edit className="w-4 h-4" />
+        </Button>
       )}
       <AlertDialog>
         <AlertDialogTrigger asChild>
@@ -83,11 +87,13 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
             {request.is_anonymous && <Badge variant="secondary">Anónima</Badge>}
           </div>
         </div>
-        <div><span className="font-semibold">Estado:</span>
-          <div className="flex gap-2 mt-1">
-            {statusBadge(request.status)}
+        {request.is_public && (
+          <div><span className="font-semibold">Estado:</span>
+            <div className="flex gap-2 mt-1">
+              {statusBadge(request.status)}
+            </div>
           </div>
-        </div>
+        )}
         <div className="flex gap-2 pt-2">{actions}</div>
       </div>
     );
@@ -112,7 +118,10 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
           {request.is_anonymous && <Badge variant="secondary">Anónima</Badge>}
         </div>
       </TableCell>
-      <TableCell>{statusBadge(request.status)}</TableCell>
+      {request.is_public ? (
+        <TableCell>{statusBadge(request.status)}</TableCell>
+      ) : <TableCell />
+      }
       <TableCell>{actions}</TableCell>
     </TableRow>
   );

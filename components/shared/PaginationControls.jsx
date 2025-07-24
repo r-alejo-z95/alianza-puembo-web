@@ -39,6 +39,7 @@ export function PaginationControls({ hasNextPage, totalPages, currentPage, setCu
         onClick={handlePrevious}
         disabled={page === 1}
         className={cn(paginationButton)}
+        aria-label="Botón de previo"
       >
         <ChevronLeft className="h-5 w-5" />
       </Button>
@@ -49,6 +50,7 @@ export function PaginationControls({ hasNextPage, totalPages, currentPage, setCu
         onClick={handleNext}
         disabled={onPageChange ? page === totalPages : !hasNextPage}
         className={cn(paginationButton)}
+        aria-label="Botón de siguiente"
       >
         <ChevronRight className="h-5 w-5" />
       </Button>
