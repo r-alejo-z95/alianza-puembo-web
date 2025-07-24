@@ -49,5 +49,6 @@ export const paginationButton: string = "p-2 bg-(--puembo-green) text-white roun
 export const contentSection: string = "flex flex-col gap-10 md:gap-16 w-full mx-auto px-8 md:px-28 pt-8 md:pt-16 pb-16 md:pb-24";
 
 export const notAvailableText: string = "flex items-center justify-center text-2xl text-gray-500 min-h-[60vh]";
+export const notAvailableDevotional: string = "flex items-start justify-left text-2xl text-gray-500";
 
 export const formSection: string = "bg-white p-8 rounded-lg shadow-lg max-w-2xl mx-auto";
