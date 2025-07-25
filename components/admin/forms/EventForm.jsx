@@ -16,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { ImageIcon } from 'lucide-react';
 
 const eventSchema = z.object({
   title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),
@@ -146,7 +147,7 @@ export default function EventForm({ event, onSave, onCancel }) {
                 type="button"
                 onClick={() => fileInputRef.current.click()}
               >
-                Seleccionar Archivo
+                <ImageIcon className="h-4 w-4 mr-2" /> Seleccionar Imagen
               </Button>
               {posterFile && <span className="text-sm text-gray-500">{posterFile.file.name}</span>}
             </div>
