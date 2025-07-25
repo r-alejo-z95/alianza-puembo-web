@@ -1,11 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
 
 export async function generateMetadata({ params }) {
+  const { slug } = await params;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('forms')
     .select('title, description')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single();
 
   if (error || !data) {
