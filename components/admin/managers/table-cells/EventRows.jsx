@@ -3,7 +3,8 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import { TableRow, TableCell } from '@/components/ui/table';
 import { OverflowCell } from './OverflowCell';
 import { toast } from 'sonner';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Link as LinkIcon, Copy } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const formatEventDate = (start, end) => {
     const startDate = new Date(start);
@@ -30,38 +31,76 @@ const formatEventDate = (start, end) => {
 
 export function EventRow({ event, onEdit, onDelete, compact }) {
     const posterActions = event.poster_url ? (
-        <div>
-            <a href={event.poster_url} className="text-blue-600 hover:underline cursor-pointer" target="_blank" rel="noopener noreferrer">Ver</a>
-            <button
-                className="ml-2 text-blue-600 hover:underline cursor-pointer"
-                onClick={() => {
-                    navigator.clipboard.writeText(event.poster_url);
-                    toast.success('URL del póster copiado al portapapeles.');
-                }}
-            >
-                Copiar URL
-            </button>
+        <div className="flex items-center gap-1">
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" asChild>
+                            <a href={event.poster_url} target="_blank" rel="noopener noreferrer" aria-label="Ver póster">
+                                <LinkIcon className="w-4 h-4" />
+                            </a>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Ver póster</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost" size="icon"
+                            onClick={() => {
+                                navigator.clipboard.writeText(event.poster_url);
+                                toast.success('URL del póster copiado al portapapeles.');
+                            }}
+                            aria-label="Copiar URL del póster"
+                        >
+                            <Copy className="w-4 h-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copiar URL del póster</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
         </div>
     ) : "-";
 
     const registrationLinkActions = event.registration_link ? (
-        <div>
-            <a href={event.registration_link} className="text-blue-600 hover:underline cursor-pointer" target="_blank" rel="noopener noreferrer">Ir</a>
-            <button
-                className="ml-2 text-blue-600 hover:underline cursor-pointer"
-                onClick={() => {
-                    navigator.clipboard.writeText(event.registration_link);
-                    toast.success('URL de registro copiada al portapapeles.');
-                }}
-            >
-                Copiar URL
-            </button>
+        <div className="flex items-center gap-1">
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" asChild>
+                            <a href={event.registration_link} target="_blank" rel="noopener noreferrer" aria-label="Ir al enlace de registro">
+                                <LinkIcon className="w-4 h-4" />
+                            </a>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Ir al enlace de registro</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost" size="icon"
+                            onClick={() => {
+                                navigator.clipboard.writeText(event.registration_link);
+                                toast.success('URL de registro copiada al portapapeles.');
+                            }}
+                            aria-label="Copiar URL de registro"
+                        >
+                            <Copy className="w-4 h-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copiar URL de registro</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
         </div>
     ) : "-";
 
     const actions = (
-        <>
-            <Button variant="outline" size="icon" aria-label="Editar evento" className="mr-2" onClick={onEdit}>
+        <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon" aria-label="Editar evento" onClick={onEdit}>
                 <Edit className="w-4 h-4" />
             </Button>
             <AlertDialog>
@@ -83,7 +122,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </>
+        </div>
     );
 
     const formattedDate = formatEventDate(event.start_time, event.end_time);

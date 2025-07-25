@@ -7,6 +7,7 @@ import { Trash2, Edit } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PrayerRequestStatusDialog from '../../forms/PrayerRequestStatusDialog';
 import { useState } from 'react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function PrayerRequestRow({ request, onDelete, onStatusChange, compact }) {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
@@ -29,7 +30,7 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
       {request.is_public ? (
         <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="icon" aria-label="Cambiar estado" title="Cambiar estado">
+            <Button variant="outline" size="icon" aria-label="Cambiar estado">
               <Edit className="w-4 h-4" />
             </Button>
           </DialogTrigger>
@@ -45,7 +46,7 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
           </DialogContent>
         </Dialog>
       ) : (
-        <Button disabled variant="outline" size="icon" aria-label="Edicion desactivada" title="Edicion desactivada">
+        <Button disabled variant="outline" size="icon" aria-label="Edicion desactivada">
           <Edit className="w-4 h-4" />
         </Button>
       )}

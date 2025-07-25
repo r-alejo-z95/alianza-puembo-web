@@ -2,8 +2,9 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { TableRow, TableCell } from '@/components/ui/table';
 import { OverflowCell } from './OverflowCell';
-import { Edit, Trash2, Copy } from 'lucide-react';
+import { Edit, Trash2, Copy, Link as LinkIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function FormRow({ form, onEdit, onDelete, compact }) {
     const handleCopyLink = () => {
@@ -16,12 +17,40 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
         });
     };
 
+    const formLinkActions = form.slug ? (
+        <div className="flex items-center gap-1">
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" asChild>
+                            <a href={`${window.location.origin}/formularios/${form.slug}`} target="_blank" rel="noopener noreferrer" aria-label="Ir al formulario">
+                                <LinkIcon className="w-4 h-4" />
+                            </a>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Ir al formulario</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost" size="icon"
+                            onClick={handleCopyLink}
+                            aria-label="Copiar enlace del formulario"
+                        >
+                            <Copy className="w-4 h-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copiar enlace del formulario</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        </div>
+    ) : "-";
+
     const actions = (
-        <>
-            <Button variant="outline" size="icon" aria-label="Copiar enlace" className="mr-2" onClick={handleCopyLink}>
-                <Copy className="w-4 h-4" />
-            </Button>
-            <Button variant="outline" size="icon" aria-label="Editar formulario" className="mr-2" onClick={() => onEdit(form)}>
+        <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon" aria-label="Editar formulario" onClick={() => onEdit(form)}>
                 <Edit className="w-4 h-4" />
             </Button>
             <AlertDialog>
@@ -32,7 +61,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>¿Estás absolutely seguro?</AlertDialogTitle>
+                        <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
                         <AlertDialogDescription>
                             Esta acción no se puede deshacer. Esto eliminará permanentemente el formulario y todos sus datos.
                         </AlertDialogDescription>
@@ -43,7 +72,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </>
+        </div>
     );
 
     if (compact) {
@@ -52,6 +81,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
                 <div><span className="font-semibold">Título:</span> <OverflowCell>{form.title}</OverflowCell></div>
                 <div><span className="font-semibold">Descripción:</span> <OverflowCell>{form.description}</OverflowCell></div>
                 <div><span className="font-semibold">Fecha de Creación:</span> {new Date(form.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Guayaquil' })}</div>
+                {form.slug && <div><span className="font-semibold">Link:</span> {formLinkActions}</div>}
                 <div className="flex gap-2 pt-2">{actions}</div>
             </div>
         );
@@ -66,6 +96,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
                 <OverflowCell>{form.description}</OverflowCell>
             </TableCell>
             <TableCell>{new Date(form.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Guayaquil' })}</TableCell>
+            <TableCell>{formLinkActions}</TableCell>
             <TableCell className="min-w-[120px]">{actions}</TableCell>
         </TableRow>
     );

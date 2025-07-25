@@ -12,6 +12,7 @@ import FormBuilder from '@/components/admin/forms/FormBuilder';
 import { FormRow } from './table-cells/FormRow';
 import { stripHtml } from '@/lib/utils';
 import { Copy } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 function slugify(text) {
   return text
@@ -224,6 +225,7 @@ export default function FormManager() {
                     <TableHead className="font-bold">Título</TableHead>
                     <TableHead className="font-bold">Descripción</TableHead>
                     <TableHead className="font-bold">Fecha de Creación</TableHead>
+                    <TableHead className="font-bold">Link</TableHead>
                     <TableHead className="font-bold">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>

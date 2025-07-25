@@ -3,11 +3,12 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import { TableRow, TableCell } from '@/components/ui/table';
 import { OverflowCell } from './OverflowCell';
 import { Edit, Trash2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function LomRow({ post, onEdit, onDelete, compact }) {
     const actions = (
-        <>
-            <Button variant="outline" size="icon" aria-label="Editar devocional" className="mr-2" onClick={() => onEdit(post)}>
+        <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon" aria-label="Editar devocional" onClick={() => onEdit(post)}>
                 <Edit className="w-4 h-4" />
             </Button>
             <AlertDialog>
@@ -29,7 +30,7 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </>
+        </div>
     );
 
     const formattedDate = new Date(post.created_at).toLocaleDateString('es-ES', {
