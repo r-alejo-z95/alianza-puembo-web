@@ -46,9 +46,63 @@ export default function PublicForm() {
   }, [slug]);
 
   const onSubmit = async (data) => {
-    console.log('Form data submitted:', data);
-    toast.success('Formulario enviado con éxito!');
-    // Here you would typically send the data to a server or API endpoint
+    setLoading(true);
+    try {
+      const processedData = {};
+      for (const key in data) {
+        if (data.hasOwnProperty(key)) {
+          const value = data[key];
+          if (value instanceof FileList && value.length > 0) {
+            const file = value[0];
+            const reader = new FileReader();
+            const fileReadPromise = new Promise((resolve, reject) => {
+              reader.onload = () => {
+                resolve({
+                  type: "file",
+                  name: file.name,
+                  data: reader.result.split(',' )[1], // Base64 content
+                });
+              };
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+            processedData[key] = await fileReadPromise;
+          } else if (typeof value === 'object' && value !== null) {
+            // Handle checkbox groups: convert object of booleans to array of selected values
+            const selectedOptions = Object.keys(value).filter(optionKey => value[optionKey]);
+            processedData[key] = selectedOptions.join(', ');
+          } else {
+            processedData[key] = value;
+          }
+        }
+      }
+
+      const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke(
+        'sheets-drive-integration',
+        {
+          body: JSON.stringify({
+            formId: form.id,
+            formData: processedData,
+          }),
+        }
+      );
+
+      if (edgeFunctionError) {
+        console.error('Error invoking Edge Function:', edgeFunctionError);
+        toast.error(`Error al enviar el formulario: ${edgeFunctionError.message || 'Error desconocido'}`);
+      } else if (edgeFunctionData.error) {
+        console.error('Edge Function returned error:', edgeFunctionData.error);
+        toast.error(`Error al enviar el formulario: ${edgeFunctionData.error}`);
+      } else {
+        toast.success('Formulario enviado con éxito!');
+        // Optionally reset the form after successful submission
+        // form.reset();
+      }
+    } catch (error) {
+      console.error('Error during form submission:', error);
+      toast.error(`Error inesperado al enviar el formulario: ${error.message || 'Error desconocido'}`);
+    }
+    setLoading(false);
   };
 
   if (loading) {
