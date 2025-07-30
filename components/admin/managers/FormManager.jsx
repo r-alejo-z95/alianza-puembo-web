@@ -13,6 +13,7 @@ import { FormRow } from './table-cells/FormRow';
 import { stripHtml } from '@/lib/utils';
 import { Copy } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useSearchParams, useRouter } from 'next/navigation';
 
 function slugify(text) {
   return text
@@ -31,9 +32,13 @@ export default function FormManager() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedForm, setSelectedForm] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isInitialEdit, setIsInitialEdit] = useState(false);
 
   const itemsPerPage = 5;
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const editFormId = searchParams.get('editFormId');
 
   const fetchForms = async () => {
     setLoading(true);
@@ -47,6 +52,17 @@ export default function FormManager() {
       toast.error('Error al cargar los formularios.');
     } else {
       setForms(data);
+      if (editFormId) {
+        const formToEdit = data.find(form => form.id === editFormId);
+        if (formToEdit) {
+          setSelectedForm(formToEdit);
+          setIsFormOpen(true);
+          setIsInitialEdit(true); // Set initial edit flag
+          router.replace('/admin/formularios'); // Remove editFormId from URL
+        } else {
+          toast.error('Formulario no encontrado.');
+        }
+      }
     }
     setLoading(false);
   };
@@ -159,6 +175,12 @@ export default function FormManager() {
     toast.success('Formulario guardado con éxito.');
     setIsFormOpen(false);
     fetchForms();
+
+    // After saving, if it's an initial edit, redirect to /admin/eventos
+    if (isInitialEdit) {
+      router.push('/admin/eventos');
+      setIsInitialEdit(false); // Reset the flag after redirection
+    }
   };
 
   const handleDelete = async (formId) => {
@@ -211,7 +233,7 @@ export default function FormManager() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Formularios Creados</CardTitle>
-        
+
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -226,6 +248,7 @@ export default function FormManager() {
                     <TableHead className="font-bold">Descripción</TableHead>
                     <TableHead className="font-bold">Fecha de Creación</TableHead>
                     <TableHead className="font-bold">Link</TableHead>
+                    <TableHead className="font-bold">Respuestas</TableHead>
                     <TableHead className="font-bold">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>

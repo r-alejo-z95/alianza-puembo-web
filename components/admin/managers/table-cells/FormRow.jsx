@@ -17,6 +17,17 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
         });
     };
 
+    const handleCopySheetLink = () => {
+        if (form.google_sheet_url) {
+            navigator.clipboard.writeText(form.google_sheet_url).then(() => {
+                toast.success('URL de la hoja de cálculo copiada al portapapeles.');
+            }, (err) => {
+                toast.error('No se pudo copiar la URL de la hoja de cálculo.');
+                console.error('Could not copy text: ', err);
+            });
+        }
+    };
+
     const formLinkActions = form.slug ? (
         <div className="flex items-center gap-1">
             <TooltipProvider>
@@ -43,6 +54,37 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
                         </Button>
                     </TooltipTrigger>
                     <TooltipContent>Copiar enlace del formulario</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        </div>
+    ) : "-";
+
+    const sheetLinkActions = form.google_sheet_url ? (
+        <div className="flex items-center gap-1">
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" asChild>
+                            <a href={form.google_sheet_url} target="_blank" rel="noopener noreferrer" aria-label="Ir a la hoja de cálculo">
+                                <LinkIcon className="w-4 h-4" />
+                            </a>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Ir a la hoja de cálculo</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost" size="icon"
+                            onClick={handleCopySheetLink}
+                            aria-label="Copiar URL de la hoja de cálculo"
+                        >
+                            <Copy className="w-4 h-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copiar URL de la hoja de cálculo</TooltipContent>
                 </Tooltip>
             </TooltipProvider>
         </div>
@@ -82,6 +124,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
                 <div><span className="font-semibold">Descripción:</span> <OverflowCell>{form.description}</OverflowCell></div>
                 <div><span className="font-semibold">Fecha de Creación:</span> {new Date(form.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Guayaquil' })}</div>
                 {form.slug && <div><span className="font-semibold">Link:</span> {formLinkActions}</div>}
+                {form.google_sheet_url && <div><span className="font-semibold">Respuestas:</span> {sheetLinkActions}</div>}
                 <div className="flex gap-2 pt-2">{actions}</div>
             </div>
         );
@@ -97,6 +140,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
             </TableCell>
             <TableCell>{new Date(form.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Guayaquil' })}</TableCell>
             <TableCell>{formLinkActions}</TableCell>
+            <TableCell>{sheetLinkActions}</TableCell>
             <TableCell className="min-w-[120px]">{actions}</TableCell>
         </TableRow>
     );

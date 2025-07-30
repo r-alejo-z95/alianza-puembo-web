@@ -97,6 +97,8 @@ export default function EventManager() {
             registration_link: eventData.registration_link || null
         };
 
+        let createdFormId = null; // Declare createdFormId here
+
         // If creating a new event and create_form is true, create the form and sheet
         if (!selectedEvent && eventData.create_form) {
             try {
@@ -104,6 +106,7 @@ export default function EventManager() {
                 if (success) {
                     dataToSave = { ...dataToSave, registration_link: formUrl };
                     toast.success('Formulario de registro y hoja de cálculo creados con éxito.');
+                    createdFormId = formId; // Assign formId here
                 } else {
                     console.error('Error creating form and sheet:', formCreationError);
                     toast.error(`Error al crear el formulario de registro: ${formCreationError}`);
@@ -130,6 +133,9 @@ export default function EventManager() {
                 toast.error(`Error al crear el evento: ${error.message}`);
             } else {
                 toast.success('Evento creado con éxito.');
+                if (eventData.create_form && createdFormId) {
+                    router.push(`/admin/formularios?editFormId=${createdFormId}`);
+                }
             }
         }
         setIsFormOpen(false);

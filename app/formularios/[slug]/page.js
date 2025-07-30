@@ -14,13 +14,20 @@ import { toast } from 'sonner';
 import { ImageIcon } from 'lucide-react';
 import Image from 'next/image';
 
+// Simple Loading Spinner Component
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center h-full">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+  </div>
+);
+
 export default function PublicForm() {
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fileNames, setFileNames] = useState({});
   const { slug } = useParams();
   const supabase = createClient();
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors }, reset } = useForm();
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -60,7 +67,7 @@ export default function PublicForm() {
                 resolve({
                   type: "file",
                   name: file.name,
-                  data: reader.result.split(',' )[1], // Base64 content
+                  data: reader.result.split(',')[1], // Base64 content
                 });
               };
               reader.onerror = reject;
@@ -95,8 +102,8 @@ export default function PublicForm() {
         toast.error(`Error al enviar el formulario: ${edgeFunctionData.error}`);
       } else {
         toast.success('Formulario enviado con éxito!');
-        // Optionally reset the form after successful submission
-        // form.reset();
+        reset(); // Reset the form fields
+        setFileNames({}); // Clear file names
       }
     } catch (error) {
       console.error('Error during form submission:', error);
@@ -106,7 +113,7 @@ export default function PublicForm() {
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen"><p>Cargando formulario...</p></div>;
+    return <div className="flex justify-center items-center h-screen"><LoadingSpinner /></div>;
   }
 
   if (!form) {
@@ -130,6 +137,11 @@ export default function PublicForm() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {loading && (
+              <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+                <LoadingSpinner />
+              </div>
+            )}
             {form.form_fields.map(field => {
               const fieldId = `field-${field.id}`;
               const registrationProps = register(field.label, { required: field.is_required });

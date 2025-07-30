@@ -216,183 +216,191 @@ const CORS_HEADERS = {
 };
 
 serve(async (req) => {
-  console.log('Incoming request URL:', req.url);
-  const url = new URL(req.url);
-  console.log('Parsed pathname:', url.pathname);
+  try {
+    console.log('Incoming request URL:', req.url);
+    const url = new URL(req.url);
+    console.log('Parsed pathname:', url.pathname);
 
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: CORS_HEADERS });
-  }
-
-  if (url.pathname === "/sheets-drive-integration/create-sheet") {
-    if (req.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
-        status: 405,
-        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-      });
+    if (req.method === "OPTIONS") {
+      return new Response("ok", { headers: CORS_HEADERS });
     }
-    try {
-      const requestBody = await req.json();
-      console.log('Received request body:', requestBody);
-      const { formId, formTitle, formSlug } = requestBody;
-      if (!formId || !formTitle || !formSlug) {
-        return new Response(JSON.stringify({ error: "Missing formId, formTitle or formSlug" }), {
-          status: 400,
+
+    if (url.pathname === "/sheets-drive-integration/create-sheet") {
+      if (req.method !== "POST") {
+        return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
+          status: 405,
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });
       }
+      try {
+        const requestBody = await req.json();
+        console.log('Received request body:', requestBody);
+        const { formId, formTitle, formSlug } = requestBody;
+        if (!formId || !formTitle || !formSlug) {
+          return new Response(JSON.stringify({ error: "Missing formId, formTitle or formSlug" }), {
+            status: 400,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          });
+        }
 
-      const supabase = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-        { auth: { persistSession: false } }
-      );
+        const supabase = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+          { auth: { persistSession: false } }
+        );
 
-      const accessToken = await getAccessToken(supabase);
+        const accessToken = await getAccessToken(supabase);
 
-      const folderId = await createDriveFolder(accessToken, formTitle);
-      const sheetId = await createGoogleSheet(accessToken, formTitle);
-      const sheetInfo = await getFirstSheetName(accessToken, sheetId);
+        const folderId = await createDriveFolder(accessToken, formTitle);
+        const sheetId = await createGoogleSheet(accessToken, formTitle);
+        const sheetInfo = await getFirstSheetName(accessToken, sheetId);
 
-      await supabase
+        await supabase
         .from("forms")
-        .update({ google_sheet_id: sheetId, google_drive_folder_id: folderId })
+        .update({ google_sheet_id: sheetId, google_drive_folder_id: folderId, google_sheet_url: `https://docs.google.com/spreadsheets/d/${sheetId}/edit` })
         .eq("id", formId);
 
       return new Response(
         JSON.stringify({ sheetId, folderId, formSlug }),
-        { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-      );
+          { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        );
 
-    } catch (err) {
-      console.error("Error in /create-sheet edge function:", err);
-      return new Response(
-        JSON.stringify({ error: err.message, details: err.stack }),
-        { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-      );
-    }
-  } else if (url.pathname === "/") { // Existing logic for form submission
-    if (req.method !== "POST") {
-      return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
-        status: 405,
+      } catch (err) {
+        console.error("Error in /create-sheet edge function:", err);
+        return new Response(
+          JSON.stringify({ error: err.message, details: err.stack }),
+          { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        );
+      }
+    } else if (url.pathname.endsWith("/sheets-drive-integration")) { // Existing logic for form submission
+      if (req.method !== "POST") {
+        return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
+          status: 405,
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        });
+      }
+
+      try {
+        const { formId, formData } = await req.json();
+        if (!formId || !formData) {
+          return new Response(JSON.stringify({ error: "Missing formId or formData" }), {
+            status: 400,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          });
+        }
+
+        const supabase = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+          { auth: { persistSession: false } }
+        );
+
+        const { data: form, error: formError } = await supabase
+          .from("forms")
+          .select("google_sheet_id, google_drive_folder_id, title")
+          .eq("id", formId)
+          .single();
+
+        if (formError || !form) {
+          return new Response(JSON.stringify({ error: "Form not found" }), {
+            status: 404,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          });
+        }
+
+        const accessToken = await getAccessToken(supabase);
+
+        let { google_sheet_id: sheetId, google_drive_folder_id: folderId } = form;
+        const currentFormDataHeaders = Object.keys(formData);
+        let sheetInfo;
+        let finalHeaders;
+
+        if (!sheetId || !folderId) {
+          // This block should ideally not be hit if /create-sheet is called first
+          // but kept as a fallback for robustness.
+          folderId = await createDriveFolder(accessToken, form.title);
+          sheetId = await createGoogleSheet(accessToken, form.title);
+
+          await supabase
+            .from("forms")
+            .update({ google_sheet_id: sheetId, google_drive_folder_id: folderId, google_sheet_url: `https://docs.google.com/spreadsheets/d/${sheetId}/edit` })
+            .eq("id", formId);
+
+          sheetInfo = await getFirstSheetName(accessToken, sheetId);
+          finalHeaders = currentFormDataHeaders; // Initial headers are just form data headers
+          await appendToSheet(accessToken, sheetId, [finalHeaders], sheetInfo.name);
+          await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
+
+        } else {
+          // Subsequent submissions: check for new headers
+          sheetInfo = await getFirstSheetName(accessToken, sheetId);
+          const existingSheetHeaders = await getSheetHeaders(accessToken, sheetId, sheetInfo.name);
+
+          const newHeadersToAdd = currentFormDataHeaders.filter(
+            (header) => !existingSheetHeaders.includes(header)
+          );
+
+          if (newHeadersToAdd.length > 0) {
+            // Append new headers to the existing ones
+            finalHeaders = [...existingSheetHeaders, ...newHeadersToAdd];
+            // Update the first row with the new set of headers
+            await updateSheetRow(accessToken, sheetId, sheetInfo.name, 1, finalHeaders);
+            // Re-apply bold formatting to the updated header row
+            await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
+          } else {
+            finalHeaders = existingSheetHeaders; // No new headers, use existing ones
+          }
+        }
+
+        const rowData = {};
+        for (const key in formData) {
+          const value = formData[key];
+          if (typeof value === 'object' && value?.type === 'file' && value.name && value.data) {
+            try {
+              const base64Data = value.data.includes(',') ? value.data.split(',')[1] : value.data;
+              const mimeType = value.data.match(/data:(.*?);base64,/)?.[1] || "application/octet-stream";
+              const binaryString = atob(base64Data);
+              const binaryData = new Uint8Array(binaryString.length);
+              for (let i = 0; i < binaryString.length; i++) {
+                binaryData[i] = binaryString.charCodeAt(i);
+              }
+              const fileUrl = await uploadFileToDrive(accessToken, folderId, value.name, binaryData, mimeType);
+              rowData[key] = fileUrl;
+            } catch (fileError) {
+              console.error(`Error uploading file ${value.name}:`, fileError);
+              rowData[key] = `Error uploading file: ${value.name}`;
+            }
+          } else {
+            rowData[key] = String(value || "");
+          }
+        }
+
+        const values = finalHeaders.map((header) => rowData[header] || "");
+        await appendToSheet(accessToken, sheetId, [values], sheetInfo.name);
+
+        return new Response(
+          JSON.stringify({ message: "Datos enviados correctamente", sheetId, folderId }),
+          { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        );
+
+      } catch (err) {
+        console.error("Error in edge function:", err);
+        return new Response(
+          JSON.stringify({ error: err.message, details: err.stack }),
+          { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      return new Response(JSON.stringify({ error: "Not Found" }), {
+        status: 404,
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
       });
     }
-
-    try {
-      const { formId, formData } = await req.json();
-      if (!formId || !formData) {
-        return new Response(JSON.stringify({ error: "Missing formId or formData" }), {
-          status: 400,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-        });
-      }
-
-      const supabase = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-        { auth: { persistSession: false } }
-      );
-
-      const { data: form, error: formError } = await supabase
-        .from("forms")
-        .select("google_sheet_id, google_drive_folder_id, title")
-        .eq("id", formId)
-        .single();
-
-      if (formError || !form) {
-        return new Response(JSON.stringify({ error: "Form not found" }), {
-          status: 404,
-          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-        });
-      }
-
-      const accessToken = await getAccessToken(supabase);
-
-      let { google_sheet_id: sheetId, google_drive_folder_id: folderId } = form;
-      const currentFormDataHeaders = Object.keys(formData);
-      let sheetInfo;
-      let finalHeaders;
-
-      if (!sheetId || !folderId) {
-        // This block should ideally not be hit if /create-sheet is called first
-        // but kept as a fallback for robustness.
-        folderId = await createDriveFolder(accessToken, form.title);
-        sheetId = await createGoogleSheet(accessToken, form.title);
-
-        await supabase
-          .from("forms")
-          .update({ google_sheet_id: sheetId, google_drive_folder_id: folderId, google_sheet_url: `https://docs.google.com/spreadsheets/d/${sheetId}/edit` })
-          .eq("id", formId);
-
-        sheetInfo = await getFirstSheetName(accessToken, sheetId);
-        finalHeaders = currentFormDataHeaders; // Initial headers are just form data headers
-        await appendToSheet(accessToken, sheetId, [finalHeaders], sheetInfo.name);
-        await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
-
-      } else {
-        // Subsequent submissions: check for new headers
-        sheetInfo = await getFirstSheetName(accessToken, sheetId);
-        const existingSheetHeaders = await getSheetHeaders(accessToken, sheetId, sheetInfo.name);
-
-        const newHeadersToAdd = currentFormDataHeaders.filter(
-          (header) => !existingSheetHeaders.includes(header)
-        );
-
-        if (newHeadersToAdd.length > 0) {
-          // Append new headers to the existing ones
-          finalHeaders = [...existingSheetHeaders, ...newHeadersToAdd];
-          // Update the first row with the new set of headers
-          await updateSheetRow(accessToken, sheetId, sheetInfo.name, 1, finalHeaders);
-          // Re-apply bold formatting to the updated header row
-          await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
-        } else {
-          finalHeaders = existingSheetHeaders; // No new headers, use existing ones
-        }
-      }
-
-      const rowData = {};
-      for (const key in formData) {
-        const value = formData[key];
-        if (typeof value === 'object' && value?.type === 'file' && value.name && value.data) {
-          try {
-            const base64Data = value.data.includes(',') ? value.data.split(',')[1] : value.data;
-            const mimeType = value.data.match(/data:(.*?);base64,/)?.[1] || "application/octet-stream";
-            const binaryString = atob(base64Data);
-            const binaryData = new Uint8Array(binaryString.length);
-            for (let i = 0; i < binaryString.length; i++) {
-              binaryData[i] = binaryString.charCodeAt(i);
-            }
-            const fileUrl = await uploadFileToDrive(accessToken, folderId, value.name, binaryData, mimeType);
-            rowData[key] = fileUrl;
-          } catch (fileError) {
-            console.error(`Error uploading file ${value.name}:`, fileError);
-            rowData[key] = `Error uploading file: ${value.name}`;
-          }
-        } else {
-          rowData[key] = String(value || "");
-        }
-      }
-
-      const values = finalHeaders.map((header) => rowData[header] || "");
-      await appendToSheet(accessToken, sheetId, [values], sheetInfo.name);
-
-      return new Response(
-        JSON.stringify({ message: "Datos enviados correctamente", sheetId, folderId }),
-        { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-      );
-
-    } catch (err) {
-      console.error("Error in edge function:", err);
-      return new Response(
-        JSON.stringify({ error: err.message, details: err.stack }),
-        { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-      );
-    }
-  } else {
-    return new Response(JSON.stringify({ error: "Not Found" }), {
-      status: 404,
-      headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-    });
+  } catch (globalError) {
+    console.error("Global Edge Function Error:", globalError);
+    return new Response(
+      JSON.stringify({ error: globalError.message, details: globalError.stack }),
+      { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+    );
   }
 });
