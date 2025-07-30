@@ -9,8 +9,10 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EventForm from '@/components/admin/forms/EventForm';
 import { toast } from 'sonner';
+import { createFormAndSheet } from '@/lib/actions';
 import { EventRow } from './table-cells/EventRows';
 import { PaginationControls } from "@/components/shared/PaginationControls";
+import { useRouter } from 'next/navigation';
 
 export default function EventManager() {
     const [events, setEvents] = useState([]);
@@ -43,6 +45,8 @@ export default function EventManager() {
     useEffect(() => {
         fetchEvents();
     }, []);
+
+    const router = useRouter();
 
     const handleSave = async (eventData, posterFile) => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -83,7 +87,7 @@ export default function EventManager() {
             }
         }
 
-        const dataToSave = {
+        let dataToSave = {
             ...eventData,
             start_time: new Date(eventData.start_time).toISOString(),
             end_time: eventData.end_time ? new Date(eventData.end_time).toISOString() : null,
@@ -92,6 +96,23 @@ export default function EventManager() {
             poster_h,
             registration_link: eventData.registration_link || null
         };
+
+        // If creating a new event and create_form is true, create the form and sheet
+        if (!selectedEvent && eventData.create_form) {
+            try {
+                const { success, formId, formUrl, error: formCreationError } = await createFormAndSheet(eventData.title);
+                if (success) {
+                    dataToSave = { ...dataToSave, registration_link: formUrl };
+                    toast.success('Formulario de registro y hoja de cálculo creados con éxito.');
+                } else {
+                    console.error('Error creating form and sheet:', formCreationError);
+                    toast.error(`Error al crear el formulario de registro: ${formCreationError}`);
+                }
+            } catch (error) {
+                console.error('Unexpected error during form and sheet creation:', error);
+                toast.error('Ocurrió un error inesperado al crear el formulario de registro.');
+            }
+        }
 
         if (selectedEvent) {
             const { error } = await supabase.from('events').update(dataToSave).eq('id', selectedEvent.id);
@@ -106,7 +127,7 @@ export default function EventManager() {
             const { error } = await supabase.from('events').insert([{ ...dataToSave, user_id: user?.id }]);
             if (error) {
                 console.error('Error creating event:', error);
-                toast.error('Error al crear el evento.');
+                toast.error(`Error al crear el evento: ${error.message}`);
             } else {
                 toast.success('Evento creado con éxito.');
             }

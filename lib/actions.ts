@@ -132,3 +132,74 @@ export async function addPrayerRequest(formData: FormData) {
 
   return { data };
 }
+
+// Helper to slugify text
+function slugify(text: string) {
+  return text
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w\-]+/g, '') // Remove all non-word chars
+    .replace(/\-\-+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
+}
+
+// Create Form and Sheet Action
+export async function createFormAndSheet(formTitle: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'User not authenticated.' };
+  }
+
+  const slug = slugify(formTitle);
+
+  try {
+    // 1. Create the form entry in Supabase
+    const { data: newForm, error: formError } = await supabase
+      .from('forms')
+      .insert([{ title: formTitle, user_id: user.id, slug }])
+      .select('id, slug')
+      .single();
+
+    if (formError || !newForm) {
+      console.error('Error creating form in DB:', formError);
+      return { error: 'Error al crear el formulario en la base de datos.' };
+    }
+
+    const formId = newForm.id;
+    const formSlug = newForm.slug;
+
+    // 2. Call the Edge Function to create the Google Sheet
+    const edgeFunctionUrl = process.env.NEXT_PUBLIC_SUPABASE_URL + '/functions/v1/sheets-drive-integration/create-sheet';
+    console.log('Calling Edge Function at:', edgeFunctionUrl);
+    console.log('Sending body:', { formId, formTitle, formSlug });
+    const response = await fetch(edgeFunctionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({ formId, formTitle, formSlug }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('Error calling edge function:', result);
+      console.error('Edge function response status:', response.status);
+      console.error('Edge function response status text:', response.statusText);
+      return { error: result.error || 'Error al crear la hoja de cálculo de Google.' };
+    }
+
+    revalidatePath('/admin/formularios');
+
+    return { success: true, formId, formUrl: `/formularios/${formSlug}` };
+
+  } catch (error) {
+    console.error('Unexpected error in createFormAndSheet:', error);
+    return { error: 'Ocurrió un error inesperado.' };
+  }
+}

@@ -211,7 +211,7 @@ export default function FormManager() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Formularios Creados</CardTitle>
-        <Button onClick={() => { setSelectedForm(null); setIsFormOpen(true); }}>Crear Nuevo Formulario</Button>
+        
       </CardHeader>
       <CardContent>
         {loading ? (

@@ -8,6 +8,8 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import {
   Form,
   FormControl,
@@ -28,6 +30,7 @@ const eventSchema = z.object({
     message: 'Fecha de fin inválida.',
   }),
   registration_link: z.string().url({ message: "Por favor, introduce una URL válida." }).optional().or(z.literal('')),
+  create_form: z.boolean().default(false).optional(),
 });
 
 export default function EventForm({ event, onSave, onCancel }) {
@@ -104,19 +107,6 @@ export default function EventForm({ event, onSave, onCancel }) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="registration_link"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Link de Registro (Opcional)</FormLabel>
-              <FormControl>
-                <Input placeholder="https://ejemplo.com/registro" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         <FormItem>
           <FormLabel>Póster del Evento (Opcional)</FormLabel>
           <FormControl>
@@ -154,6 +144,26 @@ export default function EventForm({ event, onSave, onCancel }) {
           </FormControl>
           <FormMessage />
         </FormItem>
+        <FormField
+          control={form.control}
+          name="create_form"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Crear formulario de registro para este evento
+                </FormLabel>
+                <FormMessage />
+              </div>
+            </FormItem>
+          )}
+        />
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
