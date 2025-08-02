@@ -9,15 +9,15 @@ const Toaster = dynamic(() => import('@/components/ui/sonner').then(mod => mod.T
 
 export default function RootLayoutClient({ children }) {
   const pathname = usePathname();
-  const isAuthRoute = pathname.startsWith('/admin') || pathname === '/login';
+  const isStandalonePage = pathname.startsWith('/admin') || pathname === '/login' || pathname.startsWith('/formularios');
 
   return (
     <>
-      {!isAuthRoute && <Navbar />}
+      {!isStandalonePage && <Navbar />}
       <main>
         {children}
       </main>
-      {!isAuthRoute && <Footer />}
+      {!isStandalonePage && <Footer />}
       <Toaster />
     </>
   );
