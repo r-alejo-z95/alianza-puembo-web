@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -29,8 +28,9 @@ const eventSchema = z.object({
   end_time: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: 'Fecha de fin inválida.',
   }),
-  registration_link: z.string().url({ message: "Por favor, introduce una URL válida." }).optional().or(z.literal('')),
-  create_form: z.boolean().default(false).optional(),
+  registration_link: z.string().optional(), // Removí la validación de URL
+  create_form: z.boolean().optional(),
+  regenerate_form: z.boolean().optional(),
 });
 
 export default function EventForm({ event, onSave, onCancel }) {
@@ -45,6 +45,8 @@ export default function EventForm({ event, onSave, onCancel }) {
       start_time: event?.start_time ? new Date(event.start_time).toLocaleString('sv').substring(0, 16) : '',
       end_time: event?.end_time ? new Date(event.end_time).toLocaleString('sv').substring(0, 16) : '',
       registration_link: event?.registration_link || '',
+      create_form: false,
+      regenerate_form: false,
     },
   });
 
@@ -56,13 +58,28 @@ export default function EventForm({ event, onSave, onCancel }) {
         start_time: event.start_time ? new Date(event.start_time).toLocaleString('sv').substring(0, 16) : '',
         end_time: event.end_time ? new Date(event.end_time).toLocaleString('sv').substring(0, 16) : '',
         registration_link: event.registration_link || '',
+        create_form: false,
+        regenerate_form: false,
       });
     }
   }, [event, form]);
 
   const onSubmit = (data) => {
-    onSave(data, posterFile);
+    // Limpiar los datos antes de enviarlos
+    const finalData = {
+      title: data.title,
+      description: data.description || '',
+      start_time: data.start_time,
+      end_time: data.end_time,
+      create_form: Boolean(data.create_form),
+      regenerate_form: Boolean(data.regenerate_form),
+    };
+
+    onSave(finalData, posterFile);
   };
+
+  // Determinar si el evento ya tiene un formulario
+  const hasExistingForm = event?.registration_link;
 
   return (
     <Form {...form}>
@@ -156,31 +173,108 @@ export default function EventForm({ event, onSave, onCancel }) {
           </FormControl>
           <FormMessage />
         </FormItem>
-        <FormField
-          control={form.control}
-          name="create_form"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>
-                  Crear formulario de registro para este evento
-                </FormLabel>
-                <FormMessage />
-              </div>
-            </FormItem>
-          )}
-        />
+
+        {/* Mostrar el enlace de registro actual si existe */}
+        {hasExistingForm && (
+          <FormItem>
+            <FormLabel>Enlace de Registro Actual</FormLabel>
+            <div className="p-3 bg-gray-50 rounded-md">
+              <span className="text-blue-600 text-sm">
+                {event.registration_link}
+              </span>
+            </div>
+          </FormItem>
+        )}
+
+        {/* Opciones de formulario según el estado del evento */}
+        {!event ? (
+          // Para eventos nuevos
+          <FormField
+            control={form.control}
+            name="create_form"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Crear formulario de registro para este evento
+                  </FormLabel>
+                  <p className="text-sm text-gray-600">
+                    Se creará automáticamente un formulario, una hoja de cálculo y una carpeta en Google Drive para almacenar las imágenes que suban los usarios que llenen el formulario
+                  </p>
+                  <FormMessage />
+                </div>
+              </FormItem>
+            )}
+          />
+        ) : !hasExistingForm ? (
+          // Para eventos existentes sin formulario
+          <FormField
+            control={form.control}
+            name="create_form"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>
+                    Crear formulario de registro para este evento
+                  </FormLabel>
+                  <p className="text-sm text-gray-600">
+                    Este evento no tiene formulario. Marca esta opción para crear uno
+                  </p>
+                  <FormMessage />
+                </div>
+              </FormItem>
+            )}
+          />
+        ) : (
+          // Para eventos existentes con formulario
+          <FormField
+            control={form.control}
+            name="regenerate_form"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 border-orange-200 bg-orange-50">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel className="text-orange-800">
+                    Regenerar formulario de registro
+                  </FormLabel>
+                  <p className="text-sm text-orange-700">
+                    ⚠️ Esto eliminará el formulario actual y creará uno nuevo con la misma URL.
+                    Se creará un nuevo Google Sheet. La anterior hoja de cálculo y la carpeta de Google Drive, seguirán guardadas.
+                  </p>
+                  <FormMessage />
+                </div>
+              </FormItem>
+            )}
+          />
+        )}
+
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button type="submit">Guardar Evento</Button>
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting}
+          >
+            {form.formState.isSubmitting ? 'Guardando...' : event ? 'Actualizar Evento' : 'Crear Evento'}
+          </Button>
         </div>
       </form>
     </Form>

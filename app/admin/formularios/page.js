@@ -23,7 +23,7 @@ export default function FormulariosAdminPage() {
             Crea y administra formularios personalizados para diversos propósitos.
           </p>
         </div>
-        <GoogleConnectButton />
+        {/* <GoogleConnectButton /> */}
       </div>
       <FormManager />
     </section>

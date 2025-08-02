@@ -203,3 +203,81 @@ export async function createFormAndSheet(formTitle: string) {
     return { error: 'Ocurrió un error inesperado.' };
   }
 }
+
+// Regenerate Form and Sheet Action (Using slug instead of form_id)
+export async function regenerateFormAndSheet(formSlug: string, newFormTitle: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: 'User not authenticated.' };
+  }
+
+  console.log('Regenerating form with slug:', formSlug);
+
+  try {
+    // 1. Buscar el formulario por slug
+    const { data: oldForm, error: fetchError } = await supabase
+      .from('forms')
+      .select('id, slug, title, google_sheet_id')
+      .eq('slug', formSlug)
+      .single();
+
+    console.log('Found form by slug:', oldForm);
+    console.log('Fetch error:', fetchError);
+
+    if (fetchError || !oldForm) {
+      console.error('Error fetching form by slug:', fetchError);
+      return { error: 'Error al obtener el formulario anterior.' };
+    }
+
+    const formId = oldForm.id;
+
+    // 2. Actualizar el formulario existente con el nuevo título
+    const { data: updatedForm, error: updateError } = await supabase
+      .from('forms')
+      .update({ 
+        title: newFormTitle,
+      })
+      .eq('id', formId)
+      .select('id, slug')
+      .single();
+
+    if (updateError || !updatedForm) {
+      console.error('Error updating form in DB:', updateError);
+      return { error: 'Error al actualizar el formulario en la base de datos.' };
+    }
+
+    // 3. Crear un nuevo Google Sheet (manteniendo el anterior)
+    const edgeFunctionUrl = process.env.NEXT_PUBLIC_SUPABASE_URL + '/functions/v1/sheets-drive-integration/create-sheet';
+    console.log('Creating new sheet for regenerated form');
+    
+    const response = await fetch(edgeFunctionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({ 
+        formId, 
+        formTitle: `${newFormTitle} (Regenerado)`, 
+        formSlug 
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('Error calling edge function:', result);
+      return { error: result.error || 'Error al crear la nueva hoja de cálculo de Google.' };
+    }
+
+    revalidatePath('/admin/formularios');
+
+    return { success: true, formId, formUrl: `/formularios/${formSlug}` };
+
+  } catch (error) {
+    console.error('Unexpected error in regenerateFormAndSheet:', error);
+    return { error: 'Ocurrió un error inesperado.' };
+  }
+}
