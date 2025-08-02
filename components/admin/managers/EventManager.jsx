@@ -176,7 +176,6 @@ export default function EventManager() {
                 toast.error(`Error al actualizar el evento: ${error.message || 'Error desconocido'}`);
                 return;
             } else {
-                console.log('Event updated successfully:', updatedData);
                 toast.success('Evento actualizado con éxito.');
             }
         } else {
@@ -192,7 +191,6 @@ export default function EventManager() {
                 toast.error(`Error al crear el evento: ${error.message || 'Error desconocido'}`);
                 return;
             } else {
-                console.log('Event created successfully:', createdData);
                 toast.success('Evento creado con éxito.');
             }
         }
