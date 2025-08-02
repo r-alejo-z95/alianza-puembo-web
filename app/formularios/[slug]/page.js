@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form'; // Import Controller
 import { toast } from 'sonner';
 import { ImageIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -27,7 +27,7 @@ export default function PublicForm() {
   const [fileNames, setFileNames] = useState({});
   const { slug } = useParams();
   const supabase = createClient();
-  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const { register, handleSubmit, formState: { errors }, reset, control } = useForm(); // Add control
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -74,8 +74,9 @@ export default function PublicForm() {
               reader.readAsDataURL(file);
             });
             processedData[key] = await fileReadPromise;
+          } else if (Array.isArray(value)) {
+            processedData[key] = value.join(', ');
           } else if (typeof value === 'object' && value !== null) {
-            // Handle checkbox groups: convert object of booleans to array of selected values
             const selectedOptions = Object.keys(value).filter(optionKey => value[optionKey]);
             processedData[key] = selectedOptions.join(', ');
           } else {
@@ -83,6 +84,9 @@ export default function PublicForm() {
           }
         }
       }
+
+      // Add timestamp
+      processedData.Timestamp = new Date().toLocaleString('es-EC', { timeZone: 'America/Guayaquil' });
 
       const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke(
         'sheets-drive-integration',
@@ -162,37 +166,54 @@ export default function PublicForm() {
                   );
                 case 'radio':
                   return (
-                    <div key={field.id}>
-                      <Label
-                        className="mb-2"
-                      >
-                        {field.label}{field.is_required && ' *'}
-                      </Label>
-                      <RadioGroup {...registrationProps}>
-                        {field.options.map(option => (
-                          <div key={option.id} className="flex items-center space-x-2">
-                            <RadioGroupItem value={option.value} id={`${fieldId}-${option.id}`} />
-                            <Label htmlFor={`${fieldId}-${option.id}`}>{option.label}</Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                      {errors[field.label] && <p className="text-red-500 text-sm">Este campo es requerido.</p>}
-                    </div>
+                    <Controller
+                      key={field.id}
+                      name={field.label}
+                      control={control}
+                      rules={{ required: field.is_required }}
+                      render={({ field: controllerField }) => (
+                        <div key={field.id}>
+                          <Label className="mb-2">{field.label}{field.is_required && ' *'}</Label>
+                          <RadioGroup
+                            onValueChange={controllerField.onChange}
+                            value={controllerField.value}
+                            className="mt-2"
+                          >
+                            {field.options.map(option => (
+                              <div key={option.id} className="flex items-center space-x-2">
+                                <RadioGroupItem value={option.value} id={`${fieldId}-${option.id}`} />
+                                <Label htmlFor={`${fieldId}-${option.id}`}>{option.label}</Label>
+                              </div>
+                            ))}
+                          </RadioGroup>
+                          {errors[field.label] && <p className="text-red-500 text-sm">Este campo es requerido.</p>}
+                        </div>
+                      )}
+                    />
                   );
                 case 'checkbox':
                   return (
                     <div key={field.id}>
-                      <Label
-                        className="mb-2"
-                      >
-                        {field.label}{field.is_required && ' *'}
-                      </Label>
-                      {field.options.map(option => (
-                        <div key={option.id} className="flex items-center space-x-2">
-                          <Checkbox id={`${fieldId}-${option.id}`} {...register(`${field.label}.${option.value}`, { required: field.is_required && field.options.length === 1 })} />
-                          <Label htmlFor={`${fieldId}-${option.id}`}>{option.label}</Label>
-                        </div>
-                      ))}
+                      <Label className="mb-2">{field.label}{field.is_required && ' *'}</Label>
+                      <div className="space-y-2 mt-2">
+                        {field.options.map(option => (
+                          <Controller
+                            key={option.id}
+                            name={`${field.label}.${option.value}`}
+                            control={control}
+                            render={({ field: controllerField }) => (
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`${fieldId}-${option.id}`}
+                                  checked={controllerField.value}
+                                  onCheckedChange={controllerField.onChange}
+                                />
+                                <Label htmlFor={`${fieldId}-${option.id}`}>{option.label}</Label>
+                              </div>
+                            )}
+                          />
+                        ))}
+                      </div>
                       {errors[field.label] && <p className="text-red-500 text-sm">Debes seleccionar al menos una opción.</p>}
                     </div>
                   );

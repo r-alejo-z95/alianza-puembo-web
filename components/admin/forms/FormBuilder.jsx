@@ -208,7 +208,7 @@ export default function FormBuilder({ form: initialForm, onSave, onCancel }) {
                   <h4 className="font-medium">Opciones</h4>
                   {field.options?.map((option, optionIndex) => (
                     <div key={option.id} className="flex items-center space-x-2">
-                      <Controller
+                      <FormField
                         control={form.control}
                         name={`fields.${index}.options.${optionIndex}.label`}
                         render={({ field: optionField }) => (
@@ -220,8 +220,8 @@ export default function FormBuilder({ form: initialForm, onSave, onCancel }) {
                                 onChange={(e) => {
                                   optionField.onChange(e);
                                   const newLabel = e.target.value;
-                                  const newValue = newLabel.toLowerCase().replace(/[^a-z0-9]+/g, '');
-                                  form.setValue(`fields.${index}.options.${optionIndex}.value`, newValue);
+                                  const newValue = newLabel.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+                                  form.setValue(`fields.${index}.options.${optionIndex}.value`, newValue || uuidv4());
                                 }}
                               />
                             </FormControl>

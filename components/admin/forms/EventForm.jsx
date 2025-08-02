@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -47,6 +47,18 @@ export default function EventForm({ event, onSave, onCancel }) {
       registration_link: event?.registration_link || '',
     },
   });
+
+  useEffect(() => {
+    if (event) {
+      form.reset({
+        title: event.title || '',
+        description: event.description || '',
+        start_time: event.start_time ? new Date(event.start_time).toLocaleString('sv').substring(0, 16) : '',
+        end_time: event.end_time ? new Date(event.end_time).toLocaleString('sv').substring(0, 16) : '',
+        registration_link: event.registration_link || '',
+      });
+    }
+  }, [event, form]);
 
   const onSubmit = (data) => {
     onSave(data, posterFile);
