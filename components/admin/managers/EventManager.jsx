@@ -250,7 +250,7 @@ export default function EventManager() {
     }, [events, currentPage, itemsPerPage]);
 
     return (
-        <Card>
+        <Card className="mb-16">
             <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Lista de Eventos</CardTitle>
                 <Button onClick={() => { setSelectedEvent(null); setIsFormOpen(true); }}>Añadir Evento</Button>

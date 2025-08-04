@@ -40,7 +40,7 @@ export default function AdminSidebar({ user, children }) {
   const router = useRouter();
 
   return (
-    <div className="flex min-h-screen w-full bg-gray-100 dark:bg-gray-900">
+    <div className="flex h-screen w-full bg-gray-100 dark:bg-gray-900">
       {/* Sidebar para pantallas grandes */}
       <aside className="hidden lg:flex w-64 bg-(--puembo-green) text-white p-4 flex-col shadow-lg">
         <div className="mb-8 flex justify-center border-b border-gray-100 pb-4">
@@ -155,9 +155,9 @@ export default function AdminSidebar({ user, children }) {
           </div>
         </div>
       </aside>
-      <main className="flex-1 p-2 lg:py-8 lg:px-8 overflow-x-hidden bg-gray-100 dark:bg-gray-900">
+      <main className="flex-1 p-2 lg:py-8 lg:px-8 overflow-x-hidden bg-white">
         {children}
       </main>
-    </div>
+    </div >
   );
 }

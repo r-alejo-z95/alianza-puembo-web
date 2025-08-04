@@ -42,6 +42,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Card } from "@/components/ui/card";
 
 export function EventCalendar({
   events = [],
@@ -162,9 +163,8 @@ export function EventCalendar({
     if (event.id) {
       onEventUpdate?.(event)
       // Show toast notification when an event is updated
-      toast(`Event "${event.title}" updated`, {
+      toast.success(`Event "${event.title}" updated`, {
         description: format(new Date(event.start), "MMM d, yyyy"),
-        position: "bottom-left",
       })
     } else {
       onEventAdd?.({
@@ -172,9 +172,8 @@ export function EventCalendar({
         id: Math.random().toString(36).substring(2, 11),
       })
       // Show toast notification when an event is added
-      toast(`Event "${event.title}" added`, {
+      toast.success(`Event "${event.title}" added`, {
         description: format(new Date(event.start), "MMM d, yyyy"),
-        position: "bottom-left",
       })
     }
     setIsEventDialogOpen(false)
@@ -189,9 +188,8 @@ export function EventCalendar({
 
     // Show toast notification when an event is deleted
     if (deletedEvent) {
-      toast(`Event "${deletedEvent.title}" deleted`, {
+      toast.success(`Event "${deletedEvent.title}" deleted`, {
         description: format(new Date(deletedEvent.start), "MMM d, yyyy"),
-        position: "bottom-left",
       })
     }
   }
@@ -200,9 +198,8 @@ export function EventCalendar({
     onEventUpdate?.(updatedEvent)
 
     // Show toast notification when an event is updated via drag and drop
-    toast(`Event "${updatedEvent.title}" moved`, {
+    toast.success(`Event "${updatedEvent.title}" moved`, {
       description: format(new Date(updatedEvent.start), "MMM d, yyyy"),
-      position: "bottom-left",
     })
   }
 
@@ -247,8 +244,8 @@ export function EventCalendar({
   }, [currentDate, view])
 
   return (
-    <div
-      className="flex flex-col rounded-lg border has-data-[slot=month-view]:flex-1"
+    <Card
+      className="has-data-[slot=month-view]:flex-1"
       style={
         {
           "--event-height": `${EventHeight}px`,
@@ -365,6 +362,6 @@ export function EventCalendar({
           onSave={handleEventSave}
           onDelete={handleEventDelete} />
       </CalendarDndProvider>
-    </div>
+    </Card>
   );
 }
