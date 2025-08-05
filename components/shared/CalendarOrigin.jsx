@@ -2,14 +2,19 @@
 
 import { IntegratedEventCalendar } from "../public/calendar/event-calendar/event-calendar";
 
+import { useAdminEventsContext } from '../providers/EventsProvider';
+import { useClientEventsContext } from '../providers/ClientEventsProvider';
+
 export function AdminCalendar() {
+  const adminEvents = useAdminEventsContext();
   return (
-    <IntegratedEventCalendar />
+    <IntegratedEventCalendar isAdmin={true} {...adminEvents} />
   );
 }
 
 export function UserCalendar() {
+  const clientEvents = useClientEventsContext();
   return (
-    <IntegratedEventCalendar />
+    <IntegratedEventCalendar isAdmin={false} {...clientEvents} />
   );
 }

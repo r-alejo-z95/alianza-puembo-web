@@ -10,33 +10,29 @@ interface Event {
   poster_w?: number;
   poster_h?: number;
   registration_link?: string;
+  all_day?: boolean;
+  color?: string;
+  location?: string;
 }
 
 /**
  * @description Obtiene todos los eventos para el calendario público.
- * @returns {Promise<Array>} Una promesa que se resuelve en un array de eventos formateados para FullCalendar.
+ * @returns {Promise<Array>} Una promesa que se resuelve en un array de eventos completos.
  */
-export async function getEventsForCalendar(): Promise<Array<any>> {
+export async function getEventsForCalendar(): Promise<Event[]> {
   const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('events')
-    .select('id, title, description, start_time, end_time');
+    .select('*')
+    .order('start_time', { ascending: true });
 
   if (error) {
     console.error('Error fetching events for calendar:', error);
     return [];
   }
 
-  return data.map(event => ({
-    id: event.id,
-    title: event.title,
-    start: event.start_time,
-    end: event.end_time,
-    extendedProps: {
-      description: event.description,
-    },
-  }));
+  return data || [];
 }
 
 /**

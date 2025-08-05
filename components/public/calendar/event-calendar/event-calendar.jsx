@@ -43,57 +43,25 @@ import {
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EventForm from '@/components/admin/forms/EventForm';
-import { createClient } from '@/lib/supabase/client';
-import { toast } from 'sonner';
-import { createFormAndSheet, regenerateFormAndSheet } from '@/lib/actions';
+import { useEventsContext } from '@/components/providers/EventsProvider';
+import { useRouter } from 'next/navigation';
 
 export function IntegratedEventCalendar({
   className,
-  initialView = "mes"
+  initialView = "mes",
+  isAdmin = false,
+  calendarEvents,
+  loading,
+  isCreatingForm,
+  saveEvent,
+  updateEvent
 }) {
-  const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState(initialView)
   const [isEventFormOpen, setIsEventFormOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState(null)
-  const [isCreatingForm, setIsCreatingForm] = useState(false);
 
-  const supabase = createClient();
-
-  // Fetch events from Supabase
-  const fetchEvents = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .order('start_time', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching events:', error);
-      toast.error('Error al cargar los eventos.');
-    } else {
-      // Transform events to match calendar format
-      const transformedEvents = data.map(event => ({
-        id: event.id,
-        title: event.title,
-        description: event.description,
-        start: new Date(event.start_time),
-        end: event.end_time ? new Date(event.end_time) : new Date(event.start_time),
-        allDay: event.all_day || false,
-        color: event.color || 'sky',
-        location: event.location,
-        // Keep original event data for form
-        originalEvent: event
-      }));
-      setEvents(transformedEvents);
-    }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  const router = useRouter();
 
   // Add keyboard shortcuts for view switching
   useEffect(() => {
@@ -161,13 +129,16 @@ export function IntegratedEventCalendar({
   }
 
   const handleEventSelect = (event) => {
+    if (!isAdmin) return; // Only allow editing in admin mode
+
     console.log("Event selected:", event);
-    // Use the original event data for the form
     setSelectedEvent(event.originalEvent);
     setIsEventFormOpen(true);
   }
 
   const handleEventCreate = (startTime) => {
+    if (!isAdmin) return; // Only allow creating in admin mode
+
     console.log("Creating new event at:", startTime);
 
     // Snap to 15-minute intervals
@@ -202,158 +173,21 @@ export function IntegratedEventCalendar({
   }
 
   const handleEventSave = async (eventData, posterFile) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    let poster_url = selectedEvent?.poster_url || null;
-    let poster_w = selectedEvent?.poster_w || null;
-    let poster_h = selectedEvent?.poster_h || null;
+    const result = await saveEvent(eventData, posterFile, selectedEvent);
 
-    // Handle poster upload
-    if (posterFile) {
-      if (selectedEvent && selectedEvent.poster_url) {
-        const oldFileName = selectedEvent.poster_url.split('/').pop();
-        const { error: deleteOldStorageError } = await supabase.storage
-          .from('event-posters')
-          .remove([oldFileName]);
+    if (result.success) {
+      setIsEventFormOpen(false);
+      setSelectedEvent(null);
 
-        if (deleteOldStorageError) {
-          console.error('Error deleting old poster from storage:', deleteOldStorageError);
-          toast.error('Error al eliminar el póster antiguo del almacenamiento.');
-        }
-      }
-
-      const fileName = `${Date.now()}_${posterFile.file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('event-posters')
-        .upload(fileName, posterFile.file);
-
-      if (uploadError) {
-        console.error('Error uploading poster:', uploadError);
-        toast.error('Error al subir el póster del evento.');
-        return;
-      } else {
-        const { data: urlData } = supabase.storage.from('event-posters').getPublicUrl(uploadData.path);
-        poster_url = urlData.publicUrl;
-        poster_w = posterFile.width;
-        poster_h = posterFile.height;
+      // Navigate to form editor if a form was created
+      if (result.formId && (eventData.create_form || eventData.regenerate_form)) {
+        router.push(`/admin/formularios?editFormId=${result.formId}`);
       }
     }
-
-    // Prepare event data
-    let dataToSave = {
-      title: eventData.title,
-      description: eventData.description || null,
-      start_time: new Date(eventData.start_time).toISOString(),
-      end_time: eventData.end_time ? new Date(eventData.end_time).toISOString() : null,
-      poster_url,
-      poster_w,
-      poster_h,
-      registration_link: selectedEvent?.registration_link || null,
-      form_id: selectedEvent?.form_id || null,
-      all_day: eventData.all_day || false,
-      color: eventData.color || 'sky',
-      location: eventData.location || null,
-      create_form: false
-    };
-
-    let shouldCreateForm = false;
-
-    // Determine if we need to create a form
-    if (!selectedEvent?.id && eventData.create_form) {
-      shouldCreateForm = true;
-    } else if (selectedEvent?.id && !selectedEvent.registration_link && eventData.create_form) {
-      shouldCreateForm = true;
-    } else if (selectedEvent?.id && selectedEvent.registration_link && eventData.regenerate_form) {
-      shouldCreateForm = true;
-    }
-
-    // Create form if necessary
-    if (shouldCreateForm) {
-      setIsCreatingForm(true);
-      try {
-        let formCreationResult;
-
-        if (selectedEvent?.registration_link && eventData.regenerate_form) {
-          const currentSlug = selectedEvent.registration_link.split('/').pop();
-          formCreationResult = await regenerateFormAndSheet(currentSlug, eventData.title);
-        } else {
-          formCreationResult = await createFormAndSheet(eventData.title);
-        }
-
-        const { success, formId, formUrl, error: formCreationError } = formCreationResult;
-
-        if (success) {
-          dataToSave.registration_link = formUrl;
-          dataToSave.form_id = formId;
-          toast.success(eventData.regenerate_form ? 'Formulario regenerado con éxito.' : 'Formulario de registro creado con éxito.');
-        } else {
-          console.error('Error creating form and sheet:', formCreationError);
-          toast.error(`Error al crear el formulario de registro: ${formCreationError}`);
-          setIsCreatingForm(false);
-          return;
-        }
-      } catch (error) {
-        console.error('Unexpected error during form and sheet creation:', error);
-        toast.error('Ocurrió un error inesperado al crear el formulario de registro.');
-        setIsCreatingForm(false);
-        return;
-      }
-      setIsCreatingForm(false);
-    }
-
-    // Save or update event
-    if (selectedEvent?.id) {
-      const { error } = await supabase
-        .from('events')
-        .update(dataToSave)
-        .eq('id', selectedEvent.id);
-
-      if (error) {
-        console.error('Error updating event:', error);
-        toast.error(`Error al actualizar el evento: ${error.message || 'Error desconocido'}`);
-        return;
-      } else {
-        toast.success('Evento actualizado con éxito.');
-      }
-    } else {
-      const { error } = await supabase
-        .from('events')
-        .insert([{ ...dataToSave, user_id: user?.id }]);
-
-      if (error) {
-        console.error('Error creating event:', error);
-        toast.error(`Error al crear el evento: ${error.message || 'Error desconocido'}`);
-        return;
-      } else {
-        toast.success('Evento creado con éxito.');
-      }
-    }
-
-    setIsEventFormOpen(false);
-    setSelectedEvent(null);
-    await fetchEvents();
   };
 
   const handleEventUpdate = async (updatedEvent) => {
-    // Handle drag and drop updates
-    const eventToUpdate = updatedEvent.originalEvent;
-
-    const { error } = await supabase
-      .from('events')
-      .update({
-        start_time: updatedEvent.start.toISOString(),
-        end_time: updatedEvent.end.toISOString(),
-      })
-      .eq('id', eventToUpdate.id);
-
-    if (error) {
-      console.error('Error updating event:', error);
-      toast.error('Error al mover el evento.');
-    } else {
-      toast.success(`Evento "${updatedEvent.title}" movido`, {
-        description: format(updatedEvent.start, "MMM d, yyyy", { locale: es }),
-      });
-      await fetchEvents();
-    }
+    await updateEvent(updatedEvent);
   };
 
   const viewTitle = useMemo(() => {
@@ -402,7 +236,7 @@ export function IntegratedEventCalendar({
       <Card className="flex items-center justify-center h-64">
         <div className="flex flex-col gap-4 justify-center items-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-(--puembo-green)" />
-          <p>Cargando eventos...</p>
+          <p>Cargando calendario...</p>
         </div>
       </Card>
     );
@@ -419,7 +253,7 @@ export function IntegratedEventCalendar({
             "--week-cells-height": `${WeekCellsHeight}px`
           }
         }>
-        <CalendarDndProvider onEventUpdate={handleEventUpdate}>
+        <CalendarDndProvider onEventUpdate={isAdmin ? handleEventUpdate : undefined}>
           <div className={cn("flex items-center justify-between p-2 sm:p-4", className)}>
             <div className="flex items-center gap-1 sm:gap-4">
               <Button
@@ -482,55 +316,57 @@ export function IntegratedEventCalendar({
             {view === "mes" && (
               <MonthView
                 currentDate={currentDate}
-                events={events}
+                events={calendarEvents}
                 onEventSelect={handleEventSelect}
-                onEventCreate={handleEventCreate} />
+                onEventCreate={isAdmin ? handleEventCreate : undefined} />
             )}
             {view === "semana" && (
               <WeekView
                 currentDate={currentDate}
-                events={events}
+                events={calendarEvents}
                 onEventSelect={handleEventSelect}
-                onEventCreate={handleEventCreate} />
+                onEventCreate={isAdmin ? handleEventCreate : undefined} />
             )}
             {view === "día" && (
               <DayView
                 currentDate={currentDate}
-                events={events}
+                events={calendarEvents}
                 onEventSelect={handleEventSelect}
-                onEventCreate={handleEventCreate} />
+                onEventCreate={isAdmin ? handleEventCreate : undefined} />
             )}
             {view === "agenda" && (
               <AgendaView
                 currentDate={currentDate}
-                events={events}
+                events={calendarEvents}
                 onEventSelect={handleEventSelect} />
             )}
           </div>
         </CalendarDndProvider>
       </Card>
 
-      <Dialog open={isEventFormOpen} onOpenChange={setIsEventFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedEvent?.id ? 'Editar Evento' : 'Crear Nuevo Evento'}</DialogTitle>
-          </DialogHeader>
-          {isCreatingForm && (
-            <div className="flex flex-col gap-4 justify-center items-center h-full">
-              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900" />
-              <p>Creando formulario de registro... Esto puede tomar unos segundos.</p>
-            </div>
-          )}
-          <EventForm
-            event={selectedEvent}
-            onSave={handleEventSave}
-            onCancel={() => {
-              setIsEventFormOpen(false);
-              setSelectedEvent(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      {isAdmin && (
+        <Dialog open={isEventFormOpen} onOpenChange={setIsEventFormOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{selectedEvent?.id ? 'Editar Evento' : 'Crear Nuevo Evento'}</DialogTitle>
+            </DialogHeader>
+            {isCreatingForm && (
+              <div className="flex flex-col gap-4 justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900" />
+                <p>Creando formulario de registro... Esto puede tomar unos segundos.</p>
+              </div>
+            )}
+            <EventForm
+              event={selectedEvent}
+              onSave={handleEventSave}
+              onCancel={() => {
+                setIsEventFormOpen(false);
+                setSelectedEvent(null);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }

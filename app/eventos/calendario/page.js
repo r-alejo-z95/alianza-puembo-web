@@ -1,6 +1,7 @@
-import UserCalendar from '@/components/public/calendar/UserCalendar';
+import { UserCalendar } from '@/components/shared/CalendarOrigin';
+import { ClientEventsProvider } from '@/components/providers/ClientEventsProvider';
 import { contentSection } from "@/lib/styles";
-import { getEventsForCalendar } from '@/lib/data/events.ts';
+import { getEventsForCalendar } from '@/lib/data/events';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 
 export const metadata = {
@@ -12,7 +13,8 @@ export const metadata = {
 };
 
 export default async function CalendarPage() {
-  const events = await getEventsForCalendar();
+  // Obten los eventos en el servidor para SSR
+  const initialEvents = await getEventsForCalendar();
 
   return (
     <PublicPageLayout
@@ -22,7 +24,9 @@ export default async function CalendarPage() {
       imageAlt="Evento en la iglesia"
     >
       <div className={contentSection}>
-        <UserCalendar events={events} />
+        <ClientEventsProvider initialEvents={initialEvents}>
+          <UserCalendar />
+        </ClientEventsProvider>
       </div>
     </PublicPageLayout>
   );
