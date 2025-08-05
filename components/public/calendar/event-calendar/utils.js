@@ -1,27 +1,34 @@
 import { isSameDay } from "date-fns"
 
 /**
+ * Available event colors
+ */
+export const eventColors = {
+  sky: { name: "Azul Cielo", bg: "bg-sky-500" },
+  amber: { name: "Ámbar", bg: "bg-amber-500" },
+  violet: { name: "Violeta", bg: "bg-violet-500" },
+  rose: { name: "Rosa", bg: "bg-rose-500" },
+  emerald: { name: "Verde Esmeralda", bg: "bg-emerald-500" },
+  orange: { name: "Naranja", bg: "bg-orange-500" },
+};
+
+/**
+ * Generates the color options array for the EventForm select input.
+ */
+export function getEventColorOptions() {
+  return Object.entries(eventColors).map(([value, { name, bg }]) => ({
+    value,
+    label: name,
+    color: bg,
+  }));
+}
+
+/**
  * Get CSS classes for event colors
  */
-export function getEventColorClasses(color) {
-  const eventColor = color || "sky"
-
-  switch (eventColor) {
-    case "sky":
-      return "bg-sky-200/50 hover:bg-sky-200/40 text-sky-950/80 dark:bg-sky-400/25 dark:hover:bg-sky-400/20 dark:text-sky-200 shadow-sky-700/8"
-    case "amber":
-      return "bg-amber-200/50 hover:bg-amber-200/40 text-amber-950/80 dark:bg-amber-400/25 dark:hover:bg-amber-400/20 dark:text-amber-200 shadow-amber-700/8"
-    case "violet":
-      return "bg-violet-200/50 hover:bg-violet-200/40 text-violet-950/80 dark:bg-violet-400/25 dark:hover:bg-violet-400/20 dark:text-violet-200 shadow-violet-700/8"
-    case "rose":
-      return "bg-rose-200/50 hover:bg-rose-200/40 text-rose-950/80 dark:bg-rose-400/25 dark:hover:bg-rose-400/20 dark:text-rose-200 shadow-rose-700/8"
-    case "emerald":
-      return "bg-emerald-200/50 hover:bg-emerald-200/40 text-emerald-950/80 dark:bg-emerald-400/25 dark:hover:bg-emerald-400/20 dark:text-emerald-200 shadow-emerald-700/8"
-    case "orange":
-      return "bg-orange-200/50 hover:bg-orange-200/40 text-orange-950/80 dark:bg-orange-400/25 dark:hover:bg-orange-400/20 dark:text-orange-200 shadow-orange-700/8"
-    default:
-      return "bg-sky-200/50 hover:bg-sky-200/40 text-sky-950/80 dark:bg-sky-400/25 dark:hover:bg-sky-400/20 dark:text-sky-200 shadow-sky-700/8"
-  }
+export function getEventColorClasses(i) {
+  const colorName = eventColors[i] ? i : "sky"; // Fallback to sky
+  return `bg-${colorName}-200/50 hover:bg-${colorName}-200/40 text-${colorName}-950/80 dark:bg-${colorName}-400/25 dark:hover:bg-${colorName}-400/20 dark:text-${colorName}-200 shadow-${colorName}-700/8`;
 }
 
 /**
@@ -98,7 +105,7 @@ export function getAllEventsForDay(events, day) {
     const eventStart = new Date(event.start)
     const eventEnd = new Date(event.end)
     return (isSameDay(day, eventStart) ||
-    isSameDay(day, eventEnd) || (day > eventStart && day < eventEnd));
+      isSameDay(day, eventEnd) || (day > eventStart && day < eventEnd));
   });
 }
 
@@ -111,7 +118,7 @@ export function getAgendaEventsForDay(events, day) {
       const eventStart = new Date(event.start)
       const eventEnd = new Date(event.end)
       return (isSameDay(day, eventStart) ||
-      isSameDay(day, eventEnd) || (day > eventStart && day < eventEnd));
+        isSameDay(day, eventEnd) || (day > eventStart && day < eventEnd));
     })
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 }

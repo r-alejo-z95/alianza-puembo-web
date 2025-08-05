@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getEventColorOptions } from '@/components/public/calendar/event-calendar/utils';
 import { ImageIcon } from 'lucide-react';
 
 const eventSchema = z.object({
@@ -42,16 +43,7 @@ const eventSchema = z.object({
   location: z.string().optional(),
 });
 
-const colorOptions = [
-  { value: 'sky', label: 'Azul cielo', color: 'bg-sky-500' },
-  { value: 'emerald', label: 'Verde esmeralda', color: 'bg-emerald-500' },
-  { value: 'amber', label: 'Ámbar', color: 'bg-amber-500' },
-  { value: 'orange', label: 'Naranja', color: 'bg-orange-500' },
-  { value: 'rose', label: 'Rosa', color: 'bg-rose-500' },
-  { value: 'violet', label: 'Violeta', color: 'bg-violet-500' },
-  { value: 'indigo', label: 'Índigo', color: 'bg-indigo-500' },
-  { value: 'teal', label: 'Verde azulado', color: 'bg-teal-500' },
-];
+const colorOptions = getEventColorOptions();
 
 export default function EventForm({ event, onSave, onCancel }) {
   const [posterFile, setPosterFile] = useState(null);
