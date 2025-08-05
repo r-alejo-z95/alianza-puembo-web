@@ -12,6 +12,7 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns"
+import { es } from 'date-fns/locale';
 
 import {
   DraggableEvent,
@@ -50,7 +51,7 @@ export function MonthView({
   const weekdays = useMemo(() => {
     return Array.from({ length: 7 }).map((_, i) => {
       const date = addDays(startOfWeek(new Date()), i)
-      return format(date, "EEE");
+      return format(date, "EEE", { locale: es });
     });
   }, [])
 
@@ -198,7 +199,7 @@ export function MonthView({
                               onClick={(e) => e.stopPropagation()}>
                               <span>
                                 + {remainingCount}{" "}
-                                <span className="max-sm:sr-only">more</span>
+                                <span className="max-sm:sr-only">más</span>
                               </span>
                             </button>
                           </PopoverTrigger>
@@ -211,8 +212,8 @@ export function MonthView({
                               }
                             }>
                             <div className="space-y-2">
-                              <div className="text-sm font-medium text-black">
-                                {format(day, "EEE d")}
+                              <div className="text-sm font-medium text-black capitalize">
+                                {format(day, "EEEE d", { locale: es })}
                               </div>
                               <div className="space-y-1">
                                 {sortEvents(allEvents).map((event) => {

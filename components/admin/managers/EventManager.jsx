@@ -14,7 +14,7 @@ import { EventRow } from './table-cells/EventRows';
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { useRouter } from 'next/navigation';
 
-export default function EventManager() {
+export default function EventManager({ onEventChange }) {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -40,6 +40,10 @@ export default function EventManager() {
             toast.error('Error al cargar los eventos.');
         } else {
             setEvents(data);
+            // Notify parent component if callback provided
+            if (onEventChange) {
+                onEventChange();
+            }
         }
         setLoading(false);
     };
@@ -54,9 +58,9 @@ export default function EventManager() {
         let poster_w = selectedEvent?.poster_w || null;
         let poster_h = selectedEvent?.poster_h || null;
 
-        // Manejar la subida del póster
+        // Handle poster upload
         if (posterFile) {
-            // Si se está actualizando un evento existente y se proporciona un nuevo póster, eliminar el anterior
+            // If updating an existing event and providing a new poster, remove the old one
             if (selectedEvent && selectedEvent.poster_url) {
                 const oldFileName = selectedEvent.poster_url.split('/').pop();
                 const { error: deleteOldStorageError } = await supabase.storage
@@ -86,7 +90,7 @@ export default function EventManager() {
             }
         }
 
-        // Preparar los datos básicos del evento
+        // Prepare basic event data
         let dataToSave = {
             title: eventData.title,
             description: eventData.description || null,
@@ -95,42 +99,45 @@ export default function EventManager() {
             poster_url,
             poster_w,
             poster_h,
-            registration_link: selectedEvent?.registration_link || null, // Mantener el link existente por defecto
-            form_id: selectedEvent?.form_id || null, // Mantener el form_id existente
-            create_form: false // Siempre false en la BD, es solo para lógica del frontend
+            registration_link: selectedEvent?.registration_link || null,
+            form_id: selectedEvent?.form_id || null,
+            all_day: eventData.all_day || false,
+            color: eventData.color || 'sky',
+            location: eventData.location || null,
+            create_form: false // Always false in DB, just for frontend logic
         };
 
         let createdFormId = null;
         let shouldCreateForm = false;
         let shouldNavigateToForm = false;
 
-        // Determinar si necesitamos crear un formulario
+        // Determine if we need to create a form
         if (!selectedEvent && eventData.create_form) {
-            // Evento nuevo con formulario
+            // New event with form
             shouldCreateForm = true;
             shouldNavigateToForm = true;
         } else if (selectedEvent && !selectedEvent.registration_link && eventData.create_form) {
-            // Evento existente sin formulario, ahora se quiere crear
+            // Existing event without form, now creating one
             shouldCreateForm = true;
             shouldNavigateToForm = true;
         } else if (selectedEvent && selectedEvent.registration_link && eventData.regenerate_form) {
-            // Evento existente con formulario, se quiere regenerar
+            // Existing event with form, regenerating
             shouldCreateForm = true;
             shouldNavigateToForm = true;
         }
 
-        // Crear el formulario si es necesario
+        // Create form if necessary
         if (shouldCreateForm) {
             setIsCreatingForm(true);
             try {
                 let formCreationResult;
 
                 if (selectedEvent && selectedEvent.registration_link && eventData.regenerate_form) {
-                    // Para regeneración: extraer el slug del registration_link y regenerar
+                    // For regeneration: extract slug from registration_link and regenerate
                     const currentSlug = selectedEvent.registration_link.split('/').pop();
                     formCreationResult = await regenerateFormAndSheet(currentSlug, eventData.title);
                 } else {
-                    // Para nuevos formularios: crear normalmente
+                    // For new forms: create normally
                     formCreationResult = await createFormAndSheet(eventData.title);
                 }
 
@@ -161,7 +168,7 @@ export default function EventManager() {
             setIsCreatingForm(false);
         }
 
-        // Guardar o actualizar el evento
+        // Save or update event
         if (selectedEvent) {
             const { data: updatedData, error } = await supabase
                 .from('events')
@@ -198,14 +205,14 @@ export default function EventManager() {
         setIsFormOpen(false);
         await fetchEvents();
 
-        // Navegar al editor de formularios si se creó un formulario
+        // Navigate to form editor if a form was created
         if (shouldNavigateToForm && createdFormId) {
             router.push(`/admin/formularios?editFormId=${createdFormId}`);
         }
     };
 
     const handleDelete = async (eventId) => {
-        // Obtener el evento para conseguir el poster_url antes de eliminarlo
+        // Get the event to get poster_url before deleting it
         const { data: eventToDelete, error: fetchError } = await supabase
             .from('events')
             .select('poster_url')
@@ -218,7 +225,7 @@ export default function EventManager() {
             return;
         }
 
-        // Si hay un poster_url, eliminar el archivo del almacenamiento
+        // If there's a poster_url, delete the file from storage
         if (eventToDelete.poster_url) {
             const fileName = eventToDelete.poster_url.split('/').pop();
             const { error: deleteStorageError } = await supabase.storage
@@ -231,7 +238,7 @@ export default function EventManager() {
             }
         }
 
-        // Eliminar el registro del evento de la base de datos
+        // Delete the event record from database
         const { error: deleteDbError } = await supabase.from('events').delete().eq('id', eventId);
         if (deleteDbError) {
             console.error('Error deleting event from database:', deleteDbError);
@@ -257,10 +264,15 @@ export default function EventManager() {
             </CardHeader>
             <CardContent className="max-w-full">
                 {loading ? (
-                    <p>Cargando eventos...</p>
+                    <div className="flex items-center justify-center h-32">
+                        <div className="flex flex-col gap-4 justify-center items-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-(--puembo-green)" />
+                            <p>Cargando eventos...</p>
+                        </div>
+                    </div>
                 ) : (
                     <div id='event-table'>
-                        {/* Pantallas grandes */}
+                        {/* Large screens */}
                         <div className="hidden lg:block overflow-x-auto">
                             <Table className="w-full">
                                 <TableHeader>
@@ -270,6 +282,8 @@ export default function EventManager() {
                                         <TableHead className="font-bold">Fecha</TableHead>
                                         <TableHead className="font-bold">Hora</TableHead>
                                         <TableHead className="font-bold">Póster</TableHead>
+                                        <TableHead className="font-bold">Color</TableHead>
+                                        <TableHead className="font-bold">Ubicación</TableHead>
                                         <TableHead className="font-bold">Link de Registro</TableHead>
                                         <TableHead className="font-bold">Acciones</TableHead>
                                     </TableRow>
@@ -296,7 +310,7 @@ export default function EventManager() {
                             )}
                         </div>
 
-                        {/* Pantallas pequeñas */}
+                        {/* Small screens */}
                         <div className="lg:hidden space-y-4">
                             <div className="w-full">
                                 {currentEvents.map((event) => (
@@ -329,7 +343,7 @@ export default function EventManager() {
                     </DialogHeader>
                     {isCreatingForm && (
                         <div className="flex flex-col gap-4 justify-center items-center h-full">
-                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-(--puembo-green)" />
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900" />
                             <p>Creando formulario de registro... Esto puede tomar unos segundos.</p>
                         </div>
                     )}

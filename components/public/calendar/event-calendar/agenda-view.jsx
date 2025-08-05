@@ -2,6 +2,7 @@
 import { useMemo } from "react"
 import { RiCalendarEventLine } from "@remixicon/react"
 import { addDays, format, isToday } from "date-fns"
+import { es } from "date-fns/locale";
 
 import { AgendaDaysToShow, EventItem, getAgendaEventsForDay } from "@/components/public/calendar/event-calendar";
 
@@ -32,9 +33,9 @@ export function AgendaView({
         <div
           className="flex min-h-[70svh] flex-col items-center justify-center py-16 text-center">
           <RiCalendarEventLine size={32} className="text-muted-foreground/50 mb-2" />
-          <h3 className="text-lg font-medium">No events found</h3>
+          <h3 className="text-lg font-medium">No hay eventos</h3>
           <p className="text-muted-foreground">
-            There are no events scheduled for this time period.
+            No hay events agendados para este periiodo de tiempo
           </p>
         </div>
       ) : (
@@ -48,7 +49,7 @@ export function AgendaView({
               <span
                 className="bg-background absolute -top-3 left-0 flex h-6 items-center pe-4 text-[10px] uppercase data-today:font-medium sm:pe-4 sm:text-xs"
                 data-today={isToday(day) || undefined}>
-                {format(day, "d MMM, EEEE")}
+                {format(day, "d MMM, EEEE", { locale: es })}
               </span>
               <div className="mt-6 space-y-2">
                 {dayEvents.map((event) => (

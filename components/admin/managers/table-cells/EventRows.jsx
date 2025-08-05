@@ -1,10 +1,22 @@
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { TableRow, TableCell } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { OverflowCell } from './OverflowCell';
 import { toast } from 'sonner';
-import { Edit, Trash2, Link as LinkIcon, Copy } from 'lucide-react';
+import { Edit, Trash2, Link as LinkIcon, Copy, MapPin } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+const colorMap = {
+    sky: 'bg-sky-500',
+    emerald: 'bg-emerald-500',
+    amber: 'bg-amber-500',
+    orange: 'bg-orange-500',
+    rose: 'bg-rose-500',
+    violet: 'bg-violet-500',
+    indigo: 'bg-indigo-500',
+    teal: 'bg-teal-500',
+};
 
 const formatEventDate = (start, end) => {
     const startDate = new Date(start);
@@ -27,6 +39,26 @@ const formatEventDate = (start, end) => {
         const endParts = esFormatter.format(endDate).replace(/\.$/, '').split(' ');
         return `${startDay} - ${endParts[0]} ${endParts[1]} ${endParts[2]}`;
     }
+};
+
+const formatEventTime = (event) => {
+    if (event.all_day) {
+        return 'Todo el día';
+    }
+
+    const startTime = new Date(event.start_time).toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Guayaquil'
+    });
+
+    const endTime = event.end_time ? new Date(event.end_time).toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Guayaquil'
+    }) : '';
+
+    return endTime ? `${startTime} - ${endTime}` : startTime;
 };
 
 export function EventRow({ event, onEdit, onDelete, compact }) {
@@ -98,6 +130,20 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
         </div>
     ) : "-";
 
+    const colorDisplay = event.color ? (
+        <div className="flex items-center gap-2">
+            <div className={`w-4 h-4 rounded-full ${colorMap[event.color] || 'bg-gray-400'}`} />
+            <span className="text-sm capitalize">{event.color}</span>
+        </div>
+    ) : "-";
+
+    const locationDisplay = event.location ? (
+        <div className="flex items-center gap-1">
+            <MapPin className="w-4 h-4 text-gray-500" />
+            <span className="text-sm">{event.location}</span>
+        </div>
+    ) : "-";
+
     const actions = (
         <div className="flex items-center gap-1">
             <Button variant="outline" size="icon" aria-label="Editar evento" onClick={onEdit}>
@@ -126,14 +172,21 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
     );
 
     const formattedDate = formatEventDate(event.start_time, event.end_time);
+    const formattedTime = formatEventTime(event);
 
     if (compact) {
         return (
             <div className='border rounded-lg p-4 shadow-sm space-y-2'>
-                <div><span className="font-semibold">Título:</span> {event.title}</div>
+                <div className="flex items-center gap-2">
+                    <span className="font-semibold">Título:</span>
+                    {event.color && <div className={`w-3 h-3 rounded-full ${colorMap[event.color] || 'bg-gray-400'}`} />}
+                    {event.title}
+                    {event.all_day && <Badge variant="secondary" className="text-xs">Todo el día</Badge>}
+                </div>
                 <div><span className="font-semibold">Descripción:</span> {event.description}</div>
                 <div><span className="font-semibold">Fecha:</span> {formattedDate}</div>
-                <div><span className="font-semibold">Hora:</span> {new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })} - {new Date(event.end_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })}</div>
+                <div><span className="font-semibold">Hora:</span> {formattedTime}</div>
+                {event.location && <div><span className="font-semibold">Ubicación:</span> {locationDisplay}</div>}
                 {event.poster_url && <div><span className="font-semibold">Póster:</span> {posterActions}</div>}
                 {event.registration_link && <div><span className="font-semibold">Link de Registro:</span> {registrationLinkActions}</div>}
                 <div className="flex gap-2 pt-2">{actions}</div>
@@ -144,7 +197,11 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
     return (
         <TableRow>
             <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
-                <OverflowCell>{event.title}</OverflowCell>
+                <div className="flex items-center gap-2">
+                    {event.color && <div className={`w-3 h-3 rounded-full ${colorMap[event.color] || 'bg-gray-400'}`} />}
+                    <OverflowCell>{event.title}</OverflowCell>
+                    {event.all_day && <Badge variant="secondary" className="text-xs">Todo el día</Badge>}
+                </div>
             </TableCell>
             <TableCell className="max-w-68 overflow-hidden text-ellipsis whitespace-nowrap">
                 <OverflowCell>{event.description}</OverflowCell>
@@ -152,8 +209,14 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
             <TableCell>
                 <OverflowCell>{formattedDate}</OverflowCell>
             </TableCell>
-            <TableCell>{new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })} - {new Date(event.end_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })}</TableCell>
+            <TableCell>{formattedTime}</TableCell>
             <TableCell>{posterActions}</TableCell>
+            <TableCell className="max-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
+                <OverflowCell>{colorDisplay}</OverflowCell>
+            </TableCell>
+            <TableCell className="max-w-40 overflow-hidden text-ellipsis whitespace-nowrap">
+                <OverflowCell>{locationDisplay}</OverflowCell>
+            </TableCell>
             <TableCell>{registrationLinkActions}</TableCell>
             <TableCell className="min-w-[150px]">{actions}</TableCell>
         </TableRow>

@@ -17,6 +17,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ImageIcon } from 'lucide-react';
 
 const eventSchema = z.object({
@@ -28,10 +35,24 @@ const eventSchema = z.object({
   end_time: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: 'Fecha de fin inválida.',
   }),
-  registration_link: z.string().optional(), // Removí la validación de URL
+  registration_link: z.string().optional(),
   create_form: z.boolean().optional(),
   regenerate_form: z.boolean().optional(),
+  all_day: z.boolean().optional(),
+  color: z.string().optional(),
+  location: z.string().optional(),
 });
+
+const colorOptions = [
+  { value: 'sky', label: 'Azul cielo', color: 'bg-sky-500' },
+  { value: 'emerald', label: 'Verde esmeralda', color: 'bg-emerald-500' },
+  { value: 'amber', label: 'Ámbar', color: 'bg-amber-500' },
+  { value: 'orange', label: 'Naranja', color: 'bg-orange-500' },
+  { value: 'rose', label: 'Rosa', color: 'bg-rose-500' },
+  { value: 'violet', label: 'Violeta', color: 'bg-violet-500' },
+  { value: 'indigo', label: 'Índigo', color: 'bg-indigo-500' },
+  { value: 'teal', label: 'Verde azulado', color: 'bg-teal-500' },
+];
 
 export default function EventForm({ event, onSave, onCancel }) {
   const [posterFile, setPosterFile] = useState(null);
@@ -47,6 +68,9 @@ export default function EventForm({ event, onSave, onCancel }) {
       registration_link: event?.registration_link || '',
       create_form: false,
       regenerate_form: false,
+      all_day: event?.all_day || false,
+      color: event?.color || 'sky',
+      location: event?.location || '',
     },
   });
 
@@ -60,12 +84,15 @@ export default function EventForm({ event, onSave, onCancel }) {
         registration_link: event.registration_link || '',
         create_form: false,
         regenerate_form: false,
+        all_day: event.all_day || false,
+        color: event.color || 'sky',
+        location: event.location || '',
       });
     }
   }, [event, form]);
 
   const onSubmit = (data) => {
-    // Limpiar los datos antes de enviarlos
+    // Clean data before sending
     const finalData = {
       title: data.title,
       description: data.description || '',
@@ -73,12 +100,15 @@ export default function EventForm({ event, onSave, onCancel }) {
       end_time: data.end_time,
       create_form: Boolean(data.create_form),
       regenerate_form: Boolean(data.regenerate_form),
+      all_day: Boolean(data.all_day),
+      color: data.color || 'sky',
+      location: data.location || '',
     };
 
     onSave(finalData, posterFile);
   };
 
-  // Determinar si el evento ya tiene un formulario
+  // Determine if the event already has a form
   const hasExistingForm = event?.registration_link;
 
   return (
@@ -97,6 +127,7 @@ export default function EventForm({ event, onSave, onCancel }) {
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="description"
@@ -110,6 +141,8 @@ export default function EventForm({ event, onSave, onCancel }) {
             </FormItem>
           )}
         />
+
+
         <FormField
           control={form.control}
           name="start_time"
@@ -123,6 +156,7 @@ export default function EventForm({ event, onSave, onCancel }) {
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="end_time"
@@ -136,6 +170,75 @@ export default function EventForm({ event, onSave, onCancel }) {
             </FormItem>
           )}
         />
+
+
+        <FormField
+          control={form.control}
+          name="all_day"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  Evento de todo el día
+                </FormLabel>
+                <p className="text-sm text-gray-600">
+                  Marcar si el evento dura todo el día sin horarios específicos
+                </p>
+              </div>
+            </FormItem>
+          )}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="color"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Color del Evento</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecciona un color" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {colorOptions.map((color) => (
+                      <SelectItem key={color.value} value={color.value}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-4 h-4 rounded-full ${color.color}`} />
+                          {color.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="location"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ubicación (Opcional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej: Santuario principal" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <FormItem>
           <FormLabel>Póster del Evento (Opcional)</FormLabel>
           <FormControl>
@@ -174,7 +277,7 @@ export default function EventForm({ event, onSave, onCancel }) {
           <FormMessage />
         </FormItem>
 
-        {/* Mostrar el enlace de registro actual si existe */}
+        {/* Show current registration link if exists */}
         {hasExistingForm && (
           <FormItem>
             <FormLabel>Enlace de Registro Actual</FormLabel>
@@ -186,9 +289,9 @@ export default function EventForm({ event, onSave, onCancel }) {
           </FormItem>
         )}
 
-        {/* Opciones de formulario según el estado del evento */}
+        {/* Form options based on event state */}
         {!event ? (
-          // Para eventos nuevos
+          // For new events
           <FormField
             control={form.control}
             name="create_form"
@@ -205,7 +308,7 @@ export default function EventForm({ event, onSave, onCancel }) {
                     Crear formulario de registro para este evento
                   </FormLabel>
                   <p className="text-sm text-gray-600">
-                    Se creará automáticamente un formulario, una hoja de cálculo y una carpeta en Google Drive para almacenar las imágenes que suban los usarios que llenen el formulario
+                    Se creará automáticamente un formulario, una hoja de cálculo y una carpeta en Google Drive para almacenar las imágenes que suban los usuarios que llenen el formulario
                   </p>
                   <FormMessage />
                 </div>
@@ -213,7 +316,7 @@ export default function EventForm({ event, onSave, onCancel }) {
             )}
           />
         ) : !hasExistingForm ? (
-          // Para eventos existentes sin formulario
+          // For existing events without form
           <FormField
             control={form.control}
             name="create_form"
@@ -238,7 +341,7 @@ export default function EventForm({ event, onSave, onCancel }) {
             )}
           />
         ) : (
-          // Para eventos existentes con formulario
+          // For existing events with form
           <FormField
             control={form.control}
             name="regenerate_form"

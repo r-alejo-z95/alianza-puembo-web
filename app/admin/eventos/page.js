@@ -19,7 +19,7 @@ export default function EventosPage() {
           Gestionar Eventos
         </h1>
         <p className={adminPageDescription}>
-          Administra los eventos de la iglesia.
+          Administra los eventos de la iglesia desde el calendario o la tabla.
         </p>
       </div>
       <EventManager />
