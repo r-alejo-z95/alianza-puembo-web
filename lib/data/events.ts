@@ -13,6 +13,7 @@ interface Event {
   all_day?: boolean;
   color?: string;
   location?: string;
+  is_multi_day?: boolean;
 }
 
 /**

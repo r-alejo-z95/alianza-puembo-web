@@ -1,51 +1,40 @@
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { TableRow, TableCell } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { OverflowCell } from './OverflowCell';
 import { toast } from 'sonner';
 import { Edit, Trash2, Link as LinkIcon, Copy, MapPin } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { getEventColorClasses } from '@/components/public/calendar/event-calendar/utils';
 
-const colorMap = {
-    sky: 'bg-sky-500',
-    emerald: 'bg-emerald-500',
-    amber: 'bg-amber-500',
-    orange: 'bg-orange-500',
-    rose: 'bg-rose-500',
-    violet: 'bg-violet-500',
-    indigo: 'bg-indigo-500',
-    teal: 'bg-teal-500',
-};
-
-const formatEventDate = (start, end) => {
+const formatEventDate = (start, end, isMultiDay) => {
     const startDate = new Date(start);
     const endDate = end ? new Date(end) : null;
 
-    const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Guayaquil' };
+    const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' };
     const esFormatter = new Intl.DateTimeFormat('es-ES', options);
 
-    const isSameDay = (d1, d2) => {
-        if (!d1 || !d2) return false;
-        return d1.getFullYear() === d2.getFullYear() &&
-            d1.getMonth() === d2.getMonth() &&
-            d1.getDate() === d2.getDate();
-    };
-
-    if (!endDate || isSameDay(startDate, endDate)) {
-        return esFormatter.format(startDate).replace(/\.$/, '');
+    if (isMultiDay && endDate) {
+        // For multi-day events, show date range
+        const startFormatted = esFormatter.format(startDate).replace(/\.$/, '');
+        const endFormatted = esFormatter.format(endDate).replace(/\.$/, '');
+        return `${startFormatted} - ${endFormatted}`;
     } else {
-        const startDay = startDate.getDate();
-        const endParts = esFormatter.format(endDate).replace(/\.$/, '').split(' ');
-        return `${startDay} - ${endParts[0]} ${endParts[1]} ${endParts[2]}`;
+        // For single-day events (all-day or timed), show just the start date
+        return esFormatter.format(startDate).replace(/\.$/, '');
     }
 };
 
 const formatEventTime = (event) => {
+    if (event.is_multi_day) {
+        return 'Varios días';
+    }
+
     if (event.all_day) {
         return 'Todo el día';
     }
 
+    // For timed events, show time range in local timezone
     const startTime = new Date(event.start_time).toLocaleTimeString('es-ES', {
         hour: '2-digit',
         minute: '2-digit',
@@ -132,7 +121,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
 
     const colorDisplay = event.color ? (
         <div className="flex items-center gap-2">
-            <div className={`w-4 h-4 rounded-full ${colorMap[event.color] || 'bg-gray-400'}`} />
+            <div className={`w-4 h-4 rounded-full ${getEventColorClasses(event.color)}`} />
             <span className="text-sm capitalize">{event.color}</span>
         </div>
     ) : "-";
@@ -171,17 +160,15 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
         </div>
     );
 
-    const formattedDate = formatEventDate(event.start_time, event.end_time);
+    const formattedDate = formatEventDate(event.start_time, event.end_time, event.is_multi_day);
     const formattedTime = formatEventTime(event);
 
     if (compact) {
         return (
             <div className='border rounded-lg p-4 shadow-sm space-y-2'>
                 <div className="flex items-center gap-2">
-                    <span className="font-semibold">Título:</span>
-                    {event.color && <div className={`w-3 h-3 rounded-full ${colorMap[event.color] || 'bg-gray-400'}`} />}
+                    {event.color && <div className={`w-3 h-3 rounded-full ${getEventColorClasses(event.color)}`} />}
                     {event.title}
-                    {event.all_day && <Badge variant="secondary" className="text-xs">Todo el día</Badge>}
                 </div>
                 <div><span className="font-semibold">Descripción:</span> {event.description}</div>
                 <div><span className="font-semibold">Fecha:</span> {formattedDate}</div>
@@ -198,9 +185,8 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
         <TableRow>
             <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
                 <div className="flex items-center gap-2">
-                    {event.color && <div className={`w-3 h-3 rounded-full ${colorMap[event.color] || 'bg-gray-400'}`} />}
+                    {event.color && <div className={`w-3 h-3 rounded-full ${getEventColorClasses(event.color)}`} />}
                     <OverflowCell>{event.title}</OverflowCell>
-                    {event.all_day && <Badge variant="secondary" className="text-xs">Todo el día</Badge>}
                 </div>
             </TableCell>
             <TableCell className="max-w-68 overflow-hidden text-ellipsis whitespace-nowrap">

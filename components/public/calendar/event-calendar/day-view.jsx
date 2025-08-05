@@ -171,7 +171,7 @@ export function DayView({
           <div className="grid grid-cols-[3rem_1fr] sm:grid-cols-[4rem_1fr]">
             <div className="relative">
               <span
-                className="text-muted-foreground/70 absolute bottom-0 left-0 h-6 w-16 max-w-full pe-2 text-right text-[10px] sm:pe-4 sm:text-xs">
+                className="text-muted-foreground/70 absolute bottom-2 left-0 h-6 w-16 max-w-full pe-2 text-right text-[10px] sm:pe-4 sm:text-xs">
                 Todo el día
               </span>
             </div>
@@ -188,6 +188,7 @@ export function DayView({
                     onClick={(e) => handleEventClick(event, e)}
                     event={event}
                     view="month"
+                    isAdmin={isAdmin}
                     isFirstDay={isFirstDay}
                     isLastDay={isLastDay}>
                     {/* Always show the title in day view for better usability */}

@@ -245,6 +245,7 @@ export function WeekView({
                         onClick={(e) => handleEventClick(event, e)}
                         event={event}
                         view="month"
+                        isAdmin={isAdmin}
                         isFirstDay={isFirstDay}
                         isLastDay={isLastDay}>
                         {/* Show title if it's the first day of the event or the first visible day in the week */}

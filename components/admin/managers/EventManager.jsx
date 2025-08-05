@@ -145,7 +145,7 @@ export default function EventManager() {
             <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>{selectedEvent ? 'Editar Evento' : 'Añadir Nuevo Evento'}</DialogTitle>
+                        <DialogTitle>{selectedEvent?.id ? 'Editar Evento' : 'Crear Nuevo Evento'}</DialogTitle>
                     </DialogHeader>
                     {isCreatingForm && (
                         <div className="flex flex-col gap-4 justify-center items-center h-full">

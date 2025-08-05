@@ -164,6 +164,7 @@ export function MonthView({
                                 onClick={(e) => handleEventClick(event, e)}
                                 event={event}
                                 view="month"
+                                isAdmin={isAdmin}
                                 isFirstDay={isFirstDay}
                                 isLastDay={isLastDay}>
                                 <div className="invisible" aria-hidden={true}>

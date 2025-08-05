@@ -9,7 +9,8 @@ import { AgendaDaysToShow, EventItem, getAgendaEventsForDay } from "@/components
 export function AgendaView({
   currentDate,
   events,
-  onEventSelect
+  onEventSelect,
+  isAdmin
 }) {
   // Show events for the next days based on constant
   const days = useMemo(() => {
@@ -57,6 +58,7 @@ export function AgendaView({
                     key={event.id}
                     event={event}
                     view="agenda"
+                    isAdmin={isAdmin}
                     onClick={(e) => handleEventClick(event, e)} />
                 ))}
               </div>

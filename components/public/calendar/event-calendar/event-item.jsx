@@ -26,7 +26,8 @@ function EventWrapper({
   dndListeners,
   dndAttributes,
   onMouseDown,
-  onTouchStart
+  onTouchStart,
+  isAdmin
 }) {
   // Always use the currentTime (if provided) to determine if the event is in the past
   const displayEnd = currentTime
@@ -70,21 +71,32 @@ export function EventItem({
   dndListeners,
   dndAttributes,
   onMouseDown,
-  onTouchStart
+  onTouchStart,
+  isAdmin
 }) {
   const eventColor = event.color
 
   // Use the provided currentTime (for dragging) or the event's actual time
   const displayStart = useMemo(() => {
+    if (event.allDay || event.is_multi_day) {
+      // For all-day or multi-day events, create a date at noon UTC to avoid timezone issues
+      const date = new Date(event.start);
+      return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0));
+    }
     return currentTime || new Date(event.start);
-  }, [currentTime, event.start])
+  }, [currentTime, event.start, event.allDay, event.is_multi_day])
 
   const displayEnd = useMemo(() => {
+    if (event.allDay || event.is_multi_day) {
+      // For all-day or multi-day events, create a date at noon UTC to avoid timezone issues
+      const date = new Date(event.end || event.start);
+      return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0));
+    }
     return currentTime
       ? new Date(new Date(currentTime).getTime() +
         (new Date(event.end).getTime() - new Date(event.start).getTime()))
       : new Date(event.end);
-  }, [currentTime, event.start, event.end])
+  }, [currentTime, event.start, event.end, event.allDay, event.is_multi_day])
 
   // Calculate event duration in minutes
   const durationMinutes = useMemo(() => {
@@ -92,7 +104,8 @@ export function EventItem({
   }, [displayStart, displayEnd])
 
   const getEventTime = () => {
-    if (event.allDay) return "All day"
+    if (event.is_multi_day) return "Varios días"
+    if (event.allDay) return "Todo el día"
 
     // For short events (less than 45 minutes), only show start time
     if (durationMinutes < 45) {
@@ -107,6 +120,7 @@ export function EventItem({
     return (
       <EventWrapper
         event={event}
+        isAdmin={isAdmin}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         isDragging={isDragging}
@@ -122,7 +136,7 @@ export function EventItem({
         onTouchStart={onTouchStart}>
         {children || (
           <span className="truncate">
-            {!event.allDay && (
+            {!event.allDay && !event.is_multi_day && (
               <span className="truncate font-normal opacity-70 sm:text-[11px]">
                 {formatTimeWithOptionalMinutes(displayStart)}{" "}
               </span>
@@ -138,6 +152,7 @@ export function EventItem({
     return (
       <EventWrapper
         event={event}
+        isAdmin={isAdmin}
         isFirstDay={isFirstDay}
         isLastDay={isLastDay}
         isDragging={isDragging}
@@ -156,7 +171,7 @@ export function EventItem({
         {durationMinutes < 45 ? (
           <div className="truncate">
             {event.title}{" "}
-            {showTime && (
+            {showTime && !event.allDay && !event.is_multi_day && (
               <span className="opacity-70">
                 {formatTimeWithOptionalMinutes(displayStart)}
               </span>
@@ -184,7 +199,7 @@ export function EventItem({
         getEventColorClasses(eventColor),
         className
       )}
-      data-past-event={isPast(new Date(event.end)) || undefined}
+      data-past-event={isPast(new Date(event.end || event.start)) || undefined}
       onClick={onClick}
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
@@ -192,8 +207,10 @@ export function EventItem({
       {...dndAttributes}>
       <div className="text-sm font-medium">{event.title}</div>
       <div className="text-xs opacity-70">
-        {event.allDay ? (
-          <span>All day</span>
+        {event.is_multi_day ? (
+          <span>Varios días</span>
+        ) : event.allDay ? (
+          <span>Todo el díaaaa</span>
         ) : (
           <span className="uppercase">
             {formatTimeWithOptionalMinutes(displayStart)} -{" "}

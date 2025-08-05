@@ -44,6 +44,7 @@ export function ClientEventsProvider({ children, initialEvents = [] }) {
         start: new Date(event.start_time),
         end: event.end_time ? new Date(event.end_time) : new Date(event.start_time),
         allDay: event.all_day || false,
+        is_multi_day: event.is_multi_day || false,
         color: event.color || 'sky',
         location: event.location,
         originalEvent: event
