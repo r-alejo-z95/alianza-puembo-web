@@ -16,6 +16,7 @@ export function DraggableEvent({
   multiDayWidth,
   isFirstDay = true,
   isLastDay = true,
+  isAdmin = false, // Default to false for safety
   "aria-hidden": ariaHidden
 }) {
   const { activeId } = useCalendarDnd()
@@ -41,6 +42,7 @@ export function DraggableEvent({
         isFirstDay,
         isLastDay,
       },
+      disabled: !isAdmin, // Disable dragging if not an admin
     })
 
   // Handle mouse down to track where on the event the user clicked

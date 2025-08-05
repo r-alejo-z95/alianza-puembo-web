@@ -35,7 +35,7 @@ export function AgendaView({
           <RiCalendarEventLine size={32} className="text-muted-foreground/50 mb-2" />
           <h3 className="text-lg font-medium">No hay eventos</h3>
           <p className="text-muted-foreground">
-            No hay events agendados para este periiodo de tiempo
+            No hay eventos agendados para este período de tiempo
           </p>
         </div>
       ) : (

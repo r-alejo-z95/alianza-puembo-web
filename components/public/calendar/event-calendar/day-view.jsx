@@ -30,7 +30,8 @@ export function DayView({
   currentDate,
   events,
   onEventSelect,
-  onEventCreate
+  onEventCreate,
+  isAdmin
 }) {
   const hours = useMemo(() => {
     const dayStart = startOfDay(currentDate)
@@ -234,7 +235,8 @@ export function DayView({
                   view="day"
                   onClick={(e) => handleEventClick(positionedEvent.event, e)}
                   showTime
-                  height={positionedEvent.height} />
+                  height={positionedEvent.height}
+                  isAdmin={isAdmin} />
               </div>
             </div>
           ))}
@@ -278,10 +280,12 @@ export function DayView({
                         "top-[calc(var(--week-cells-height)/4*3)]"
                       )}
                       onClick={() => {
-                        const startTime = new Date(currentDate)
-                        startTime.setHours(hourValue)
-                        startTime.setMinutes(quarter * 15)
-                        onEventCreate(startTime)
+                        if (onEventCreate) {
+                          const startTime = new Date(currentDate)
+                          startTime.setHours(hourValue)
+                          startTime.setMinutes(quarter * 15)
+                          onEventCreate(startTime)
+                        }
                       }} />
                   );
                 })}

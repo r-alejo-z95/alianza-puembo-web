@@ -318,21 +318,24 @@ export function IntegratedEventCalendar({
                 currentDate={currentDate}
                 events={calendarEvents}
                 onEventSelect={handleEventSelect}
-                onEventCreate={isAdmin ? handleEventCreate : undefined} />
+                onEventCreate={isAdmin ? handleEventCreate : undefined}
+                isAdmin={isAdmin} />
             )}
             {view === "semana" && (
               <WeekView
                 currentDate={currentDate}
                 events={calendarEvents}
                 onEventSelect={handleEventSelect}
-                onEventCreate={isAdmin ? handleEventCreate : undefined} />
+                onEventCreate={isAdmin ? handleEventCreate : undefined}
+                isAdmin={isAdmin} />
             )}
             {view === "día" && (
               <DayView
                 currentDate={currentDate}
                 events={calendarEvents}
                 onEventSelect={handleEventSelect}
-                onEventCreate={isAdmin ? handleEventCreate : undefined} />
+                onEventCreate={isAdmin ? handleEventCreate : undefined}
+                isAdmin={isAdmin} />
             )}
             {view === "agenda" && (
               <AgendaView

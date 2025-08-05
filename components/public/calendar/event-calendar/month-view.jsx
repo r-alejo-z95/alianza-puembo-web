@@ -37,7 +37,8 @@ export function MonthView({
   currentDate,
   events,
   onEventSelect,
-  onEventCreate
+  onEventCreate,
+  isAdmin
 }) {
   const days = useMemo(() => {
     const monthStart = startOfMonth(currentDate)
@@ -129,9 +130,11 @@ export function MonthView({
                     id={cellId}
                     date={day}
                     onClick={() => {
-                      const startTime = new Date(day)
-                      startTime.setHours(DefaultStartHour, 0, 0)
-                      onEventCreate(startTime)
+                      if (onEventCreate) {
+                        const startTime = new Date(day)
+                        startTime.setHours(DefaultStartHour, 0, 0)
+                        onEventCreate(startTime)
+                      }
                     }}>
                     <div
                       className="group-data-today:bg-primary group-data-today:text-primary-foreground mt-1 inline-flex size-6 items-center justify-center rounded-full text-sm">
@@ -186,7 +189,8 @@ export function MonthView({
                               view="month"
                               onClick={(e) => handleEventClick(event, e)}
                               isFirstDay={isFirstDay}
-                              isLastDay={isLastDay} />
+                              isLastDay={isLastDay}
+                              isAdmin={isAdmin} />
                           </div>
                         );
                       })}

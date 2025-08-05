@@ -36,7 +36,8 @@ export function WeekView({
   currentDate,
   events,
   onEventSelect,
-  onEventCreate
+  onEventCreate,
+  isAdmin
 }) {
   const days = useMemo(() => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 })
@@ -301,7 +302,8 @@ export function WeekView({
                     view="week"
                     onClick={(e) => handleEventClick(positionedEvent.event, e)}
                     showTime
-                    height={positionedEvent.height} />
+                    height={positionedEvent.height}
+                    isAdmin={isAdmin} />
                 </div>
               </div>
             ))}
@@ -343,10 +345,12 @@ export function WeekView({
                           "top-[calc(var(--week-cells-height)/4*3)]"
                         )}
                         onClick={() => {
-                          const startTime = new Date(day)
-                          startTime.setHours(hourValue)
-                          startTime.setMinutes(quarter * 15)
-                          onEventCreate(startTime)
+                          if (onEventCreate) {
+                            const startTime = new Date(day)
+                            startTime.setHours(hourValue)
+                            startTime.setMinutes(quarter * 15)
+                            onEventCreate(startTime)
+                          }
                         }} />
                     );
                   })}

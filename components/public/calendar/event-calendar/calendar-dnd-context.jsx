@@ -233,8 +233,8 @@ export function CalendarDndProvider({
         originalStart.getHours() !== newStart.getHours() ||
         originalStart.getMinutes() !== newStart.getMinutes()
 
-      if (hasStartTimeChanged) {
-        // Update the event only if the time has changed
+      if (hasStartTimeChanged && onEventUpdate) {
+        // Update the event only if the time has changed and the function exists
         onEventUpdate({
           ...calendarEvent,
           start: newStart,
