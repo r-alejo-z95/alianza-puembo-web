@@ -1,10 +1,16 @@
+'use client';
+
 import Image from 'next/image';
 import { cn } from '@/lib/utils.ts';
 import { sectionTitle, sectionText, contentSection, notAvailableText } from "@/lib/styles";
 import { Button } from '@/components/ui/button';
 import { PaginationControls } from "@/components/shared/PaginationControls";
+import { subDays } from 'date-fns';
 
-export function UpcomingEventsContentSection({ paginatedEvents, totalPages, hasNextPage }) {
+export function UpcomingEventsContentSection({ paginatedEvents, totalPages, hasNextPage, page }) {
+
+  const now = new Date();
+
   return (
     <section className={cn(contentSection, "bg-gray-100 py-16 md:py-24")}>
       {paginatedEvents.length === 0 ? (
@@ -34,22 +40,35 @@ export function UpcomingEventsContentSection({ paginatedEvents, totalPages, hasN
                   <p className={cn("text-gray-600", sectionText)}>
                     <span className="font-medium">Fecha:</span> {new Date(event.start_time).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Guayaquil' })}
                   </p>
-                  <p className={cn("text-gray-600", sectionText)}>
-                    <span className="font-medium">Hora:</span> {new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })}
-                  </p>
+                  {event.is_multi_day || event.all_day ? (
+                    null
+                  ) :
+                    (<p className={cn("text-gray-600", sectionText)}>
+                      <span className="font-medium">Hora:</span> {new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })}
+                    </p>)}
+                  {event.location && (
+                    <p className={cn("text-gray-600", sectionText)}>
+                      <span className="font-medium">Lugar:</span> {event.location}
+                    </p>
+                  )}
                 </div>
-                {event.registration_link && (
-                  <div className="mt-4">
-                    <a href={event.registration_link} target="_blank" rel="noopener noreferrer">
-                      <Button className="px-4 py-2 bg-(--puembo-green) text-white rounded-md hover:bg-[hsl(92,45.9%,40%)]">Regístrate</Button>
-                    </a>
-                  </div>
-                )}
+                <div className="mt-4">
+                  {event.registration_link ? (
+                    now < subDays(new Date(event.start_time), 7) ? (
+                      <a href={event.registration_link} target="_blank" rel="noopener noreferrer">
+                        <Button variant="green">Regístrate</Button>
+                      </a>
+                    ) : (
+                      <Button disabled variant="green">Ya no se aceptan registros</Button>
+                    )
+                  ) : null
+                  }
+                </div>
               </div>
             </div>
           ))}
           {totalPages > 1 && (
-            <PaginationControls hasNextPage={hasNextPage} totalPages={totalPages} basePath="/eventos/proximos-eventos" />
+            <PaginationControls hasNextPage={hasNextPage} totalPages={totalPages} basePath="/eventos/proximos-eventos" currentPage={page} />
           )}
         </div>
       )}

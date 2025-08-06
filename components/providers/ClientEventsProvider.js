@@ -24,7 +24,15 @@ export function ClientEventsProvider({ children, initialEvents = [] }) {
             console.error('Error fetching events:', error);
             toast.error('Error al cargar los eventos.');
         } else {
-            setEvents(data);
+            const now = new Date();
+            const upcomingEvents = (data || []).filter(event => new Date(event.end_time || event.start_time) >= now);
+            const eventsPerPage = 3; // Must match the value in lib/data/events.ts
+
+            const eventsWithPage = upcomingEvents.map((event, index) => ({
+                ...event,
+                page: Math.floor(index / eventsPerPage) + 1,
+            }));
+            setEvents(eventsWithPage);
         }
         setLoading(false);
     };
@@ -47,7 +55,8 @@ export function ClientEventsProvider({ children, initialEvents = [] }) {
         is_multi_day: event.is_multi_day || false,
         color: event.color || 'sky',
         location: event.location,
-        originalEvent: event
+        originalEvent: event,
+        page: event.page // Ensure page is passed
     }));
 
     const value = {

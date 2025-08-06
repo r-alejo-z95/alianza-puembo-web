@@ -43,7 +43,6 @@ import {
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EventForm from '@/components/admin/forms/EventForm';
-import { useEventsContext } from '@/components/providers/EventsProvider';
 import { useRouter } from 'next/navigation';
 
 export function IntegratedEventCalendar({
@@ -265,13 +264,13 @@ export function IntegratedEventCalendar({
               </Button>
               <div className="flex items-center sm:gap-2">
                 <Button
-                  variant="ghost"
+                  variant="green"
                   size="icon"
                   onClick={handlePrevious}
                   aria-label="Previous">
                   <ChevronLeftIcon size={16} aria-hidden="true" />
                 </Button>
-                <Button variant="ghost" size="icon" onClick={handleNext} aria-label="Next">
+                <Button variant="green" size="icon" onClick={handleNext} aria-label="Next">
                   <ChevronRightIcon size={16} aria-hidden="true" />
                 </Button>
               </div>

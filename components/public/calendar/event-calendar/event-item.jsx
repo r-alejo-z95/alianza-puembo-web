@@ -4,6 +4,8 @@ import { differenceInMinutes, format, getMinutes, isPast } from "date-fns"
 
 import { getBorderRadiusClasses, getEventColorClasses } from "@/components/public/calendar/event-calendar";
 import { cn } from "@/lib/utils"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import Link from 'next/link'
 
 // Using date-fns format with custom formatting:
 // 'h' - hours (1-12)
@@ -27,7 +29,8 @@ function EventWrapper({
   dndAttributes,
   onMouseDown,
   onTouchStart,
-  isAdmin
+  isAdmin,
+  displayStart
 }) {
   // Always use the currentTime (if provided) to determine if the event is in the past
   const displayEnd = currentTime
@@ -37,23 +40,62 @@ function EventWrapper({
 
   const isEventInPast = isPast(displayEnd)
 
+  const getPopoverEventTime = () => {
+    if (event.is_multi_day) return null;
+    if (event.allDay) return "Todo el día";
+    return formatTimeWithOptionalMinutes(displayStart);
+  };
+
   return (
-    <button
-      className={cn(
-        "focus-visible:border-ring focus-visible:ring-ring/50 flex size-full overflow-hidden px-1 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg data-past-event:line-through sm:px-2",
-        getEventColorClasses(event.color),
-        getBorderRadiusClasses(isFirstDay, isLastDay),
-        className
+    <>
+      {isAdmin ? (
+        <button
+          className={cn(
+            "cursor-pointer focus-visible:border-ring focus-visible:ring-ring/50 flex size-full overflow-hidden px-1 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg data-past-event:line-through sm:px-2",
+            getEventColorClasses(event.color),
+            getBorderRadiusClasses(isFirstDay, isLastDay),
+            className
+          )}
+          data-dragging={isDragging || undefined}
+          data-past-event={isEventInPast || undefined}
+          onClick={onClick}
+          onMouseDown={onMouseDown}
+          onTouchStart={onTouchStart}
+          {...dndListeners}
+          {...dndAttributes}>
+          {children}
+        </button>
+      ) : (
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "cursor-pointer focus-visible:border-ring focus-visible:ring-ring/50 flex size-full overflow-hidden px-1 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-past-event:line-through sm:px-2",
+                getEventColorClasses(event.color),
+                getBorderRadiusClasses(isFirstDay, isLastDay),
+                className
+              )}
+              data-past-event={isEventInPast || undefined}
+              onClick={onClick}
+              onMouseDown={onMouseDown}
+              onTouchStart={onTouchStart}
+              {...dndListeners}
+              {...dndAttributes}>
+              {children}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent side="top-start" className="bg-gray-100/90 backdrop-blur-xs border-white min-w-[100px] max-w-3xs break-words text-xs">
+            <Link href={`/eventos/proximos-eventos?page=${event.page}#` + encodeURIComponent(event.title)} target="_blank" rel="noopener noreferrer" className='cursor-pointer'>
+              <p className="font-bold text-base mb-1 text-black">{event.title}</p>
+              {event.description && (
+                <p className="text-gray-500 mb-2">{event.description}</p>
+              )}
+              <p className="text-gray-600">{getPopoverEventTime()}</p>
+            </Link>
+          </PopoverContent>
+        </Popover>
       )}
-      data-dragging={isDragging || undefined}
-      data-past-event={isEventInPast || undefined}
-      onClick={onClick}
-      onMouseDown={onMouseDown}
-      onTouchStart={onTouchStart}
-      {...dndListeners}
-      {...dndAttributes}>
-      {children}
-    </button>
+    </>
   );
 }
 
@@ -133,7 +175,8 @@ export function EventItem({
         dndListeners={dndListeners}
         dndAttributes={dndAttributes}
         onMouseDown={onMouseDown}
-        onTouchStart={onTouchStart}>
+        onTouchStart={onTouchStart}
+        displayStart={displayStart}>
         {children || (
           <span className="truncate">
             {!event.allDay && !event.is_multi_day && (
@@ -167,7 +210,8 @@ export function EventItem({
         dndListeners={dndListeners}
         dndAttributes={dndAttributes}
         onMouseDown={onMouseDown}
-        onTouchStart={onTouchStart}>
+        onTouchStart={onTouchStart}
+        displayStart={displayStart}>
         {durationMinutes < 45 ? (
           <div className="truncate">
             {event.title}{" "}
@@ -208,9 +252,9 @@ export function EventItem({
       <div className="text-sm font-medium">{event.title}</div>
       <div className="text-xs opacity-70">
         {event.is_multi_day ? (
-          <span>Varios días</span>
+          null
         ) : event.allDay ? (
-          <span>Todo el díaaaa</span>
+          <span>Todo el día</span>
         ) : (
           <span className="uppercase">
             {formatTimeWithOptionalMinutes(displayStart)} -{" "}

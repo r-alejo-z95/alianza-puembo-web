@@ -32,12 +32,13 @@ export default async function ProximosEventos({ searchParams }) {
       description="Mantente al tanto de lo que viene en nuestra comunidad."
       imageUrl="/eventos/Eventos.jpg"
       imageAlt="Personas en un evento de la iglesia"
-      introSectionData={introSectionData}
+      introSectionData={page === 1 ? introSectionData : undefined}
     >
       <UpcomingEventsContentSection
         paginatedEvents={paginatedEvents}
         totalPages={totalPages}
         hasNextPage={hasNextPage}
+        page={page}
       />
     </PublicPageLayout>
   );

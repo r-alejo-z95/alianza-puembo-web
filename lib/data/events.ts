@@ -20,10 +20,10 @@ interface Event {
  * @description Obtiene todos los eventos para el calendario público.
  * @returns {Promise<Array>} Una promesa que se resuelve en un array de eventos completos.
  */
-export async function getEventsForCalendar(): Promise<Event[]> {
+export async function getEventsForCalendar(): Promise<(Event & { page?: number })[]> {
   const supabase = await createClient();
   
-  const { data, error } = await supabase
+  const { data: events, error } = await supabase
     .from('events')
     .select('*')
     .order('start_time', { ascending: true });
@@ -33,7 +33,15 @@ export async function getEventsForCalendar(): Promise<Event[]> {
     return [];
   }
 
-  return data || [];
+  const now = new Date();
+  const upcomingEvents = (events as Event[]).filter(event => new Date(event.end_time || event.start_time) >= now);
+
+  const eventsPerPage = 3; // This should match the eventsPerPage in getUpcomingEvents
+
+  return upcomingEvents.map((event, index) => ({
+    ...event,
+    page: Math.floor(index / eventsPerPage) + 1,
+  }));
 }
 
 /**
@@ -56,7 +64,7 @@ export async function getUpcomingEvents(page: number = 1, eventsPerPage: number 
   }
 
   const now = new Date();
-  const upcomingEvents = (events as Event[]).filter(event => new Date(event.start_time) >= now);
+  const upcomingEvents = (events as Event[]).filter(event => new Date(event.end_time || event.start_time) >= now);
 
   const totalPages = Math.ceil(upcomingEvents.length / eventsPerPage);
   const paginatedEvents = upcomingEvents.slice(

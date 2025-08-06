@@ -11,23 +11,47 @@ const formatEventDate = (start, end, isMultiDay) => {
     const startDate = new Date(start);
     const endDate = end ? new Date(end) : null;
 
-    const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' };
-    const esFormatter = new Intl.DateTimeFormat('es-ES', options);
-
     if (isMultiDay && endDate) {
-        // For multi-day events, show date range
-        const startFormatted = esFormatter.format(startDate).replace(/\.$/, '');
-        const endFormatted = esFormatter.format(endDate).replace(/\.$/, '');
-        return `${startFormatted} - ${endFormatted}`;
+        // For multi-day events, show compact date range format: "6 - 8 ago"
+        const startDay = startDate.getUTCDate();
+        const endDay = endDate.getUTCDate();
+
+        // Check if both dates are in the same month
+        const sameMonth = startDate.getUTCMonth() === endDate.getUTCMonth() &&
+            startDate.getUTCFullYear() === endDate.getUTCFullYear();
+
+        if (sameMonth) {
+            // Same month: "6-8 ago 2025"
+            const monthOptions = { month: 'short', timeZone: 'UTC' };
+            const monthFormatted = new Intl.DateTimeFormat('es-ES', monthOptions)
+                .format(startDate).replace(/\.$/, '');
+            const year = startDate.getUTCFullYear();
+            return `${startDay}-${endDay} ${monthFormatted} ${year}`;
+        } else {
+            // Different months: "30 jul-2 ago 2025"
+            const startOptions = { day: 'numeric', month: 'short', timeZone: 'UTC' };
+            const endOptions = { day: 'numeric', month: 'short', timeZone: 'UTC' };
+
+            const startFormatted = new Intl.DateTimeFormat('es-ES', startOptions)
+                .format(startDate).replace(/\.$/, '');
+            const endFormatted = new Intl.DateTimeFormat('es-ES', endOptions)
+                .format(endDate).replace(/\.$/, '');
+
+            // Use the year from the end date (in case it spans years)
+            const year = endDate.getUTCFullYear();
+            return `${startFormatted}-${endFormatted} ${year}`;
+        }
     } else {
         // For single-day events (all-day or timed), show just the start date
+        const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' };
+        const esFormatter = new Intl.DateTimeFormat('es-ES', options);
         return esFormatter.format(startDate).replace(/\.$/, '');
     }
 };
 
 const formatEventTime = (event) => {
     if (event.is_multi_day) {
-        return 'Varios días';
+        return null;
     }
 
     if (event.all_day) {
@@ -47,7 +71,7 @@ const formatEventTime = (event) => {
         timeZone: 'America/Guayaquil'
     }) : '';
 
-    return endTime ? `${startTime} - ${endTime}` : startTime;
+    return endTime ? `${startTime}-${endTime}` : startTime;
 };
 
 export function EventRow({ event, onEdit, onDelete, compact }) {
@@ -119,13 +143,6 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
         </div>
     ) : "-";
 
-    const colorDisplay = event.color ? (
-        <div className="flex items-center gap-2">
-            <div className={`w-4 h-4 rounded-full ${getEventColorClasses(event.color)}`} />
-            <span className="text-sm capitalize">{event.color}</span>
-        </div>
-    ) : "-";
-
     const locationDisplay = event.location ? (
         <div className="flex items-center gap-1">
             <MapPin className="w-4 h-4 text-gray-500" />
@@ -170,9 +187,9 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                     {event.color && <div className={`w-3 h-3 rounded-full ${getEventColorClasses(event.color)}`} />}
                     {event.title}
                 </div>
-                <div><span className="font-semibold">Descripción:</span> {event.description}</div>
-                <div><span className="font-semibold">Fecha:</span> {formattedDate}</div>
-                <div><span className="font-semibold">Hora:</span> {formattedTime}</div>
+                {event.description && <div><span className="font-semibold">Descripción:</span> {event.description}</div>}
+                {event.date && <div><span className="font-semibold">Fecha:</span> {formattedDate}</div>}
+                {event.time && <div><span className="font-semibold">Hora:</span> {formattedTime}</div>}
                 {event.location && <div><span className="font-semibold">Ubicación:</span> {locationDisplay}</div>}
                 {event.poster_url && <div><span className="font-semibold">Póster:</span> {posterActions}</div>}
                 {event.registration_link && <div><span className="font-semibold">Link de Registro:</span> {registrationLinkActions}</div>}
@@ -183,10 +200,12 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
 
     return (
         <TableRow>
-            <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                    {event.color && <div className={`w-3 h-3 rounded-full ${getEventColorClasses(event.color)}`} />}
-                    <OverflowCell>{event.title}</OverflowCell>
+            <TableCell className="max-w-36">
+                <div className="flex items-center gap-2 overflow-hidden">
+                    {event.color && <div className={`w-3 h-3 rounded-full flex-shrink-0 ${getEventColorClasses(event.color)}`} />}
+                    <div className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        <OverflowCell>{event.title}</OverflowCell>
+                    </div>
                 </div>
             </TableCell>
             <TableCell className="max-w-68 overflow-hidden text-ellipsis whitespace-nowrap">
@@ -196,13 +215,10 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                 <OverflowCell>{formattedDate}</OverflowCell>
             </TableCell>
             <TableCell>{formattedTime}</TableCell>
-            <TableCell>{posterActions}</TableCell>
-            <TableCell className="max-w-32 overflow-hidden text-ellipsis whitespace-nowrap">
-                <OverflowCell>{colorDisplay}</OverflowCell>
-            </TableCell>
             <TableCell className="max-w-40 overflow-hidden text-ellipsis whitespace-nowrap">
                 <OverflowCell>{locationDisplay}</OverflowCell>
             </TableCell>
+            <TableCell>{posterActions}</TableCell>
             <TableCell>{registrationLinkActions}</TableCell>
             <TableCell className="min-w-[150px]">{actions}</TableCell>
         </TableRow>

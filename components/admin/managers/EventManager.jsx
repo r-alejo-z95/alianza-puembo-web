@@ -87,9 +87,8 @@ export default function EventManager() {
                                         <TableHead className="font-bold">Descripción</TableHead>
                                         <TableHead className="font-bold">Fecha</TableHead>
                                         <TableHead className="font-bold">Hora</TableHead>
-                                        <TableHead className="font-bold">Póster</TableHead>
-                                        <TableHead className="font-bold">Color</TableHead>
                                         <TableHead className="font-bold">Ubicación</TableHead>
+                                        <TableHead className="font-bold">Póster</TableHead>
                                         <TableHead className="font-bold">Link de Registro</TableHead>
                                         <TableHead className="font-bold">Acciones</TableHead>
                                     </TableRow>
@@ -149,7 +148,7 @@ export default function EventManager() {
                     </DialogHeader>
                     {isCreatingForm && (
                         <div className="flex flex-col gap-4 justify-center items-center h-full">
-                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900" />
+                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-(--puembo-green)" />
                             <p>Creando formulario de registro... Esto puede tomar unos segundos.</p>
                         </div>
                     )}
