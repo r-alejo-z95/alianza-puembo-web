@@ -15,13 +15,13 @@ const donationSections = [
       {
         bank: "Banco del Pacífico",
         type: "Cuenta corriente",
-        number: "#7469640",
+        number: "7469640",
         name: "Iglesia Evangélica Ecuatoriana",
       },
       {
         bank: "Banco del Pichincha",
         type: "Cuenta corriente",
-        number: "#2100268002",
+        number: "2100268002",
         name: "Iglesia Evangélica Ecuatoriana",
       },
     ],
@@ -33,7 +33,7 @@ const donationSections = [
       {
         bank: "Banco del Pichincha",
         type: "Cuenta ahorros",
-        number: "#2208033009",
+        number: "2208033009",
         name: "Iglesia Alianza Puembo",
       },
     ],
