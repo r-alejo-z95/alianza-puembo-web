@@ -48,15 +48,22 @@ export async function submitContactForm(prevState: ContactFormState, formData: F
 
   try {
     await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: 'Formulario de Contacto – Alianza Puembo <contactform@alianzapuembo.org>',
       to: 'r.alejo.z95@gmail.com',
-      subject: `Mensaje de Contacto de ${name}`,
+      replyTo: email,
+      subject: `${name} ha enviado un mensaje desde el formulario de contacto – Alianza Puembo Web`,
       html: `
         <p><strong>Nombre:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
         <p><strong>Teléfono:</strong> ${phone || 'N/A'}</p>
         <p><strong>Mensaje:</strong></p>
-        <p>${message}</p>
+        <p style="background: #f9f9f9; padding: 15px; border-radius: 5px;">${message}</p>
+      
+        <br />
+        <hr style="border: 0; border-top: 1px solid #eee;" />
+        <p style="font-size: 12px; color: #888; font-style: italic;">
+        <strong>Nota interna:</strong> Para responder a la persona que llenó este formulario, solo haz clic en "Responder" a este correo. Se enviará directamente a <b>${email}</b>.
+        </p>
       `,
     });
 
