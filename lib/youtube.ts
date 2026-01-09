@@ -29,7 +29,9 @@ export async function getYouTubeChannelStatus(): Promise<YouTubeChannelStatus> {
   const apiKey = process.env.YOUTUBE_API_KEY;
   const channelId = process.env.YOUTUBE_CHANNEL_ID;
   const baseApiUrl = "https://www.googleapis.com/youtube/v3";
-  const fallbackUrl = channelId ? `https://www.youtube.com/channel/${channelId}` : "https://www.youtube.com/c/IglesiaAlianzaPuembo";
+  const fallbackUrl = channelId
+    ? `https://www.youtube.com/channel/${channelId}`
+    : "https://www.youtube.com/c/IglesiaAlianzaPuembo";
 
   if (!apiKey || !channelId) {
     console.error("YouTube API Key or Channel ID is not configured.");
@@ -54,51 +56,74 @@ export async function getYouTubeChannelStatus(): Promise<YouTubeChannelStatus> {
       }
     }
 
-    // 2. Get the latest playlist starting with "Serie"
-    const playlistsUrl = `${baseApiUrl}/playlists?part=snippet&channelId=${channelId}&maxResults=50&key=${apiKey}`;
-    const playlistsResponse = await fetch(playlistsUrl, {
-      next: { revalidate: 3600 }, // Revalidate every hour
-    });
-    const playlistsData = await playlistsResponse.json();
+    // 2. If not live, find the latest relevant video by comparing the latest upload and latest completed stream.
+    const latestVideoUrl = `${baseApiUrl}/search?part=snippet&channelId=${channelId}&order=date&maxResults=1&type=video&key=${apiKey}`;
+    const latestStreamUrl = `${baseApiUrl}/search?part=snippet&channelId=${channelId}&order=date&maxResults=1&type=video&eventType=completed&key=${apiKey}`;
 
-    const seriesPlaylist = playlistsData.items?.find((playlist: any) =>
-      playlist.snippet.title.trim().toLowerCase().startsWith("serie")
-    );
+    const [latestVideoResponse, latestStreamResponse] = await Promise.all([
+      fetch(latestVideoUrl, { next: { revalidate: 3600 } }),
+      fetch(latestStreamUrl, { next: { revalidate: 3600 } }),
+    ]);
 
-    if (seriesPlaylist) {
-      const playlistId = seriesPlaylist.id;
-      const playlistItemsUrl = `${baseApiUrl}/playlistItems?part=snippet&playlistId=${playlistId}&maxResults=50&key=${apiKey}`;
-      const itemsResponse = await fetch(playlistItemsUrl, {
-        next: { revalidate: 3600 },
-      });
-      const itemsData = await itemsResponse.json();
+    if (!latestVideoResponse.ok) {
+      console.error(
+        "Failed to fetch latest video:",
+        await latestVideoResponse.text()
+      );
+    }
+    if (!latestStreamResponse.ok) {
+      console.error(
+        "Failed to fetch latest stream:",
+        await latestStreamResponse.text()
+      );
+    }
 
-      if (itemsData.items && itemsData.items.length > 0) {
-        const latestItem = itemsData.items
-          .sort(
-            (a: any, b: any) =>
-              new Date(b.snippet.publishedAt).getTime() -
-              new Date(a.snippet.publishedAt).getTime()
-          )[0];
+    const latestVideoData = latestVideoResponse.ok
+      ? await latestVideoResponse.json()
+      : { items: [] };
+    const latestStreamData = latestStreamResponse.ok
+      ? await latestStreamResponse.json()
+      : { items: [] };
 
-        const videoId = latestItem.snippet.resourceId.videoId;
+    const latestVideo = latestVideoData.items?.[0];
+    const latestStream = latestStreamData.items?.[0];
 
-        return {
-          isLive: false,
-          videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
-        };
+    const extractLeadingNumber = (title: string): number | null => {
+      if (!title) return null;
+      const match = title.trim().match(/^(\d+)/);
+      return match ? parseInt(match[1], 10) : null;
+    };
+
+    const videoNumber = latestVideo
+      ? extractLeadingNumber(latestVideo.snippet.title)
+      : null;
+    const streamNumber = latestStream
+      ? extractLeadingNumber(latestStream.snippet.title)
+      : null;
+
+    let selectedVideo = null;
+
+    if (videoNumber !== null && streamNumber !== null) {
+      selectedVideo = videoNumber > streamNumber ? latestVideo : latestStream;
+    } else if (videoNumber !== null) {
+      selectedVideo = latestVideo;
+    } else if (streamNumber !== null) {
+      selectedVideo = latestStream;
+    } else {
+      // Fallback if no numbers are found: use the most recent of the two.
+      if (latestVideo && latestStream) {
+        selectedVideo =
+          new Date(latestVideo.snippet.publishedAt) >
+          new Date(latestStream.snippet.publishedAt)
+            ? latestVideo
+            : latestStream;
+      } else {
+        selectedVideo = latestVideo || latestStream;
       }
     }
 
-    // 3. Fallback to latest video if no matching playlist
-    const latestVideoUrl = `${baseApiUrl}/search?part=snippet&channelId=${channelId}&order=date&maxResults=1&type=video&key=${apiKey}`;
-    const latestVideoResponse = await fetch(latestVideoUrl, {
-      next: { revalidate: 3600 },
-    });
-    const latestVideoData = await latestVideoResponse.json();
-
-    if (latestVideoData.items && latestVideoData.items.length > 0) {
-      const videoId = latestVideoData.items[0].id.videoId;
+    if (selectedVideo) {
+      const videoId = selectedVideo.id.videoId;
       return {
         isLive: false,
         videoUrl: `https://www.youtube.com/watch?v=${videoId}`,
