@@ -24,16 +24,16 @@ const markerPosition = {
 };
 
 export default function GoogleMapView({ onMapLoad }) {
-  const destinationLat = markerPosition.lat;
-  const destinationLng = markerPosition.lng;
   const destinationLabel = "Iglesia Alianza Puembo";
-  const fallbackWebUrl = `https://www.google.com/maps/dir/?api=1&destination=${destinationLat},${destinationLng}`;
+  const encodedLabel = encodeURIComponent(destinationLabel);
+  const fallbackWebUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLabel}`;
 
   const handleGetDirections = async () => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     if (isMobile) {
-      const geoUrl = `geo:${destinationLat},${destinationLng}?q=${destinationLat},${destinationLng}(${encodeURIComponent(destinationLabel)})`;
+      // Use geo: protocol for all mobile devices searching by name
+      const geoUrl = `geo:0,0?q=${encodedLabel}`;
       window.location.href = geoUrl;
     } else {
       if (!navigator.geolocation) {
@@ -47,7 +47,7 @@ export default function GoogleMapView({ onMapLoad }) {
           navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
         });
         const { latitude, longitude } = position.coords;
-        const mapsUrl = `https://www.google.com/maps/dir/${latitude},${longitude}/${destinationLat},${destinationLng}`;
+        const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${encodedLabel}`;
         window.open(mapsUrl, "_blank", "noopener,noreferrer");
       } catch (error) {
         console.error("Error getting user location:", error.message);
