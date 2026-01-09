@@ -49,7 +49,7 @@ export async function submitContactForm(prevState: ContactFormState, formData: F
   try {
     await resend.emails.send({
       from: 'Formulario de Contacto – Alianza Puembo <contactform@alianzapuembo.org>',
-      to: 'r.alejo.z95@gmail.com',
+      to: 'agarcia@alianzapuembo.org',
       replyTo: email,
       subject: `${name} ha enviado un mensaje desde el formulario de contacto – Alianza Puembo Web`,
       html: `
