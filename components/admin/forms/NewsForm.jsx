@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useRef, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -14,11 +14,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { ImageIcon } from 'lucide-react';
+} from "@/components/ui/form";
+import { ImageIcon } from "lucide-react";
 
 const newsSchema = z.object({
-  title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),
+  title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
   description: z.string().optional(),
   date: z.string().optional(),
   time: z.string().optional(),
@@ -28,42 +28,39 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
   const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Helper to format date for input from ISO string
-  const getFormattedDate = (dateString, hasDate) => {
-    if (!dateString || !hasDate) return '';
-    const d = new Date(dateString);
-    if (d.getFullYear() <= 1) return ''; // Extra check for placeholder
+  // Helper to format date for input from date string
+  const getFormattedDate = (dateString) => {
+    if (!dateString) return "";
+    const d = new Date(dateString + "T00:00:00");
+    if (d.getFullYear() <= 1) return ""; // Extra check for placeholder
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
-  const getFormattedTime = (dateString, hasTime) => {
-    if (!dateString || !hasTime) return '';
-    const d = new Date(dateString);
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+  const getFormattedTime = (timeString) => {
+    if (!timeString) return "";
+    return timeString; // Assuming it's already HH:MM
   };
 
   const form = useForm({
     resolver: zodResolver(newsSchema),
     defaultValues: {
-      title: newsItem?.title || '',
-      description: newsItem?.description || '',
-      date: newsItem?.date ? getFormattedDate(newsItem.date, newsItem.has_date) : '',
-      time: newsItem?.date ? getFormattedTime(newsItem.date, newsItem.has_time) : '',
+      title: newsItem?.title || "",
+      description: newsItem?.description || "",
+      date: getFormattedDate(newsItem?.date),
+      time: getFormattedTime(newsItem?.time),
     },
   });
 
   useEffect(() => {
     if (newsItem) {
       form.reset({
-        title: newsItem.title || '',
-        description: newsItem.description || '',
-        date: newsItem?.date ? getFormattedDate(newsItem.date, newsItem.has_date) : '',
-        time: newsItem?.date ? getFormattedTime(newsItem.date, newsItem.has_time) : '',
+        title: newsItem.title || "",
+        description: newsItem.description || "",
+        date: getFormattedDate(newsItem?.date),
+        time: getFormattedTime(newsItem?.time),
       });
     }
   }, [newsItem, form]);
@@ -96,7 +93,10 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
             <FormItem>
               <FormLabel>Descripción</FormLabel>
               <FormControl>
-                <Textarea placeholder="Descripción de la noticia..." {...field} />
+                <Textarea
+                  placeholder="Descripción de la noticia..."
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -146,7 +146,11 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                     reader.onload = (e) => {
                       const img = new Image();
                       img.onload = () => {
-                        setImageFile({ file, width: img.width, height: img.height });
+                        setImageFile({
+                          file,
+                          width: img.width,
+                          height: img.height,
+                        });
                       };
                       img.src = e.target.result;
                     };
@@ -165,9 +169,13 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                 <ImageIcon className="h-4 w-4 mr-2" /> Seleccionar Imagen
               </Button>
               {imageFile ? (
-                <span className="text-sm text-gray-500">{imageFile.file.name}</span>
+                <span className="text-sm text-gray-500">
+                  {imageFile.file.name}
+                </span>
               ) : newsItem?.image_url ? (
-                 <span className="text-sm text-gray-500">Imagen actual guardada</span>
+                <span className="text-sm text-gray-500">
+                  Imagen actual guardada
+                </span>
               ) : null}
             </div>
           </FormControl>
@@ -178,11 +186,12 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting ? 'Guardando...' : newsItem?.id ? 'Actualizar Noticia' : 'Crear Noticia'}
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting
+              ? "Guardando..."
+              : newsItem?.id
+                ? "Actualizar Noticia"
+                : "Crear Noticia"}
           </Button>
         </div>
       </form>

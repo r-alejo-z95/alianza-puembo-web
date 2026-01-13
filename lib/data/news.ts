@@ -1,12 +1,10 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from "@/lib/supabase/server";
 
 interface NewsItem {
   id: string;
   title: string;
   description: string;
   date: string;
-  has_date: boolean;
-  has_time: boolean;
   image_url?: string;
   image_w?: number;
   image_h?: number;
@@ -21,16 +19,23 @@ const NEWS_PER_PAGE = 3;
  * @param {number} newsPerPage - El número de noticias por página.
  * @returns {Promise<{paginatedNews: Array, totalPages: number, hasNextPage: boolean}>} Un objeto con las noticias paginadas y la información de paginación.
  */
-export async function getNews(page: number = 1, newsPerPage: number = NEWS_PER_PAGE): Promise<{ paginatedNews: (NewsItem & { page?: number })[], totalPages: number, hasNextPage: boolean }> {
+export async function getNews(
+  page: number = 1,
+  newsPerPage: number = NEWS_PER_PAGE
+): Promise<{
+  paginatedNews: (NewsItem & { page?: number })[];
+  totalPages: number;
+  hasNextPage: boolean;
+}> {
   const supabase = await createClient();
 
   const { data: news, error } = await supabase
-    .from('news')
-    .select('*')
-    .order('date', { ascending: true, nullsFirst: true});
+    .from("news")
+    .select("*")
+    .order("date", { ascending: true, nullsFirst: true });
 
   if (error) {
-    console.error('Error fetching news:', error);
+    console.error("Error fetching news:", error);
     return { paginatedNews: [], totalPages: 0, hasNextPage: false };
   }
 
