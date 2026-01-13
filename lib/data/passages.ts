@@ -37,17 +37,34 @@ export async function getPassagesByWeek(weekNumber) {
 export async function getLatestWeekPassages() {
   noStore();
   const supabase = await createClient();
-  const { data: latestWeek, error: latestWeekError } = await supabase
+  const today = new Date().toLocaleDateString('en-CA');
+
+  const { data: currentWeek, error: currentWeekError } = await supabase
     .from('lom_passages')
     .select('week_number')
-    .order('week_number', { ascending: false })
+    .lte('week_start_date', today)
+    .order('week_start_date', { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
-  if (latestWeekError || !latestWeek) {
-    console.error('Error fetching latest week number:', latestWeekError);
-    return [];
+  if (currentWeekError) {
+    console.error('Error fetching current week number:', currentWeekError);
   }
 
-  return getPassagesByWeek(latestWeek.week_number);
+  let targetWeekNumber;
+  if (currentWeek) {
+    targetWeekNumber = currentWeek.week_number;
+  } else {
+    const { data: latestWeek } = await supabase
+      .from('lom_passages')
+      .select('week_number')
+      .order('week_number', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    if (!latestWeek) return [];
+    targetWeekNumber = latestWeek.week_number;
+  }
+
+  return getPassagesByWeek(targetWeekNumber);
 }

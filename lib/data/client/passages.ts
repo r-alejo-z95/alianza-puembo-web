@@ -1,32 +1,47 @@
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from "@/lib/supabase/client";
 
-export async function getLatestWeekPassages() {
+export async function getThisWeekPassages() {
   const supabase = createClient();
-  const { data: latestWeeks, error: latestWeekError } = await supabase
-    .from('lom_passages')
-    .select('week_number')
-    .order('week_number', { ascending: false })
+  const today = new Date().toLocaleDateString("en-CA");
+
+  // Try to find the week that is currently in progress
+  const { data: currentWeeks, error: currentWeekError } = await supabase
+    .from("lom_passages")
+    .select("week_number")
+    .lte("week_start_date", today)
+    .order("week_start_date", { ascending: false })
     .limit(1);
 
-  if (latestWeekError) {
-    console.error('Error fetching latest week number:', latestWeekError);
-    return [];
+  if (currentWeekError) {
+    console.error("Error fetching current week number:", currentWeekError);
   }
 
-  if (!latestWeeks || latestWeeks.length === 0) {
-    return []; // No passages found, return empty
-  }
+  let targetWeekNumber;
 
-  const latestWeekNumber = latestWeeks[0].week_number;
+  if (currentWeeks && currentWeeks.length > 0) {
+    targetWeekNumber = currentWeeks[0].week_number;
+  } else {
+    // Fallback: If no week has started yet, get the one with the highest week number
+    const { data: latestWeeks, error: latestWeekError } = await supabase
+      .from("lom_passages")
+      .select("week_number")
+      .order("week_number", { ascending: false })
+      .limit(1);
+
+    if (latestWeekError || !latestWeeks || latestWeeks.length === 0) {
+      return [];
+    }
+    targetWeekNumber = latestWeeks[0].week_number;
+  }
 
   const { data, error } = await supabase
-    .from('lom_passages')
-    .select('*')
-    .eq('week_number', latestWeekNumber)
-    .order('day_of_week', { ascending: true });
+    .from("lom_passages")
+    .select("*")
+    .eq("week_number", targetWeekNumber)
+    .order("day_of_week", { ascending: true });
 
   if (error) {
-    console.error('Error fetching passages by week:', error);
+    console.error("Error fetching passages by week:", error);
     return [];
   }
   return data;

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { getLomPosts } from "@/lib/data/client/lom";
-import { getLatestWeekPassages } from "@/lib/data/client/passages";
+import { getThisWeekPassages } from "@/lib/data/client/passages";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import {
   contentSection,
@@ -43,7 +43,7 @@ export default function LomPage() {
       setLoading(true);
       const [lomPosts, weeklyPassages] = await Promise.all([
         getLomPosts(),
-        getLatestWeekPassages(),
+        getThisWeekPassages(),
       ]);
       setPosts(lomPosts);
       const sortedPassages = weeklyPassages.sort((a, b) => {
