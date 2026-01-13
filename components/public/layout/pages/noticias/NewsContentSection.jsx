@@ -32,15 +32,15 @@ export function NewsContentSection({ news, totalPages, hasNextPage, page }) {
               )}
               <div className='flex flex-col justify-center items-center gap-2'>
                 <div className='flex flex-col'>
-                  {item.date && (
-                    <>
-                      <p className={cn("text-gray-600", sectionText)}>
-                        <span className="font-medium">Fecha:</span> {new Date(item.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Guayaquil' })}
-                      </p>
-                      <p className={cn("text-gray-600", sectionText)}>
-                        <span className="font-medium">Hora:</span> {new Date(item.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })}
-                      </p>
-                    </>
+                  {item.has_date && item.date && (
+                    <p className={cn("text-gray-600", sectionText)}>
+                      <span className="font-medium">Fecha:</span> {new Date(item.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Guayaquil' })}
+                    </p>
+                  )}
+                  {item.has_time && item.date && (
+                    <p className={cn("text-gray-600", sectionText)}>
+                      <span className="font-medium">Hora:</span> {new Date(item.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })}
+                    </p>
                   )}
                 </div>
               </div>

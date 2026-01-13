@@ -28,18 +28,19 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
   const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Helper to format date for input from ISO string (or Date object)
-  const getFormattedDate = (dateString) => {
-    if (!dateString) return '';
+  // Helper to format date for input from ISO string
+  const getFormattedDate = (dateString, hasDate) => {
+    if (!dateString || !hasDate) return '';
     const d = new Date(dateString);
+    if (d.getFullYear() <= 1) return ''; // Extra check for placeholder
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   };
 
-  const getFormattedTime = (dateString) => {
-    if (!dateString) return '';
+  const getFormattedTime = (dateString, hasTime) => {
+    if (!dateString || !hasTime) return '';
     const d = new Date(dateString);
     const hours = String(d.getHours()).padStart(2, '0');
     const minutes = String(d.getMinutes()).padStart(2, '0');
@@ -51,8 +52,8 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
     defaultValues: {
       title: newsItem?.title || '',
       description: newsItem?.description || '',
-      date: newsItem?.date ? getFormattedDate(newsItem.date) : '',
-      time: newsItem?.date ? getFormattedTime(newsItem.date) : '',
+      date: newsItem?.date ? getFormattedDate(newsItem.date, newsItem.has_date) : '',
+      time: newsItem?.date ? getFormattedTime(newsItem.date, newsItem.has_time) : '',
     },
   });
 
@@ -61,8 +62,8 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
       form.reset({
         title: newsItem.title || '',
         description: newsItem.description || '',
-        date: newsItem?.date ? getFormattedDate(newsItem.date) : '',
-        time: newsItem?.date ? getFormattedTime(newsItem.date) : '',
+        date: newsItem?.date ? getFormattedDate(newsItem.date, newsItem.has_date) : '',
+        time: newsItem?.date ? getFormattedTime(newsItem.date, newsItem.has_time) : '',
       });
     }
   }, [newsItem, form]);
