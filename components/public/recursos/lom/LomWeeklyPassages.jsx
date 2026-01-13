@@ -47,7 +47,7 @@ export function LomWeeklyPassages({
                       href={getBibleLink(passage.passage_reference)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-(--puembo-green) hover:underline"
+                      className="md:hover:text-(--puembo-green) md:hover:underline md:text-black md:no-underline text-(--puembo-green) underline"
                     >
                       {passage.passage_reference}
                     </a>
