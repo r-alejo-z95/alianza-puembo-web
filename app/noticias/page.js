@@ -1,5 +1,6 @@
 import { NewsContentSection } from "@/components/public/layout/pages/noticias/NewsContentSection";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
+import { getNews } from "@/lib/data/news";
 
 export const metadata = {
   title: "Noticias",
@@ -9,7 +10,11 @@ export const metadata = {
   },
 };
 
-export default function Noticias() {
+export default async function Noticias({ searchParams }) {
+  const resolvedSearchParams = await searchParams;
+  const page = parseInt(resolvedSearchParams.page) || 1;
+  const { paginatedNews, totalPages, hasNextPage } = await getNews(page);
+
   const introSectionData = {
     title: "Mantente Informado",
     description: [
@@ -27,9 +32,15 @@ export default function Noticias() {
       description="Mantente informado sobre los últimos acontecimientos de nuestra iglesia."
       imageUrl="/noticias/Noticias.jpg"
       imageAlt="Personas compartiendo"
-      introSectionData={introSectionData}
+      introSectionData={page === 1 ? introSectionData : undefined}
     >
-      <NewsContentSection />
+      <NewsContentSection
+        news={paginatedNews}
+        totalPages={totalPages}
+        hasNextPage={hasNextPage}
+        page={page}
+      />
     </PublicPageLayout>
   );
 }
+

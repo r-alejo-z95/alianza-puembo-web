@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from 'next/navigation';
 import Link from "next/link";
 import Image from "next/image";
-import { Home, Calendar, BookOpen, HandHelping, Menu, FileText } from "lucide-react";
+import { Home, Calendar, BookOpen, HandHelping, Menu, FileText, Newspaper } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const navLinks = [
   { href: "/admin/eventos", label: "Eventos", icon: Calendar },
+  { href: "/admin/noticias", label: "Noticias", icon: Newspaper },
   { href: "/admin/lom", label: "LOM", icon: BookOpen },
   { href: "/admin/oracion", label: "Peticiones", icon: HandHelping },
   { href: "/admin/formularios", label: "Formularios", icon: FileText },
