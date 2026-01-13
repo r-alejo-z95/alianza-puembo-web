@@ -33,11 +33,11 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
         </div>
     );
 
-    const formattedDate = new Date(post.created_at).toLocaleDateString('es-ES', {
+    const formattedDate = new Date(post.publication_date).toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        timeZone: 'America/Guayaquil',
+        timeZone: 'UTC',
     });
 
     if (compact) {

@@ -41,13 +41,13 @@ export default async function LomPostPage({ params }) {
     notFound();
   }
 
-  const { prevPost, nextPost } = await getLomNavigationPosts(post.created_at);
+  const { prevPost, nextPost } = await getLomNavigationPosts(post.publication_date);
 
-  const publicationDate = new Date(post.created_at).toLocaleDateString('es-ES', {
+  const publicationDate = new Date(post.publication_date).toLocaleDateString('es-ES', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    timeZone: 'America/Guayaquil',
+    timeZone: 'UTC',
   });
 
   return (

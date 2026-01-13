@@ -31,6 +31,7 @@ import { PaginationControls } from "@/components/shared/PaginationControls";
 const lomSchema = z.object({
   title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),
   content: z.string().min(10, 'El contenido debe tener al menos 10 caracteres.'),
+  publication_date: z.string().min(1, 'La fecha de publicación es requerida.'),
 });
 
 export default function LomManager() {
@@ -38,6 +39,7 @@ export default function LomManager() {
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editorKey, setEditorKey] = useState(0);
 
   const { isLg } = useScreenSize();
   const itemsPerPage = 3; // Always 3 for LOM posts
@@ -49,6 +51,7 @@ export default function LomManager() {
     defaultValues: {
       title: '',
       content: '',
+      publication_date: '',
     },
   });
 
@@ -112,7 +115,9 @@ export default function LomManager() {
     form.reset({
       title: '',
       content: '',
+      publication_date: '',
     });
+    setEditorKey((prev) => prev + 1);
     fetchPosts();
   };
 
@@ -121,7 +126,9 @@ export default function LomManager() {
     form.reset({
       title: post.title,
       content: post.content,
+      publication_date: post.publication_date ? new Date(post.publication_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     });
+    setEditorKey((prev) => prev + 1);
   };
 
   const handleDelete = async (postId) => {
@@ -167,19 +174,32 @@ export default function LomManager() {
             />
             <FormField
               control={form.control}
+              name="publication_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fecha de Publicación</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="content"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Contenido</FormLabel>
                   <FormControl>
-                    <RichTextEditor content={field.value} onChange={field.onChange} />
+                    <RichTextEditor key={editorKey} content={field.value} onChange={field.onChange} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => { form.reset({ title: '', content: '' }); setSelectedPost(null); }}>Cancelar</Button>
+              <Button type="button" variant="outline" onClick={() => { form.reset({ title: '', content: '', publication_date: '' }); setSelectedPost(null); setEditorKey((prev) => prev + 1); }}>Cancelar</Button>
               <Button type="submit" disabled={loading}>
                 {selectedPost ? 'Actualizar' : 'Publicar'}
               </Button>
