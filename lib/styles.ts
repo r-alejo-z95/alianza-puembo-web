@@ -19,7 +19,7 @@ export const secondaryTextSizes: string = "text-base md:text-lg";
 export const pageSection: string = "container mx-auto px-4 py-12";
 export const pageHeaderContainer: string = "text-center mb-12";
 export const pageTitle: string = "text-2xl md:text-4xl font-bold tracking-tight font-merriweather";
-export const pageDescription: string = "mt-4 text-sm md:text-lg text-muted-foreground";
+export const pageDescription: string = "mt-4 text-sm md:text-lg text-gray-300/90";
 
 export const imageHeaderContainer: string = "relative w-full h-[20vh] md:h-[30vh] lg:h-[35vh] flex items-center justify-center text-center overflow-hidden";
 

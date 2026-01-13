@@ -16,7 +16,7 @@ export function UpcomingEventsContentSection({ paginatedEvents, totalPages, hasN
       {paginatedEvents.length === 0 ? (
         <p className={notAvailableText}>No hay eventos próximamente.</p>
       ) : (
-        <div className="flex flex-col gap-10 md:gap-16 w-full mx-auto">
+        <div className="flex flex-col gap-10 md:gap-16 w-full md:w-auto mx-auto">
           {paginatedEvents.map(event => (
             <div id={event.title} key={event.id} className="flex flex-col items-center text-center">
               {event.poster_url && (

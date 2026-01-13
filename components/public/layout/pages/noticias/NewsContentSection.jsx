@@ -11,7 +11,7 @@ export function NewsContentSection({ news, totalPages, hasNextPage, page }) {
       {!news || news.length === 0 ? (
         <p className={notAvailableText}>No hay noticias para mostrar.</p>
       ) : (
-        <div className="flex flex-col gap-10 md:gap-16 w-full mx-auto">
+        <div className="flex flex-col gap-10 md:gap-16 w-full md:w-auto mx-auto">
           {news.map(item => (
             <div id={item.title} key={item.id} className="flex flex-col items-center text-center">
               {item.image_url && (
