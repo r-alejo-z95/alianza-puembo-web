@@ -243,10 +243,12 @@ export default function LomPage() {
               href="https://chat.whatsapp.com/JFxX6eqfcg5CgnTs3W2hBR"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center w-full gap-2 h-9 px-4 py-2 rounded-sm hover:bg-[hsl(92,45.9%,40%)] transition-colors bg-(--puembo-green) text-white shadow-2xl text-sm text-bold whitespace-nowrap"
+              className="flex w-full md:w-auto justify-center"
             >
-              <FaWhatsapp className="h-5 w-5" />
-              <p>Únete al grupo</p>
+              <Button variant="green" className="w-full">
+                <FaWhatsapp className="h-5 w-5" />
+                <p>Únete al grupo</p>
+              </Button>
             </Link>
           </div>
         </div>
