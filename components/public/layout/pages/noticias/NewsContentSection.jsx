@@ -1,8 +1,13 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { cn } from '@/lib/utils.ts';
-import { sectionTitle, sectionText, contentSection, notAvailableText } from "@/lib/styles";
+import Image from "next/image";
+import { cn } from "@/lib/utils.ts";
+import {
+  sectionTitle,
+  sectionText,
+  contentSection,
+  notAvailableText,
+} from "@/lib/styles";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 
 export function NewsContentSection({ news, totalPages, hasNextPage, page }) {
@@ -12,10 +17,22 @@ export function NewsContentSection({ news, totalPages, hasNextPage, page }) {
         <p className={notAvailableText}>No hay noticias para mostrar.</p>
       ) : (
         <div className="flex flex-col gap-10 md:gap-16 w-full md:w-auto mx-auto">
-          {news.map(item => (
-            <div id={item.title} key={item.id} className="flex flex-col items-center text-center">
+          {news.map((item) => (
+            <div
+              id={item.title}
+              key={item.id}
+              className="flex flex-col items-center text-center"
+            >
               {item.image_url && (
-                <div className="relative w-full mb-2 md:mb-4" style={{ aspectRatio: item.image_w && item.image_h ? `${item.image_w} / ${item.image_h}` : '16 / 9' }}>
+                <div
+                  className="relative w-full mb-2 md:mb-4"
+                  style={{
+                    aspectRatio:
+                      item.image_w && item.image_h
+                        ? `${item.image_w} / ${item.image_h}`
+                        : "16 / 9",
+                  }}
+                >
                   <Image
                     src={item.image_url}
                     alt={item.title}
@@ -28,18 +45,35 @@ export function NewsContentSection({ news, totalPages, hasNextPage, page }) {
               )}
               <h2 className={cn(sectionTitle, "mb-2")}>{item.title}</h2>
               {item.description && (
-                <p className={cn(sectionText, "mb-2 max-w-2xl text-gray-800")}>{item.description}</p>
+                <p className={cn(sectionText, "mb-2 max-w-2xl text-gray-800")}>
+                  {item.description}
+                </p>
               )}
-              <div className='flex flex-col justify-center items-center gap-2'>
-                <div className='flex flex-col'>
-                  {item.has_date && item.date && (
+              <div className="flex flex-col justify-center items-center gap-2">
+                <div className="flex flex-col">
+                  {item.date && (
                     <p className={cn("text-gray-600", sectionText)}>
-                      <span className="font-medium">Fecha:</span> {new Date(item.date).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Guayaquil' })}
+                      <span className="font-medium">Fecha:</span>{" "}
+                      {(() => {
+                        const dateStr = item.date;
+                        const datePart = dateStr.includes("T")
+                          ? dateStr.split("T")[0]
+                          : dateStr;
+                        return new Date(
+                          datePart + "T00:00:00"
+                        ).toLocaleDateString("es-ES", {
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          timeZone: "America/Guayaquil",
+                        });
+                      })()}
                     </p>
                   )}
-                  {item.has_time && item.date && (
+                  {item.time && (
                     <p className={cn("text-gray-600", sectionText)}>
-                      <span className="font-medium">Hora:</span> {new Date(item.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })}
+                      <span className="font-medium">Hora:</span>{" "}
+                      {item.time.split(":").slice(0, 2).join(":")}
                     </p>
                   )}
                 </div>
@@ -47,7 +81,12 @@ export function NewsContentSection({ news, totalPages, hasNextPage, page }) {
             </div>
           ))}
           {totalPages > 1 && (
-            <PaginationControls hasNextPage={hasNextPage} totalPages={totalPages} basePath="/noticias" currentPage={page} />
+            <PaginationControls
+              hasNextPage={hasNextPage}
+              totalPages={totalPages}
+              basePath="/noticias"
+              currentPage={page}
+            />
           )}
         </div>
       )}
