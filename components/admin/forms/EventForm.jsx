@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useState, useRef, useEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -15,7 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -23,105 +23,112 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getEventColorOptions } from '@/components/public/calendar/event-calendar/utils';
-import { ImageIcon } from 'lucide-react';
+import { getEventColorOptions } from "@/components/public/calendar/event-calendar/utils";
+import { ImageIcon } from "lucide-react";
 
-const eventSchema = z.object({
-  title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),
-  description: z.string().optional(),
-  start_date: z.string().min(1, 'La fecha de inicio es requerida.'),
-  end_date: z.string().optional(),
-  start_time: z.string().optional(),
-  end_time: z.string().optional(),
-  registration_link: z.string().optional(),
-  create_form: z.boolean().optional(),
-  regenerate_form: z.boolean().optional(),
-  all_day: z.boolean().optional(),
-  is_multi_day: z.boolean().optional(),
-  color: z.string().optional(),
-  location: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (data.is_multi_day) {
-    // Validation for multi-day events
-    if (!data.start_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'La fecha de inicio es requerida para eventos de varios días.',
-        path: ['start_date'],
-      });
-    }
-    if (!data.end_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'La fecha de fin es requerida para eventos de varios días.',
-        path: ['end_date'],
-      });
-    }
-    if (data.start_date && data.end_date) {
-      const startDate = new Date(data.start_date + 'T00:00:00');
-      const endDate = new Date(data.end_date + 'T00:00:00');
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+const eventSchema = z
+  .object({
+    title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
+    description: z.string().optional(),
+    start_date: z.string().min(1, "La fecha de inicio es requerida."),
+    end_date: z.string().optional(),
+    start_time: z.string().optional(),
+    end_time: z.string().optional(),
+    registration_link: z.string().optional(),
+    create_form: z.boolean().optional(),
+    regenerate_form: z.boolean().optional(),
+    all_day: z.boolean().optional(),
+    is_multi_day: z.boolean().optional(),
+    color: z.string().optional(),
+    location: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.is_multi_day) {
+      // Validation for multi-day events
+      if (!data.start_date) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Fechas inválidas para evento de varios días.',
-          path: ['start_date'],
-        });
-      } else if (startDate > endDate) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'La fecha de fin debe ser posterior o igual a la fecha de inicio.',
-          path: ['end_date'],
+          message:
+            "La fecha de inicio es requerida para eventos de varios días.",
+          path: ["start_date"],
         });
       }
-    }
-  } else if (data.all_day) {
-    // Validation for single-day all-day events
-    if (!data.start_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'La fecha del evento es requerida para eventos de todo el día.',
-        path: ['start_date'],
-      });
-    }
-  } else {
-    // Validation for single-day time-specific events
-    if (!data.start_date) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'La fecha es requerida.',
-        path: ['start_date'],
-      });
-    }
-    if (!data.start_time) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'La hora de inicio es requerida.',
-        path: ['start_time'],
-      });
-    }
-    if (!data.end_time) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'La hora de fin es requerida.',
-        path: ['end_time'],
-      });
-    }
-    if (data.start_time && data.end_time) {
-      const [startHours, startMinutes] = data.start_time.split(':').map(Number);
-      const [endHours, endMinutes] = data.end_time.split(':').map(Number);
-      const startTotalMinutes = startHours * 60 + startMinutes;
-      const endTotalMinutes = endHours * 60 + endMinutes;
-
-      if (startTotalMinutes >= endTotalMinutes) {
+      if (!data.end_date) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'La hora de fin debe ser posterior a la hora de inicio.',
-          path: ['end_time'],
+          message: "La fecha de fin es requerida para eventos de varios días.",
+          path: ["end_date"],
         });
       }
+      if (data.start_date && data.end_date) {
+        const startDate = new Date(data.start_date + "T00:00:00");
+        const endDate = new Date(data.end_date + "T00:00:00");
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Fechas inválidas para evento de varios días.",
+            path: ["start_date"],
+          });
+        } else if (startDate > endDate) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message:
+              "La fecha de fin debe ser posterior o igual a la fecha de inicio.",
+            path: ["end_date"],
+          });
+        }
+      }
+    } else if (data.all_day) {
+      // Validation for single-day all-day events
+      if (!data.start_date) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "La fecha del evento es requerida para eventos de todo el día.",
+          path: ["start_date"],
+        });
+      }
+    } else {
+      // Validation for single-day time-specific events
+      if (!data.start_date) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "La fecha es requerida.",
+          path: ["start_date"],
+        });
+      }
+      if (!data.start_time) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "La hora de inicio es requerida.",
+          path: ["start_time"],
+        });
+      }
+      if (!data.end_time) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "La hora de fin es requerida.",
+          path: ["end_time"],
+        });
+      }
+      if (data.start_time && data.end_time) {
+        const [startHours, startMinutes] = data.start_time
+          .split(":")
+          .map(Number);
+        const [endHours, endMinutes] = data.end_time.split(":").map(Number);
+        const startTotalMinutes = startHours * 60 + startMinutes;
+        const endTotalMinutes = endHours * 60 + endMinutes;
+
+        if (startTotalMinutes >= endTotalMinutes) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "La hora de fin debe ser posterior a la hora de inicio.",
+            path: ["end_time"],
+          });
+        }
+      }
     }
-  }
-});
+  });
 
 // Helper function to format dates and times from event data
 const formatEventData = (event) => {
@@ -133,18 +140,18 @@ const formatEventData = (event) => {
   if (event.is_multi_day) {
     // Multi-day events: extract dates only
     return {
-      start_date: startDate.toISOString().split('T')[0],
-      end_date: endDate ? endDate.toISOString().split('T')[0] : '',
-      start_time: '',
-      end_time: ''
+      start_date: startDate.toISOString().split("T")[0],
+      end_date: endDate ? endDate.toISOString().split("T")[0] : "",
+      start_time: "",
+      end_time: "",
     };
   } else if (event.all_day) {
     // All-day events: extract date only
     return {
-      start_date: startDate.toISOString().split('T')[0],
-      end_date: '',
-      start_time: '',
-      end_time: ''
+      start_date: startDate.toISOString().split("T")[0],
+      end_date: "",
+      start_time: "",
+      end_time: "",
     };
   } else {
     // Time-specific events: extract date and time separately
@@ -153,10 +160,10 @@ const formatEventData = (event) => {
     };
 
     return {
-      start_date: startDate.toISOString().split('T')[0],
-      end_date: '',
+      start_date: startDate.toISOString().split("T")[0],
+      end_date: "",
       start_time: formatTime(startDate),
-      end_time: endDate ? formatTime(endDate) : ''
+      end_time: endDate ? formatTime(endDate) : "",
     };
   }
 };
@@ -172,19 +179,19 @@ export default function EventForm({ event, onSave, onCancel }) {
   const form = useForm({
     resolver: zodResolver(eventSchema),
     defaultValues: {
-      title: event?.title || '',
-      description: event?.description || '',
-      start_date: eventData.start_date || '',
-      end_date: eventData.end_date || '',
-      start_time: eventData.start_time || '',
-      end_time: eventData.end_time || '',
-      registration_link: event?.registration_link || '',
+      title: event?.title || "",
+      description: event?.description || "",
+      start_date: eventData.start_date || "",
+      end_date: eventData.end_date || "",
+      start_time: eventData.start_time || "",
+      end_time: eventData.end_time || "",
+      registration_link: event?.registration_link || "",
       create_form: false,
       regenerate_form: false,
       all_day: event?.all_day || false,
       is_multi_day: event?.is_multi_day || false,
-      color: event?.color || 'sky',
-      location: event?.location || '',
+      color: event?.color || "sky",
+      location: event?.location || "",
     },
   });
 
@@ -192,44 +199,51 @@ export default function EventForm({ event, onSave, onCancel }) {
     if (event) {
       const eventData = formatEventData(event);
       form.reset({
-        title: event.title || '',
-        description: event.description || '',
-        start_date: eventData.start_date || '',
-        end_date: eventData.end_date || '',
-        start_time: eventData.start_time || '',
-        end_time: eventData.end_time || '',
-        registration_link: event.registration_link || '',
+        title: event.title || "",
+        description: event.description || "",
+        start_date: eventData.start_date || "",
+        end_date: eventData.end_date || "",
+        start_time: eventData.start_time || "",
+        end_time: eventData.end_time || "",
+        registration_link: event.registration_link || "",
         create_form: false,
         regenerate_form: false,
         all_day: event.all_day || false,
         is_multi_day: event.is_multi_day || false,
-        color: event.color || 'sky',
-        location: event.location || '',
+        color: event.color || "sky",
+        location: event.location || "",
       });
     }
   }, [event, form]);
 
   const onSubmit = (data) => {
-
     let start_time_utc, end_time_utc;
 
     if (data.is_multi_day) {
       // Multi-day events: Para evitar problemas de timezone, usar mediodía UTC
       // Esto garantiza que la fecha se mantenga consistente independientemente del timezone
-      start_time_utc = new Date(data.start_date + 'T12:00:00.000Z').toISOString();
-      end_time_utc = new Date(data.end_date + 'T12:00:00.000Z').toISOString();
+      start_time_utc = new Date(
+        data.start_date + "T12:00:00.000Z"
+      ).toISOString();
+      end_time_utc = new Date(data.end_date + "T12:00:00.000Z").toISOString();
     } else if (data.all_day) {
       // All-day events: También usar mediodía UTC para consistencia
-      start_time_utc = new Date(data.start_date + 'T12:00:00.000Z').toISOString();
+      start_time_utc = new Date(
+        data.start_date + "T12:00:00.000Z"
+      ).toISOString();
       end_time_utc = null;
     } else {
       // Time-specific events: Mantener la lógica actual pero mejorada
-      const startDateTime = new Date(data.start_date + 'T' + data.start_time + ':00');
-      const endDateTime = new Date(data.start_date + 'T' + data.end_time + ':00');
+      const startDateTime = new Date(
+        data.start_date + "T" + data.start_time + ":00"
+      );
+      const endDateTime = new Date(
+        data.start_date + "T" + data.end_time + ":00"
+      );
 
       // Verificar que las fechas sean válidas
       if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
-        console.error('Fechas inválidas generadas');
+        console.error("Fechas inválidas generadas");
         return;
       }
 
@@ -240,17 +254,19 @@ export default function EventForm({ event, onSave, onCancel }) {
     // Asegurar que los campos booleanos se envíen correctamente
     const finalData = {
       title: data.title,
-      description: data.description || '',
+      description: data.description || "",
       start_time: start_time_utc,
       end_time: end_time_utc,
       create_form: Boolean(data.create_form),
       regenerate_form: Boolean(data.regenerate_form),
       all_day: Boolean(data.all_day),
       is_multi_day: Boolean(data.is_multi_day), // Asegurar que se envía como boolean
-      color: data.color || 'sky',
-      location: data.location || '',
+      color: data.color || "sky",
+      location: data.location || "",
       // Agregar registration_link si existe
-      ...(data.registration_link && { registration_link: data.registration_link })
+      ...(data.registration_link && {
+        registration_link: data.registration_link,
+      }),
     };
 
     onSave(finalData, posterFile);
@@ -260,25 +276,25 @@ export default function EventForm({ event, onSave, onCancel }) {
 
   const allDay = useWatch({
     control: form.control,
-    name: 'all_day',
+    name: "all_day",
   });
 
   const isMultiDay = useWatch({
     control: form.control,
-    name: 'is_multi_day',
+    name: "is_multi_day",
   });
 
   // Watch for changes in is_multi_day to reset all_day
   useEffect(() => {
     if (isMultiDay) {
-      form.setValue('all_day', false);
+      form.setValue("all_day", false);
     }
   }, [isMultiDay, form]);
 
   // Watch for changes in all_day to reset is_multi_day
   useEffect(() => {
     if (allDay) {
-      form.setValue('is_multi_day', false);
+      form.setValue("is_multi_day", false);
     }
   }, [allDay, form]);
 
@@ -325,9 +341,7 @@ export default function EventForm({ event, onSave, onCancel }) {
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
-                <FormLabel>
-                  Evento de varios días
-                </FormLabel>
+                <FormLabel>Evento de varios días</FormLabel>
                 <p className="text-sm text-gray-600">
                   Marcar si el evento dura más de un día
                 </p>
@@ -349,11 +363,10 @@ export default function EventForm({ event, onSave, onCancel }) {
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>
-                    Evento de todo el día
-                  </FormLabel>
+                  <FormLabel>Evento de todo el día</FormLabel>
                   <p className="text-sm text-gray-600">
-                    Marcar si el evento dura todo el día sin horarios específicos
+                    Marcar si el evento dura todo el día sin horarios
+                    específicos
                   </p>
                 </div>
               </FormItem>
@@ -460,8 +473,11 @@ export default function EventForm({ event, onSave, onCancel }) {
             name="color"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Color del Evento</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormLabel>Encargado del Evento</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecciona un color" />
@@ -471,7 +487,9 @@ export default function EventForm({ event, onSave, onCancel }) {
                     {colorOptions.map((color) => (
                       <SelectItem key={color.value} value={color.value}>
                         <div className="flex items-center gap-2">
-                          <div className={`w-4 h-4 rounded-full ${color.color}`} />
+                          <div
+                            className={`w-4 h-4 rounded-full ${color.color}`}
+                          />
                           {color.label}
                         </div>
                       </SelectItem>
@@ -512,7 +530,11 @@ export default function EventForm({ event, onSave, onCancel }) {
                     reader.onload = (e) => {
                       const img = new Image();
                       img.onload = () => {
-                        setPosterFile({ file, width: img.width, height: img.height });
+                        setPosterFile({
+                          file,
+                          width: img.width,
+                          height: img.height,
+                        });
                       };
                       img.src = e.target.result;
                     };
@@ -530,7 +552,11 @@ export default function EventForm({ event, onSave, onCancel }) {
               >
                 <ImageIcon className="h-4 w-4 mr-2" /> Seleccionar Imagen
               </Button>
-              {posterFile && <span className="text-sm text-gray-500">{posterFile.file.name}</span>}
+              {posterFile && (
+                <span className="text-sm text-gray-500">
+                  {posterFile.file.name}
+                </span>
+              )}
             </div>
           </FormControl>
           <FormMessage />
@@ -566,7 +592,9 @@ export default function EventForm({ event, onSave, onCancel }) {
                     Crear formulario de registro para este evento
                   </FormLabel>
                   <p className="text-sm text-gray-600">
-                    Se creará automáticamente un formulario, una hoja de cálculo y una carpeta en Google Drive para almacenar las imágenes que suban los usuarios que llenen el formulario
+                    Se creará automáticamente un formulario, una hoja de cálculo
+                    y una carpeta en Google Drive para almacenar las imágenes
+                    que suban los usuarios que llenen el formulario
                   </p>
                   <FormMessage />
                 </div>
@@ -590,7 +618,8 @@ export default function EventForm({ event, onSave, onCancel }) {
                     Crear formulario de registro para este evento
                   </FormLabel>
                   <p className="text-sm text-gray-600">
-                    Este evento no tiene formulario. Marca esta opción para crear uno
+                    Este evento no tiene formulario. Marca esta opción para
+                    crear uno
                   </p>
                   <FormMessage />
                 </div>
@@ -614,8 +643,10 @@ export default function EventForm({ event, onSave, onCancel }) {
                     Regenerar formulario de registro
                   </FormLabel>
                   <p className="text-sm text-orange-700">
-                    ⚠️ Esto eliminará el formulario actual y creará uno nuevo con la misma URL.
-                    Se creará un nuevo Google Sheet. La anterior hoja de cálculo y la carpeta de Google Drive, seguirán guardadas.
+                    ⚠️ Esto eliminará el formulario actual y creará uno nuevo
+                    con la misma URL. Se creará un nuevo Google Sheet. La
+                    anterior hoja de cálculo y la carpeta de Google Drive,
+                    seguirán guardadas.
                   </p>
                   <FormMessage />
                 </div>
@@ -628,11 +659,12 @@ export default function EventForm({ event, onSave, onCancel }) {
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting}
-          >
-            {form.formState.isSubmitting ? 'Guardando...' : event?.id ? 'Actualizar Evento' : 'Crear Evento'}
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting
+              ? "Guardando..."
+              : event?.id
+                ? "Actualizar Evento"
+                : "Crear Evento"}
           </Button>
         </div>
       </form>
