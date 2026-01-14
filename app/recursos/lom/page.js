@@ -30,7 +30,14 @@ export default function LomPage() {
         getLomPosts(),
         getThisWeekPassages(),
       ]);
-      setPosts(lomPosts);
+
+      // Filter posts to only show those published today or earlier
+      const today = new Date().toLocaleDateString("en-CA");
+      const publishedPosts = lomPosts.filter(
+        (post) => post.publication_date <= today
+      );
+
+      setPosts(publishedPosts);
       const sortedPassages = weeklyPassages.sort((a, b) => {
         return (
           daysOfWeek.indexOf(a.day_of_week) - daysOfWeek.indexOf(b.day_of_week)
@@ -77,15 +84,12 @@ export default function LomPage() {
   }, [filteredPosts, currentPage, itemsPerPage]);
 
   const goToLatestPost = () => {
-    const today = new Date().toISOString().split("T")[0];
-    const todaysPost = posts.find(
-      (post) =>
-        new Date(post.publication_date).toISOString().split("T")[0] === today
-    );
+    const today = new Date().toLocaleDateString("es-EC");
+    const todaysPost = posts.find((post) => post.publication_date === today);
     if (todaysPost) {
       router.push(`/recursos/lom/${todaysPost.slug}`);
     } else if (posts.length > 0) {
-      // Fallback to the latest post if no post for today
+      // Fallback to the latest post (which is now filtered to not include future ones)
       router.push(`/recursos/lom/${posts[0].slug}`);
     }
   };
