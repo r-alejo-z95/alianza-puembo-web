@@ -37,7 +37,7 @@ export async function getEventsForCalendar(): Promise<(Event & { page?: number }
   const now = getNowInEcuador();
   const upcomingEvents = (events as Event[]).filter(event => new Date(event.end_time || event.start_time) >= now);
 
-  const eventsPerPage = 3; // This should match the eventsPerPage in getUpcomingEvents
+  const eventsPerPage = 4; // This should match the eventsPerPage in getUpcomingEvents
 
   return upcomingEvents.map((event, index) => ({
     ...event,
@@ -51,7 +51,7 @@ export async function getEventsForCalendar(): Promise<(Event & { page?: number }
  * @param {number} eventsPerPage - El número de eventos por página.
  * @returns {Promise<{paginatedEvents: Array, totalPages: number, hasNextPage: boolean}>} Un objeto con los eventos paginados y la información de paginación.
  */
-export async function getUpcomingEvents(page: number = 1, eventsPerPage: number = 3): Promise<{ paginatedEvents: Event[], totalPages: number, hasNextPage: boolean }> {
+export async function getUpcomingEvents(page: number = 1, eventsPerPage: number = 4): Promise<{ paginatedEvents: Event[], totalPages: number, hasNextPage: boolean }> {
   const supabase = await createClient();
 
   const { data: events, error } = await supabase

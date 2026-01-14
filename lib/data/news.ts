@@ -11,7 +11,7 @@ interface NewsItem {
   created_at: string;
 }
 
-const NEWS_PER_PAGE = 3;
+const NEWS_PER_PAGE = 4;
 
 /**
  * @description Obtiene las noticias paginadas.
