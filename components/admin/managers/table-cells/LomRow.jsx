@@ -4,6 +4,7 @@ import { TableRow, TableCell } from '@/components/ui/table';
 import { OverflowCell } from './OverflowCell';
 import { Edit, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatInEcuador } from '@/lib/date-utils';
 
 export function LomRow({ post, onEdit, onDelete, compact }) {
     const actions = (
@@ -33,12 +34,7 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
         </div>
     );
 
-    const formattedDate = new Date(post.publication_date).toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        timeZone: 'UTC',
-    });
+    const formattedDate = formatInEcuador(post.publication_date);
 
     if (compact) {
         return (

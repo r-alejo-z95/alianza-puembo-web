@@ -1,18 +1,20 @@
 "use client";
 import { useMemo } from "react"
-import { differenceInMinutes, format, getMinutes, isPast } from "date-fns"
+import { differenceInMinutes, isPast } from "date-fns"
 
 import { getBorderRadiusClasses, getEventColorClasses } from "@/components/public/calendar/event-calendar";
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import Link from 'next/link'
+import { formatInEcuador } from "@/lib/date-utils";
 
-// Using date-fns format with custom formatting:
-// 'h' - hours (1-12)
-// 'a' - am/pm
-// ':mm' - minutes with leading zero (only if the token 'mm' is present)
+// Helper to format time as "ha" or "h:mma" in Ecuador timezone
 const formatTimeWithOptionalMinutes = (date) => {
-  return format(date, getMinutes(date) === 0 ? "ha" : "h:mma").toLowerCase();
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const minutes = d.getUTCMinutes(); // This might be wrong if we don't handle TZ. 
+  // Better use formatInEcuador with a logic that hides :00
+  const timeStr = formatInEcuador(d, 'h:mm a').toLowerCase();
+  return timeStr.replace(':00', '');
 }
 
 // Shared wrapper component for event styling
@@ -120,25 +122,15 @@ export function EventItem({
 
   // Use the provided currentTime (for dragging) or the event's actual time
   const displayStart = useMemo(() => {
-    if (event.allDay || event.is_multi_day) {
-      // For all-day or multi-day events, create a date at noon UTC to avoid timezone issues
-      const date = new Date(event.start);
-      return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0));
-    }
     return currentTime || new Date(event.start);
-  }, [currentTime, event.start, event.allDay, event.is_multi_day])
+  }, [currentTime, event.start])
 
   const displayEnd = useMemo(() => {
-    if (event.allDay || event.is_multi_day) {
-      // For all-day or multi-day events, create a date at noon UTC to avoid timezone issues
-      const date = new Date(event.end || event.start);
-      return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0));
-    }
     return currentTime
       ? new Date(new Date(currentTime).getTime() +
         (new Date(event.end).getTime() - new Date(event.start).getTime()))
       : new Date(event.end);
-  }, [currentTime, event.start, event.end, event.allDay, event.is_multi_day])
+  }, [currentTime, event.start, event.end])
 
   // Calculate event duration in minutes
   const durationMinutes = useMemo(() => {

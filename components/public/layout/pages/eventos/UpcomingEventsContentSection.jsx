@@ -6,10 +6,11 @@ import { sectionTitle, sectionText, contentSection, notAvailableText } from "@/l
 import { Button } from '@/components/ui/button';
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { subDays } from 'date-fns';
+import { formatInEcuador, getNowInEcuador } from '@/lib/date-utils';
 
 export function UpcomingEventsContentSection({ paginatedEvents, totalPages, hasNextPage, page }) {
 
-  const now = new Date();
+  const now = getNowInEcuador();
 
   return (
     <section className={cn(contentSection, "bg-gray-100 py-16 md:py-24")}>
@@ -38,13 +39,13 @@ export function UpcomingEventsContentSection({ paginatedEvents, totalPages, hasN
               <div className='flex flex-col justify-center items-center gap-2'>
                 <div className='flex flex-col'>
                   <p className={cn("text-gray-600", sectionText)}>
-                    <span className="font-medium">Fecha:</span> {new Date(event.start_time).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Guayaquil' })}
+                    <span className="font-medium">Fecha:</span> {formatInEcuador(event.start_time)}
                   </p>
                   {event.is_multi_day || event.all_day ? (
                     null
                   ) :
                     (<p className={cn("text-gray-600", sectionText)}>
-                      <span className="font-medium">Hora:</span> {new Date(event.start_time).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Guayaquil' })}
+                      <span className="font-medium">Hora:</span> {formatInEcuador(event.start_time, 'HH:mm')}
                     </p>)}
                   {event.location && (
                     <p className={cn("text-gray-600", sectionText)}>

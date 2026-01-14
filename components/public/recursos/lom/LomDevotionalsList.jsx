@@ -2,6 +2,7 @@
 
 import { notAvailableDevotional, sectionTitle } from "@/lib/styles";
 import { PaginationControls } from "@/components/shared/PaginationControls";
+import { formatInEcuador } from "@/lib/date-utils";
 
 export function LomDevotionalsList({
   titleSearchTerm,
@@ -29,12 +30,7 @@ export function LomDevotionalsList({
             >
               <h3 className="font-bold">{post.title}</h3>
               <p className="text-sm text-gray-500">
-                {new Date(post.publication_date).toLocaleDateString("es-ES", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  timeZone: "UTC",
-                })}
+                {formatInEcuador(post.publication_date)}
               </p>
             </div>
           ))

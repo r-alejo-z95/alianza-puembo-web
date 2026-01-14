@@ -5,6 +5,7 @@ import { OverflowCell } from './OverflowCell';
 import { Edit, Trash2, Copy, Link as LinkIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatInEcuador } from '@/lib/date-utils';
 
 export function FormRow({ form, onEdit, onDelete, compact }) {
     const handleCopyLink = () => {
@@ -117,12 +118,14 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
         </div>
     );
 
+    const formattedDate = formatInEcuador(form.created_at, "d 'de' MMM, yyyy");
+
     if (compact) {
         return (
             <div className='border rounded-lg p-4 shadow-sm space-y-2'>
                 <div><span className="font-semibold">Título:</span> <OverflowCell>{form.title}</OverflowCell></div>
                 <div><span className="font-semibold">Descripción:</span> <OverflowCell>{form.description}</OverflowCell></div>
-                <div><span className="font-semibold">Fecha de Creación:</span> {new Date(form.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Guayaquil' })}</div>
+                <div><span className="font-semibold">Fecha de Creación:</span> {formattedDate}</div>
                 {form.slug && <div><span className="font-semibold">Link:</span> {formLinkActions}</div>}
                 {form.google_sheet_url && <div><span className="font-semibold">Respuestas:</span> {sheetLinkActions}</div>}
                 <div className="flex gap-2 pt-2">{actions}</div>
@@ -138,7 +141,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
             <TableCell className="max-w-md overflow-hidden text-ellipsis whitespace-nowrap">
                 <OverflowCell>{form.description}</OverflowCell>
             </TableCell>
-            <TableCell>{new Date(form.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'America/Guayaquil' })}</TableCell>
+            <TableCell>{formattedDate}</TableCell>
             <TableCell>{formLinkActions}</TableCell>
             <TableCell>{sheetLinkActions}</TableCell>
             <TableCell className="min-w-[120px]">{actions}</TableCell>

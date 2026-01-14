@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { getNowInEcuador } from '@/lib/date-utils';
 
 interface Event {
   id: string;
@@ -33,7 +34,7 @@ export async function getEventsForCalendar(): Promise<(Event & { page?: number }
     return [];
   }
 
-  const now = new Date();
+  const now = getNowInEcuador();
   const upcomingEvents = (events as Event[]).filter(event => new Date(event.end_time || event.start_time) >= now);
 
   const eventsPerPage = 3; // This should match the eventsPerPage in getUpcomingEvents
@@ -63,7 +64,7 @@ export async function getUpcomingEvents(page: number = 1, eventsPerPage: number 
     return { paginatedEvents: [], totalPages: 0, hasNextPage: false };
   }
 
-  const now = new Date();
+  const now = getNowInEcuador();
   const upcomingEvents = (events as Event[]).filter(event => new Date(event.end_time || event.start_time) >= now);
 
   const totalPages = Math.ceil(upcomingEvents.length / eventsPerPage);

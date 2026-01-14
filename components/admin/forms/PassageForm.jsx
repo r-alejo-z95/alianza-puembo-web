@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useEffect } from 'react';
+import { formatEcuadorDateForInput } from '@/lib/date-utils';
 
 const weekSchema = z.object({
   week_number: z.number().min(1, 'El número de semana debe ser al menos 1.'),
@@ -33,7 +34,7 @@ export default function PassageForm({ week, onSave, onCancel, loading }) {
     if (week) {
       form.reset({
         week_number: week.week_number,
-        week_start_date: new Date(week.week_start_date).toISOString().split('T')[0],
+        week_start_date: formatEcuadorDateForInput(week.week_start_date),
         passages: daysOfWeek.map(day => {
             const passage = week.passages.find(p => p.day_of_week === day);
             return { day_of_week: day, passage_reference: passage ? passage.passage_reference : '' };

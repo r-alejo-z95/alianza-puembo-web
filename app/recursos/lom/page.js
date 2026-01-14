@@ -10,6 +10,7 @@ import { LomSearchBar } from "@/components/public/recursos/lom/LomSearchBar";
 import { LomDevotionalsList } from "@/components/public/recursos/lom/LomDevotionalsList";
 import { LomWeeklyPassages } from "@/components/public/recursos/lom/LomWeeklyPassages";
 import { getWeekDateRange, getBibleLink } from "@/lib/lomUtils";
+import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
 
 export default function LomPage() {
   const [posts, setPosts] = useState([]);
@@ -31,10 +32,10 @@ export default function LomPage() {
         getThisWeekPassages(),
       ]);
 
-      // Filter posts to only show those published today or earlier
-      const today = new Date().toLocaleDateString("en-CA");
+      // Filter posts to only show those published today or earlier in Ecuador
+      const today = formatEcuadorDateForInput(getNowInEcuador());
       const publishedPosts = lomPosts.filter(
-        (post) => post.publication_date <= today
+        (post) => formatEcuadorDateForInput(post.publication_date) <= today
       );
 
       setPosts(publishedPosts);
@@ -64,9 +65,7 @@ export default function LomPage() {
       );
     } else if (dateSearchTerm) {
       filtered = filtered.filter((post) => {
-        const postDate = new Date(post.publication_date)
-          .toISOString()
-          .split("T")[0];
+        const postDate = formatEcuadorDateForInput(post.publication_date);
         return postDate === dateSearchTerm;
       });
     }
@@ -84,7 +83,7 @@ export default function LomPage() {
   }, [filteredPosts, currentPage, itemsPerPage]);
 
   const goToLatestPost = () => {
-    const today = new Date().toLocaleDateString("es-EC");
+    const today = formatEcuadorDateForInput(getNowInEcuador());
     const todaysPost = posts.find((post) => post.publication_date === today);
     if (todaysPost) {
       router.push(`/recursos/lom/${todaysPost.slug}`);

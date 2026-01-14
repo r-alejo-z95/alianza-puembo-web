@@ -8,6 +8,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import dynamic from 'next/dynamic';
+import { formatEcuadorDateForInput, getNowInEcuador, ecuadorToUTC } from '@/lib/date-utils';
 
 const RichTextEditor = dynamic(
   () => import('@/components/admin/forms/RichTextEditor'),
@@ -87,9 +88,11 @@ export default function LomManager() {
     const { data: { user } } = await supabase.auth.getUser();
 
     const slug = createSlug(data.title);
+    const utcPublicationDate = ecuadorToUTC(data.publication_date).toISOString();
 
     const dataToSave = {
       ...data,
+      publication_date: utcPublicationDate,
       user_id: user?.id,
       slug: slug,
     };
@@ -126,7 +129,7 @@ export default function LomManager() {
     form.reset({
       title: post.title,
       content: post.content,
-      publication_date: post.publication_date ? new Date(post.publication_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      publication_date: formatEcuadorDateForInput(post.publication_date),
     });
     setEditorKey((prev) => prev + 1);
   };

@@ -1,6 +1,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { unstable_noStore as noStore } from "next/cache";
+import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
 
 export async function getPassages() {
   noStore();
@@ -37,7 +38,7 @@ export async function getPassagesByWeek(weekNumber) {
 export async function getLatestWeekPassages() {
   noStore();
   const supabase = await createClient();
-  const today = new Date().toLocaleDateString('en-CA');
+  const today = formatEcuadorDateForInput(getNowInEcuador());
 
   const { data: currentWeek, error: currentWeekError } = await supabase
     .from('lom_passages')

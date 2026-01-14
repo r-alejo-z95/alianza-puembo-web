@@ -8,6 +8,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from 
 import PrayerRequestStatusDialog from '../../forms/PrayerRequestStatusDialog';
 import { useState } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatInEcuador } from '@/lib/date-utils';
 
 export function PrayerRequestRow({ request, onDelete, onStatusChange, compact }) {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
@@ -72,12 +73,14 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
     </div>
   );
 
+  const formattedDate = formatInEcuador(request.created_at, "d 'de' MMM, yyyy HH:mm");
+
   if (compact) {
     return (
       <div className='border rounded-lg p-4 shadow-sm space-y-2'>
         <div><span className="font-semibold">Petición:</span> <OverflowCell>{request.request_text}</OverflowCell></div>
         <div><span className="font-semibold">Nombre:</span> <OverflowCell>{request.name || "N/A"}</OverflowCell></div>
-        <div><span className="font-semibold">Fecha:</span> {new Date(request.created_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Guayaquil' })}</div>
+        <div><span className="font-semibold">Fecha:</span> {formattedDate}</div>
         <div><span className="font-semibold">Tipo:</span>
           <div className="flex gap-2 mt-1">
             {request.is_public ? (
@@ -108,7 +111,7 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
       <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
         <OverflowCell>{request.name || "N/A"}</OverflowCell>
       </TableCell>
-      <TableCell>{new Date(request.created_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Guayaquil' })}</TableCell>
+      <TableCell>{formattedDate}</TableCell>
       <TableCell>
         <div className="flex gap-2">
           {request.is_public ? (

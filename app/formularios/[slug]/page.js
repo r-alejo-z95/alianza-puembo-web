@@ -95,8 +95,11 @@ export default function PublicForm() {
         }
       }
 
+import { getNowInEcuador, formatInEcuador } from '@/lib/date-utils';
+
+// ... inside PublicForm ...
       // Add timestamp
-      processedData.Timestamp = new Date().toLocaleString('es-EC', { timeZone: 'America/Guayaquil' });
+      processedData.Timestamp = formatInEcuador(getNowInEcuador(), "d/M/yyyy HH:mm:ss");
 
       const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke(
         'sheets-drive-integration',

@@ -6,73 +6,7 @@ import { toast } from 'sonner';
 import { Edit, Trash2, Link as LinkIcon, Copy, MapPin } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getEventColorClasses } from '@/components/public/calendar/event-calendar/utils';
-
-const formatEventDate = (start, end, isMultiDay) => {
-    const startDate = new Date(start);
-    const endDate = end ? new Date(end) : null;
-
-    if (isMultiDay && endDate) {
-        // For multi-day events, show compact date range format: "6 - 8 ago"
-        const startDay = startDate.getUTCDate();
-        const endDay = endDate.getUTCDate();
-
-        // Check if both dates are in the same month
-        const sameMonth = startDate.getUTCMonth() === endDate.getUTCMonth() &&
-            startDate.getUTCFullYear() === endDate.getUTCFullYear();
-
-        if (sameMonth) {
-            // Same month: "6-8 ago 2025"
-            const monthOptions = { month: 'short', timeZone: 'UTC' };
-            const monthFormatted = new Intl.DateTimeFormat('es-ES', monthOptions)
-                .format(startDate).replace(/\.$/, '');
-            const year = startDate.getUTCFullYear();
-            return `${startDay}-${endDay} ${monthFormatted} ${year}`;
-        } else {
-            // Different months: "30 jul-2 ago 2025"
-            const startOptions = { day: 'numeric', month: 'short', timeZone: 'UTC' };
-            const endOptions = { day: 'numeric', month: 'short', timeZone: 'UTC' };
-
-            const startFormatted = new Intl.DateTimeFormat('es-ES', startOptions)
-                .format(startDate).replace(/\.$/, '');
-            const endFormatted = new Intl.DateTimeFormat('es-ES', endOptions)
-                .format(endDate).replace(/\.$/, '');
-
-            // Use the year from the end date (in case it spans years)
-            const year = endDate.getUTCFullYear();
-            return `${startFormatted}-${endFormatted} ${year}`;
-        }
-    } else {
-        // For single-day events (all-day or timed), show just the start date
-        const options = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' };
-        const esFormatter = new Intl.DateTimeFormat('es-ES', options);
-        return esFormatter.format(startDate).replace(/\.$/, '');
-    }
-};
-
-const formatEventTime = (event) => {
-    if (event.is_multi_day) {
-        return null;
-    }
-
-    if (event.all_day) {
-        return 'Todo el día';
-    }
-
-    // For timed events, show time range in local timezone
-    const startTime = new Date(event.start_time).toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'America/Guayaquil'
-    });
-
-    const endTime = event.end_time ? new Date(event.end_time).toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'America/Guayaquil'
-    }) : '';
-
-    return endTime ? `${startTime}-${endTime}` : startTime;
-};
+import { formatEventDateRange, formatEventTimeRange } from '@/lib/date-utils';
 
 export function EventRow({ event, onEdit, onDelete, compact }) {
     const posterActions = event.poster_url ? (
@@ -177,8 +111,8 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
         </div>
     );
 
-    const formattedDate = formatEventDate(event.start_time, event.end_time, event.is_multi_day);
-    const formattedTime = formatEventTime(event);
+    const formattedDate = formatEventDateRange(event.start_time, event.end_time, event.is_multi_day);
+    const formattedTime = formatEventTimeRange(event.start_time, event.end_time, event.all_day, event.is_multi_day);
 
     if (compact) {
         return (
@@ -188,8 +122,8 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                     {event.title}
                 </div>
                 {event.description && <div><span className="font-semibold">Descripción:</span> {event.description}</div>}
-                {event.date && <div><span className="font-semibold">Fecha:</span> {formattedDate}</div>}
-                {event.time && <div><span className="font-semibold">Hora:</span> {formattedTime}</div>}
+                <div><span className="font-semibold">Fecha:</span> {formattedDate}</div>
+                {formattedTime && <div><span className="font-semibold">Hora:</span> {formattedTime}</div>}
                 {event.location && <div><span className="font-semibold">Ubicación:</span> {locationDisplay}</div>}
                 {event.poster_url && <div><span className="font-semibold">Póster:</span> {posterActions}</div>}
                 {event.registration_link && <div><span className="font-semibold">Link de Registro:</span> {registrationLinkActions}</div>}
@@ -214,7 +148,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
             <TableCell>
                 <OverflowCell>{formattedDate}</OverflowCell>
             </TableCell>
-            <TableCell>{formattedTime}</TableCell>
+            <TableCell>{formattedTime || "-"}</TableCell>
             <TableCell className="max-w-40 overflow-hidden text-ellipsis whitespace-nowrap">
                 <OverflowCell>{locationDisplay}</OverflowCell>
             </TableCell>

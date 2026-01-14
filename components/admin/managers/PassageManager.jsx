@@ -12,6 +12,7 @@ import { Edit, Trash2 } from 'lucide-react';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { ecuadorToUTC } from '@/lib/date-utils';
 
 const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
@@ -68,12 +69,14 @@ export default function PassageManager() {
   const handleSave = async (data) => {
     setLoading(true);
 
+    const utcStartDate = ecuadorToUTC(data.week_start_date).toISOString();
+
     const passagesToSave = data.passages
       .filter(p => p.passage_reference)
       .map(p => ({
         ...p,
         week_number: data.week_number,
-        week_start_date: data.week_start_date,
+        week_start_date: utcStartDate,
       }));
 
     if (selectedWeek) {

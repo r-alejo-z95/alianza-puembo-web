@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { contentSection } from '@/lib/styles';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { getLomPostBySlug, getLomNavigationPosts } from '@/lib/data/lom.ts';
+import { formatInEcuador } from '@/lib/date-utils';
 
 // Generate metadata for the page
 export async function generateMetadata({ params }) {
@@ -43,12 +44,7 @@ export default async function LomPostPage({ params }) {
 
   const { prevPost, nextPost } = await getLomNavigationPosts(post.publication_date);
 
-  const publicationDate = new Date(post.publication_date).toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    timeZone: 'UTC',
-  });
+  const publicationDate = formatInEcuador(post.publication_date);
 
   return (
     <PublicPageLayout

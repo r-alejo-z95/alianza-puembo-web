@@ -25,6 +25,11 @@ import {
 } from "@/components/ui/select";
 import { getEventColorOptions } from "@/components/public/calendar/event-calendar/utils";
 import { ImageIcon } from "lucide-react";
+import { 
+  ecuadorToUTC, 
+  formatEcuadorDateForInput, 
+  formatEcuadorTimeForInput 
+} from "@/lib/date-utils";
 
 const eventSchema = z
   .object({
@@ -61,8 +66,8 @@ const eventSchema = z
         });
       }
       if (data.start_date && data.end_date) {
-        const startDate = new Date(data.start_date + "T00:00:00");
-        const endDate = new Date(data.end_date + "T00:00:00");
+        const startDate = ecuadorToUTC(data.start_date);
+        const endDate = ecuadorToUTC(data.end_date);
         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
@@ -134,36 +139,29 @@ const eventSchema = z
 const formatEventData = (event) => {
   if (!event) return {};
 
-  const startDate = new Date(event.start_time);
-  const endDate = event.end_time ? new Date(event.end_time) : null;
-
   if (event.is_multi_day) {
     // Multi-day events: extract dates only
     return {
-      start_date: startDate.toISOString().split("T")[0],
-      end_date: endDate ? endDate.toISOString().split("T")[0] : "",
+      start_date: formatEcuadorDateForInput(event.start_time),
+      end_date: formatEcuadorDateForInput(event.end_time),
       start_time: "",
       end_time: "",
     };
   } else if (event.all_day) {
     // All-day events: extract date only
     return {
-      start_date: startDate.toISOString().split("T")[0],
+      start_date: formatEcuadorDateForInput(event.start_time),
       end_date: "",
       start_time: "",
       end_time: "",
     };
   } else {
     // Time-specific events: extract date and time separately
-    const formatTime = (date) => {
-      return date.toTimeString().slice(0, 5); // HH:MM format
-    };
-
     return {
-      start_date: startDate.toISOString().split("T")[0],
+      start_date: formatEcuadorDateForInput(event.start_time),
       end_date: "",
-      start_time: formatTime(startDate),
-      end_time: endDate ? formatTime(endDate) : "",
+      start_time: formatEcuadorTimeForInput(event.start_time),
+      end_time: formatEcuadorTimeForInput(event.end_time),
     };
   }
 };
@@ -220,35 +218,17 @@ export default function EventForm({ event, onSave, onCancel }) {
     let start_time_utc, end_time_utc;
 
     if (data.is_multi_day) {
-      // Multi-day events: Para evitar problemas de timezone, usar mediodía UTC
-      // Esto garantiza que la fecha se mantenga consistente independientemente del timezone
-      start_time_utc = new Date(
-        data.start_date + "T12:00:00.000Z"
-      ).toISOString();
-      end_time_utc = new Date(data.end_date + "T12:00:00.000Z").toISOString();
+      // Multi-day events: Usar inicio y fin del día en Ecuador
+      start_time_utc = ecuadorToUTC(data.start_date, "00:00").toISOString();
+      end_time_utc = ecuadorToUTC(data.end_date, "23:59").toISOString();
     } else if (data.all_day) {
-      // All-day events: También usar mediodía UTC para consistencia
-      start_time_utc = new Date(
-        data.start_date + "T12:00:00.000Z"
-      ).toISOString();
-      end_time_utc = null;
+      // All-day events: Usar inicio y fin del día en Ecuador
+      start_time_utc = ecuadorToUTC(data.start_date, "00:00").toISOString();
+      end_time_utc = ecuadorToUTC(data.start_date, "23:59").toISOString();
     } else {
-      // Time-specific events: Mantener la lógica actual pero mejorada
-      const startDateTime = new Date(
-        data.start_date + "T" + data.start_time + ":00"
-      );
-      const endDateTime = new Date(
-        data.start_date + "T" + data.end_time + ":00"
-      );
-
-      // Verificar que las fechas sean válidas
-      if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
-        console.error("Fechas inválidas generadas");
-        return;
-      }
-
-      start_time_utc = startDateTime.toISOString();
-      end_time_utc = endDateTime.toISOString();
+      // Time-specific events
+      start_time_utc = ecuadorToUTC(data.start_date, data.start_time).toISOString();
+      end_time_utc = ecuadorToUTC(data.start_date, data.end_time).toISOString();
     }
 
     // Asegurar que los campos booleanos se envíen correctamente

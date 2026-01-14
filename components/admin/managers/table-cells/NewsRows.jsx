@@ -20,37 +20,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-const formatNewsDate = (dateStr) => {
-  if (!dateStr) return "-";
-  let datePart = dateStr;
-  if (dateStr.includes("T")) {
-    datePart = dateStr.split("T")[0];
-  }
-  const date = new Date(datePart + "T00:00:00");
-
-  const options = {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "America/Guayaquil",
-  };
-  const esFormatter = new Intl.DateTimeFormat("es-ES", options);
-  return esFormatter.format(date).replace(/\.$/, "");
-};
+import { formatInEcuador } from "@/lib/date-utils";
 
 const formatNewsTime = (timeStr) => {
   if (!timeStr) return "-";
-  if (timeStr.includes("T")) {
-    // Old format, extract time from timestamp
-    const timePart = new Date(timeStr).toLocaleTimeString("es-ES", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "America/Guayaquil",
-    });
-    return timePart;
-  }
-  // New format, timeStr is like "14:30:00", take hh:mm
+  // timeStr is like "14:30:00" or just "14:30", take hh:mm
   const parts = timeStr.split(":");
   return `${parts[0]}:${parts[1]}`;
 };
@@ -135,8 +109,9 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
     </div>
   );
 
-  const formattedDate = newsItem.date ? formatNewsDate(newsItem.date) : "-";
+  const formattedDate = newsItem.date ? formatInEcuador(newsItem.date, "d 'de' MMM, yyyy") : "-";
   const formattedTime = newsItem.time ? formatNewsTime(newsItem.time) : "-";
+  
   if (compact) {
     return (
       <div className="border rounded-lg p-4 shadow-sm space-y-2">
@@ -184,3 +159,4 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
     </TableRow>
   );
 }
+

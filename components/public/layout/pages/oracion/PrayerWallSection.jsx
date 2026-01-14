@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/badge';
 import { PaginationControls } from '@/components/shared/PaginationControls';
 import { useScreenSize } from '@/lib/hooks/useScreenSize';
+import { formatInEcuador } from '@/lib/date-utils';
 
 export function PrayerWallSection({ requests }) {
   const searchParams = useSearchParams();
@@ -44,7 +45,7 @@ export function PrayerWallSection({ requests }) {
             </div>
             <div className="flex justify-between mt-4">
               <span className="text-sm text-gray-500">
-                {new Date(req.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }, { timeZone: 'America/Guayaquil' })}
+                {formatInEcuador(req.created_at, "d 'de' MMM, yyyy")}
               </span>
               <div className="flex items-center gap-2">
                 {!req.is_anonymous && req.name && <Badge variant="outline" className="whitespace-normal">{req.name}</Badge>}

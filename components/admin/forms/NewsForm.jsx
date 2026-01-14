@@ -16,11 +16,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ImageIcon } from "lucide-react";
+import { 
+  formatEcuadorDateForInput, 
+  formatEcuadorTimeForInput,
+  ecuadorToUTC
+} from "@/lib/date-utils";
 
 const newsSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
   description: z.string().optional(),
-  date: z.string().optional(),
+  date: z.string().min(1, "La fecha es requerida."),
   time: z.string().optional(),
 });
 
@@ -28,29 +33,13 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
   const [imageFile, setImageFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  // Helper to format date for input from date string
-  const getFormattedDate = (dateString) => {
-    if (!dateString) return "";
-    const d = new Date(dateString + "T00:00:00");
-    if (d.getFullYear() <= 1) return ""; // Extra check for placeholder
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
-
-  const getFormattedTime = (timeString) => {
-    if (!timeString) return "";
-    return timeString; // Assuming it's already HH:MM
-  };
-
   const form = useForm({
     resolver: zodResolver(newsSchema),
     defaultValues: {
       title: newsItem?.title || "",
       description: newsItem?.description || "",
-      date: getFormattedDate(newsItem?.date),
-      time: getFormattedTime(newsItem?.time),
+      date: newsItem?.date ? formatEcuadorDateForInput(newsItem.date) : "",
+      time: newsItem?.date ? formatEcuadorTimeForInput(newsItem.date) : "12:00",
     },
   });
 
@@ -59,14 +48,20 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
       form.reset({
         title: newsItem.title || "",
         description: newsItem.description || "",
-        date: getFormattedDate(newsItem?.date),
-        time: getFormattedTime(newsItem?.time),
+        date: newsItem.date ? formatEcuadorDateForInput(newsItem.date) : "",
+        time: newsItem.date ? formatEcuadorTimeForInput(newsItem.date) : "12:00",
       });
     }
   }, [newsItem, form]);
 
   const onSubmit = (data) => {
-    onSave(data, imageFile);
+    // Combinamos fecha y hora en un solo UTC ISO string para la columna 'date'
+    const combinedDate = ecuadorToUTC(data.date, data.time || "00:00").toISOString();
+    
+    onSave({
+      ...data,
+      date: combinedDate
+    }, imageFile);
   };
 
   return (
@@ -109,7 +104,7 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
             name="date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Fecha (Opcional)</FormLabel>
+                <FormLabel>Fecha</FormLabel>
                 <FormControl>
                   <Input type="date" {...field} />
                 </FormControl>

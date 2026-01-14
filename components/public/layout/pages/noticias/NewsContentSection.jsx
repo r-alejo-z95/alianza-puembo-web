@@ -9,6 +9,7 @@ import {
   notAvailableText,
 } from "@/lib/styles";
 import { PaginationControls } from "@/components/shared/PaginationControls";
+import { formatInEcuador } from "@/lib/date-utils";
 
 export function NewsContentSection({ news, totalPages, hasNextPage, page }) {
   return (
@@ -54,20 +55,7 @@ export function NewsContentSection({ news, totalPages, hasNextPage, page }) {
                   {item.date && (
                     <p className={cn("text-gray-600", sectionText)}>
                       <span className="font-medium">Fecha:</span>{" "}
-                      {(() => {
-                        const dateStr = item.date;
-                        const datePart = dateStr.includes("T")
-                          ? dateStr.split("T")[0]
-                          : dateStr;
-                        return new Date(
-                          datePart + "T00:00:00"
-                        ).toLocaleDateString("es-ES", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          timeZone: "America/Guayaquil",
-                        });
-                      })()}
+                      {formatInEcuador(item.date)}
                     </p>
                   )}
                   {item.time && (

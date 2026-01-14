@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
+import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
 
 export async function getThisWeekPassages() {
   const supabase = createClient();
-  const today = new Date().toLocaleDateString("en-CA");
+  const today = formatEcuadorDateForInput(getNowInEcuador());
 
   // Try to find the week that is currently in progress
   const { data: currentWeeks, error: currentWeekError } = await supabase
