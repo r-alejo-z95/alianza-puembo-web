@@ -42,19 +42,11 @@ export default function PublicForm() {
   const [sending, setSending] = useState(false);
   const [fileNames, setFileNames] = useState({});
   const { slug } = useParams();
-  const supabase = createClient();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    control,
-  } = useForm(); // Add control
-
   useEffect(() => {
     const fetchForm = async () => {
       if (!slug) return;
       setLoading(true);
+      const supabase = createClient();
       const { data, error } = await supabase
         .from("forms")
         .select("*, form_fields(*)")

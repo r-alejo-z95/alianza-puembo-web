@@ -12,6 +12,8 @@ import { LomWeeklyPassages } from "@/components/public/recursos/lom/LomWeeklyPas
 import { getWeekDateRange, getBibleLink } from "@/lib/lomUtils";
 import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
 
+const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+
 export default function LomPage() {
   const [posts, setPosts] = useState([]);
   const [passages, setPassages] = useState([]);
@@ -22,7 +24,6 @@ export default function LomPage() {
   const router = useRouter();
 
   const itemsPerPage = 3;
-  const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 
   useEffect(() => {
     const fetchData = async () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { getNowInEcuador } from '@/lib/date-utils';
@@ -13,7 +13,7 @@ export function ClientEventsProvider({ children, initialEvents = [] }) {
 
     const supabase = createClient();
 
-    const fetchEvents = async () => {
+    const fetchEvents = useCallback(async () => {
         if (!loading) setLoading(true);
 
         const { data, error } = await supabase
@@ -36,14 +36,14 @@ export function ClientEventsProvider({ children, initialEvents = [] }) {
             setEvents(eventsWithPage);
         }
         setLoading(false);
-    };
+    }, [loading, supabase]);
 
     useEffect(() => {
         // Solo hacer fetch si no tenemos eventos iniciales
         if (!initialEvents.length) {
             fetchEvents();
         }
-    }, []);
+    }, [fetchEvents, initialEvents.length]);
 
     // Transform events for calendar format
     const calendarEvents = events.map(event => ({
