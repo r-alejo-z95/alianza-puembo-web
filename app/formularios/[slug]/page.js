@@ -1,18 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { useParams } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { useForm, Controller } from 'react-hook-form'; // Import Controller
-import { toast } from 'sonner';
-import { ImageIcon } from 'lucide-react';
-import Image from 'next/image';
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useParams } from "next/navigation";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { useForm, Controller } from "react-hook-form"; // Import Controller
+import { toast } from "sonner";
+import { ImageIcon } from "lucide-react";
+import Image from "next/image";
+import { getNowInEcuador, formatInEcuador } from "@/lib/date-utils";
 
 // Simple Loading Spinner Components
 const LoadingSpinner = () => (
@@ -21,7 +28,6 @@ const LoadingSpinner = () => (
     <p>Cargando formulario</p>
   </div>
 );
-
 
 const SendingSpinner = () => (
   <div className="flex flex-col gap-4 justify-center items-center h-full">
@@ -37,21 +43,27 @@ export default function PublicForm() {
   const [fileNames, setFileNames] = useState({});
   const { slug } = useParams();
   const supabase = createClient();
-  const { register, handleSubmit, formState: { errors }, reset, control } = useForm(); // Add control
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    control,
+  } = useForm(); // Add control
 
   useEffect(() => {
     const fetchForm = async () => {
       if (!slug) return;
       setLoading(true);
       const { data, error } = await supabase
-        .from('forms')
-        .select('*, form_fields(*)')
-        .eq('slug', slug)
+        .from("forms")
+        .select("*, form_fields(*)")
+        .eq("slug", slug)
         .single();
 
       if (error) {
-        console.error('Error fetching form:', error);
-        toast.error('No se pudo cargar el formulario.');
+        console.error("Error fetching form:", error);
+        toast.error("No se pudo cargar el formulario.");
       } else {
         data.form_fields.sort((a, b) => a.order - b.order);
         setForm(data);
@@ -77,7 +89,7 @@ export default function PublicForm() {
                 resolve({
                   type: "file",
                   name: file.name,
-                  data: reader.result.split(',')[1], // Base64 content
+                  data: reader.result.split(",")[1], // Base64 content
                 });
               };
               reader.onerror = reject;
@@ -85,56 +97,69 @@ export default function PublicForm() {
             });
             processedData[key] = await fileReadPromise;
           } else if (Array.isArray(value)) {
-            processedData[key] = value.join(', ');
-          } else if (typeof value === 'object' && value !== null) {
-            const selectedOptions = Object.keys(value).filter(optionKey => value[optionKey]);
-            processedData[key] = selectedOptions.join(', ');
+            processedData[key] = value.join(", ");
+          } else if (typeof value === "object" && value !== null) {
+            const selectedOptions = Object.keys(value).filter(
+              (optionKey) => value[optionKey]
+            );
+            processedData[key] = selectedOptions.join(", ");
           } else {
             processedData[key] = value;
           }
         }
       }
 
-import { getNowInEcuador, formatInEcuador } from '@/lib/date-utils';
-
-// ... inside PublicForm ...
+      // ... inside PublicForm ...
       // Add timestamp
-      processedData.Timestamp = formatInEcuador(getNowInEcuador(), "d/M/yyyy HH:mm:ss");
+      processedData.Timestamp = formatInEcuador(
+        getNowInEcuador(),
+        "d/M/yyyy HH:mm:ss"
+      );
 
-      const { data: edgeFunctionData, error: edgeFunctionError } = await supabase.functions.invoke(
-        'sheets-drive-integration',
-        {
+      const { data: edgeFunctionData, error: edgeFunctionError } =
+        await supabase.functions.invoke("sheets-drive-integration", {
           body: JSON.stringify({
             formId: form.id,
             formData: processedData,
           }),
-        }
-      );
+        });
 
       if (edgeFunctionError) {
-        console.error('Error invoking Edge Function:', edgeFunctionError);
-        toast.error(`Error al enviar el formulario: ${edgeFunctionError.message || 'Error desconocido'}`);
+        console.error("Error invoking Edge Function:", edgeFunctionError);
+        toast.error(
+          `Error al enviar el formulario: ${edgeFunctionError.message || "Error desconocido"}`
+        );
       } else if (edgeFunctionData.error) {
-        console.error('Edge Function returned error:', edgeFunctionData.error);
+        console.error("Edge Function returned error:", edgeFunctionData.error);
         toast.error(`Error al enviar el formulario: ${edgeFunctionData.error}`);
       } else {
-        toast.success('Formulario enviado con éxito!');
+        toast.success("Formulario enviado con éxito!");
         reset(); // Reset the form fields
         setFileNames({}); // Clear file names
       }
     } catch (error) {
-      console.error('Error during form submission:', error);
-      toast.error(`Error inesperado al enviar el formulario: ${error.message || 'Error desconocido'}`);
+      console.error("Error during form submission:", error);
+      toast.error(
+        `Error inesperado al enviar el formulario: ${error.message || "Error desconocido"}`
+      );
     }
     setSending(false);
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen"><LoadingSpinner /></div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <LoadingSpinner />
+      </div>
+    );
   }
 
   if (!form) {
-    return <div className="flex justify-center items-center h-screen"><p>Formulario no encontrado.</p></div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Formulario no encontrado.</p>
+      </div>
+    );
   }
 
   return (
@@ -143,39 +168,50 @@ import { getNowInEcuador, formatInEcuador } from '@/lib/date-utils';
         <SendingSpinner />
       ) : (
         <Card className="w-full max-w-2xl">
-          {form.image_url &&
+          {form.image_url && (
             <Image
               src={form.image_url}
               alt={form.title}
               width={672}
               height={350}
               sizes="(max-width: 768px) 100vw, 50vw"
-              className="w-full h-auto object-cover" />}
+              className="w-full h-auto object-cover"
+            />
+          )}
           <CardHeader>
             <CardTitle className="mb-4">{form.title}</CardTitle>
-            {form.description && <CardDescription className="text-gray-600" dangerouslySetInnerHTML={{ __html: form.description }} />}
+            {form.description && (
+              <CardDescription
+                className="text-gray-600"
+                dangerouslySetInnerHTML={{ __html: form.description }}
+              />
+            )}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {form.form_fields.map(field => {
+              {form.form_fields.map((field) => {
                 const fieldId = `field-${field.id}`;
-                const registrationProps = register(field.label, { required: field.is_required });
+                const registrationProps = register(field.label, {
+                  required: field.is_required,
+                });
 
                 switch (field.field_type) {
-                  case 'text':
+                  case "text":
                     return (
                       <div key={field.id}>
-                        <Label
-                          htmlFor={fieldId}
-                          className="mb-2"
-                        >
-                          {field.label}{field.is_required && ' *'}
+                        <Label htmlFor={fieldId} className="mb-2">
+                          {field.label}
+                          {field.is_required && " *"}
                         </Label>
                         <Input id={fieldId} {...registrationProps} />
-                        {errors[field.label] && <p className="text-red-500 text-sm">Este campo es requerido.</p>}
+                        {errors[field.label] && (
+                          <p className="text-red-500 text-sm">
+                            Este campo es requerido.
+                          </p>
+                        )}
                       </div>
                     );
-                  case 'radio':
+                  case "radio":
                     return (
                       <Controller
                         key={field.id}
@@ -184,30 +220,48 @@ import { getNowInEcuador, formatInEcuador } from '@/lib/date-utils';
                         rules={{ required: field.is_required }}
                         render={({ field: controllerField }) => (
                           <div key={field.id}>
-                            <Label className="mb-2">{field.label}{field.is_required && ' *'}</Label>
+                            <Label className="mb-2">
+                              {field.label}
+                              {field.is_required && " *"}
+                            </Label>
                             <RadioGroup
                               onValueChange={controllerField.onChange}
                               value={controllerField.value}
                               className="mt-2"
                             >
-                              {field.options.map(option => (
-                                <div key={option.id} className="flex items-center space-x-2">
-                                  <RadioGroupItem value={option.value} id={`${fieldId}-${option.id}`} />
-                                  <Label htmlFor={`${fieldId}-${option.id}`}>{option.label}</Label>
+                              {field.options.map((option) => (
+                                <div
+                                  key={option.id}
+                                  className="flex items-center space-x-2"
+                                >
+                                  <RadioGroupItem
+                                    value={option.value}
+                                    id={`${fieldId}-${option.id}`}
+                                  />
+                                  <Label htmlFor={`${fieldId}-${option.id}`}>
+                                    {option.label}
+                                  </Label>
                                 </div>
                               ))}
                             </RadioGroup>
-                            {errors[field.label] && <p className="text-red-500 text-sm">Este campo es requerido.</p>}
+                            {errors[field.label] && (
+                              <p className="text-red-500 text-sm">
+                                Este campo es requerido.
+                              </p>
+                            )}
                           </div>
                         )}
                       />
                     );
-                  case 'checkbox':
+                  case "checkbox":
                     return (
                       <div key={field.id}>
-                        <Label className="mb-2">{field.label}{field.is_required && ' *'}</Label>
+                        <Label className="mb-2">
+                          {field.label}
+                          {field.is_required && " *"}
+                        </Label>
                         <div className="space-y-2 mt-2">
-                          {field.options.map(option => (
+                          {field.options.map((option) => (
                             <Controller
                               key={option.id}
                               name={`${field.label}.${option.value}`}
@@ -219,22 +273,27 @@ import { getNowInEcuador, formatInEcuador } from '@/lib/date-utils';
                                     checked={controllerField.value}
                                     onCheckedChange={controllerField.onChange}
                                   />
-                                  <Label htmlFor={`${fieldId}-${option.id}`}>{option.label}</Label>
+                                  <Label htmlFor={`${fieldId}-${option.id}`}>
+                                    {option.label}
+                                  </Label>
                                 </div>
                               )}
                             />
                           ))}
                         </div>
-                        {errors[field.label] && <p className="text-red-500 text-sm">Debes seleccionar al menos una opción.</p>}
+                        {errors[field.label] && (
+                          <p className="text-red-500 text-sm">
+                            Debes seleccionar al menos una opción.
+                          </p>
+                        )}
                       </div>
                     );
-                  case 'file':
+                  case "file":
                     return (
                       <div key={field.id}>
-                        <Label
-                          className="mb-2"
-                        >
-                          {field.label}{field.is_required && ' *'}
+                        <Label className="mb-2">
+                          {field.label}
+                          {field.is_required && " *"}
                         </Label>
                         <div className="flex items-center space-x-2">
                           <Input
@@ -245,27 +304,45 @@ import { getNowInEcuador, formatInEcuador } from '@/lib/date-utils';
                             onChange={(e) => {
                               registrationProps.onChange(e); // Call RHF's onChange
                               const file = e.target.files[0];
-                              setFileNames(prev => ({ ...prev, [field.id]: file ? file.name : 'Ningún archivo seleccionado' }));
+                              setFileNames((prev) => ({
+                                ...prev,
+                                [field.id]: file
+                                  ? file.name
+                                  : "Ningún archivo seleccionado",
+                              }));
                             }}
                           />
                           <Button
                             type="button"
                             variant="green"
                             size="sm"
-                            onClick={() => document.getElementById(fieldId).click()}
+                            onClick={() =>
+                              document.getElementById(fieldId).click()
+                            }
                           >
-                            <ImageIcon className="h-4 w-4 mr-2" /> Seleccionar Imagen
+                            <ImageIcon className="h-4 w-4 mr-2" /> Seleccionar
+                            Imagen
                           </Button>
-                          {fileNames[field.id] && <span className="text-sm text-gray-500">{fileNames[field.id]}</span>}
+                          {fileNames[field.id] && (
+                            <span className="text-sm text-gray-500">
+                              {fileNames[field.id]}
+                            </span>
+                          )}
                         </div>
-                        {errors[field.label] && <p className="text-red-500 text-sm">Este campo es requerido.</p>}
+                        {errors[field.label] && (
+                          <p className="text-red-500 text-sm">
+                            Este campo es requerido.
+                          </p>
+                        )}
                       </div>
                     );
                   default:
                     return null;
                 }
               })}
-              <Button variant="green" type="submit">Enviar</Button>
+              <Button variant="green" type="submit">
+                Enviar
+              </Button>
             </form>
           </CardContent>
         </Card>
