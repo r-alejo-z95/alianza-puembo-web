@@ -4,7 +4,7 @@ interface NewsItem {
   id: string;
   title: string;
   description: string;
-  date: string;
+  news_date: string;
   image_url?: string;
   image_w?: number;
   image_h?: number;
@@ -32,7 +32,7 @@ export async function getNews(
   const { data: news, error } = await supabase
     .from("news")
     .select("*")
-    .order("date", { ascending: true, nullsFirst: true });
+    .order("news_date", { ascending: true, nullsFirst: true });
 
   if (error) {
     console.error("Error fetching news:", error);

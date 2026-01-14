@@ -16,16 +16,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ImageIcon } from "lucide-react";
-import { 
-  formatEcuadorDateForInput, 
-  formatEcuadorTimeForInput,
-  ecuadorToUTC
-} from "@/lib/date-utils";
 
 const newsSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
   description: z.string().optional(),
-  date: z.string().min(1, "La fecha es requerida."),
+  date: z.string().optional(),
   time: z.string().optional(),
 });
 
@@ -38,8 +33,8 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
     defaultValues: {
       title: newsItem?.title || "",
       description: newsItem?.description || "",
-      date: newsItem?.date ? formatEcuadorDateForInput(newsItem.date) : "",
-      time: newsItem?.date ? formatEcuadorTimeForInput(newsItem.date) : "12:00",
+      date: newsItem?.news_date || "",
+      time: newsItem?.news_time || "",
     },
   });
 
@@ -48,19 +43,17 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
       form.reset({
         title: newsItem.title || "",
         description: newsItem.description || "",
-        date: newsItem.date ? formatEcuadorDateForInput(newsItem.date) : "",
-        time: newsItem.date ? formatEcuadorTimeForInput(newsItem.date) : "12:00",
+        date: newsItem.news_date || "",
+        time: newsItem.news_time || "",
       });
     }
   }, [newsItem, form]);
 
   const onSubmit = (data) => {
-    // Combinamos fecha y hora en un solo UTC ISO string para la columna 'date'
-    const combinedDate = ecuadorToUTC(data.date, data.time || "00:00").toISOString();
-    
     onSave({
       ...data,
-      date: combinedDate
+      news_date: data.date || null,
+      news_time: data.time || null,
     }, imageFile);
   };
 

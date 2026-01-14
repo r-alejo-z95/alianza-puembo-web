@@ -9,7 +9,7 @@ import {
   notAvailableText,
 } from "@/lib/styles";
 import { PaginationControls } from "@/components/shared/PaginationControls";
-import { formatInEcuador } from "@/lib/date-utils";
+import { formatLiteralDate, formatLiteralTime } from "@/lib/date-utils";
 
 export function NewsContentSection({ news, totalPages, hasNextPage, page }) {
   return (
@@ -52,16 +52,16 @@ export function NewsContentSection({ news, totalPages, hasNextPage, page }) {
               )}
               <div className="flex flex-col justify-center items-center gap-2">
                 <div className="flex flex-col">
-                  {item.date && (
+                  {item.news_date && (
                     <p className={cn("text-gray-600", sectionText)}>
                       <span className="font-medium">Fecha:</span>{" "}
-                      {formatInEcuador(item.date)}
+                      {formatLiteralDate(item.news_date)}
                     </p>
                   )}
-                  {item.time && (
+                  {item.news_time && (
                     <p className={cn("text-gray-600", sectionText)}>
                       <span className="font-medium">Hora:</span>{" "}
-                      {item.time.split(":").slice(0, 2).join(":")}
+                      {formatLiteralTime(item.news_time)}
                     </p>
                   )}
                 </div>

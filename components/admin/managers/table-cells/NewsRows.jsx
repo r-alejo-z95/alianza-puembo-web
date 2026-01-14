@@ -20,11 +20,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { formatInEcuador } from "@/lib/date-utils";
+import { formatLiteralDate } from "@/lib/date-utils";
 
 const formatNewsTime = (timeStr) => {
   if (!timeStr) return "-";
-  // timeStr is like "14:30:00" or just "14:30", take hh:mm
+  // timeStr is like "14:30:00", take hh:mm
   const parts = timeStr.split(":");
   return `${parts[0]}:${parts[1]}`;
 };
@@ -109,9 +109,11 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
     </div>
   );
 
-  const formattedDate = newsItem.date ? formatInEcuador(newsItem.date, "d 'de' MMM, yyyy") : "-";
-  const formattedTime = newsItem.time ? formatNewsTime(newsItem.time) : "-";
-  
+  const formattedDate = newsItem.news_date
+    ? formatLiteralDate(newsItem.news_date, "d 'de' MMM, yyyy")
+    : "-";
+  const formattedTime = newsItem.news_time ? formatNewsTime(newsItem.news_time) : "-";
+
   if (compact) {
     return (
       <div className="border rounded-lg p-4 shadow-sm space-y-2">
@@ -159,4 +161,3 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
     </TableRow>
   );
 }
-

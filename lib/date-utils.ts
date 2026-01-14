@@ -126,6 +126,40 @@ export function getNowInEcuador(): Date {
 }
 
 /**
+ * Formatea un string de fecha literal YYYY-MM-DD (proveniente de una columna DATE)
+ * sin realizar conversiones de zona horaria. Evita el error del "día anterior".
+ */
+export function formatLiteralDate(dateStr: string | null | undefined, formatStr: string = "d 'de' MMMM, yyyy"): string {
+  if (!dateStr) return '';
+  
+  // Si viene con T (timestamp), solo tomamos la parte de la fecha
+  const pureDate = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
+  const [year, month, day] = pureDate.split('-').map(Number);
+  
+  // Creamos la fecha usando el constructor local (año, mes indexado en 0, día)
+  const localDate = new Date(year, month - 1, day);
+  
+  if (isNaN(localDate.getTime())) return '';
+  
+  return format(localDate, formatStr, { locale: es });
+}
+
+/**
+ * Formatea un string de tiempo literal HH:mm:ss (proveniente de una columna TIME)
+ * a un formato de 24 horas (ej: "14:30").
+ */
+export function formatLiteralTime(timeStr: string | null | undefined): string {
+  if (!timeStr) return '';
+  
+  // Tomamos solo hh:mm, ignorando segundos si existen
+  const parts = timeStr.split(':');
+  if (parts.length < 2) return '';
+  
+  const [hours, minutes] = parts;
+  return `${hours}:${minutes}`;
+}
+
+/**
  * Formatea un rango de fechas de evento para el panel de administración.
  */
 export function formatEventDateRange(start: string | Date, end?: string | Date, isMultiDay?: boolean): string {
