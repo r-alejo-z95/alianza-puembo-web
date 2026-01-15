@@ -167,7 +167,6 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
         return (
             <div className='border rounded-lg p-4 shadow-sm space-y-2'>
                 <div><span className="font-semibold">Título:</span> <OverflowCell>{form.title}</OverflowCell></div>
-                <div><span className="font-semibold">Descripción:</span> <OverflowCell>{form.description}</OverflowCell></div>
                 <div><span className="font-semibold">Fecha de Creación:</span> {formattedDate}</div>
                 {form.slug && <div><span className="font-semibold">Link:</span> {formLinkActions}</div>}
                 {form.google_sheet_url && <div><span className="font-semibold">Respuestas:</span> {sheetLinkActions}</div>}
@@ -181,9 +180,6 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
         <TableRow>
             <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
                 <OverflowCell>{form.title}</OverflowCell>
-            </TableCell>
-            <TableCell className="max-w-md overflow-hidden text-ellipsis whitespace-nowrap">
-                <OverflowCell>{form.description}</OverflowCell>
             </TableCell>
             <TableCell>{formattedDate}</TableCell>
             <TableCell>{formLinkActions}</TableCell>

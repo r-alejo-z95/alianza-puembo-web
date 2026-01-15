@@ -302,7 +302,6 @@ export default function FormManager() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="font-bold">Título</TableHead>
-                    <TableHead className="font-bold">Descripción</TableHead>
                     <TableHead className="font-bold">
                       Fecha de Creación
                     </TableHead>
