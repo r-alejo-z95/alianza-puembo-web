@@ -81,6 +81,8 @@ export default function PublicForm() {
       for (const key in data) {
         if (data.hasOwnProperty(key)) {
           const value = data[key];
+          const fieldDef = form.form_fields.find((f) => f.label === key);
+
           if (value instanceof FileList && value.length > 0) {
             const file = value[0];
             const reader = new FileReader();
@@ -96,13 +98,21 @@ export default function PublicForm() {
               reader.readAsDataURL(file);
             });
             processedData[key] = await fileReadPromise;
+          } else if (fieldDef?.field_type === "checkbox" && typeof value === "object" && value !== null) {
+            // Map technical values to human-readable labels and join with newline
+            const selectedLabels = Object.keys(value)
+              .filter((optionKey) => value[optionKey])
+              .map((optionKey) => {
+                const option = fieldDef.options.find((opt) => opt.value === optionKey);
+                return option ? option.label : optionKey;
+              });
+            processedData[key] = selectedLabels.join("\n");
+          } else if (fieldDef?.field_type === "radio") {
+            // Map radio technical value back to label
+            const option = fieldDef.options.find((opt) => opt.value === value);
+            processedData[key] = option ? option.label : value;
           } else if (Array.isArray(value)) {
-            processedData[key] = value.join(", ");
-          } else if (typeof value === "object" && value !== null) {
-            const selectedOptions = Object.keys(value).filter(
-              (optionKey) => value[optionKey]
-            );
-            processedData[key] = selectedOptions.join(", ");
+            processedData[key] = value.join("\n");
           } else {
             processedData[key] = value;
           }
@@ -299,6 +309,7 @@ export default function PublicForm() {
                           <Input
                             id={fieldId}
                             type="file"
+                            accept="image/*"
                             className="hidden"
                             {...registrationProps}
                             onChange={(e) => {
