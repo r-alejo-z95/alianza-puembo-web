@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { TableRow, TableCell } from '@/components/ui/table';
 import { OverflowCell } from './OverflowCell';
-import { Edit, Trash2, Copy, Link as LinkIcon } from 'lucide-react';
+import { Edit, Trash2, Copy, Link as LinkIcon, FolderOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatInEcuador } from '@/lib/date-utils';
@@ -24,6 +24,18 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
                 toast.success('URL de la hoja de cálculo copiada al portapapeles.');
             }, (err) => {
                 toast.error('No se pudo copiar la URL de la hoja de cálculo.');
+                console.error('Could not copy text: ', err);
+            });
+        }
+    };
+
+    const handleCopyFolderLink = () => {
+        if (form.google_drive_folder_id) {
+            const folderUrl = `https://drive.google.com/drive/folders/${form.google_drive_folder_id}`;
+            navigator.clipboard.writeText(folderUrl).then(() => {
+                toast.success('URL de la carpeta copiada al portapapeles.');
+            }, (err) => {
+                toast.error('No se pudo copiar la URL de la carpeta.');
                 console.error('Could not copy text: ', err);
             });
         }
@@ -91,6 +103,37 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
         </div>
     ) : "-";
 
+    const folderLinkActions = form.google_drive_folder_id ? (
+        <div className="flex items-center gap-1">
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" asChild>
+                            <a href={`https://drive.google.com/drive/folders/${form.google_drive_folder_id}`} target="_blank" rel="noopener noreferrer" aria-label="Ir a la carpeta de Drive">
+                                <FolderOpen className="w-4 h-4" />
+                            </a>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Ir a la carpeta de Drive</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="ghost" size="icon"
+                            onClick={handleCopyFolderLink}
+                            aria-label="Copiar URL de la carpeta"
+                        >
+                            <Copy className="w-4 h-4" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copiar URL de la carpeta</TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        </div>
+    ) : "-";
+
     const actions = (
         <div className="flex items-center gap-1">
             <Button variant="outline" size="icon" aria-label="Editar formulario" onClick={() => onEdit(form)}>
@@ -128,6 +171,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
                 <div><span className="font-semibold">Fecha de Creación:</span> {formattedDate}</div>
                 {form.slug && <div><span className="font-semibold">Link:</span> {formLinkActions}</div>}
                 {form.google_sheet_url && <div><span className="font-semibold">Respuestas:</span> {sheetLinkActions}</div>}
+                {form.google_drive_folder_id && <div><span className="font-semibold">Carpeta:</span> {folderLinkActions}</div>}
                 <div className="flex gap-2 pt-2">{actions}</div>
             </div>
         );
@@ -144,6 +188,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
             <TableCell>{formattedDate}</TableCell>
             <TableCell>{formLinkActions}</TableCell>
             <TableCell>{sheetLinkActions}</TableCell>
+            <TableCell>{folderLinkActions}</TableCell>
             <TableCell className="min-w-[120px]">{actions}</TableCell>
         </TableRow>
     );

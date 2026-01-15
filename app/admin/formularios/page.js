@@ -42,21 +42,27 @@ export default async function FormulariosAdminPage() {
       </div>
       {/* <div className="flex flex-col gap-4 mb-4">
         {isConnected ? (
-          <div className="flex flex-col items-start gap-2 bg-emerald-50 border border-emerald-200 p-4 rounded-lg shadow-sm max-w-md">
+          <div className="flex flex-col items-start gap-2 bg-emerald-50 border border-emerald-200 p-4 rounded-xl shadow-sm max-w-md">
             <div className="flex items-center gap-2 text-emerald-700 font-semibold">
               <CheckCircle2 className="w-5 h-5" />
               <span>Conectado a Google</span>
             </div>
             <p className="text-xs text-gray-600 text-left">
-              Los formularios se guardarán automáticamente en la cuenta:{" "}
+              Los formularios se guardarán automáticamente en el Drive de la
+              cuenta:{" "}
               <strong>
                 {googleConn.account_name} ({googleConn.account_email})
               </strong>
               .
             </p>
+            <p className="text-xs text-gray-600 text-left">
+              Accede directamente a las respuestas e imagenes adjuntas de los
+              formularios usando los botones de <strong>Respuestas</strong> y{" "}
+              <strong>Carpeta</strong>.
+            </p>
           </div>
         ) : (
-          <div className="flex flex-col items-end gap-2 bg-amber-50 border border-amber-200 p-4 rounded-lg shadow-sm max-w-md">
+          <div className="flex flex-col items-end gap-2 bg-amber-50 border border-amber-200 p-4 rounded-xl shadow-sm max-w-md">
             <p className="text-xs text-amber-700 max-w-xs text-right mb-1">
               Conecta la cuenta de Inscripciones Eventos Puembo
               (eventospuembo@gmail.com) para habilitar la creación automática de
@@ -66,6 +72,27 @@ export default async function FormulariosAdminPage() {
           </div>
         )}
       </div> */}
+      <div className="flex flex-col gap-4 mb-4">
+        <div className="flex flex-col items-start gap-2 bg-emerald-50 border border-emerald-200 p-4 rounded-xl shadow-sm max-w-md">
+          <div className="flex items-center gap-2 text-emerald-700 font-semibold">
+            <CheckCircle2 className="w-5 h-5" />
+            <span>Conectado a Google</span>
+          </div>
+          <p className="text-xs text-gray-600 text-left">
+            Los formularios se guardarán automáticamente en el Drive de la
+            cuenta:{" "}
+            <strong>
+              {googleConn.account_name} ({googleConn.account_email})
+            </strong>
+            .
+          </p>
+          <p className="text-xs text-gray-600 text-left">
+            Accede directamente a las respuestas e imagenes adjuntas de los
+            formularios usando los botones de <strong>Respuestas</strong> y{" "}
+            <strong>Carpeta</strong>.
+          </p>
+        </div>
+      </div>
       <FormManager />
     </section>
   );
