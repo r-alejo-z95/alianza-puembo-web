@@ -327,7 +327,8 @@ export async function regenerateFormAndSheet(
 export async function initializeGoogleIntegration(
   formId: string,
   formTitle: string,
-  formSlug: string
+  formSlug: string,
+  formFields?: any[]
 ) {
   const supabase = await createClient();
 
@@ -375,7 +376,7 @@ export async function initializeGoogleIntegration(
         Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
       },
 
-      body: JSON.stringify({ formId, formTitle, formSlug }),
+      body: JSON.stringify({ formId, formTitle, formSlug, formFields }),
     });
 
     const result = await response.json();

@@ -186,7 +186,8 @@ export default function FormManager() {
       const googleResult = await initializeGoogleIntegration(
         newForm.id,
         newForm.title,
-        newForm.slug
+        newForm.slug,
+        fields
       );
       if (googleResult.error) {
         console.error("Error initializing Google integration:", googleResult.error);

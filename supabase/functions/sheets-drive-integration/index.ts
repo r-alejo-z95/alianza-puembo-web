@@ -175,12 +175,35 @@ async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
             },
             cell: {
               userEnteredFormat: {
+                backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 },
+                horizontalAlignment: "CENTER",
                 textFormat: {
                   bold: true,
                 },
               },
             },
-            fields: "userEnteredFormat.textFormat.bold",
+            fields: "userEnteredFormat(backgroundColor,horizontalAlignment,textFormat.bold)",
+          },
+        },
+        {
+          updateSheetProperties: {
+            properties: {
+              sheetId: sheetId,
+              gridProperties: {
+                frozenRowCount: 1,
+              },
+            },
+            fields: "gridProperties.frozenRowCount",
+          },
+        },
+        {
+          autoResizeDimensions: {
+            dimensions: {
+              sheetId: sheetId,
+              dimension: "COLUMNS",
+              startIndex: 0,
+              endIndex: 30,
+            },
           },
         },
       ],
@@ -189,7 +212,53 @@ async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(`Failed to format sheet headers: ${JSON.stringify(error)}`);
+    console.error(`Failed to format sheet headers: ${JSON.stringify(error)}`);
+  }
+}
+
+async function applyInitialFormatting(accessToken, spreadsheetId, sheetId) {
+  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      requests: [
+        {
+          addBanding: {
+            bandedRange: {
+              range: {
+                sheetId: sheetId,
+                startRowIndex: 0,
+                endRowIndex: 100,
+                startColumnIndex: 0,
+                endColumnIndex: 30,
+              },
+              rowProperties: {
+                headerColor: { red: 0.9, green: 0.9, blue: 0.9 },
+                firstBandColor: { red: 1, green: 1, blue: 1 },
+                secondBandColor: { red: 0.95, green: 0.95, blue: 0.95 },
+              },
+            },
+          },
+        },
+        {
+          addProtectedRange: {
+            protectedRange: {
+              range: { sheetId: sheetId },
+              description: "Respuestas automáticas",
+              warningOnly: true,
+            },
+          },
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    console.warn(`Initial formatting warning (might already exist): ${JSON.stringify(error)}`);
   }
 }
 
@@ -235,7 +304,7 @@ serve(async (req) => {
       try {
         const requestBody = await req.json();
         console.log('Received request body:', requestBody);
-        const { formId, formTitle, formSlug } = requestBody;
+        const { formId, formTitle, formSlug, formFields: providedFields } = requestBody;
         if (!formId || !formTitle || !formSlug) {
           return new Response(JSON.stringify({ error: "Missing formId, formTitle or formSlug" }), {
             status: 400,
@@ -251,17 +320,47 @@ serve(async (req) => {
 
         const accessToken = await getAccessToken(supabase);
 
+        // 1. Get form fields to initialize headers
+        let headers: string[] = ["Timestamp"];
+        
+        if (providedFields && Array.isArray(providedFields)) {
+          headers = ["Timestamp", ...providedFields.map((f: any) => f.label || f.name || "Pregunta")];
+        } else {
+          // Fetch from database if not provided (fallback for existing forms)
+          const { data: dbFields, error: fetchError } = await supabase
+            .from("form_fields")
+            .select("label, name")
+            .eq("form_id", formId)
+            .order("id", { ascending: true });
+
+          if (!fetchError && dbFields && dbFields.length > 0) {
+            headers = ["Timestamp", ...dbFields.map((f: any) => f.label || f.name || "Pregunta")];
+          }
+          // If no fields found, it will just have "Timestamp" for now
+        }
+
+        // 2. Create Drive Folder and Sheet
         const folderId = await createDriveFolder(accessToken, formTitle);
         const sheetId = await createGoogleSheet(accessToken, formTitle);
         const sheetInfo = await getFirstSheetName(accessToken, sheetId);
 
-        await supabase
-        .from("forms")
-        .update({ google_sheet_id: sheetId, google_drive_folder_id: folderId, google_sheet_url: `https://docs.google.com/spreadsheets/d/${sheetId}/edit` })
-        .eq("id", formId);
+        // 3. Initialize headers and formatting immediately
+        await appendToSheet(accessToken, sheetId, [headers], sheetInfo.name);
+        await applyInitialFormatting(accessToken, sheetId, sheetInfo.id);
+        await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
 
-      return new Response(
-        JSON.stringify({ sheetId, folderId, formSlug }),
+        // 4. Update Supabase with the new IDs
+        await supabase
+          .from("forms")
+          .update({ 
+            google_sheet_id: sheetId, 
+            google_drive_folder_id: folderId, 
+            google_sheet_url: `https://docs.google.com/spreadsheets/d/${sheetId}/edit` 
+          })
+          .eq("id", formId);
+
+        return new Response(
+          JSON.stringify({ sheetId, folderId, formSlug }),
           { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
         );
 
@@ -311,13 +410,12 @@ serve(async (req) => {
         const accessToken = await getAccessToken(supabase);
 
         let { google_sheet_id: sheetId, google_drive_folder_id: folderId } = form;
-        const currentFormDataHeaders = Object.keys(formData);
+        const currentFormDataHeaders = Object.keys(formData).filter(h => h !== "Timestamp");
         let sheetInfo;
         let finalHeaders;
 
         if (!sheetId || !folderId) {
-          // This block should ideally not be hit if /create-sheet is called first
-          // but kept as a fallback for robustness.
+          // Fallback creation
           folderId = await createDriveFolder(accessToken, form.title);
           sheetId = await createGoogleSheet(accessToken, form.title);
 
@@ -327,35 +425,49 @@ serve(async (req) => {
             .eq("id", formId);
 
           sheetInfo = await getFirstSheetName(accessToken, sheetId);
-          finalHeaders = currentFormDataHeaders; // Initial headers are just form data headers
+          finalHeaders = ["Timestamp", ...currentFormDataHeaders]; 
           await appendToSheet(accessToken, sheetId, [finalHeaders], sheetInfo.name);
+          await applyInitialFormatting(accessToken, sheetId, sheetInfo.id);
           await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
 
         } else {
-          // Subsequent submissions: check for new headers
           sheetInfo = await getFirstSheetName(accessToken, sheetId);
           const existingSheetHeaders = await getSheetHeaders(accessToken, sheetId, sheetInfo.name);
 
+          // Ensure Timestamp is first
+          let baseHeaders = [...existingSheetHeaders];
+          let headersChanged = false;
+
+          if (baseHeaders.length === 0 || baseHeaders[0] !== "Timestamp") {
+            baseHeaders = ["Timestamp", ...baseHeaders.filter(h => h !== "Timestamp")];
+            headersChanged = true;
+          }
+
           const newHeadersToAdd = currentFormDataHeaders.filter(
-            (header) => !existingSheetHeaders.includes(header)
+            (header) => !baseHeaders.includes(header)
           );
 
-          if (newHeadersToAdd.length > 0) {
-            // Append new headers to the existing ones
-            finalHeaders = [...existingSheetHeaders, ...newHeadersToAdd];
-            // Update the first row with the new set of headers
+          if (newHeadersToAdd.length > 0 || headersChanged) {
+            finalHeaders = [...baseHeaders, ...newHeadersToAdd];
             await updateSheetRow(accessToken, sheetId, sheetInfo.name, 1, finalHeaders);
-            // Re-apply bold formatting to the updated header row
+            // If it was empty or newly created, apply initial formatting
+            if (existingSheetHeaders.length === 0) {
+              await applyInitialFormatting(accessToken, sheetId, sheetInfo.id);
+            }
             await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
           } else {
-            finalHeaders = existingSheetHeaders; // No new headers, use existing ones
+            finalHeaders = baseHeaders;
           }
         }
 
-        const rowData = {};
+        const rowData = {
+          Timestamp: new Date().toLocaleString("es-EC", { timeZone: "America/Guayaquil" })
+        };
+
         for (const key in formData) {
+          if (key === "Timestamp") continue;
           const value = formData[key];
-          if (typeof value === 'object' && value?.type === 'file' && value.name && value.data) {
+          if (value && typeof value === 'object' && value.type === 'file' && value.name && value.data) {
             try {
               const base64Data = value.data.includes(',') ? value.data.split(',')[1] : value.data;
               const mimeType = value.data.match(/data:(.*?);base64,/)?.[1] || "application/octet-stream";
@@ -370,13 +482,19 @@ serve(async (req) => {
               console.error(`Error uploading file ${value.name}:`, fileError);
               rowData[key] = `Error uploading file: ${value.name}`;
             }
+          } else if (value && typeof value === 'object') {
+            // Fix: avoid [object Object] when files are missing or other objects are sent
+            rowData[key] = "";
           } else {
-            rowData[key] = String(value || "");
+            rowData[key] = String(value ?? "");
           }
         }
 
         const values = finalHeaders.map((header) => rowData[header] || "");
         await appendToSheet(accessToken, sheetId, [values], sheetInfo.name);
+        
+        // Auto-resize columns on every submission
+        await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
 
         return new Response(
           JSON.stringify({ message: "Datos enviados correctamente", sheetId, folderId }),
