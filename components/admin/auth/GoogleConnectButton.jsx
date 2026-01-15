@@ -10,7 +10,7 @@ export default function GoogleConnectButton() {
     redirect_uri: redirectUri,
     response_type: 'code',
     // The scope should include all permissions your app needs
-    scope: 'https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets',
+    scope: 'openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets',
     // 'offline' is crucial to get a refresh token
     access_type: 'offline',
     // 'consent' ensures the user is prompted, which is good for re-getting a refresh token

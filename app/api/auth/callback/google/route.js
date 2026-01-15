@@ -24,23 +24,31 @@ export async function GET(request) {
     });
 
     const tokens = await response.json();
-    const refresh_token = tokens.refresh_token;
+    const { refresh_token, access_token } = tokens;
 
     if (refresh_token) {
-      // Securely store the refresh token in your database
-      // We use upsert with a fixed ID to ensure only one token is stored
+      // Get user profile info
+      const userResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${access_token}` }
+      });
+      const profile = await userResponse.json();
+
+      // Securely store the refresh token and profile info in your database
       const { error } = await supabase
         .from('google_integration')
-        .upsert({ id: 1, refresh_token: refresh_token })
+        .upsert({ 
+          id: 1, 
+          refresh_token: refresh_token,
+          account_name: profile.name,
+          account_email: profile.email
+        })
         .select();
 
       if (error) {
         console.error('Error saving Google refresh token:', error);
-        // Redirect to a page with an error message
         return NextResponse.redirect(new URL('/admin/formularios?error=db_error', url.origin));
       }
 
-      // Redirect to a success page
       return NextResponse.redirect(new URL('/admin/formularios?success=true', url.origin));
     }
 

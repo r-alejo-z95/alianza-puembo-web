@@ -37,6 +37,13 @@ const SendingSpinner = () => (
 );
 
 export default function PublicForm() {
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    reset,
+  } = useForm();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -68,6 +75,7 @@ export default function PublicForm() {
 
   const onSubmit = async (data) => {
     setSending(true);
+    const supabase = createClient();
     try {
       const processedData = {};
       for (const key in data) {
