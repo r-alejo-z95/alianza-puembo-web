@@ -30,6 +30,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useSearchParams, useRouter } from "next/navigation";
+import { initializeGoogleIntegration } from "@/lib/actions";
 
 function slugify(text) {
   return text
@@ -179,6 +180,22 @@ export default function FormManager() {
         return;
       }
       formId = newForm.id;
+
+      // Initialize Google integration for the new form
+      toast.info("Iniciando integración con Google...");
+      const googleResult = await initializeGoogleIntegration(
+        newForm.id,
+        newForm.title,
+        newForm.slug
+      );
+      if (googleResult.error) {
+        console.error("Error initializing Google integration:", googleResult.error);
+        toast.error(
+          `Formulario creado, pero hubo un error con Google: ${googleResult.error}`
+        );
+      } else {
+        toast.success("Integración con Google completada con éxito.");
+      }
     }
 
     // Insert form fields
@@ -265,6 +282,15 @@ export default function FormManager() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Formularios Creados</CardTitle>
+        <Button
+          onClick={() => {
+            setSelectedForm(null);
+            setIsFormOpen(true);
+            setIsInitialEdit(false);
+          }}
+        >
+          Añadir Formulario
+        </Button>
       </CardHeader>
       <CardContent>
         {loading ? (
