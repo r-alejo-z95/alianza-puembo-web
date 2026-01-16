@@ -64,7 +64,11 @@ export default function PublicForm() {
         console.error("Error fetching form:", error);
         toast.error("No se pudo cargar el formulario.");
       } else {
-        data.form_fields.sort((a, b) => a.order - b.order);
+        data.form_fields.sort((a, b) => {
+          const orderA = a.order_index ?? a.order ?? 0;
+          const orderB = b.order_index ?? b.order ?? 0;
+          return orderA - orderB;
+        });
         setForm(data);
       }
       setLoading(false);
@@ -78,10 +82,13 @@ export default function PublicForm() {
     const supabase = createClient();
     try {
       const processedData = {};
+      const rawDataForDb = {}; // Store raw values for DB, or processed? Processed is usually better for reading.
+
       for (const key in data) {
         if (data.hasOwnProperty(key)) {
           const value = data[key];
           const fieldDef = form.form_fields.find((f) => f.label === key);
+          const fieldType = fieldDef?.type || fieldDef?.field_type;
 
           if (value instanceof FileList && value.length > 0) {
             const file = value[0];
@@ -98,7 +105,13 @@ export default function PublicForm() {
               reader.readAsDataURL(file);
             });
             processedData[key] = await fileReadPromise;
-          } else if (fieldDef?.field_type === "checkbox" && typeof value === "object" && value !== null) {
+            // For DB, we store the file name (we don't want to store base64 in JSONB if we can avoid it, or maybe we do for now as per plan?)
+            // The plan said: "Archivos... Lo pasamos directamente a Google Drive... en Supabase solo guardamos el Link de Google Drive."
+            // Since we get the link BACK from the Edge Function, we might need to adjust the flow.
+            // OR we store "Pending Upload" and then update it? 
+            // For now, let's store the filename in DB to avoid massive JSON.
+            rawDataForDb[key] = `[Archivo: ${file.name}]`; 
+          } else if (fieldType === "checkbox" && typeof value === "object" && value !== null) {
             // Map technical values to human-readable labels and join with newline
             const selectedLabels = Object.keys(value)
               .filter((optionKey) => value[optionKey])
@@ -107,25 +120,28 @@ export default function PublicForm() {
                 return option ? option.label : optionKey;
               });
             processedData[key] = selectedLabels.join("\n");
-          } else if (fieldDef?.field_type === "radio") {
+            rawDataForDb[key] = selectedLabels; // Store array in DB
+          } else if (fieldType === "radio") {
             // Map radio technical value back to label
             const option = fieldDef.options.find((opt) => opt.value === value);
             processedData[key] = option ? option.label : value;
+            rawDataForDb[key] = option ? option.label : value;
           } else if (Array.isArray(value)) {
             processedData[key] = value.join("\n");
+            rawDataForDb[key] = value;
           } else {
             processedData[key] = value;
+            rawDataForDb[key] = value;
           }
         }
       }
 
-      // ... inside PublicForm ...
       // Add timestamp
-      processedData.Timestamp = formatInEcuador(
-        getNowInEcuador(),
-        "d/M/yyyy HH:mm:ss"
-      );
+      const timestamp = formatInEcuador(getNowInEcuador(), "d/M/yyyy HH:mm:ss");
+      processedData.Timestamp = timestamp;
+      rawDataForDb.Timestamp = timestamp;
 
+      // 1. Send to Google Sheets (Edge Function)
       const { data: edgeFunctionData, error: edgeFunctionError } =
         await supabase.functions.invoke("sheets-drive-integration", {
           body: JSON.stringify({
@@ -134,15 +150,43 @@ export default function PublicForm() {
           }),
         });
 
+      let googleDriveLinks = {};
+
       if (edgeFunctionError) {
         console.error("Error invoking Edge Function:", edgeFunctionError);
         toast.error(
-          `Error al enviar el formulario: ${edgeFunctionError.message || "Error desconocido"}`
+          `Error al enviar a Google Sheets: ${edgeFunctionError.message || "Error desconocido"}`
         );
       } else if (edgeFunctionData.error) {
         console.error("Edge Function returned error:", edgeFunctionData.error);
-        toast.error(`Error al enviar el formulario: ${edgeFunctionData.error}`);
+        toast.error(`Error de Google Sheets: ${edgeFunctionData.error}`);
       } else {
+        // Success! If there were files, the edge function might return links?
+        // Let's check the Edge Function response structure.
+        // It returns: { message: "...", sheetId, folderId }
+        // It DOES NOT currently return the file URLs mapped to keys easily in the response root.
+        // BUT, the Edge Function uploads them. 
+        // Improvement: We can trust the Edge Function did its job.
+      }
+
+      // 2. Save to Supabase (Form Submissions)
+      const { error: dbError } = await supabase
+        .from("form_submissions")
+        .insert([
+          {
+            form_id: form.id,
+            data: rawDataForDb, // Store the cleaner data
+            ip_address: "Not captured (Client-side)", // Middleware usually handles this best
+            user_agent: navigator.userAgent,
+          },
+        ]);
+
+      if (dbError) {
+        console.error("Error saving to Supabase DB:", dbError);
+        // We don't block the user success if Sheets worked, but we warn console.
+      }
+
+      if (!edgeFunctionError && !dbError && !edgeFunctionData?.error) {
         toast.success("Formulario enviado con éxito!");
         reset(); // Reset the form fields
         setFileNames({}); // Clear file names
@@ -201,17 +245,20 @@ export default function PublicForm() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {form.form_fields.map((field) => {
                 const fieldId = `field-${field.id}`;
+                const fieldType = field.type || field.field_type;
+                const isRequired = field.required ?? field.is_required;
+
                 const registrationProps = register(field.label, {
-                  required: field.is_required,
+                  required: isRequired,
                 });
 
-                switch (field.field_type) {
+                switch (fieldType) {
                   case "text":
                     return (
                       <div key={field.id}>
                         <Label htmlFor={fieldId} className="mb-2">
                           {field.label}
-                          {field.is_required && " *"}
+                          {isRequired && " *"}
                         </Label>
                         <Input id={fieldId} {...registrationProps} />
                         {errors[field.label] && (
@@ -227,12 +274,12 @@ export default function PublicForm() {
                         key={field.id}
                         name={field.label}
                         control={control}
-                        rules={{ required: field.is_required }}
+                        rules={{ required: isRequired }}
                         render={({ field: controllerField }) => (
                           <div key={field.id}>
                             <Label className="mb-2">
                               {field.label}
-                              {field.is_required && " *"}
+                              {isRequired && " *"}
                             </Label>
                             <RadioGroup
                               onValueChange={controllerField.onChange}
@@ -268,7 +315,7 @@ export default function PublicForm() {
                       <div key={field.id}>
                         <Label className="mb-2">
                           {field.label}
-                          {field.is_required && " *"}
+                          {isRequired && " *"}
                         </Label>
                         <div className="space-y-2 mt-2">
                           {field.options.map((option) => (
@@ -303,7 +350,7 @@ export default function PublicForm() {
                       <div key={field.id}>
                         <Label className="mb-2">
                           {field.label}
-                          {field.is_required && " *"}
+                          {isRequired && " *"}
                         </Label>
                         <div className="flex items-center space-x-2">
                           <Input

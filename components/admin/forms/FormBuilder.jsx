@@ -12,17 +12,35 @@ import { PlusCircle, Trash2, GripVertical, Image as ImageIcon } from 'lucide-rea
 import { v4 as uuidv4 } from 'uuid';
 import RichTextEditor from './RichTextEditor';
 
+// Dnd Kit Imports
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
 const fieldSchema = z.object({
   id: z.string().default(() => uuidv4()),
-  field_type: z.enum(['text', 'radio', 'checkbox', 'file']),
+  type: z.enum(['text', 'radio', 'checkbox', 'file']),
   label: z.string().min(1, 'El label del campo es requerido.'),
   options: z.array(z.object({
     id: z.string().default(() => uuidv4()),
     value: z.string(),
     label: z.string().min(1, 'El label de la opción es requerido.'),
   })).optional(),
-  is_required: z.boolean().default(false),
-  order: z.number(),
+  required: z.boolean().default(false),
+  order_index: z.number(),
 });
 
 const formSchema = z.object({
@@ -31,6 +49,28 @@ const formSchema = z.object({
   image_url: z.string().url('URL de imagen inválida.').optional().or(z.literal('')),
   fields: z.array(fieldSchema),
 });
+
+// Sortable Item Component
+function SortableField({ id, children }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="mb-4">
+      {children(attributes, listeners)}
+    </div>
+  );
+}
 
 export default function FormBuilder({ form: initialForm, onSave, onCancel }) {
   const [imageFile, setImageFile] = useState(null);
@@ -51,17 +91,28 @@ export default function FormBuilder({ form: initialForm, onSave, onCancel }) {
     name: "fields",
   });
 
+  // Sensors for Dnd
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   useEffect(() => {
     if (initialForm) {
       const preparedFields = (initialForm.form_fields || []).map(field => ({
         ...field,
         id: field.id || uuidv4(),
+        type: field.type || field.field_type, // Fallback for migration
+        required: field.required !== undefined ? field.required : field.is_required, // Fallback for migration
+        order_index: field.order_index !== undefined ? field.order_index : field.order, // Fallback for migration
         options: (field.options || []).map(option => ({
           ...option,
           id: option.id || uuidv4(),
           value: option.value || option.label.toLowerCase().replace(/[^a-z0-9]+/g, ''),
         })),
-      })).sort((a, b) => a.order - b.order);
+      })).sort((a, b) => a.order_index - b.order_index);
 
       form.reset({
         title: initialForm.title || '',
@@ -73,14 +124,14 @@ export default function FormBuilder({ form: initialForm, onSave, onCancel }) {
   }, [initialForm, form]);
 
   const addField = (type) => {
-    const newOrder = fields.length > 0 ? Math.max(...fields.map(f => f.order)) + 1 : 0;
+    const newOrder = fields.length > 0 ? Math.max(...fields.map(f => f.order_index)) + 1 : 0;
     append({
       id: uuidv4(),
-      field_type: type,
+      type: type,
       label: '',
       options: type === 'radio' || type === 'checkbox' ? [{ value: '', label: '', id: uuidv4() }] : undefined,
-      is_required: false,
-      order: newOrder,
+      required: false,
+      order_index: newOrder,
     });
   };
 
@@ -97,8 +148,18 @@ export default function FormBuilder({ form: initialForm, onSave, onCancel }) {
   };
 
   const onSubmit = (data) => {
-    const orderedFields = data.fields.map((field, index) => ({ ...field, order: index }));
+    const orderedFields = data.fields.map((field, index) => ({ ...field, order_index: index }));
     onSave({ ...data, fields: orderedFields }, imageFile);
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      const oldIndex = fields.findIndex((f) => f.id === active.id);
+      const newIndex = fields.findIndex((f) => f.id === over.id);
+      move(oldIndex, newIndex);
+    }
   };
 
   return (
@@ -161,85 +222,108 @@ export default function FormBuilder({ form: initialForm, onSave, onCancel }) {
 
         <div className="space-y-4 border p-4 rounded-md">
           <h3 className="text-lg font-semibold">Campos del Formulario</h3>
-          {fields.map((field, index) => (
-            <div key={field.id} className="flex flex-col space-y-2 p-2 border rounded-md">
-              <div className="flex justify-between items-center">
-                <Button variant="ghost" size="icon" type="button" className="cursor-grab" onMouseDown={(e) => { /* Implement drag logic later */ }}>
-                  <GripVertical className="h-4 w-4" />
-                </Button>
-                <span className="font-medium capitalize">{field.field_type}</span>
-                <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-              <FormField
-                control={form.control}
-                name={`fields.${index}.label`}
-                render={({ field: itemField }) => (
-                  <FormItem>
-                    <FormLabel>Label del Campo</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: Tu Nombre Completo" {...itemField} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={`fields.${index}.is_required`}
-                render={({ field: itemField }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={itemField.value}
-                        onCheckedChange={itemField.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Requerido</FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              {(field.field_type === 'radio' || field.field_type === 'checkbox') && (
-                <div className="space-y-2 pl-4 max-h-48 overflow-y-auto">
-                  <h4 className="font-medium">Opciones</h4>
-                  {field.options?.map((option, optionIndex) => (
-                    <div key={option.id} className="flex items-center space-x-2">
+          
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={fields.map((f) => f.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {fields.map((field, index) => (
+                <SortableField key={field.id} id={field.id}>
+                  {(attributes, listeners) => (
+                    <div className="flex flex-col space-y-2 p-2 border rounded-md bg-white">
+                      <div className="flex justify-between items-center">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          type="button" 
+                          className="cursor-grab" 
+                          {...attributes} 
+                          {...listeners}
+                        >
+                          <GripVertical className="h-4 w-4" />
+                        </Button>
+                        <span className="font-medium capitalize">{field.type}</span>
+                        <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                       <FormField
                         control={form.control}
-                        name={`fields.${index}.options.${optionIndex}.label`}
-                        render={({ field: optionField }) => (
-                          <FormItem className="flex-grow">
+                        name={`fields.${index}.label`}
+                        render={({ field: itemField }) => (
+                          <FormItem>
+                            <FormLabel>Label del Campo</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="Label de la opción"
-                                {...optionField}
-                                onChange={(e) => {
-                                  optionField.onChange(e);
-                                  const newLabel = e.target.value;
-                                  const newValue = newLabel.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
-                                  form.setValue(`fields.${index}.options.${optionIndex}.value`, newValue || uuidv4());
-                                }}
-                              />
+                              <Input placeholder="Ej: Tu Nombre Completo" {...itemField} />
                             </FormControl>
+                            <FormMessage />
                           </FormItem>
                         )}
                       />
-                      <Button type="button" variant="destructive" size="icon" onClick={() => removeOption(index, optionIndex)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <FormField
+                        control={form.control}
+                        name={`fields.${index}.required`}
+                        render={({ field: itemField }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                            <FormControl>
+                              <Checkbox
+                                checked={itemField.value}
+                                onCheckedChange={itemField.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Requerido</FormLabel>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      {(field.type === 'radio' || field.type === 'checkbox') && (
+                        <div className="space-y-2 pl-4 max-h-48 overflow-y-auto">
+                          <h4 className="font-medium">Opciones</h4>
+                          {field.options?.map((option, optionIndex) => (
+                            <div key={option.id} className="flex items-center space-x-2">
+                              <FormField
+                                control={form.control}
+                                name={`fields.${index}.options.${optionIndex}.label`}
+                                render={({ field: optionField }) => (
+                                  <FormItem className="flex-grow">
+                                    <FormControl>
+                                      <Input
+                                        placeholder="Label de la opción"
+                                        {...optionField}
+                                        onChange={(e) => {
+                                          optionField.onChange(e);
+                                          const newLabel = e.target.value;
+                                          const newValue = newLabel.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+                                          form.setValue(`fields.${index}.options.${optionIndex}.value`, newValue || uuidv4());
+                                        }}
+                                      />
+                                    </FormControl>
+                                  </FormItem>
+                                )}
+                              />
+                              <Button type="button" variant="destructive" size="icon" onClick={() => removeOption(index, optionIndex)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                          <Button type="button" variant="outline" size="sm" onClick={() => addOption(index)}>
+                            <PlusCircle className="h-4 w-4 mr-2" /> Añadir Opción
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                  ))}
-                  <Button type="button" variant="outline" size="sm" onClick={() => addOption(index)}>
-                    <PlusCircle className="h-4 w-4 mr-2" /> Añadir Opción
-                  </Button>
-                </div>
-              )}
-            </div>
-          ))}
+                  )}
+                </SortableField>
+              ))}
+            </SortableContext>
+          </DndContext>
 
           <div className="flex flex-col gap-2">
             <Button type="button" variant="outline" className="justify-start" onClick={() => addField('text')}>
