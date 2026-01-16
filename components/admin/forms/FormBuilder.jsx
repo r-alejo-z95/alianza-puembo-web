@@ -916,7 +916,7 @@ export default function FormBuilder({
   const activeDragIndex = fields.findIndex((f) => f.id === activeDragId);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50 pb-20">
+    <div className="flex flex-col min-h-screen px-8 py-4 bg-gray-50 pb-20">
       {/* Top Bar */}
       <div className="sticky top-0 z-50 bg-white border-b shadow-sm px-4 py-3 flex items-center justify-between">
         <h1 className="font-semibold text-lg text-gray-700">
