@@ -13,43 +13,13 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import { PaginationControls } from "@/components/shared/PaginationControls";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import FormBuilder from "@/components/admin/forms/FormBuilder";
 import { FormRow } from "./table-cells/FormRow";
-import { stripHtml } from "@/lib/utils";
-import { Copy } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { useSearchParams, useRouter } from "next/navigation";
-import { initializeGoogleIntegration } from "@/lib/actions";
-
-function slugify(text) {
-  return text
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, "-") // Replace spaces with -
-    .replace(/[^\w\-]+/g, "") // Remove all non-word chars
-    .replace(/\-\-+/g, "-") // Replace multiple - with single -
-    .replace(/^-+/, "") // Trim - from start of text
-    .replace(/-+$/, ""); // Trim - from end of text
-}
 
 export default function FormManager() {
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [selectedForm, setSelectedForm] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isInitialEdit, setIsInitialEdit] = useState(false);
 
   const itemsPerPage = 5;
   const supabase = createClient();
@@ -70,15 +40,8 @@ export default function FormManager() {
     } else {
       setForms(data);
       if (editFormId) {
-        const formToEdit = data.find((form) => form.id === editFormId);
-        if (formToEdit) {
-          setSelectedForm(formToEdit);
-          setIsFormOpen(true);
-          setIsInitialEdit(true); // Set initial edit flag
-          router.replace("/admin/formularios"); // Remove editFormId from URL
-        } else {
-          toast.error("Formulario no encontrado.");
-        }
+        // Redirect to builder if editFormId is present
+        router.push(`/admin/formularios/builder?id=${editFormId}`);
       }
     }
     setLoading(false);
@@ -87,145 +50,6 @@ export default function FormManager() {
   useEffect(() => {
     fetchForms();
   }, []);
-
-  const handleSave = async (formData, imageFile) => {
-    setLoading(true);
-    const { title, description, fields } = formData;
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    let formId = selectedForm?.id;
-    let imageUrl = selectedForm?.image_url || null;
-    const slug = slugify(title);
-
-    // Handle image upload
-    if (imageFile) {
-      // If updating an existing form and a new image is provided, delete the old one
-      if (selectedForm && selectedForm.image_url) {
-        const oldFileName = selectedForm.image_url.split("/").pop();
-        const { error: deleteOldStorageError } = await supabase.storage
-          .from("form-images") // Assuming a bucket named 'form-images'
-          .remove([oldFileName]);
-
-        if (deleteOldStorageError) {
-          console.error(
-            "Error deleting old form image from storage:",
-            deleteOldStorageError
-          );
-          toast.error(
-            "Error al eliminar la imagen antigua del almacenamiento."
-          );
-        }
-      }
-
-      const fileName = `${Date.now()}_${imageFile.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("form-images") // Assuming a bucket named 'form-images'
-        .upload(fileName, imageFile);
-
-      if (uploadError) {
-        console.error("Error uploading form image:", uploadError);
-        toast.error("Error al subir la imagen del formulario.");
-        setLoading(false);
-        return;
-      } else {
-        const { data: urlData } = supabase.storage
-          .from("form-images")
-          .getPublicUrl(uploadData.path);
-        imageUrl = urlData.publicUrl;
-      }
-    }
-
-    if (selectedForm) {
-      // Update existing form
-      const { error: formError } = await supabase
-        .from("forms")
-        .update({ title, description, image_url: imageUrl, slug })
-        .eq("id", formId);
-
-      if (formError) {
-        console.error("Error updating form:", formError);
-        toast.error("Error al actualizar el formulario.");
-        setLoading(false);
-        return;
-      }
-
-      // Delete existing fields and insert new ones
-      const { error: deleteFieldsError } = await supabase
-        .from("form_fields")
-        .delete()
-        .eq("form_id", formId);
-
-      if (deleteFieldsError) {
-        console.error("Error deleting old form fields:", deleteFieldsError);
-        toast.error("Error al actualizar los campos del formulario.");
-        setLoading(false);
-        return;
-      }
-    } else {
-      // Create new form
-      const { data: newForm, error: formError } = await supabase
-        .from("forms")
-        .insert([
-          { title, description, image_url: imageUrl, user_id: user?.id, slug },
-        ])
-        .select()
-        .single();
-
-      if (formError || !newForm) {
-        console.error("Error creating form:", formError);
-        toast.error("Error al crear el formulario.");
-        setLoading(false);
-        return;
-      }
-      formId = newForm.id;
-
-      // Initialize Google integration for the new form
-      toast.info("Iniciando integración con Google...");
-      const googleResult = await initializeGoogleIntegration(
-        newForm.id,
-        newForm.title,
-        newForm.slug,
-        fields
-      );
-      if (googleResult.error) {
-        console.error("Error initializing Google integration:", googleResult.error);
-        toast.error(
-          `Formulario creado, pero hubo un error con Google: ${googleResult.error}`
-        );
-      } else {
-        toast.success("Integración con Google completada con éxito.");
-      }
-    }
-
-    // Insert form fields
-    const fieldsToInsert = fields.map((field) => ({
-      ...field,
-      form_id: formId,
-    }));
-
-    const { error: fieldsError } = await supabase
-      .from("form_fields")
-      .insert(fieldsToInsert);
-
-    if (fieldsError) {
-      console.error("Error inserting form fields:", fieldsError);
-      toast.error("Error al guardar los campos del formulario.");
-      setLoading(false);
-      return;
-    }
-
-    toast.success("Formulario guardado con éxito.");
-    setIsFormOpen(false);
-    fetchForms();
-
-    // After saving, if it's an initial edit, redirect to /admin/eventos
-    if (isInitialEdit) {
-      router.push("/admin/eventos");
-      setIsInitialEdit(false); // Reset the flag after redirection
-    }
-  };
 
   const handleDelete = async (formId) => {
     setLoading(true);
@@ -283,13 +107,7 @@ export default function FormManager() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Formularios Creados</CardTitle>
-        <Button
-          onClick={() => {
-            setSelectedForm(null);
-            setIsFormOpen(true);
-            setIsInitialEdit(false);
-          }}
-        >
+        <Button onClick={() => router.push("/admin/formularios/builder")}>
           Añadir Formulario
         </Button>
       </CardHeader>
@@ -318,8 +136,7 @@ export default function FormManager() {
                       key={form.id}
                       form={form}
                       onEdit={() => {
-                        setSelectedForm(form);
-                        setIsFormOpen(true);
+                        router.push(`/admin/formularios/builder?id=${form.id}`);
                       }}
                       onDelete={handleDelete}
                       compact={false}
@@ -343,8 +160,7 @@ export default function FormManager() {
                   key={form.id}
                   form={form}
                   onEdit={() => {
-                    setSelectedForm(form);
-                    setIsFormOpen(true);
+                    router.push(`/admin/formularios/builder?id=${form.id}`);
                   }}
                   onDelete={handleDelete}
                   compact={true}
@@ -362,20 +178,6 @@ export default function FormManager() {
           </div>
         )}
       </CardContent>
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-4xl overflow-y-auto max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedForm ? "Editar Formulario" : "Crear Nuevo Formulario"}
-            </DialogTitle>
-          </DialogHeader>
-          <FormBuilder
-            form={selectedForm}
-            onSave={handleSave}
-            onCancel={() => setIsFormOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
     </Card>
   );
 }
