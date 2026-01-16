@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,8 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragOverlay,
+  defaultDropAnimationSideEffects,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -69,6 +71,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+// --- Zod Schemas ---
 const fieldSchema = z.object({
   id: z.string().default(() => uuidv4()),
   type: z.enum([
@@ -110,7 +113,7 @@ const formSchema = z.object({
   fields: z.array(fieldSchema),
 });
 
-// Map of Field Types to Icons and Labels
+// --- Constants ---
 const FIELD_TYPES = {
   text: {
     label: "Texto Corto",
@@ -159,192 +162,206 @@ const FIELD_TYPES = {
   },
 };
 
-// Sortable Item Component
-function SortableFieldCard({
-  id,
-  index,
+// --- Components ---
+
+// 1. Field Card UI (Pure Presentational Component)
+function FieldCard({
   field,
+  index,
   form,
-  remove,
+  isActive,
+  onClick,
   activeId,
   setActiveId,
-  addOption,
-  removeOption,
-  updateFieldType,
+  onRemove,
+  onAddOption,
+  onRemoveOption,
+  onUpdateFieldType,
   onUploadAttachment,
+  dragHandleProps,
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-
   const attachmentInputRef = useRef(null);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 100 : 1,
-    position: "relative",
-  };
+  // WATCH field values for real-time preview updates
+  const watchedField = useWatch({
+    control: form.control,
+    name: `fields.${index}`,
+    defaultValue: field,
+  });
 
-  const isActive = activeId === id;
+  // Use watched values for rendering, fallback to field prop (initial state)
+  const currentField = watchedField || field;
 
-  const handleClick = (e) => {
-    if (
-      e.target.closest("button") ||
-      e.target.closest(".drag-handle") ||
-      e.target.closest('[role="combobox"]')
-    )
-      return;
-    setActiveId(id);
-  };
-
-  const handleAttachmentClick = () => {
+  const handleAttachmentClick = (e) => {
+    e.preventDefault();
     attachmentInputRef.current?.click();
   };
 
+  // Logic to prevent focus loss when clicking internal interactive elements
+  const handleCardClick = (e) => {
+    // Ignore clicks coming from interactive controls
+    if (
+      e.target.closest(
+        'input, button, textarea, select, [role="button"], [role="switch"]'
+      )
+    ) {
+      return;
+    }
+
+    e.stopPropagation();
+
+    // Only change if it's not the same card
+    if (activeId !== field.id) {
+      setActiveId(field.id);
+    }
+  };
+
   return (
-    <div ref={setNodeRef} style={style} className="mb-4">
-      <Card
-        className={cn(
-          "transition-all duration-200 border-l-4",
-          isActive
-            ? "border-l-blue-500 shadow-md ring-1 ring-blue-100"
-            : "border-l-transparent hover:border-l-gray-300",
-          isDragging && "opacity-50"
-        )}
-        onClick={handleClick}
-      >
-        <CardContent className="p-6">
-          {isActive ? (
-            // EDIT MODE
-            <div className="flex flex-col gap-4">
-              <div className="flex gap-4 items-start">
-                <div className="flex-grow space-y-4">
-                  <div className="flex flex-col gap-2">
-                    <FormField
-                      control={form.control}
-                      name={`fields.${index}.label`}
-                      render={({ field: itemField }) => (
-                        <Input
-                          placeholder="Escribe tu pregunta aquí"
-                          className="text-lg font-medium border-x-0 border-t-0 border-b-2 rounded-none px-0 focus-visible:ring-0 bg-gray-50/50 flex-grow"
-                          {...itemField}
-                        />
-                      )}
-                    />
-
-                    {/* Explicit Attachment Button */}
-                    {!field.attachment_url && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleAttachmentClick}
-                        className="w-fit text-gray-500 border-dashed hover:border-solid hover:text-blue-600 hover:border-blue-300"
-                        title="Añadir una imagen o documento de referencia para esta pregunta"
-                      >
-                        <ImageIcon className="w-4 h-4 mr-2" />
-                        Añadir imagen/archivo de referencia
-                      </Button>
+    <Card
+      className={cn(
+        "transition-all duration-200 border-l-4 bg-white",
+        isActive
+          ? "border-l-[var(--puembo-green)] shadow-lg ring-1 ring-green-100 z-10"
+          : "border-l-transparent hover:border-l-gray-300"
+      )}
+      onClick={handleCardClick}
+    >
+      <CardContent className="p-6">
+        {isActive ? (
+          // === EDIT MODE ===
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-4 items-start">
+              <div className="flex-grow space-y-4">
+                <div className="flex items-center gap-2">
+                  <FormField
+                    control={form.control}
+                    name={`fields.${index}.label`}
+                    render={({ field: itemField }) => (
+                      <Input
+                        placeholder="Pregunta"
+                        className="text-lg font-medium border-x-0 border-t-0 border-b-2 rounded-none px-0 focus-visible:ring-0 bg-gray-50/50 flex-grow"
+                        {...itemField}
+                      />
                     )}
+                  />
 
-                    <input
-                      type="file"
-                      ref={attachmentInputRef}
-                      className="hidden"
-                      accept="image/*,application/pdf"
-                      onChange={(e) =>
-                        onUploadAttachment(index, e.target.files[0])
-                      }
-                    />
-                  </div>
-
-                  {/* Attachment Preview in Edit Mode */}
-                  {field.attachment_url && (
-                    <div className="relative group w-fit mt-2 border rounded-md overflow-hidden bg-gray-50">
-                      {field.attachment_type === "image" ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={field.attachment_url}
-                          alt="Attachment"
-                          className="max-h-64 w-auto object-contain"
-                        />
-                      ) : (
-                        <div className="flex items-center gap-3 p-4">
-                          <FileUp className="w-8 h-8 text-blue-500" />
-                          <div className="flex flex-col">
-                            <span className="font-medium text-sm text-gray-700">
-                              Documento Adjunto
-                            </span>
-                            <span className="text-xs text-gray-500 truncate max-w-[200px]">
-                              {field.attachment_url.split("/").pop()}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      <div className="absolute top-2 right-2 flex gap-1">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="icon"
-                          className="h-8 w-8 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={handleAttachmentClick}
-                          title="Cambiar archivo"
-                        >
-                          <ImageIcon className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="icon"
-                          className="h-8 w-8 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => {
-                            form.setValue(`fields.${index}.attachment_url`, "");
-                            form.setValue(
-                              `fields.${index}.attachment_type`,
-                              ""
-                            );
-                            form.setValue(
-                              `fields.${index}.attachment_file`,
-                              null
-                            ); // Clear file too
-                          }}
-                          title="Eliminar adjunto"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
+                  {/* Attachment Button */}
+                  {!currentField.attachment_url && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleAttachmentClick}
+                            className="text-gray-500 border-dashed hover:border-solid hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)] shrink-0 gap-2 px-3"
+                          >
+                            <Paperclip className="w-4 h-4" />
+                            <span className="text-xs">Adjuntar</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          Añadir imagen o archivo de referencia
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
 
-                  {/* Options for Select-like fields */}
-                  {(field.type === "radio" || field.type === "checkbox") && (
-                    <div className="space-y-3 pl-2 mt-4">
-                      {field.options?.map((option, optionIndex) => (
-                        <div
-                          key={option.id}
-                          className="flex items-center gap-2 group"
-                        >
-                          {field.type === "radio" ? (
-                            <CircleDot className="w-4 h-4 text-gray-400" />
-                          ) : (
-                            <CheckSquare className="w-4 h-4 text-gray-400" />
-                          )}
-                          <FormField
-                            control={form.control}
-                            name={`fields.${index}.options.${optionIndex}.label`}
-                            render={({ field: optionField }) => (
-                              <Input
-                                placeholder={`Opción ${optionIndex + 1}`}
-                                className="flex-grow h-8 border-none hover:border-b hover:border-gray-200 focus-visible:border-b-blue-500 rounded-none px-1"
-                                {...optionField}
-                                onChange={(e) => {
-                                  optionField.onChange(e);
+                  <input
+                    type="file"
+                    ref={attachmentInputRef}
+                    className="hidden"
+                    accept="image/*,application/pdf"
+                    onChange={(e) =>
+                      onUploadAttachment(index, e.target.files[0])
+                    }
+                  />
+                </div>
+
+                {/* Attachment Preview */}
+                {currentField.attachment_url && (
+                  <div className="relative group w-fit mt-2 border rounded-md overflow-hidden bg-gray-50">
+                    {currentField.attachment_type === "image" ? (
+                      <img
+                        src={currentField.attachment_url}
+                        alt="Attachment"
+                        className="max-h-64 w-auto object-contain"
+                      />
+                    ) : (
+                      <div className="flex items-center gap-3 p-4">
+                        <FileUp className="w-8 h-8 text-[var(--puembo-green)]" />
+                        <div className="flex flex-col">
+                          <span className="font-medium text-sm text-gray-700">
+                            Documento Adjunto
+                          </span>
+                          <span className="text-xs text-gray-500 truncate max-w-[200px]">
+                            {currentField.attachment_url.split("/").pop()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 flex gap-1">
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        className="h-8 w-8 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={handleAttachmentClick}
+                      >
+                        <Paperclip className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="h-8 w-8 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          form.setValue(`fields.${index}.attachment_url`, "");
+                          form.setValue(`fields.${index}.attachment_type`, "");
+                          form.setValue(
+                            `fields.${index}.attachment_file`,
+                            null
+                          );
+                        }}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Options Logic */}
+                {(currentField.type === "radio" ||
+                  currentField.type === "checkbox") && (
+                  <div className="space-y-3 pl-2 mt-4">
+                    {currentField.options?.map((option, optionIndex) => (
+                      <div
+                        key={option.id}
+                        className="flex items-center gap-2 group"
+                      >
+                        {currentField.type === "radio" ? (
+                          <CircleDot className="w-4 h-4 text-gray-400" />
+                        ) : (
+                          <CheckSquare className="w-4 h-4 text-gray-400" />
+                        )}
+                        <FormField
+                          control={form.control}
+                          name={`fields.${index}.options.${optionIndex}.label`}
+                          render={({ field: optionField }) => (
+                            <Input
+                              placeholder={`Opción ${optionIndex + 1}`}
+                              className="flex-grow h-8 border-none hover:border-b hover:border-gray-200 focus-visible:border-b-[var(--puembo-green)] rounded-none px-1"
+                              {...optionField}
+                              onChange={(e) => {
+                                optionField.onChange(e);
+                                // Auto-generate value if empty
+                                if (
+                                  !form.getValues(
+                                    `fields.${index}.options.${optionIndex}.value`
+                                  )
+                                ) {
                                   const newLabel = e.target.value;
                                   const newValue = newLabel
                                     .toLowerCase()
@@ -354,249 +371,275 @@ function SortableFieldCard({
                                     `fields.${index}.options.${optionIndex}.value`,
                                     newValue || uuidv4()
                                   );
-                                }}
-                              />
-                            )}
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="opacity-0 group-hover:opacity-100 h-8 w-8"
-                            onClick={() => removeOption(index, optionIndex)}
-                          >
-                            <X className="h-4 w-4 text-gray-500" />
-                          </Button>
-                        </div>
-                      ))}
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 ml-6"
-                        onClick={() => addOption(index)}
-                      >
-                        <PlusCircle className="h-4 w-4 mr-2" /> Añadir opción
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Placeholder for text-like fields */}
-                  {["text", "textarea", "email", "number"].includes(
-                    field.type
-                  ) && (
-                    <FormField
-                      control={form.control}
-                      name={`fields.${index}.placeholder`}
-                      render={({ field: itemField }) => (
-                        <Input
-                          placeholder="Texto de ayuda (placeholder)..."
-                          className="text-sm text-gray-500 border-none border-b border-gray-200 rounded-none px-0 focus-visible:ring-0 mt-2"
-                          {...itemField}
+                                }
+                              }}
+                            />
+                          )}
                         />
-                      )}
-                    />
-                  )}
-                </div>
-
-                {/* Type Selector Dropdown */}
-                <div className="w-60 shrink-0">
-                  <Select
-                    value={field.type}
-                    onValueChange={(value) => updateFieldType(index, value)}
-                  >
-                    <SelectTrigger className="w-full bg-gray-50 border-gray-200">
-                      <SelectValue>
-                        <div className="flex items-center gap-2">
-                          {FIELD_TYPES[field.type]?.icon}
-                          <span>{FIELD_TYPES[field.type]?.label}</span>
-                        </div>
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(FIELD_TYPES).map(
-                        ([key, { label, icon }]) => (
-                          <SelectItem key={key} value={key}>
-                            <div className="flex items-center gap-2">
-                              {icon}
-                              <span>{label}</span>
-                            </div>
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-4 pt-4 border-t mt-2">
-                <div className="flex items-center gap-2 border-r pr-4">
-                  <Trash2
-                    className="w-5 h-5 text-gray-500 hover:text-red-600 cursor-pointer transition-colors"
-                    onClick={() => remove(index)}
-                    title="Eliminar pregunta"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600 font-medium">
-                    Obligatorio
-                  </span>
-                  <FormField
-                    control={form.control}
-                    name={`fields.${index}.required`}
-                    render={({ field: itemField }) => (
-                      <Switch
-                        checked={itemField.value}
-                        onCheckedChange={itemField.onChange}
-                      />
-                    )}
-                  />
-                </div>
-                <div
-                  className="border-l pl-4 flex items-center cursor-move drag-handle"
-                  {...attributes}
-                  {...listeners}
-                >
-                  <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
-                </div>
-              </div>
-            </div>
-          ) : (
-            // PREVIEW MODE
-            <div className="group flex items-start gap-4">
-              <div className="flex-grow space-y-2">
-                <p className="text-base font-medium">
-                  {field.label || "Pregunta sin título"}
-                  {field.required && (
-                    <span className="text-red-500 ml-1">*</span>
-                  )}
-                </p>
-
-                {/* Attachment Preview in Preview Mode */}
-                {field.attachment_url && (
-                  <div className="mb-3">
-                    {field.attachment_type === "image" ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={field.attachment_url}
-                        alt="Attachment"
-                        className="max-h-60 rounded-md border w-auto"
-                      />
-                    ) : (
-                      <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md border w-fit">
-                        <FileUp className="w-4 h-4 text-gray-500" />
-                        <a
-                          href={field.attachment_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-blue-600 hover:underline"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="opacity-0 group-hover:opacity-100 h-8 w-8"
+                          onClick={() => onRemoveOption(index, optionIndex)}
                         >
-                          Ver documento adjunto
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {field.type === "text" && (
-                  <Input
-                    disabled
-                    placeholder={
-                      field.placeholder || "Texto de respuesta corta"
-                    }
-                    className="border-dotted bg-gray-50 max-w-md"
-                  />
-                )}
-                {field.type === "textarea" && (
-                  <div className="h-20 w-full max-w-md border border-dotted border-gray-300 bg-gray-50 rounded-md p-2 text-sm text-gray-400">
-                    {field.placeholder || "Texto de respuesta larga"}
-                  </div>
-                )}
-                {field.type === "email" && (
-                  <Input
-                    disabled
-                    placeholder={field.placeholder || "ejemplo@correo.com"}
-                    className="border-dotted bg-gray-50 max-w-md"
-                  />
-                )}
-                {field.type === "number" && (
-                  <Input
-                    disabled
-                    type="number"
-                    placeholder={field.placeholder || "0"}
-                    className="border-dotted bg-gray-50 max-w-xs"
-                  />
-                )}
-                {field.type === "date" && (
-                  <div className="flex items-center gap-2 border border-dotted border-gray-300 rounded-md p-2 w-fit bg-gray-50 text-gray-400">
-                    <CalendarIcon className="w-4 h-4" />
-                    <span>dd/mm/aaaa</span>
-                  </div>
-                )}
-
-                {(field.type === "radio" || field.type === "checkbox") && (
-                  <div className="space-y-2 pl-1">
-                    {field.options?.map((option, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-2 text-gray-500 text-sm"
-                      >
-                        {field.type === "radio" ? (
-                          <CircleDot className="w-4 h-4" />
-                        ) : (
-                          <CheckSquare className="w-4 h-4" />
-                        )}
-                        <span>{option.label || `Opción ${i + 1}`}</span>
+                          <X className="h-4 w-4 text-gray-500" />
+                        </Button>
                       </div>
                     ))}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-[var(--puembo-green)] hover:text-green-800 hover:bg-green-50 ml-6"
+                      onClick={() => onAddOption(index)}
+                    >
+                      <PlusCircle className="h-4 w-4 mr-2" /> Añadir opción
+                    </Button>
                   </div>
                 )}
 
-                {field.type === "file" && (
-                  <div className="border border-gray-200 rounded-md p-3 flex items-center gap-2 w-fit bg-gray-50 text-gray-500">
-                    <FileUp className="w-5 h-5" />
-                    <span className="text-sm">Subida de archivo</span>
-                  </div>
-                )}
-                {field.type === "image" && (
-                  <div className="border border-gray-200 rounded-md p-3 flex items-center gap-2 w-fit bg-gray-50 text-gray-500">
-                    <ImageIcon className="w-5 h-5" />
-                    <span className="text-sm">Subida de imagen</span>
-                  </div>
+                {/* Placeholder Logic */}
+                {["text", "textarea", "email", "number"].includes(
+                  currentField.type
+                ) && (
+                  <FormField
+                    control={form.control}
+                    name={`fields.${index}.placeholder`}
+                    render={({ field: itemField }) => (
+                      <Input
+                        placeholder="Texto de ayuda (placeholder)..."
+                        className="text-sm text-gray-500 border-none border-b border-gray-200 rounded-none px-0 focus-visible:ring-0 mt-2"
+                        {...itemField}
+                      />
+                    )}
+                  />
                 )}
               </div>
 
-              {/* Drag handle visible on hover even in preview */}
-              <div
-                className="opacity-0 group-hover:opacity-100 transition-opacity cursor-move drag-handle p-2"
-                {...attributes}
-                {...listeners}
-              >
-                <GripVertical className="w-5 h-5 text-gray-400" />
+              {/* Type Dropdown */}
+              <div className="w-60 shrink-0">
+                <Select
+                  value={currentField.type}
+                  onValueChange={(value) => onUpdateFieldType(index, value)}
+                >
+                  <SelectTrigger className="w-full bg-gray-50 border-gray-200">
+                    <SelectValue>
+                      <div className="flex items-center gap-2">
+                        {FIELD_TYPES[currentField.type]?.icon}
+                        <span>{FIELD_TYPES[currentField.type]?.label}</span>
+                      </div>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(FIELD_TYPES).map(
+                      ([key, { label, icon }]) => (
+                        <SelectItem key={key} value={key}>
+                          <div className="flex items-center gap-2">
+                            {icon}
+                            <span>{label}</span>
+                          </div>
+                        </SelectItem>
+                      )
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {/* Footer Actions */}
+            <div className="flex items-center justify-end gap-4 pt-4 border-t mt-2">
+              <div className="flex items-center gap-2 border-r pr-4">
+                <Trash2
+                  className="w-5 h-5 text-gray-500 hover:text-red-600 cursor-pointer transition-colors"
+                  onClick={() => onRemove(index)}
+                  title="Eliminar pregunta"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 font-medium">
+                  Obligatorio
+                </span>
+                <FormField
+                  control={form.control}
+                  name={`fields.${index}.required`}
+                  render={({ field: itemField }) => (
+                    <Switch
+                      checked={itemField.value}
+                      onCheckedChange={itemField.onChange}
+                    />
+                  )}
+                />
+              </div>
+              <div
+                className="border-l pl-4 flex items-center cursor-move drag-handle"
+                {...dragHandleProps}
+              >
+                <GripVertical className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          // === PREVIEW MODE ===
+          <div className="group flex items-start gap-4">
+            <div className="flex-grow space-y-2">
+              <p className="text-base font-medium">
+                {currentField.label || "Pregunta sin título"}
+                {currentField.required && (
+                  <span className="text-red-500 ml-1">*</span>
+                )}
+              </p>
+
+              {currentField.attachment_url && (
+                <div className="mb-3">
+                  {currentField.attachment_type === "image" ? (
+                    <img
+                      src={currentField.attachment_url}
+                      alt="Attachment"
+                      className="max-h-60 rounded-md border w-auto"
+                    />
+                  ) : (
+                    <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-md border w-fit">
+                      <FileUp className="w-4 h-4 text-gray-500" />
+                      <a
+                        href="#"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        Ver documento adjunto
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {currentField.type === "text" && (
+                <Input
+                  disabled
+                  placeholder={
+                    currentField.placeholder || "Texto de respuesta corta"
+                  }
+                  className="border-dotted bg-gray-50 max-w-md"
+                />
+              )}
+              {currentField.type === "textarea" && (
+                <div className="h-20 w-full max-w-md border border-dotted border-gray-300 bg-gray-50 rounded-md p-2 text-sm text-gray-400">
+                  {currentField.placeholder || "Texto de respuesta larga"}
+                </div>
+              )}
+              {currentField.type === "email" && (
+                <Input
+                  disabled
+                  placeholder={currentField.placeholder || "ejemplo@correo.com"}
+                  className="border-dotted bg-gray-50 max-w-md"
+                />
+              )}
+              {currentField.type === "number" && (
+                <Input
+                  disabled
+                  type="text"
+                  placeholder={currentField.placeholder || "099..."}
+                  className="border-dotted bg-gray-50 max-w-xs"
+                />
+              )}
+              {currentField.type === "date" && (
+                <div className="flex items-center gap-2 border border-dotted border-gray-300 rounded-md p-2 w-fit bg-gray-50 text-gray-400">
+                  <CalendarIcon className="w-4 h-4" />
+                  <span>dd/mm/aaaa</span>
+                </div>
+              )}
+
+              {(currentField.type === "radio" ||
+                currentField.type === "checkbox") && (
+                <div className="space-y-2 pl-1">
+                  {currentField.options?.map((option, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 text-gray-500 text-sm"
+                    >
+                      {currentField.type === "radio" ? (
+                        <CircleDot className="w-4 h-4" />
+                      ) : (
+                        <CheckSquare className="w-4 h-4" />
+                      )}
+                      <span>{option.label || `Opción ${i + 1}`}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Generic File/Image Previews */}
+              {(currentField.type === "file" ||
+                currentField.type === "image") && (
+                <div className="border border-gray-200 rounded-md p-3 flex items-center gap-2 w-fit bg-gray-50 text-gray-500">
+                  {currentField.type === "image" ? (
+                    <ImageIcon className="w-5 h-5" />
+                  ) : (
+                    <FileUp className="w-5 h-5" />
+                  )}
+                  <span className="text-sm">
+                    {currentField.type === "image"
+                      ? "Subida de imagen"
+                      : "Subida de archivo"}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Drag handle visible on hover */}
+            <div
+              className="opacity-0 group-hover:opacity-100 transition-opacity cursor-move drag-handle p-2"
+              {...dragHandleProps}
+            >
+              <GripVertical className="w-5 h-5 text-gray-400" />
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// 2. Sortable Wrapper Component
+function SortableFieldItem({ id, isActive, ...props }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0 : 1,
+    position: "relative",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="mb-4">
+      <FieldCard
+        {...props}
+        isActive={isActive}
+        dragHandleProps={{ ...attributes, ...listeners }}
+      />
     </div>
   );
 }
 
-// Floating Sidebar Component
+// 3. Sidebar
 function ToolsSidebar({ onAddField }) {
   return (
     <div className="sticky top-28 flex flex-col gap-2 bg-white p-2 rounded-lg shadow-md border border-gray-200 w-fit h-fit">
       <div className="flex flex-col gap-1 items-center">
         <TooltipButton
           onClick={() => onAddField("text")}
-          icon={<PlusCircle className="w-6 h-6 text-blue-600" />}
+          icon={<PlusCircle className="w-6 h-6 text-[var(--puembo-green)]" />}
           label="Añadir Pregunta"
-          className="mb-2 hover:bg-blue-50"
+          className="mb-2 hover:bg-green-50"
           description="Agrega una nueva pregunta al formulario"
         />
-
         <div className="w-8 h-[1px] bg-gray-200 my-1"></div>
-
         <TooltipButton
           onClick={() => onAddField("text")}
           icon={<Type className="w-5 h-5" />}
@@ -625,34 +668,32 @@ function ToolsSidebar({ onAddField }) {
           onClick={() => onAddField("date")}
           icon={<CalendarIcon className="w-5 h-5" />}
           label="Fecha"
-          description="Selector de fecha (día, mes, año)"
+          description="Selector de fecha"
         />
         <TooltipButton
           onClick={() => onAddField("email")}
           icon={<Mail className="w-5 h-5" />}
           label="Email"
-          description="Campo validado para correos electrónicos"
+          description="Campo validado para emails"
         />
         <TooltipButton
           onClick={() => onAddField("number")}
           icon={<Hash className="w-5 h-5" />}
           label="Número"
-          description="Solo acepta valores numéricos"
+          description="Solo acepta números"
         />
-
         <div className="w-8 h-[1px] bg-gray-200 my-1"></div>
-
         <TooltipButton
           onClick={() => onAddField("file")}
           icon={<FileUp className="w-5 h-5" />}
           label="Subir Archivo"
-          description="El usuario sube un documento (PDF, Doc, etc.)"
+          description="Documentos (PDF, Doc)"
         />
         <TooltipButton
           onClick={() => onAddField("image")}
           icon={<ImageIcon className="w-5 h-5" />}
           label="Subir Imagen"
-          description="El usuario sube una fotografía o imagen"
+          description="Fotos e imágenes"
         />
       </div>
     </div>
@@ -669,7 +710,7 @@ function TooltipButton({ onClick, icon, label, description, className }) {
             variant="ghost"
             size="icon"
             className={cn(
-              "text-gray-500 hover:text-blue-600 hover:bg-gray-100",
+              "text-gray-500 hover:text-[var(--puembo-green)] hover:bg-green-50",
               className
             )}
             onClick={onClick}
@@ -693,14 +734,17 @@ function TooltipButton({ onClick, icon, label, description, className }) {
   );
 }
 
+// --- Main Builder Component ---
 export default function FormBuilder({
   form: initialForm,
   onSave,
   onCancel,
   isFullScreen = false,
+  isSaving = false,
 }) {
   const [imageFile, setImageFile] = useState(null);
   const [activeId, setActiveId] = useState(null);
+  const [activeDragId, setActiveDragItem] = useState(null);
   const fileInputRef = useRef(null);
 
   const form = useForm({
@@ -713,14 +757,17 @@ export default function FormBuilder({
     },
   });
 
-  const { fields, append, remove, move, update } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: "fields",
   });
 
-  // Sensors for Dnd
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -761,9 +808,8 @@ export default function FormBuilder({
   }, [initialForm, form]);
 
   const addField = (type = "text") => {
-    const newOrder =
-      fields.length > 0 ? Math.max(...fields.map((f) => f.order_index)) + 1 : 0;
     const newId = uuidv4();
+    const newOrder = fields.length;
     append({
       id: newId,
       type: type,
@@ -778,22 +824,26 @@ export default function FormBuilder({
       attachment_url: "",
       attachment_type: "",
     });
-    setActiveId(newId); // Activate the new field immediately
+    setActiveId(newId);
   };
 
   const updateFieldType = (index, newType) => {
     const currentField = fields[index];
     const needsOptions = newType === "radio" || newType === "checkbox";
-    const hasOptions = currentField.options && currentField.options.length > 0;
 
-    update(index, {
+    const updatedField = {
       ...currentField,
       type: newType,
       options: needsOptions
-        ? hasOptions
+        ? currentField.options?.length
           ? currentField.options
           : [{ value: "", label: "", id: uuidv4() }]
         : undefined,
+    };
+
+    // Use setValue instead of update to avoid losing active state
+    Object.keys(updatedField).forEach((key) => {
+      form.setValue(`fields.${index}.${key}`, updatedField[key]);
     });
   };
 
@@ -803,28 +853,26 @@ export default function FormBuilder({
       ...(field.options || []),
       { value: "", label: "", id: uuidv4() },
     ];
-    update(fieldIndex, { ...field, options: newOptions });
+    form.setValue(`fields.${fieldIndex}.options`, newOptions);
   };
 
   const removeOption = (fieldIndex, optionIndex) => {
     const field = form.getValues(`fields.${fieldIndex}`);
     const newOptions = field.options.filter((_, i) => i !== optionIndex);
-    update(fieldIndex, { ...field, options: newOptions });
+    form.setValue(`fields.${fieldIndex}.options`, newOptions);
   };
 
   const handleUploadAttachment = async (index, file) => {
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = (e) => {
-      const dataUrl = e.target.result;
       const field = form.getValues(`fields.${index}`);
-      update(index, {
-        ...field,
-        attachment_url: dataUrl, // Temporary preview
-        attachment_type: file.type.startsWith("image/") ? "image" : "file",
-        attachment_file: file, // Store file to upload later
-      });
+      form.setValue(`fields.${index}.attachment_url`, e.target.result);
+      form.setValue(
+        `fields.${index}.attachment_type`,
+        file.type.startsWith("image/") ? "image" : "file"
+      );
+      form.setValue(`fields.${index}.attachment_file`, file);
     };
     reader.readAsDataURL(file);
   };
@@ -837,6 +885,11 @@ export default function FormBuilder({
     onSave({ ...data, fields: orderedFields }, imageFile);
   };
 
+  // Drag Handlers
+  const handleDragStart = (event) => {
+    setActiveDragItem(event.active.id);
+  };
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
     if (active.id !== over.id) {
@@ -844,31 +897,69 @@ export default function FormBuilder({
       const newIndex = fields.findIndex((f) => f.id === over.id);
       move(oldIndex, newIndex);
     }
+    setActiveDragItem(null);
   };
 
+  const handleDragCancel = () => {
+    setActiveDragItem(null);
+  };
+
+  const handleBackgroundClick = (e) => {
+    // Only deselect if clicking strictly on the background (not inside cards)
+    if (e.target === e.currentTarget) {
+      setActiveId(null);
+    }
+  };
+
+  // Find active dragging field for Overlay
+  const activeDragField = fields.find((f) => f.id === activeDragId);
+  const activeDragIndex = fields.findIndex((f) => f.id === activeDragId);
+
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100 pb-20">
+    <div className="flex flex-col min-h-screen bg-gray-50 pb-20">
       {/* Top Bar */}
       <div className="sticky top-0 z-50 bg-white border-b shadow-sm px-4 py-3 flex items-center justify-between">
         <h1 className="font-semibold text-lg text-gray-700">
           Editor de Formulario
         </h1>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={onCancel}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onCancel}
+            disabled={isSaving}
+          >
             Cancelar
           </Button>
-          <Button size="sm" onClick={form.handleSubmit(onSubmit)}>
-            Guardar
+          <Button
+            size="sm"
+            onClick={form.handleSubmit(onSubmit)}
+            disabled={isSaving}
+            variant="default"
+          >
+            {isSaving ? (
+              <>
+                <span className="animate-spin mr-2">⟳</span> Guardando...
+              </>
+            ) : (
+              "Guardar"
+            )}
           </Button>
         </div>
       </div>
 
-      {/* Main Canvas */}
-      <div className="flex justify-center w-full max-w-5xl mx-auto pt-8 px-4 gap-6 relative">
+      {/* Main Canvas with Click Outside Handler */}
+      <div
+        className="flex justify-center w-full max-w-5xl mx-auto pt-8 px-4 gap-6 relative"
+        onClick={handleBackgroundClick}
+      >
         {/* Central Column */}
         <div className="w-full max-w-3xl space-y-4">
           {/* Header Card */}
-          <Card className="border-t-8 border-t-(--puembo-green) shadow-sm relative group bg-white">
+          <Card
+            className="border-t-8 border-t-[var(--puembo-green)] shadow-sm relative group bg-white"
+            onClick={(e) => e.stopPropagation()}
+          >
             <CardContent className="p-6 space-y-4">
               <FormField
                 control={form.control}
@@ -885,14 +976,12 @@ export default function FormBuilder({
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <div className="relative">
-                    <RichTextEditor
-                      content={field.value}
-                      onChange={field.onChange}
-                      placeholder="Descripción del formulario"
-                      className="border-none px-0 py-0 min-h-[40px] text-gray-600 focus:ring-0"
-                    />
-                  </div>
+                  <RichTextEditor
+                    content={field.value}
+                    onChange={field.onChange}
+                    placeholder="Descripción del formulario"
+                    className="border-none px-0 py-0 min-h-[40px] text-gray-600 focus:ring-0"
+                  />
                 )}
               />
 
@@ -911,8 +1000,7 @@ export default function FormBuilder({
                     variant="outline"
                     size="sm"
                     onClick={() => fileInputRef.current.click()}
-                    className="text-gray-500 border-dashed"
-                    title="Añadir imagen de encabezado"
+                    className="text-gray-500 hover:text-[var(--puembo-green)] border-dashed"
                   >
                     <ImageIcon className="w-4 h-4 mr-2" />
                     Añadir Portada
@@ -920,14 +1008,13 @@ export default function FormBuilder({
                 ) : (
                   <Button
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    className="text-gray-500 border-dashed"
+                    variant="secondary"
+                    size="icon"
+                    className="bg-white/80 hover:bg-white shadow-sm"
                     onClick={() => fileInputRef.current.click()}
                     title="Cambiar imagen de encabezado"
                   >
-                    <ImageIcon className="w-4 h-4 mr-2" />
-                    Cambiar Portada
+                    <ImageIcon className="w-4 h-4 text-gray-700" />
                   </Button>
                 )}
               </div>
@@ -935,14 +1022,12 @@ export default function FormBuilder({
                 (initialForm?.image_url && initialForm.image_url !== "")) && (
                 <div className="mt-4 rounded-md overflow-hidden bg-gray-100 max-h-60 flex justify-center items-center relative group/img">
                   {imageFile ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={URL.createObjectURL(imageFile)}
                       alt="Header Preview"
                       className="w-full object-cover"
                     />
                   ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={initialForm.image_url}
                       alt="Header"
@@ -971,7 +1056,9 @@ export default function FormBuilder({
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
           >
             <SortableContext
               items={fields.map((f) => f.id)}
@@ -979,27 +1066,58 @@ export default function FormBuilder({
             >
               <div className="space-y-4 pb-20">
                 {fields.map((field, index) => (
-                  <SortableFieldCard
+                  <SortableFieldItem
                     key={field.id}
                     id={field.id}
                     index={index}
                     field={field}
                     form={form}
-                    remove={remove}
+                    isActive={activeId === field.id}
                     activeId={activeId}
                     setActiveId={setActiveId}
-                    addOption={addOption}
-                    removeOption={removeOption}
-                    updateFieldType={updateFieldType}
+                    onRemove={remove}
+                    onAddOption={addOption}
+                    onRemoveOption={removeOption}
+                    onUpdateFieldType={updateFieldType}
                     onUploadAttachment={handleUploadAttachment}
                   />
                 ))}
               </div>
             </SortableContext>
+
+            {/* Drag Overlay for Smooth Dragging */}
+            <DragOverlay
+              dropAnimation={{
+                sideEffects: defaultDropAnimationSideEffects({
+                  styles: { active: { opacity: "0.5" } },
+                }),
+              }}
+            >
+              {activeDragId ? (
+                <FieldCard
+                  field={activeDragField}
+                  index={activeDragIndex}
+                  form={form}
+                  isActive={activeId === activeDragId}
+                  activeId={activeId}
+                  setActiveId={setActiveId}
+                  onClick={() => {}}
+                  onRemove={() => {}}
+                  onAddOption={() => {}}
+                  onRemoveOption={() => {}}
+                  onUpdateFieldType={() => {}}
+                  onUploadAttachment={() => {}}
+                  dragHandleProps={{}}
+                />
+              ) : null}
+            </DragOverlay>
           </DndContext>
 
           {fields.length === 0 && (
-            <div className="text-center py-10 text-gray-400 bg-white rounded-lg border border-dashed border-gray-300 p-8">
+            <div
+              className="text-center py-10 text-gray-400 bg-white rounded-lg border border-dashed border-gray-300 p-8"
+              onClick={(e) => e.stopPropagation()}
+            >
               <p>Tu formulario está vacío.</p>
               <p className="text-sm">
                 Usa el menú de la derecha para añadir preguntas.
@@ -1009,7 +1127,10 @@ export default function FormBuilder({
         </div>
 
         {/* Right Sidebar (Tools) */}
-        <div className="hidden md:block w-fit">
+        <div
+          className="hidden md:block w-fit"
+          onClick={(e) => e.stopPropagation()}
+        >
           <ToolsSidebar onAddField={addField} />
         </div>
       </div>

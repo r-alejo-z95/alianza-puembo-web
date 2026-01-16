@@ -18,12 +18,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
-import {
-  ImageIcon,
-  FileUp,
-  Calendar as CalendarIcon,
-  FileText,
-} from "lucide-react";
+import { ImageIcon, FileUp, Calendar as CalendarIcon, FileText } from "lucide-react";
 import Image from "next/image";
 import { getNowInEcuador, formatInEcuador } from "@/lib/date-utils";
 
@@ -112,18 +107,12 @@ export default function PublicForm() {
               reader.readAsDataURL(file);
             });
             processedData[key] = await fileReadPromise;
-            rawDataForDb[key] = `[Archivo: ${file.name}]`;
-          } else if (
-            fieldType === "checkbox" &&
-            typeof value === "object" &&
-            value !== null
-          ) {
+            rawDataForDb[key] = `[Archivo: ${file.name}]`; 
+          } else if (fieldType === "checkbox" && typeof value === "object" && value !== null) {
             const selectedLabels = Object.keys(value)
               .filter((optionKey) => value[optionKey])
               .map((optionKey) => {
-                const option = fieldDef.options.find(
-                  (opt) => opt.value === optionKey
-                );
+                const option = fieldDef.options.find((opt) => opt.value === optionKey);
                 return option ? option.label : optionKey;
               });
             processedData[key] = selectedLabels.join("\n");
@@ -146,7 +135,7 @@ export default function PublicForm() {
       processedData.Timestamp = timestamp;
       rawDataForDb.Timestamp = timestamp;
 
-      const { data: edgeFunctionData, error: edgeFunctionError } =
+      const { data: edgeFunctionData, error: edgeFunctionError } = 
         await supabase.functions.invoke("sheets-drive-integration", {
           body: JSON.stringify({
             formId: form.id,
@@ -156,9 +145,7 @@ export default function PublicForm() {
 
       if (edgeFunctionError) {
         console.error("Error invoking Edge Function:", edgeFunctionError);
-        toast.error(
-          `Error al enviar a Google Sheets: ${edgeFunctionError.message || "Error desconocido"}`
-        );
+        toast.error(`Error al enviar a Google Sheets: ${edgeFunctionError.message || "Error desconocido"}`);
       } else if (edgeFunctionData.error) {
         console.error("Edge Function returned error:", edgeFunctionData.error);
         toast.error(`Error de Google Sheets: ${edgeFunctionData.error}`);
@@ -186,9 +173,7 @@ export default function PublicForm() {
       }
     } catch (error) {
       console.error("Error during form submission:", error);
-      toast.error(
-        `Error inesperado al enviar el formulario: ${error.message || "Error desconocido"}`
-      );
+      toast.error(`Error inesperado al enviar el formulario: ${error.message || "Error desconocido"}`);
     }
     setSending(false);
   };
@@ -248,36 +233,31 @@ export default function PublicForm() {
 
                 return (
                   <div key={field.id} className="space-y-3">
-                    {/* Field Label and Attachment */}
+                    {/* Field Label and Attachment * /
                     <div>
-                      <Label
-                        htmlFor={fieldId}
-                        className="mb-2 block text-base font-medium"
-                      >
+                      <Label htmlFor={fieldId} className="mb-2 block text-base font-medium">
                         {field.label}
                         {isRequired && " *"}
                       </Label>
                       {field.attachment_url && (
                         <div className="mb-4">
-                          {field.attachment_type === "image" ? (
-                            <Image
-                              src={field.attachment_url}
-                              alt="Adjunto de pregunta"
-                              width={500}
-                              height={300}
-                              className="rounded-md border max-h-[400px] w-auto object-contain"
+                          {field.attachment_type === 'image' ? (
+                            <Image 
+                              src={field.attachment_url} 
+                              alt="Adjunto de pregunta" 
+                              width={500} 
+                              height={300} 
+                              className="rounded-md border max-h-[400px] w-auto object-contain" 
                             />
                           ) : (
-                            <a
-                              href={field.attachment_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <a 
+                              href={field.attachment_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
                               className="flex items-center gap-2 p-3 bg-gray-50 border rounded-md w-fit hover:bg-gray-100 transition-colors"
                             >
                               <FileText className="w-5 h-5 text-blue-600" />
-                              <span className="text-sm text-blue-700 underline">
-                                Ver documento adjunto
-                              </span>
+                              <span className="text-sm text-blue-700 underline">Ver documento adjunto</span>
                             </a>
                           )}
                         </div>
@@ -289,47 +269,43 @@ export default function PublicForm() {
                       switch (fieldType) {
                         case "text":
                           return (
-                            <Input
-                              id={fieldId}
-                              placeholder={placeholder}
-                              {...registrationProps}
-                            />
+                            <Input id={fieldId} placeholder={placeholder} {...registrationProps} />
                           );
                         case "email":
                           return (
-                            <Input
-                              id={fieldId}
-                              type="email"
-                              placeholder={placeholder}
-                              {...registrationProps}
-                            />
+                            <Input id={fieldId} type="email" placeholder={placeholder} {...registrationProps} />
                           );
                         case "number":
                           return (
-                            <Input
-                              id={fieldId}
-                              type="number"
-                              placeholder={placeholder}
-                              {...registrationProps}
+                            <Controller
+                              name={field.label}
+                              control={control}
+                              rules={{ required: isRequired }}
+                              render={({ field: controllerField }) => (
+                                <Input
+                                  id={fieldId}
+                                  type="text"
+                                  inputMode="numeric"
+                                  placeholder={placeholder}
+                                  value={controllerField.value || ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (/^[0-9+\- ]*$/.test(val)) {
+                                      controllerField.onChange(val);
+                                    }
+                                  }}
+                                  onBlur={controllerField.onBlur}
+                                />
+                              )}
                             />
                           );
                         case "textarea":
                           return (
-                            <Textarea
-                              id={fieldId}
-                              placeholder={placeholder}
-                              className="min-h-[100px]"
-                              {...registrationProps}
-                            />
+                            <Textarea id={fieldId} placeholder={placeholder} className="min-h-[100px]" {...registrationProps} />
                           );
                         case "date":
                           return (
-                            <Input
-                              id={fieldId}
-                              type="date"
-                              {...registrationProps}
-                              className="w-full md:w-auto"
-                            />
+                            <Input id={fieldId} type="date" {...registrationProps} className="w-full md:w-auto" />
                           );
                         case "radio":
                           return (
@@ -344,20 +320,9 @@ export default function PublicForm() {
                                   className="mt-2"
                                 >
                                   {field.options.map((option) => (
-                                    <div
-                                      key={option.id}
-                                      className="flex items-center space-x-2"
-                                    >
-                                      <RadioGroupItem
-                                        value={option.value}
-                                        id={`${fieldId}-${option.id}`}
-                                      />
-                                      <Label
-                                        htmlFor={`${fieldId}-${option.id}`}
-                                        className="font-normal"
-                                      >
-                                        {option.label}
-                                      </Label>
+                                    <div key={option.id} className="flex items-center space-x-2">
+                                      <RadioGroupItem value={option.value} id={`${fieldId}-${option.id}`} />
+                                      <Label htmlFor={`${fieldId}-${option.id}`} className="font-normal">{option.label}</Label>
                                     </div>
                                   ))}
                                 </RadioGroup>
@@ -377,16 +342,9 @@ export default function PublicForm() {
                                       <Checkbox
                                         id={`${fieldId}-${option.id}`}
                                         checked={controllerField.value}
-                                        onCheckedChange={
-                                          controllerField.onChange
-                                        }
+                                        onCheckedChange={controllerField.onChange}
                                       />
-                                      <Label
-                                        htmlFor={`${fieldId}-${option.id}`}
-                                        className="font-normal"
-                                      >
-                                        {option.label}
-                                      </Label>
+                                      <Label htmlFor={`${fieldId}-${option.id}`} className="font-normal">{option.label}</Label>
                                     </div>
                                   )}
                                 />
@@ -400,9 +358,7 @@ export default function PublicForm() {
                               <Input
                                 id={fieldId}
                                 type="file"
-                                accept={
-                                  fieldType === "image" ? "image/*" : "*/*"
-                                }
+                                accept={fieldType === 'image' ? "image/*" : "*/*"}
                                 className="hidden"
                                 {...registrationProps}
                                 onChange={(e) => {
@@ -410,32 +366,20 @@ export default function PublicForm() {
                                   const file = e.target.files[0];
                                   setFileNames((prev) => ({
                                     ...prev,
-                                    [field.id]: file
-                                      ? file.name
-                                      : "Ningún archivo seleccionado",
+                                    [field.id]: file ? file.name : "Ningún archivo seleccionado",
                                   }));
                                 }}
                               />
                               <Button
                                 type="button"
                                 variant="outline"
-                                onClick={() =>
-                                  document.getElementById(fieldId).click()
-                                }
+                                onClick={() => document.getElementById(fieldId).click()}
                               >
-                                {fieldType === "image" ? (
-                                  <ImageIcon className="h-4 w-4 mr-2" />
-                                ) : (
-                                  <FileUp className="h-4 w-4 mr-2" />
-                                )}
-                                {fieldType === "image"
-                                  ? "Subir Imagen"
-                                  : "Subir Archivo"}
+                                {fieldType === 'image' ? <ImageIcon className="h-4 w-4 mr-2" /> : <FileUp className="h-4 w-4 mr-2" />}
+                                {fieldType === 'image' ? 'Subir Imagen' : 'Subir Archivo'}
                               </Button>
                               {fileNames[field.id] && (
-                                <span className="text-sm text-gray-500">
-                                  {fileNames[field.id]}
-                                </span>
+                                <span className="text-sm text-gray-500">{fileNames[field.id]}</span>
                               )}
                             </div>
                           );
@@ -445,18 +389,12 @@ export default function PublicForm() {
                     })()}
 
                     {errors[field.label] && (
-                      <p className="text-red-500 text-sm mt-1">
-                        Este campo es requerido.
-                      </p>
+                      <p className="text-red-500 text-sm mt-1">Este campo es requerido.</p>
                     )}
                   </div>
                 );
               })}
-              <Button
-                variant="green"
-                className="flex w-1/2 mx-auto"
-                type="submit"
-              >
+              <Button className="w-full bg-[var(--puembo-green)] hover:bg-green-700 text-white font-bold py-3 text-lg" type="submit">
                 Enviar Respuesta
               </Button>
             </form>
