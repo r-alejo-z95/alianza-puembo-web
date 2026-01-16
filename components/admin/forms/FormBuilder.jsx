@@ -179,20 +179,29 @@ function FieldCard({
   onUpdateFieldType,
   onUploadAttachment,
   dragHandleProps,
+  isDraggingAny,
 }) {
   const attachmentInputRef = useRef(null);
+  const frozenFieldRef = useRef(null);
 
-  // WATCH field values for real-time preview updates
+  // Watch all field values
   const watchedField = useWatch({
     control: form.control,
     name: `fields.${index}`,
     defaultValue: field,
   });
 
-  // Ensure watchedField actually matches our field by ID to avoid index-swap flicker
-  // during dnd moves where the index updates faster than the watch subscription
-  const currentField =
-    watchedField && watchedField.id === field.id ? watchedField : field;
+  // Freeze values when drag starts
+  if (isDraggingAny && !frozenFieldRef.current) {
+    frozenFieldRef.current = watchedField;
+  } else if (!isDraggingAny) {
+    frozenFieldRef.current = null;
+  }
+
+  // Use frozen values during drag, live values otherwise
+  const currentField = isDraggingAny
+    ? frozenFieldRef.current || field
+    : watchedField || field;
 
   const handleAttachmentClick = (e) => {
     e.preventDefault();
@@ -601,7 +610,7 @@ function FieldCard({
 }
 
 // 2. Sortable Wrapper Component
-function SortableFieldItem({ id, isActive, ...props }) {
+function SortableFieldItem({ id, isActive, isDraggingAny, ...props }) {
   const {
     attributes,
     listeners,
@@ -623,6 +632,7 @@ function SortableFieldItem({ id, isActive, ...props }) {
       <FieldCard
         {...props}
         isActive={isActive}
+        isDraggingAny={isDraggingAny}
         dragHandleProps={{ ...attributes, ...listeners }}
       />
     </div>
@@ -855,13 +865,19 @@ export default function FormBuilder({
       ...(field.options || []),
       { value: "", label: "", id: uuidv4() },
     ];
-    form.setValue(`fields.${fieldIndex}.options`, newOptions);
+    form.setValue(`fields.${fieldIndex}.options`, newOptions, {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
 
   const removeOption = (fieldIndex, optionIndex) => {
     const field = form.getValues(`fields.${fieldIndex}`);
     const newOptions = field.options.filter((_, i) => i !== optionIndex);
-    form.setValue(`fields.${fieldIndex}.options`, newOptions);
+    form.setValue(`fields.${fieldIndex}.options`, newOptions, {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
   };
 
   const handleUploadAttachment = async (index, file) => {
@@ -894,7 +910,7 @@ export default function FormBuilder({
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
+    if (active.id !== over.id) {
       const oldIndex = fields.findIndex((f) => f.id === active.id);
       const newIndex = fields.findIndex((f) => f.id === over.id);
       move(oldIndex, newIndex);
@@ -918,7 +934,7 @@ export default function FormBuilder({
   const activeDragIndex = fields.findIndex((f) => f.id === activeDragId);
 
   return (
-    <div className="flex flex-col min-h-screen px-8 py-4 bg-gray-50 pb-20">
+    <div className="flex flex-col min-h-screen bg-gray-100 pb-20">
       {/* Top Bar */}
       <div className="sticky top-0 z-50 bg-white border-b shadow-sm px-4 py-3 flex items-center justify-between">
         <h1 className="font-semibold text-lg text-gray-700">
@@ -938,6 +954,10 @@ export default function FormBuilder({
             onClick={form.handleSubmit(onSubmit)}
             disabled={isSaving}
             variant="default"
+            className={cn(
+              "text-white min-w-[80px]",
+              !isSaving && "bg-[var(--puembo-green)] hover:bg-green-700"
+            )}
           >
             {isSaving ? (
               <>
@@ -1082,6 +1102,7 @@ export default function FormBuilder({
                     onRemoveOption={removeOption}
                     onUpdateFieldType={updateFieldType}
                     onUploadAttachment={handleUploadAttachment}
+                    isDraggingAny={!!activeDragId}
                   />
                 ))}
               </div>
@@ -1090,27 +1111,28 @@ export default function FormBuilder({
             {/* Drag Overlay for Smooth Dragging */}
             <DragOverlay
               dropAnimation={{
-                sideEffects: defaultDropAnimationSideEffects({
-                  styles: { active: { opacity: "0.5" } },
-                }),
+                duration: 150,
+                easing: "cubic-bezier(0.25, 0.1, 0.25, 1)",
               }}
             >
               {activeDragId ? (
-                <FieldCard
-                  field={activeDragField}
-                  index={activeDragIndex}
-                  form={form}
-                  isActive={activeId === activeDragId}
-                  activeId={activeId}
-                  setActiveId={setActiveId}
-                  onClick={() => {}}
-                  onRemove={() => {}}
-                  onAddOption={() => {}}
-                  onRemoveOption={() => {}}
-                  onUpdateFieldType={() => {}}
-                  onUploadAttachment={() => {}}
-                  dragHandleProps={{}}
-                />
+                <div className="opacity-95 rotate-1 scale-[1.02]">
+                  <FieldCard
+                    field={activeDragField}
+                    index={activeDragIndex}
+                    form={form}
+                    isActive={activeId === activeDragId}
+                    activeId={activeId}
+                    setActiveId={setActiveId}
+                    onClick={() => {}}
+                    onRemove={() => {}}
+                    onAddOption={() => {}}
+                    onRemoveOption={() => {}}
+                    onUpdateFieldType={() => {}}
+                    onUploadAttachment={() => {}}
+                    dragHandleProps={{}}
+                  />
+                </div>
               ) : null}
             </DragOverlay>
           </DndContext>
