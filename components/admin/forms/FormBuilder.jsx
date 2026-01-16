@@ -189,8 +189,10 @@ function FieldCard({
     defaultValue: field,
   });
 
-  // Use watched values for rendering, fallback to field prop (initial state)
-  const currentField = watchedField || field;
+  // Ensure watchedField actually matches our field by ID to avoid index-swap flicker
+  // during dnd moves where the index updates faster than the watch subscription
+  const currentField =
+    watchedField && watchedField.id === field.id ? watchedField : field;
 
   const handleAttachmentClick = (e) => {
     e.preventDefault();
@@ -892,7 +894,7 @@ export default function FormBuilder({
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
-    if (active.id !== over.id) {
+    if (over && active.id !== over.id) {
       const oldIndex = fields.findIndex((f) => f.id === active.id);
       const newIndex = fields.findIndex((f) => f.id === over.id);
       move(oldIndex, newIndex);
