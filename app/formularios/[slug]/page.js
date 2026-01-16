@@ -12,12 +12,18 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { useForm, Controller } from "react-hook-form"; // Import Controller
+import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
-import { ImageIcon } from "lucide-react";
+import {
+  ImageIcon,
+  FileUp,
+  Calendar as CalendarIcon,
+  FileText,
+} from "lucide-react";
 import Image from "next/image";
 import { getNowInEcuador, formatInEcuador } from "@/lib/date-utils";
 
@@ -49,6 +55,7 @@ export default function PublicForm() {
   const [sending, setSending] = useState(false);
   const [fileNames, setFileNames] = useState({});
   const { slug } = useParams();
+
   useEffect(() => {
     const fetchForm = async () => {
       if (!slug) return;
@@ -82,7 +89,7 @@ export default function PublicForm() {
     const supabase = createClient();
     try {
       const processedData = {};
-      const rawDataForDb = {}; // Store raw values for DB, or processed? Processed is usually better for reading.
+      const rawDataForDb = {};
 
       for (const key in data) {
         if (data.hasOwnProperty(key)) {
@@ -105,24 +112,23 @@ export default function PublicForm() {
               reader.readAsDataURL(file);
             });
             processedData[key] = await fileReadPromise;
-            // For DB, we store the file name (we don't want to store base64 in JSONB if we can avoid it, or maybe we do for now as per plan?)
-            // The plan said: "Archivos... Lo pasamos directamente a Google Drive... en Supabase solo guardamos el Link de Google Drive."
-            // Since we get the link BACK from the Edge Function, we might need to adjust the flow.
-            // OR we store "Pending Upload" and then update it? 
-            // For now, let's store the filename in DB to avoid massive JSON.
-            rawDataForDb[key] = `[Archivo: ${file.name}]`; 
-          } else if (fieldType === "checkbox" && typeof value === "object" && value !== null) {
-            // Map technical values to human-readable labels and join with newline
+            rawDataForDb[key] = `[Archivo: ${file.name}]`;
+          } else if (
+            fieldType === "checkbox" &&
+            typeof value === "object" &&
+            value !== null
+          ) {
             const selectedLabels = Object.keys(value)
               .filter((optionKey) => value[optionKey])
               .map((optionKey) => {
-                const option = fieldDef.options.find((opt) => opt.value === optionKey);
+                const option = fieldDef.options.find(
+                  (opt) => opt.value === optionKey
+                );
                 return option ? option.label : optionKey;
               });
             processedData[key] = selectedLabels.join("\n");
-            rawDataForDb[key] = selectedLabels; // Store array in DB
+            rawDataForDb[key] = selectedLabels;
           } else if (fieldType === "radio") {
-            // Map radio technical value back to label
             const option = fieldDef.options.find((opt) => opt.value === value);
             processedData[key] = option ? option.label : value;
             rawDataForDb[key] = option ? option.label : value;
@@ -136,12 +142,10 @@ export default function PublicForm() {
         }
       }
 
-      // Add timestamp
       const timestamp = formatInEcuador(getNowInEcuador(), "d/M/yyyy HH:mm:ss");
       processedData.Timestamp = timestamp;
       rawDataForDb.Timestamp = timestamp;
 
-      // 1. Send to Google Sheets (Edge Function)
       const { data: edgeFunctionData, error: edgeFunctionError } =
         await supabase.functions.invoke("sheets-drive-integration", {
           body: JSON.stringify({
@@ -149,8 +153,6 @@ export default function PublicForm() {
             formData: processedData,
           }),
         });
-
-      let googleDriveLinks = {};
 
       if (edgeFunctionError) {
         console.error("Error invoking Edge Function:", edgeFunctionError);
@@ -160,36 +162,27 @@ export default function PublicForm() {
       } else if (edgeFunctionData.error) {
         console.error("Edge Function returned error:", edgeFunctionData.error);
         toast.error(`Error de Google Sheets: ${edgeFunctionData.error}`);
-      } else {
-        // Success! If there were files, the edge function might return links?
-        // Let's check the Edge Function response structure.
-        // It returns: { message: "...", sheetId, folderId }
-        // It DOES NOT currently return the file URLs mapped to keys easily in the response root.
-        // BUT, the Edge Function uploads them. 
-        // Improvement: We can trust the Edge Function did its job.
       }
 
-      // 2. Save to Supabase (Form Submissions)
       const { error: dbError } = await supabase
         .from("form_submissions")
         .insert([
           {
             form_id: form.id,
-            data: rawDataForDb, // Store the cleaner data
-            ip_address: "Not captured (Client-side)", // Middleware usually handles this best
+            data: rawDataForDb,
+            ip_address: "Not captured (Client-side)",
             user_agent: navigator.userAgent,
           },
         ]);
 
       if (dbError) {
         console.error("Error saving to Supabase DB:", dbError);
-        // We don't block the user success if Sheets worked, but we warn console.
       }
 
       if (!edgeFunctionError && !dbError && !edgeFunctionData?.error) {
         toast.success("Formulario enviado con éxito!");
-        reset(); // Reset the form fields
-        setFileNames({}); // Clear file names
+        reset();
+        setFileNames({});
       }
     } catch (error) {
       console.error("Error during form submission:", error);
@@ -247,159 +240,224 @@ export default function PublicForm() {
                 const fieldId = `field-${field.id}`;
                 const fieldType = field.type || field.field_type;
                 const isRequired = field.required ?? field.is_required;
+                const placeholder = field.placeholder || "";
 
                 const registrationProps = register(field.label, {
                   required: isRequired,
                 });
 
-                switch (fieldType) {
-                  case "text":
-                    return (
-                      <div key={field.id}>
-                        <Label htmlFor={fieldId} className="mb-2">
-                          {field.label}
-                          {isRequired && " *"}
-                        </Label>
-                        <Input id={fieldId} {...registrationProps} />
-                        {errors[field.label] && (
-                          <p className="text-red-500 text-sm">
-                            Este campo es requerido.
-                          </p>
-                        )}
-                      </div>
-                    );
-                  case "radio":
-                    return (
-                      <Controller
-                        key={field.id}
-                        name={field.label}
-                        control={control}
-                        rules={{ required: isRequired }}
-                        render={({ field: controllerField }) => (
-                          <div key={field.id}>
-                            <Label className="mb-2">
-                              {field.label}
-                              {isRequired && " *"}
-                            </Label>
-                            <RadioGroup
-                              onValueChange={controllerField.onChange}
-                              value={controllerField.value}
-                              className="mt-2"
-                            >
-                              {field.options.map((option) => (
-                                <div
-                                  key={option.id}
-                                  className="flex items-center space-x-2"
-                                >
-                                  <RadioGroupItem
-                                    value={option.value}
-                                    id={`${fieldId}-${option.id}`}
-                                  />
-                                  <Label htmlFor={`${fieldId}-${option.id}`}>
-                                    {option.label}
-                                  </Label>
-                                </div>
-                              ))}
-                            </RadioGroup>
-                            {errors[field.label] && (
-                              <p className="text-red-500 text-sm">
-                                Este campo es requerido.
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      />
-                    );
-                  case "checkbox":
-                    return (
-                      <div key={field.id}>
-                        <Label className="mb-2">
-                          {field.label}
-                          {isRequired && " *"}
-                        </Label>
-                        <div className="space-y-2 mt-2">
-                          {field.options.map((option) => (
-                            <Controller
-                              key={option.id}
-                              name={`${field.label}.${option.value}`}
-                              control={control}
-                              render={({ field: controllerField }) => (
-                                <div className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`${fieldId}-${option.id}`}
-                                    checked={controllerField.value}
-                                    onCheckedChange={controllerField.onChange}
-                                  />
-                                  <Label htmlFor={`${fieldId}-${option.id}`}>
-                                    {option.label}
-                                  </Label>
-                                </div>
-                              )}
+                return (
+                  <div key={field.id} className="space-y-3">
+                    {/* Field Label and Attachment */}
+                    <div>
+                      <Label
+                        htmlFor={fieldId}
+                        className="mb-2 block text-base font-medium"
+                      >
+                        {field.label}
+                        {isRequired && " *"}
+                      </Label>
+                      {field.attachment_url && (
+                        <div className="mb-4">
+                          {field.attachment_type === "image" ? (
+                            <Image
+                              src={field.attachment_url}
+                              alt="Adjunto de pregunta"
+                              width={500}
+                              height={300}
+                              className="rounded-md border max-h-[400px] w-auto object-contain"
                             />
-                          ))}
-                        </div>
-                        {errors[field.label] && (
-                          <p className="text-red-500 text-sm">
-                            Debes seleccionar al menos una opción.
-                          </p>
-                        )}
-                      </div>
-                    );
-                  case "file":
-                    return (
-                      <div key={field.id}>
-                        <Label className="mb-2">
-                          {field.label}
-                          {isRequired && " *"}
-                        </Label>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            id={fieldId}
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            {...registrationProps}
-                            onChange={(e) => {
-                              registrationProps.onChange(e); // Call RHF's onChange
-                              const file = e.target.files[0];
-                              setFileNames((prev) => ({
-                                ...prev,
-                                [field.id]: file
-                                  ? file.name
-                                  : "Ningún archivo seleccionado",
-                              }));
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="green"
-                            size="sm"
-                            onClick={() =>
-                              document.getElementById(fieldId).click()
-                            }
-                          >
-                            <ImageIcon className="h-4 w-4 mr-2" /> Seleccionar
-                            Imagen
-                          </Button>
-                          {fileNames[field.id] && (
-                            <span className="text-sm text-gray-500">
-                              {fileNames[field.id]}
-                            </span>
+                          ) : (
+                            <a
+                              href={field.attachment_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 p-3 bg-gray-50 border rounded-md w-fit hover:bg-gray-100 transition-colors"
+                            >
+                              <FileText className="w-5 h-5 text-blue-600" />
+                              <span className="text-sm text-blue-700 underline">
+                                Ver documento adjunto
+                              </span>
+                            </a>
                           )}
                         </div>
-                        {errors[field.label] && (
-                          <p className="text-red-500 text-sm">
-                            Este campo es requerido.
-                          </p>
-                        )}
-                      </div>
-                    );
-                  default:
-                    return null;
-                }
+                      )}
+                    </div>
+
+                    {/* Input Field */}
+                    {(() => {
+                      switch (fieldType) {
+                        case "text":
+                          return (
+                            <Input
+                              id={fieldId}
+                              placeholder={placeholder}
+                              {...registrationProps}
+                            />
+                          );
+                        case "email":
+                          return (
+                            <Input
+                              id={fieldId}
+                              type="email"
+                              placeholder={placeholder}
+                              {...registrationProps}
+                            />
+                          );
+                        case "number":
+                          return (
+                            <Input
+                              id={fieldId}
+                              type="number"
+                              placeholder={placeholder}
+                              {...registrationProps}
+                            />
+                          );
+                        case "textarea":
+                          return (
+                            <Textarea
+                              id={fieldId}
+                              placeholder={placeholder}
+                              className="min-h-[100px]"
+                              {...registrationProps}
+                            />
+                          );
+                        case "date":
+                          return (
+                            <Input
+                              id={fieldId}
+                              type="date"
+                              {...registrationProps}
+                              className="w-full md:w-auto"
+                            />
+                          );
+                        case "radio":
+                          return (
+                            <Controller
+                              name={field.label}
+                              control={control}
+                              rules={{ required: isRequired }}
+                              render={({ field: controllerField }) => (
+                                <RadioGroup
+                                  onValueChange={controllerField.onChange}
+                                  value={controllerField.value}
+                                  className="mt-2"
+                                >
+                                  {field.options.map((option) => (
+                                    <div
+                                      key={option.id}
+                                      className="flex items-center space-x-2"
+                                    >
+                                      <RadioGroupItem
+                                        value={option.value}
+                                        id={`${fieldId}-${option.id}`}
+                                      />
+                                      <Label
+                                        htmlFor={`${fieldId}-${option.id}`}
+                                        className="font-normal"
+                                      >
+                                        {option.label}
+                                      </Label>
+                                    </div>
+                                  ))}
+                                </RadioGroup>
+                              )}
+                            />
+                          );
+                        case "checkbox":
+                          return (
+                            <div className="space-y-2">
+                              {field.options.map((option) => (
+                                <Controller
+                                  key={option.id}
+                                  name={`${field.label}.${option.value}`}
+                                  control={control}
+                                  render={({ field: controllerField }) => (
+                                    <div className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`${fieldId}-${option.id}`}
+                                        checked={controllerField.value}
+                                        onCheckedChange={
+                                          controllerField.onChange
+                                        }
+                                      />
+                                      <Label
+                                        htmlFor={`${fieldId}-${option.id}`}
+                                        className="font-normal"
+                                      >
+                                        {option.label}
+                                      </Label>
+                                    </div>
+                                  )}
+                                />
+                              ))}
+                            </div>
+                          );
+                        case "file":
+                        case "image":
+                          return (
+                            <div className="flex items-center space-x-2">
+                              <Input
+                                id={fieldId}
+                                type="file"
+                                accept={
+                                  fieldType === "image" ? "image/*" : "*/*"
+                                }
+                                className="hidden"
+                                {...registrationProps}
+                                onChange={(e) => {
+                                  registrationProps.onChange(e); // Call RHF's onChange
+                                  const file = e.target.files[0];
+                                  setFileNames((prev) => ({
+                                    ...prev,
+                                    [field.id]: file
+                                      ? file.name
+                                      : "Ningún archivo seleccionado",
+                                  }));
+                                }}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() =>
+                                  document.getElementById(fieldId).click()
+                                }
+                              >
+                                {fieldType === "image" ? (
+                                  <ImageIcon className="h-4 w-4 mr-2" />
+                                ) : (
+                                  <FileUp className="h-4 w-4 mr-2" />
+                                )}
+                                {fieldType === "image"
+                                  ? "Subir Imagen"
+                                  : "Subir Archivo"}
+                              </Button>
+                              {fileNames[field.id] && (
+                                <span className="text-sm text-gray-500">
+                                  {fileNames[field.id]}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        default:
+                          return null;
+                      }
+                    })()}
+
+                    {errors[field.label] && (
+                      <p className="text-red-500 text-sm mt-1">
+                        Este campo es requerido.
+                      </p>
+                    )}
+                  </div>
+                );
               })}
-              <Button variant="green" type="submit">
-                Enviar
+              <Button
+                variant="green"
+                className="flex w-1/2 mx-auto"
+                type="submit"
+              >
+                Enviar Respuesta
               </Button>
             </form>
           </CardContent>

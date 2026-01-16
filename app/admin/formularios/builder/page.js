@@ -64,34 +64,27 @@ function BuilderContent() {
     let imageUrl = form?.image_url || null;
     const slug = slugify(title);
 
-    // Handle image upload
+    // 1. Handle Header Image Upload
     if (imageFile) {
-      // If updating an existing form and a new image is provided, delete the old one
       if (form && form.image_url) {
         const oldFileName = form.image_url.split("/").pop();
         const { error: deleteOldStorageError } = await supabase.storage
-          .from("form-images") // Assuming a bucket named 'form-images'
+          .from("form-images")
           .remove([oldFileName]);
 
         if (deleteOldStorageError) {
-          console.error(
-            "Error deleting old form image from storage:",
-            deleteOldStorageError
-          );
-          toast.error(
-            "Error al eliminar la imagen antigua del almacenamiento."
-          );
+          console.error("Error deleting old form image:", deleteOldStorageError);
         }
       }
 
-      const fileName = `${Date.now()}_${imageFile.name}`;
+      const fileName = `${Date.now()}_header_${imageFile.name}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("form-images") // Assuming a bucket named 'form-images'
+        .from("form-images")
         .upload(fileName, imageFile);
 
       if (uploadError) {
         console.error("Error uploading form image:", uploadError);
-        toast.error("Error al subir la imagen del formulario.");
+        toast.error("Error al subir la imagen de cabecera.");
         return;
       } else {
         const { data: urlData } = supabase.storage
@@ -101,8 +94,43 @@ function BuilderContent() {
       }
     }
 
+    // 2. Handle Question Attachments Upload
+    const processedFields = await Promise.all(fields.map(async (field) => {
+      let attachmentUrl = field.attachment_url;
+      
+      // If there's a new file to upload
+      if (field.attachment_file) {
+        const file = field.attachment_file;
+        const fileName = `${Date.now()}_field_${field.id}_${file.name}`;
+        
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("form-images")
+          .upload(fileName, file);
+
+        if (uploadError) {
+          console.error(`Error uploading attachment for field ${field.label}:`, uploadError);
+          toast.error(`Error al subir adjunto para la pregunta: ${field.label}`);
+          // Continue without updating URL if failed
+        } else {
+          const { data: urlData } = supabase.storage
+            .from("form-images")
+            .getPublicUrl(uploadData.path);
+          attachmentUrl = urlData.publicUrl;
+        }
+      }
+
+      // Return cleaner object for DB insertion
+      const { attachment_file, ...fieldData } = field;
+      return {
+        ...fieldData,
+        attachment_url: attachmentUrl,
+        attachment_type: field.attachment_type, 
+        form_id: currentFormId, // Will be set/overwritten later if creating new
+      };
+    }));
+
+    // 3. Create or Update Form
     if (currentFormId) {
-      // Update existing form
       const { error: formError } = await supabase
         .from("forms")
         .update({ title, description, image_url: imageUrl, slug })
@@ -114,19 +142,18 @@ function BuilderContent() {
         return;
       }
 
-      // Delete existing fields and insert new ones
+      // Delete existing fields to replace with new set
       const { error: deleteFieldsError } = await supabase
         .from("form_fields")
         .delete()
         .eq("form_id", currentFormId);
 
       if (deleteFieldsError) {
-        console.error("Error deleting old form fields:", deleteFieldsError);
-        toast.error("Error al actualizar los campos del formulario.");
+        console.error("Error deleting old fields:", deleteFieldsError);
+        toast.error("Error al actualizar los campos.");
         return;
       }
     } else {
-      // Create new form
       const { data: newForm, error: formError } = await supabase
         .from("forms")
         .insert([
@@ -142,26 +169,24 @@ function BuilderContent() {
       }
       currentFormId = newForm.id;
 
-      // Initialize Google integration for the new form
+      // Initialize Google integration
       toast.info("Iniciando integración con Google...");
       const googleResult = await initializeGoogleIntegration(
         newForm.id,
         newForm.title,
         newForm.slug,
-        fields
+        fields // Pass original fields for initial headers
       );
       if (googleResult.error) {
         console.error("Error initializing Google integration:", googleResult.error);
-        toast.error(
-          `Formulario creado, pero hubo un error con Google: ${googleResult.error}`
-        );
+        toast.error(`Advertencia de Google: ${googleResult.error}`);
       } else {
-        toast.success("Integración con Google completada con éxito.");
+        toast.success("Integración con Google completada.");
       }
     }
 
-    // Insert form fields
-    const fieldsToInsert = fields.map((field) => ({
+    // 4. Insert Processed Fields
+    const fieldsToInsert = processedFields.map((field) => ({
       ...field,
       form_id: currentFormId,
     }));
@@ -172,7 +197,7 @@ function BuilderContent() {
 
     if (fieldsError) {
       console.error("Error inserting form fields:", fieldsError);
-      toast.error("Error al guardar los campos del formulario.");
+      toast.error("Error al guardar los campos.");
       return;
     }
 
