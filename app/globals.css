@@ -241,16 +241,25 @@
   min-height: 200px;
 }
 
+.tiptap-content > * + *,
 .tiptap > * + * {
   margin-top: 0.75em;
 }
 
+.tiptap-content ul,
+.tiptap-content ol,
 .tiptap ul,
 .tiptap ol {
   padding: 0 1rem;
   list-style-type: revert;
 }
 
+.tiptap-content h1,
+.tiptap-content h2,
+.tiptap-content h3,
+.tiptap-content h4,
+.tiptap-content h5,
+.tiptap-content h6,
 .tiptap h1,
 .tiptap h2,
 .tiptap h3,
@@ -258,8 +267,14 @@
 .tiptap h5,
 .tiptap h6 {
   line-height: 1.1;
+  font-weight: bold;
 }
 
+.tiptap-content h1, .tiptap h1 { font-size: 2rem; }
+.tiptap-content h2, .tiptap h2 { font-size: 1.5rem; }
+.tiptap-content h3, .tiptap h3 { font-size: 1.25rem; }
+
+.tiptap-content code,
 .tiptap code {
   background-color: rgba(97, 97, 97, 0.1);
   color: #616161;
@@ -267,6 +282,7 @@
   border-radius: 5px;
 }
 
+.tiptap-content pre,
 .tiptap pre {
   background: #0D0D0D;
   color: #FFF;
@@ -275,6 +291,7 @@
   border-radius: 0.5rem;
 }
 
+.tiptap-content pre code,
 .tiptap pre code {
   color: inherit;
   padding: 0;
@@ -282,11 +299,13 @@
   font-size: 0.8rem;
 }
 
+.tiptap-content img,
 .tiptap img {
   max-width: 100%;
   height: auto;
 }
 
+.tiptap-content blockquote,
 .tiptap blockquote {
   padding-left: 1rem;
   border-left: 2px solid rgba(13, 13, 13, 0.1);
@@ -294,6 +313,7 @@
   color: rgba(13, 13, 13, 0.5);
 }
 
+.tiptap-content hr,
 .tiptap hr {
   border: none;
   border-top: 2px solid rgba(13, 13, 13, 0.1);
