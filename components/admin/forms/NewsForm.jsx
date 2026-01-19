@@ -150,21 +150,22 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                 className="hidden"
                 ref={fileInputRef}
               />
-              <Button
-                type="button"
-                onClick={() => fileInputRef.current.click()}
-              >
-                <ImageIcon className="h-4 w-4 mr-2" /> Seleccionar Imagen
-              </Button>
-              {imageFile ? (
-                <span className="text-sm text-gray-500">
-                  {imageFile.file.name}
-                </span>
-              ) : newsItem?.image_url ? (
-                <span className="text-sm text-gray-500">
-                  Imagen actual guardada
-                </span>
-              ) : null}
+                                    <Button
+                                      type="button"
+                                      onClick={() => fileInputRef.current.click()}
+                                    >
+                                      <ImageIcon className="h-4 w-4 mr-2" /> Seleccionar Imagen
+                                    </Button>
+                                    {imageFile ? (
+                                      <span className="text-sm text-gray-500 truncate max-w-[200px]">
+                                        {imageFile.file.name}
+                                      </span>
+                                    ) : newsItem?.image_url ? (
+                                      <span className="text-sm text-gray-500">
+                                        Imagen actual guardada
+                                      </span>
+                                    ) : null}
+              
             </div>
           </FormControl>
           <FormMessage />

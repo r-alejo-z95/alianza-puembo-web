@@ -303,14 +303,15 @@ function FieldCard({
                     ) : (
                       <div className="flex items-center gap-3 p-4">
                         <FileUp className="w-8 h-8 text-[var(--puembo-green)]" />
-                        <div className="flex flex-col">
-                          <span className="font-medium text-sm text-gray-700">
-                            Documento Adjunto
-                          </span>
-                          <span className="text-xs text-gray-500 truncate max-w-[200px]">
-                            {currentField.attachment_url.split("/").pop()}
-                          </span>
-                        </div>
+                                                        <div className="flex flex-col min-w-0">
+                                                          <span className="font-medium text-sm text-gray-700">
+                                                            Documento Adjunto
+                                                          </span>
+                                                          <span className="text-xs text-gray-500 truncate max-w-[150px]">
+                                                            {currentField.attachment_url.split("/").pop()}
+                                                          </span>
+                                                        </div>
+                        
                       </div>
                     )}
                     <div className="absolute top-2 right-2 flex gap-1">

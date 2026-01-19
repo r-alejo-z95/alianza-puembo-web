@@ -535,12 +535,9 @@ export default function PublicForm() {
                                 </Button>
 
                                 {fileNames[field.id] ? (
-                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-[var(--puembo-green)] rounded-full text-sm font-medium">
-                                    <FileText className="w-4 h-4" />
-
-                                    <span className="truncate max-w-[200px]">
-                                      {fileNames[field.id]}
-                                    </span>
+                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-[var(--puembo-green)] rounded-full text-sm font-medium max-w-full overflow-hidden">
+                                    <FileText className="w-4 h-4 shrink-0" />
+                                    <span className="truncate break-all">{fileNames[field.id]}</span>
                                   </div>
                                 ) : (
                                   <span className="text-sm text-gray-400 italic">

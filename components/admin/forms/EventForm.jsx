@@ -526,17 +526,18 @@ export default function EventForm({ event, onSave, onCancel }) {
                 className="hidden"
                 ref={fileInputRef}
               />
-              <Button
-                type="button"
-                onClick={() => fileInputRef.current.click()}
-              >
-                <ImageIcon className="h-4 w-4 mr-2" /> Seleccionar Imagen
-              </Button>
-              {posterFile && (
-                <span className="text-sm text-gray-500">
-                  {posterFile.file.name}
-                </span>
-              )}
+                                    <Button
+                                      type="button"
+                                      onClick={() => fileInputRef.current.click()}
+                                    >
+                                      <ImageIcon className="h-4 w-4 mr-2" /> Seleccionar Imagen
+                                    </Button>
+                                    {posterFile && (
+                                      <span className="text-sm text-gray-500 truncate max-w-[200px]">
+                                        {posterFile.file.name}
+                                      </span>
+                                    )}
+              
             </div>
           </FormControl>
           <FormMessage />
