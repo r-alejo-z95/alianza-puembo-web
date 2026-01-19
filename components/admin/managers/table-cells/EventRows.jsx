@@ -7,6 +7,7 @@ import { Edit, Trash2, Link as LinkIcon, Copy, MapPin } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getEventColorClasses } from '@/components/public/calendar/event-calendar/utils';
 import { formatEventDateRange, formatEventTimeRange } from '@/lib/date-utils';
+import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
 
 export function EventRow({ event, onEdit, onDelete, compact }) {
     const posterActions = event.poster_url ? (
@@ -116,7 +117,10 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
 
     if (compact) {
         return (
-            <div className='border rounded-lg p-4 shadow-sm space-y-2'>
+            <div className='border rounded-lg p-4 shadow-sm space-y-2 relative'>
+                <div className="absolute top-4 right-4">
+                    <AuthorAvatar profile={event.profiles} className="h-6 w-6" />
+                </div>
                 <div className="flex items-center gap-2">
                     {event.color && <div className={`w-3 h-3 rounded-full ${getEventColorClasses(event.color)}`} />}
                     {event.title}
@@ -154,6 +158,9 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
             </TableCell>
             <TableCell>{posterActions}</TableCell>
             <TableCell>{registrationLinkActions}</TableCell>
+            <TableCell>
+                <AuthorAvatar profile={event.profiles} />
+            </TableCell>
             <TableCell className="min-w-[150px]">{actions}</TableCell>
         </TableRow>
     );

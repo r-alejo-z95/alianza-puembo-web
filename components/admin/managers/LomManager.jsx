@@ -61,7 +61,7 @@ export default function LomManager() {
     setLoading(true);
     const { data, error } = await supabase
       .from('lom_posts')
-      .select('*')
+      .select('*, profiles(full_name, email)')
       .order('publication_date', { ascending: false });
 
     if (error) {
@@ -229,6 +229,7 @@ export default function LomManager() {
                   <TableRow>
                     <TableHead className="font-bold">Título</TableHead>
                     <TableHead className="font-bold">Fecha de Publicación</TableHead>
+                    <TableHead className="font-bold">Autor</TableHead>
                     <TableHead className="font-bold">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>

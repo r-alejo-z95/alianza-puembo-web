@@ -14,13 +14,9 @@ import { TableRow, TableCell } from "@/components/ui/table";
 import { OverflowCell } from "./OverflowCell";
 import { toast } from "sonner";
 import { Edit, Trash2, Link as LinkIcon, Copy } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatLiteralDate } from "@/lib/date-utils";
+import { AuthorAvatar } from "@/components/shared/AuthorAvatar";
 
 const formatNewsTime = (timeStr) => {
   if (!timeStr) return "-";
@@ -116,7 +112,10 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
 
   if (compact) {
     return (
-      <div className="border rounded-lg p-4 shadow-sm space-y-2">
+      <div className="border rounded-lg p-4 shadow-sm space-y-2 relative">
+        <div className="absolute top-4 right-4">
+          <AuthorAvatar profile={newsItem.profiles} className="h-6 w-6" />
+        </div>
         <div className="flex items-center gap-2 font-semibold">
           {newsItem.title}
         </div>
@@ -157,6 +156,9 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
         <OverflowCell>{formattedTime}</OverflowCell>
       </TableCell>
       <TableCell>{posterActions}</TableCell>
+      <TableCell>
+        <AuthorAvatar profile={newsItem.profiles} />
+      </TableCell>
       <TableCell className="min-w-25">{actions}</TableCell>
     </TableRow>
   );

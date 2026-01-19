@@ -13,6 +13,7 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ecuadorToUTC } from '@/lib/date-utils';
+import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
 
 const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
@@ -30,7 +31,7 @@ export default function PassageManager() {
     setLoading(true);
     const { data, error } = await supabase
       .from('lom_passages')
-      .select('*')
+      .select('*, profiles(full_name, email)')
       .order('week_number', { ascending: false })
 
     if (error) {
@@ -46,7 +47,12 @@ export default function PassageManager() {
         if (week) {
           week.passages.push(passage);
         } else {
-          acc.push({ week_number: passage.week_number, week_start_date: passage.week_start_date, passages: [passage] });
+          acc.push({ 
+            week_number: passage.week_number, 
+            week_start_date: passage.week_start_date, 
+            passages: [passage],
+            profiles: passage.profiles // El perfil viene del primer pasaje de la semana
+          });
         }
         return acc;
       }, []);
@@ -68,6 +74,7 @@ export default function PassageManager() {
 
   const handleSave = async (data) => {
     setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
 
     const utcStartDate = ecuadorToUTC(data.week_start_date).toISOString();
 
@@ -77,6 +84,7 @@ export default function PassageManager() {
         ...p,
         week_number: data.week_number,
         week_start_date: utcStartDate,
+        user_id: user?.id,
       }));
 
     if (selectedWeek) {
@@ -128,7 +136,12 @@ export default function PassageManager() {
             <Accordion type="single" collapsible className="w-full">
               {currentWeeks.map(week => (
                 <AccordionItem value={`week-${week.week_number}`} key={week.week_number}>
-                  <AccordionTrigger className="cursor-pointer">Semana {week.week_number}</AccordionTrigger>
+                  <AccordionTrigger className="cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      <span>Semana {week.week_number}</span>
+                      <AuthorAvatar profile={week.profiles} className="h-6 w-6" />
+                    </div>
+                  </AccordionTrigger>
                   <AccordionContent>
                     <div className="flex justify-between items-start">
                       <ul>

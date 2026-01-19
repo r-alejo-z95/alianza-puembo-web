@@ -88,6 +88,7 @@ export default function EventManager() {
                                         <TableHead className="font-bold">Ubicación</TableHead>
                                         <TableHead className="font-bold">Póster</TableHead>
                                         <TableHead className="font-bold">Link de Registro</TableHead>
+                                        <TableHead className="font-bold">Autor</TableHead>
                                         <TableHead className="font-bold">Acciones</TableHead>
                                     </TableRow>
                                 </TableHeader>

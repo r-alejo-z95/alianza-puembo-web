@@ -93,6 +93,7 @@ export default function NewsManager() {
                     <TableHead className="font-bold">Fecha</TableHead>
                     <TableHead className="font-bold">Hora</TableHead>
                     <TableHead className="font-bold">Imagen</TableHead>
+                    <TableHead className="font-bold">Autor</TableHead>
                     <TableHead className="font-bold">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>

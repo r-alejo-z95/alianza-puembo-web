@@ -6,6 +6,7 @@ import { Edit, Trash2, Copy, Link as LinkIcon, FolderOpen } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatInEcuador } from '@/lib/date-utils';
+import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
 
 export function FormRow({ form, onEdit, onDelete, compact }) {
     const handleCopyLink = () => {
@@ -165,7 +166,10 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
 
     if (compact) {
         return (
-            <div className='border rounded-lg p-4 shadow-sm space-y-2'>
+            <div className='border rounded-lg p-4 shadow-sm space-y-2 relative'>
+                <div className="absolute top-4 right-4">
+                    <AuthorAvatar profile={form.profiles} className="h-6 w-6" />
+                </div>
                 <div><span className="font-semibold">Título:</span> <OverflowCell>{form.title}</OverflowCell></div>
                 <div><span className="font-semibold">Fecha de Creación:</span> {formattedDate}</div>
                 {form.slug && <div><span className="font-semibold">Link:</span> {formLinkActions}</div>}
@@ -185,6 +189,9 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
             <TableCell>{formLinkActions}</TableCell>
             <TableCell>{sheetLinkActions}</TableCell>
             <TableCell>{folderLinkActions}</TableCell>
+            <TableCell>
+                <AuthorAvatar profile={form.profiles} />
+            </TableCell>
             <TableCell className="min-w-[120px]">{actions}</TableCell>
         </TableRow>
     );

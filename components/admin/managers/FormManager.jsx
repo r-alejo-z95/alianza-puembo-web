@@ -32,7 +32,7 @@ export default function FormManager() {
     setLoading(true);
     const { data, error } = await supabase
       .from("forms")
-      .select("*, form_fields(*)") // Fetch related form_fields
+      .select("*, form_fields(*), profiles(full_name, email)") // Fetch related form_fields and author profile
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -130,6 +130,7 @@ export default function FormManager() {
                     <TableHead className="font-bold">Link</TableHead>
                     <TableHead className="font-bold">Respuestas</TableHead>
                     <TableHead className="font-bold">Carpeta</TableHead>
+                    <TableHead className="font-bold">Autor</TableHead>
                     <TableHead className="font-bold">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
