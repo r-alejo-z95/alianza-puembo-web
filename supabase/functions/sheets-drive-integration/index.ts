@@ -340,17 +340,24 @@ serve(async (req) => {
         }
 
         // 2. Create Drive Folder and Sheet
-        const folderId = await createDriveFolder(accessToken, formTitle);
-        const sheetId = await createGoogleSheet(accessToken, formTitle);
+        const [folderId, sheetId] = await Promise.all([
+          createDriveFolder(accessToken, formTitle),
+          createGoogleSheet(accessToken, formTitle)
+        ]);
+        
         const sheetInfo = await getFirstSheetName(accessToken, sheetId);
 
-        // 3. Initialize headers and formatting immediately
-        await appendToSheet(accessToken, sheetId, [headers], sheetInfo.name);
-        await applyInitialFormatting(accessToken, sheetId, sheetInfo.id);
-        await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
+        // 3. Initialize headers and formatting (Run in parallel to save significant time)
+        // We don't strictly need to await all of these before responding to the user,
+        // but we await them here to ensure the sheet is ready.
+        await Promise.all([
+          appendToSheet(accessToken, sheetId, [headers], sheetInfo.name),
+          applyInitialFormatting(accessToken, sheetId, sheetInfo.id),
+          formatSheetHeaders(accessToken, sheetId, sheetInfo.id),
+        ]);
 
         // 4. Update Supabase with the new IDs
-        await supabase
+        const { error: updateError } = await supabase
           .from("forms")
           .update({ 
             google_sheet_id: sheetId, 
@@ -358,6 +365,12 @@ serve(async (req) => {
             google_sheet_url: `https://docs.google.com/spreadsheets/d/${sheetId}/edit` 
           })
           .eq("id", formId);
+
+        if (updateError) {
+          console.error("Error updating forms table in Supabase:", updateError);
+          // Even if DB update fails, we have the IDs, but we should throw to let the caller know
+          throw new Error(`Sheet created but failed to update database: ${updateError.message}`);
+        }
 
         return new Response(
           JSON.stringify({ sheetId, folderId, formSlug }),

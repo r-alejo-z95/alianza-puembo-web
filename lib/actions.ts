@@ -383,14 +383,15 @@ export async function initializeGoogleIntegration(
 
     if (!response.ok) {
       console.error("Error calling edge function:", result);
-
+      
+      // If it's a timeout or a known error but the creation might have happened
       return {
-        error: result.error || "Error al crear la hoja de cálculo de Google.",
+        error: result.error || "La conexión con Google tardó más de lo esperado.",
+        details: result.details
       };
     }
 
     revalidatePath("/admin/formularios");
-
     return { success: true };
   } catch (error) {
     console.error("Unexpected error in initializeGoogleIntegration:", error);
