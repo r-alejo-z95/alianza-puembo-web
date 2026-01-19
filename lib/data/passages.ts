@@ -39,11 +39,12 @@ export async function getLatestWeekPassages() {
   noStore();
   const supabase = await createClient();
   const today = formatEcuadorDateForInput(getNowInEcuador());
+  const endOfToday = `${today}T23:59:59-05:00`;
 
   const { data: currentWeek, error: currentWeekError } = await supabase
     .from('lom_passages')
     .select('week_number')
-    .lte('week_start_date', today)
+    .lte('week_start_date', endOfToday)
     .order('week_start_date', { ascending: false })
     .limit(1)
     .maybeSingle();

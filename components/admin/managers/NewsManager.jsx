@@ -21,6 +21,7 @@ import NewsForm from "@/components/admin/forms/NewsForm";
 import { NewsRow } from "./table-cells/NewsRows";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { useAdminNewsContext } from "@/components/providers/NewsProvider";
+import { Loader2 } from "lucide-react";
 
 export default function NewsManager() {
   const { news, loading, saveNews, deleteNews } = useAdminNewsContext();
@@ -78,10 +79,7 @@ export default function NewsManager() {
       <CardContent className="max-w-full">
         {loading ? (
           <div className="flex items-center justify-center h-32">
-            <div className="flex flex-col gap-4 justify-center items-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-(--puembo-green)" />
-              <p>Cargando noticias...</p>
-            </div>
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--puembo-green)]" />
           </div>
         ) : (
           <div id="news-table">

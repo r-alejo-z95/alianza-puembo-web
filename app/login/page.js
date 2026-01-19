@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -93,8 +94,8 @@ export default function LoginPage() {
               )}
             />
             {error && <p className="text-red-500 text-sm">{error}</p>}
-            <Button type="submit" className="w-full bg-[var(--puembo-green)] hover:bg-[hsl(92,45.9%,37.8%)]" disabled={loading}>
-              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            <Button type="submit" className="w-full bg-[var(--puembo-green)] hover:bg-[hsl(92,45.9%,37.8%)] h-10" disabled={loading}>
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Iniciar Sesión'}
             </Button>
           </form>
         </Form>

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/form';
 import { toast } from 'sonner';
 import { adminPageTitle, adminPageDescription, adminPageSection, adminPageHeaderContainer } from "@/lib/styles.ts";
+import { Loader2 } from 'lucide-react';
 
 const profileSchema = z.object({
   email: z.string().email('Correo electrónico inválido.').optional().or(z.literal('')),
@@ -95,7 +96,11 @@ export default function PreferenciasPage() {
   };
 
   if (loading) {
-    return <p>Cargando preferencias...</p>;
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)]" />
+      </div>
+    );
   }
 
   return (
@@ -167,8 +172,8 @@ export default function PreferenciasPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Guardando...' : 'Guardar Cambios'}
+              <Button type="submit" disabled={loading} className="w-full h-10">
+                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Guardar Cambios'}
               </Button>
             </form>
           </Form>

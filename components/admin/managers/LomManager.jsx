@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import dynamic from 'next/dynamic';
 import { formatEcuadorDateForInput, getNowInEcuador, ecuadorToUTC } from '@/lib/date-utils';
+import { Loader2 } from 'lucide-react';
 
 const RichTextEditor = dynamic(
   () => import('@/components/admin/forms/RichTextEditor'),
@@ -203,8 +204,8 @@ export default function LomManager() {
             />
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => { form.reset({ title: '', content: '', publication_date: '' }); setSelectedPost(null); setEditorKey((prev) => prev + 1); }}>Cancelar</Button>
-              <Button type="submit" disabled={loading}>
-                {selectedPost ? 'Actualizar' : 'Publicar'}
+              <Button type="submit" disabled={loading} className="w-24 h-10">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (selectedPost ? 'Actualizar' : 'Publicar')}
               </Button>
             </div>
           </form>
@@ -216,7 +217,9 @@ export default function LomManager() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p>Cargando devocionales...</p>
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--puembo-green)]" />
+          </div>
         ) : (
           <div id='lom-table'>
             {/* Pantallas grandes */}

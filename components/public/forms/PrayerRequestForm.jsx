@@ -12,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { sectionTitle } from '@/lib/styles';
+import { Loader2 } from 'lucide-react';
 
 const prayerRequestSchema = z.object({
   name: z.string().optional(),
@@ -135,8 +136,8 @@ export default function PrayerRequestForm({ action }) {
               )}
             />
             <div className='w-full flex justify-center'>
-              <Button variant="secondary" type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Enviando...' : 'Enviar Petición'}
+              <Button variant="secondary" type="submit" disabled={form.formState.isSubmitting} className="w-40">
+                {form.formState.isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enviar Petición'}
               </Button>
             </div>
           </form>

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useEffect } from 'react';
 import { formatEcuadorDateForInput } from '@/lib/date-utils';
+import { Loader2 } from 'lucide-react';
 
 const weekSchema = z.object({
   week_number: z.number().min(1, 'El número de semana debe ser al menos 1.'),
@@ -95,8 +96,8 @@ export default function PassageForm({ week, onSave, onCancel, loading }) {
         ))}
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-          <Button type="submit" disabled={loading}>
-            {week ? 'Actualizar Semana' : 'Crear Semana'}
+          <Button type="submit" disabled={loading} className="w-32">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (week ? 'Actualizar Semana' : 'Crear Semana')}
           </Button>
         </div>
       </form>

@@ -11,6 +11,7 @@ import { EventRow } from './table-cells/EventRows';
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { useRouter } from 'next/navigation';
 import { useAdminEventsContext } from '@/components/providers/EventsProvider';
+import { Loader2 } from 'lucide-react';
 
 export default function EventManager() {
     const {
@@ -71,10 +72,7 @@ export default function EventManager() {
             <CardContent className="max-w-full">
                 {loading ? (
                     <div className="flex items-center justify-center h-32">
-                        <div className="flex flex-col gap-4 justify-center items-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-(--puembo-green)" />
-                            <p>Cargando eventos...</p>
-                        </div>
+                        <Loader2 className="h-8 w-8 animate-spin text-[var(--puembo-green)]" />
                     </div>
                 ) : (
                     <div id='event-table'>
@@ -148,8 +146,7 @@ export default function EventManager() {
                     </DialogHeader>
                     {isCreatingForm && (
                         <div className="flex flex-col gap-4 justify-center items-center h-full">
-                            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-(--puembo-green)" />
-                            <p>Creando formulario de registro... Esto puede tomar unos segundos.</p>
+                            <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)]" />
                         </div>
                     )}
                     <EventForm

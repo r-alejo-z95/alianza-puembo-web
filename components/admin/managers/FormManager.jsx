@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { FormRow } from "./table-cells/FormRow";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export default function FormManager() {
   const [forms, setForms] = useState([]);
@@ -86,7 +87,7 @@ export default function FormManager() {
     const { error } = await supabase.from("forms").delete().eq("id", formId);
     if (error) {
       console.error("Error deleting form:", error);
-      toast.error("Error al eliminar el formulario.");
+      toast.error("Error al eliminar the formulario.");
     } else {
       toast.success("Formulario eliminado con éxito.");
       fetchForms();
@@ -113,7 +114,9 @@ export default function FormManager() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p>Cargando formularios...</p>
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--puembo-green)]" />
+          </div>
         ) : (
           <div id="form-table">
             <div className="hidden lg:block overflow-x-auto">

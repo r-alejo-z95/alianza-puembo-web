@@ -46,6 +46,7 @@ import {
   Mail,
   Calendar as CalendarIcon,
   Paperclip,
+  Loader2,
 } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 import RichTextEditor from "./RichTextEditor";
@@ -959,13 +960,7 @@ export default function FormBuilder({
               !isSaving && "bg-[var(--puembo-green)] hover:bg-green-700"
             )}
           >
-            {isSaving ? (
-              <>
-                <span className="animate-spin mr-2">⟳</span> Guardando...
-              </>
-            ) : (
-              "Guardar"
-            )}
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar"}
           </Button>
         </div>
       </div>

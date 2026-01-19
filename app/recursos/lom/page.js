@@ -11,6 +11,7 @@ import { LomDevotionalsList } from "@/components/public/recursos/lom/LomDevotion
 import { LomWeeklyPassages } from "@/components/public/recursos/lom/LomWeeklyPassages";
 import { getWeekDateRange, getBibleLink } from "@/lib/lomUtils";
 import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
+import { Loader2 } from "lucide-react";
 
 const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 
@@ -115,7 +116,9 @@ export default function LomPage() {
         />
 
         {loading ? (
-          <p>Cargando...</p>
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)]" />
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <LomDevotionalsList

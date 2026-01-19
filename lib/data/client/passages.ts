@@ -4,12 +4,13 @@ import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
 export async function getThisWeekPassages() {
   const supabase = createClient();
   const today = formatEcuadorDateForInput(getNowInEcuador());
+  const endOfToday = `${today}T23:59:59-05:00`;
 
   // Try to find the week that is currently in progress
   const { data: currentWeeks, error: currentWeekError } = await supabase
     .from("lom_passages")
     .select("week_number")
-    .lte("week_start_date", today)
+    .lte("week_start_date", endOfToday)
     .order("week_start_date", { ascending: false })
     .limit(1);
 

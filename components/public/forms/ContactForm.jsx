@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 
 const initialState = {
   errors: {},
@@ -18,8 +19,8 @@ const initialState = {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button variant="secondary" type="submit" disabled={pending} aria-disabled={pending}>
-      {pending ? 'Enviando...' : 'Enviar Mensaje'}
+    <Button variant="secondary" type="submit" disabled={pending} aria-disabled={pending} className="w-40">
+      {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enviar Mensaje'}
     </Button>
   );
 }

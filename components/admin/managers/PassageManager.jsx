@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { toast } from 'sonner';
 import PassageForm from '@/components/admin/forms/PassageForm';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Loader2 } from 'lucide-react';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -120,7 +120,9 @@ export default function PassageManager() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p>Cargando semanas...</p>
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--puembo-green)]" />
+          </div>
         ) : (
           <>
             <Accordion type="single" collapsible className="w-full">

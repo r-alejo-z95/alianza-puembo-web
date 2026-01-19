@@ -8,6 +8,7 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components
 import { toast } from 'sonner';
 import { PrayerRequestRow } from './table-cells/PrayerRequestRow';
 import { PaginationControls } from "@/components/shared/PaginationControls";
+import { Loader2 } from 'lucide-react';
 
 export default function PrayerRequestManager() {
   const [requests, setRequests] = useState([]);
@@ -81,7 +82,9 @@ export default function PrayerRequestManager() {
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p>Cargando peticiones...</p>
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--puembo-green)]" />
+          </div>
         ) : (
           <div id='prayer-request-table'>
             {/* Pantallas grandes */}

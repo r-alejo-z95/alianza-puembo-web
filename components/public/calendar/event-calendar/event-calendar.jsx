@@ -44,6 +44,7 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import EventForm from '@/components/admin/forms/EventForm';
 import { useRouter } from 'next/navigation';
+import { Loader2 } from "lucide-react";
 
 export function IntegratedEventCalendar({
   className,
@@ -233,10 +234,7 @@ export function IntegratedEventCalendar({
   if (loading) {
     return (
       <Card className="flex items-center justify-center h-64">
-        <div className="flex flex-col gap-4 justify-center items-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-(--puembo-green)" />
-          <p>Cargando calendario...</p>
-        </div>
+        <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)]" />
       </Card>
     );
   }
@@ -354,8 +352,7 @@ export function IntegratedEventCalendar({
             </DialogHeader>
             {isCreatingForm && (
               <div className="flex flex-col gap-4 justify-center items-center h-full">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-900" />
-                <p>Creando formulario de registro... Esto puede tomar unos segundos.</p>
+                <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)]" />
               </div>
             )}
             <EventForm

@@ -23,6 +23,7 @@ import {
   FileUp,
   Calendar as CalendarIcon,
   FileText,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
 import { getNowInEcuador, formatInEcuador } from "@/lib/date-utils";
@@ -31,38 +32,14 @@ import { getNowInEcuador, formatInEcuador } from "@/lib/date-utils";
 
 const LoadingSpinner = () => (
   <div className="flex flex-col gap-6 justify-center items-center h-full animate-in fade-in duration-500">
-    <div className="relative">
-      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--puembo-green)]" />
-
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="h-8 w-8 rounded-full bg-[var(--puembo-green)]/10" />
-      </div>
-    </div>
-
-    <p className="text-gray-500 font-medium tracking-wide">
-      Cargando formulario...
-    </p>
+    <Loader2 className="h-16 w-16 animate-spin text-[var(--puembo-green)]" />
   </div>
 );
 
 const SendingSpinner = () => (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm animate-in fade-in duration-300">
     <div className="flex flex-col gap-6 justify-center items-center">
-      <div className="relative">
-        <div className="animate-spin rounded-full h-20 w-20 border-t-2 border-b-2 border-[var(--puembo-green)]" />
-
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="animate-pulse h-10 w-10 rounded-full bg-[var(--puembo-green)]/20" />
-        </div>
-      </div>
-
-      <div className="text-center">
-        <p className="text-lg font-semibold text-gray-800">
-          Enviando respuesta
-        </p>
-
-        <p className="text-sm text-gray-500">Esto tomará solo un momento</p>
-      </div>
+      <Loader2 className="h-20 w-20 animate-spin text-[var(--puembo-green)]" />
     </div>
   </div>
 );
@@ -608,7 +585,7 @@ export default function PublicForm() {
                   type="submit"
                   disabled={sending}
                 >
-                  {sending ? "Enviando..." : "Enviar Respuesta"}
+                  {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Enviar Respuesta"}
                 </Button>
 
                 <p className="text-center text-xs text-gray-400 mt-4">
