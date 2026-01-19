@@ -50,6 +50,24 @@ export default function Equipo() {
       image: "/conocenos/equipo/familia-dani-a.avif",
       bio: "Daniela Andrade es la coordinadora de Puembo Kids, dedicando su energía a enseñar a los niños los principios bíblicos de una manera divertida y creativa. Su pasión es ver a los más pequeños crecer en su fe."
     },
+    {
+      name: "Mateo Olivo",
+      detail: "Coordinador de MAT (Música, Artes y Tecnología)",
+      image: "/conocenos/equipo/familia-mate.jpg",
+      bio: "Mateo Olivo lidera el ministerio de MAT, coordinando los esfuerzos de música y artes para guiar a la iglesia en una adoración profunda y excelente que glorifique a Dios."
+    },
+    {
+      name: "Alejandro Zambrano",
+      detail: "Coordinador de MAT - Tecnología",
+      image: "/conocenos/equipo/familia-alejo.jpg",
+      bio: "Alejandro supervisa las áreas de sonido, iluminación, transmisión, multimedia y producción. Su enfoque es utilizar la tecnología como una herramienta eficaz para la proclamación del Evangelio."
+    },
+    {
+      name: "Andrea Quiroga",
+      detail: "Coordinadora de Comunicaciones",
+      image: "/conocenos/equipo/familia-andre.jpg",
+      bio: "Andrea Quiroga gestiona la comunicación y diseño de la iglesia, asegurando que el mensaje de Alianza Puembo llegue de manera clara y creativa a toda nuestra comunidad y más allá."
+    },
   ];
 
   return (
@@ -85,18 +103,12 @@ export default function Equipo() {
             </p>
           </CardContent>
         </Card>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl mx-auto">
           {team.map((member, index) => {
-            const isLast = index === team.length - 1;
-            const isOdd = team.length % 2 !== 0;
-            const shouldCenter = isLast && isOdd;
-
             return (
               <Card
                 key={index}
-                className={cn("flex flex-col gap-4 max-w-md w-full mx-auto",
-                  shouldCenter ? "sm:col-span-2 justify-self-center" : ""
-                )}
+                className="flex flex-col gap-4 max-w-md w-full mx-auto"
               >
                 <CardHeader>
                   <div className="relative w-full aspect-[3/2] rounded-md overflow-hidden flex-shrink-0 mx-auto">
