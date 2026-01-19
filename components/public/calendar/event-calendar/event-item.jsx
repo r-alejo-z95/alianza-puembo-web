@@ -1,21 +1,28 @@
 "use client";
-import { useMemo } from "react"
-import { differenceInMinutes, isPast } from "date-fns"
+import { useMemo } from "react";
+import { differenceInMinutes, isPast } from "date-fns";
 
-import { getBorderRadiusClasses, getEventColorClasses } from "@/components/public/calendar/event-calendar";
-import { cn } from "@/lib/utils"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import Link from 'next/link'
+import {
+  getBorderRadiusClasses,
+  getEventColorClasses,
+} from "@/components/public/calendar/event-calendar";
+import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import Link from "next/link";
 import { formatInEcuador } from "@/lib/date-utils";
 
 // Helper to format time as "ha" or "h:mma" in Ecuador timezone
 const formatTimeWithOptionalMinutes = (date) => {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  const minutes = d.getUTCMinutes(); // This might be wrong if we don't handle TZ. 
+  const d = typeof date === "string" ? new Date(date) : date;
+  const minutes = d.getUTCMinutes(); // This might be wrong if we don't handle TZ.
   // Better use formatInEcuador with a logic that hides :00
-  const timeStr = formatInEcuador(d, 'h:mm a').toLowerCase();
-  return timeStr.replace(':00', '');
-}
+  const timeStr = formatInEcuador(d, "h:mm a").toLowerCase();
+  return timeStr.replace(":00", "");
+};
 
 // Shared wrapper component for event styling
 function EventWrapper({
@@ -32,15 +39,17 @@ function EventWrapper({
   onMouseDown,
   onTouchStart,
   isAdmin,
-  displayStart
+  displayStart,
 }) {
   // Always use the currentTime (if provided) to determine if the event is in the past
   const displayEnd = currentTime
-    ? new Date(new Date(currentTime).getTime() +
-      (new Date(event.end).getTime() - new Date(event.start).getTime()))
-    : new Date(event.end)
+    ? new Date(
+        new Date(currentTime).getTime() +
+          (new Date(event.end).getTime() - new Date(event.start).getTime())
+      )
+    : new Date(event.end);
 
-  const isEventInPast = isPast(displayEnd)
+  const isEventInPast = isPast(displayEnd);
 
   const getPopoverEventTime = () => {
     if (event.is_multi_day) return null;
@@ -64,7 +73,8 @@ function EventWrapper({
           onMouseDown={onMouseDown}
           onTouchStart={onTouchStart}
           {...dndListeners}
-          {...dndAttributes}>
+          {...dndAttributes}
+        >
           {children}
         </button>
       ) : (
@@ -82,33 +92,60 @@ function EventWrapper({
               onMouseDown={onMouseDown}
               onTouchStart={onTouchStart}
               {...dndListeners}
-              {...dndAttributes}>
+              {...dndAttributes}
+            >
               {children}
             </button>
           </PopoverTrigger>
-          <PopoverContent side="top" align="start" className="bg-white text-black p-4 border-t-4 border-t-[var(--puembo-green)] shadow-2xl ring-1 ring-black/5 min-w-[200px] max-w-sm break-words text-sm rounded-xl">
+          <PopoverContent
+            side="top"
+            align="start"
+            className="bg-white text-black p-4 border-t-4 border-t-[var(--puembo-green)] shadow-2xl ring-1 ring-black/5 min-w-[200px] max-w-sm break-words text-sm rounded-xl"
+          >
             {isEventInPast ? (
-              <div className='cursor-default space-y-2'>
-                <p className="font-bold text-lg text-gray-900 leading-tight">{event.title}</p>
+              <div className="cursor-default space-y-2">
+                <p className="font-bold text-lg text-gray-900 leading-tight">
+                  {event.title}
+                </p>
                 {event.description && (
-                  <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{event.description}</p>
+                  <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">
+                    {event.description}
+                  </p>
                 )}
                 <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
                   <div className="w-2 h-2 rounded-full bg-gray-300" />
-                  <p className="text-xs font-medium text-gray-500">{getPopoverEventTime()}</p>
+                  <p className="text-xs font-medium text-gray-500">
+                    {getPopoverEventTime()}
+                  </p>
                 </div>
               </div>
             ) : (
-              <Link href={`/eventos/proximos-eventos?page=${event.page}#` + encodeURIComponent(event.title)} target="_blank" rel="noopener noreferrer" className='cursor-pointer block space-y-2 group'>
-                <p className="font-bold text-lg text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors leading-tight">{event.title}</p>
+              <Link
+                href={
+                  `/eventos/proximos-eventos?page=${event.page}#` +
+                  encodeURIComponent(event.title)
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cursor-pointer block space-y-2 group"
+              >
+                <p className="font-bold text-lg text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors leading-tight">
+                  {event.title}
+                </p>
                 {event.description && (
-                  <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{event.description}</p>
+                  <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">
+                    {event.description}
+                  </p>
                 )}
-                <div className="flex items-center gap-2 pt-2 border-t border-green-50">
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
                   <div className="w-2 h-2 rounded-full bg-[var(--puembo-green)]" />
-                  <p className="text-xs font-medium text-[var(--puembo-green)]">{getPopoverEventTime()}</p>
+                  <p className="text-xs font-medium text-[var(--puembo-green)]">
+                    {getPopoverEventTime()}
+                  </p>
                 </div>
-                <p className="text-[10px] text-[var(--puembo-green)]/70 font-medium pt-1">Ver detalles completos →</p>
+                <p className="text-[10px] text-gray-400 font-medium pt-1">
+                  Ver más →
+                </p>
               </Link>
             )}
           </PopoverContent>
@@ -133,30 +170,32 @@ export function EventItem({
   dndAttributes,
   onMouseDown,
   onTouchStart,
-  isAdmin
+  isAdmin,
 }) {
-  const eventColor = event.color
+  const eventColor = event.color;
 
   // Use the provided currentTime (for dragging) or the event's actual time
   const displayStart = useMemo(() => {
     return currentTime || new Date(event.start);
-  }, [currentTime, event.start])
+  }, [currentTime, event.start]);
 
   const displayEnd = useMemo(() => {
     return currentTime
-      ? new Date(new Date(currentTime).getTime() +
-        (new Date(event.end).getTime() - new Date(event.start).getTime()))
+      ? new Date(
+          new Date(currentTime).getTime() +
+            (new Date(event.end).getTime() - new Date(event.start).getTime())
+        )
       : new Date(event.end);
-  }, [currentTime, event.start, event.end])
+  }, [currentTime, event.start, event.end]);
 
   // Calculate event duration in minutes
   const durationMinutes = useMemo(() => {
     return differenceInMinutes(displayEnd, displayStart);
-  }, [displayStart, displayEnd])
+  }, [displayStart, displayEnd]);
 
   const getEventTime = () => {
-    if (event.is_multi_day) return "Varios días"
-    if (event.allDay) return "Todo el día"
+    if (event.is_multi_day) return "Varios días";
+    if (event.allDay) return "Todo el día";
 
     // For short events (less than 45 minutes), only show start time
     if (durationMinutes < 45) {
@@ -165,7 +204,7 @@ export function EventItem({
 
     // For longer events, show both start and end time
     return `${formatTimeWithOptionalMinutes(displayStart)} - ${formatTimeWithOptionalMinutes(displayEnd)}`;
-  }
+  };
 
   if (view === "month") {
     return (
@@ -185,7 +224,8 @@ export function EventItem({
         dndAttributes={dndAttributes}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
-        displayStart={displayStart}>
+        displayStart={displayStart}
+      >
         {children || (
           <span className="truncate">
             {!event.allDay && !event.is_multi_day && (
@@ -220,7 +260,8 @@ export function EventItem({
         dndAttributes={dndAttributes}
         onMouseDown={onMouseDown}
         onTouchStart={onTouchStart}
-        displayStart={displayStart}>
+        displayStart={displayStart}
+      >
         {durationMinutes < 45 ? (
           <div className="truncate">
             {event.title}{" "}
@@ -257,12 +298,11 @@ export function EventItem({
       onMouseDown={onMouseDown}
       onTouchStart={onTouchStart}
       {...dndListeners}
-      {...dndAttributes}>
+      {...dndAttributes}
+    >
       <div className="text-sm font-medium">{event.title}</div>
       <div className="text-xs opacity-70">
-        {event.is_multi_day ? (
-          null
-        ) : event.allDay ? (
+        {event.is_multi_day ? null : event.allDay ? (
           <span>Todo el día</span>
         ) : (
           <span className="uppercase">
@@ -278,7 +318,9 @@ export function EventItem({
         )}
       </div>
       {event.description && (
-        <div className="my-1 text-xs opacity-90 whitespace-pre-wrap">{event.description}</div>
+        <div className="my-1 text-xs opacity-90 whitespace-pre-wrap">
+          {event.description}
+        </div>
       )}
     </button>
   );
