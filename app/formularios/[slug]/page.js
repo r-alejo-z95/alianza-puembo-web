@@ -231,10 +231,7 @@ export default function PublicForm() {
             Formulario no encontrado.
           </p>
 
-          <Button
-            variant="outline"
-            onClick={() => (window.location.href = "/")}
-          >
+          <Button variant="green" onClick={() => (window.location.href = "/")}>
             Volver al inicio
           </Button>
         </div>
@@ -430,16 +427,13 @@ export default function PublicForm() {
                                 render={({ field: controllerField }) => (
                                   <RadioGroup
                                     onValueChange={controllerField.onChange}
-                                    value={controllerField.value}
+                                    value={controllerField.value || ""}
                                     className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2"
                                   >
                                     {field.options.map((option) => (
                                       <div
                                         key={option.id}
-                                        className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-[var(--puembo-green)]/30 hover:shadow-sm transition-all cursor-pointer"
-                                        onClick={() =>
-                                          controllerField.onChange(option.value)
-                                        }
+                                        className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-[var(--puembo-green)]/30 hover:shadow-sm transition-all"
                                       >
                                         <RadioGroupItem
                                           value={option.value}
@@ -468,32 +462,26 @@ export default function PublicForm() {
                                     key={option.id}
                                     name={`${field.label}.${option.value}`}
                                     control={control}
-                                    render={({ field: controllerField }) => (
-                                      <div
-                                        className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-[var(--puembo-green)]/30 hover:shadow-sm transition-all cursor-pointer"
-                                        onClick={() =>
-                                          controllerField.onChange(
-                                            !controllerField.value
-                                          )
-                                        }
-                                      >
-                                        <Checkbox
-                                          id={`${fieldId}-${option.id}`}
-                                          checked={controllerField.value}
-                                          onCheckedChange={
-                                            controllerField.onChange
-                                          }
-                                          className="data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
-                                        />
-
-                                        <Label
-                                          htmlFor={`${fieldId}-${option.id}`}
-                                          className="font-normal cursor-pointer flex-grow py-1"
-                                        >
-                                          {option.label}
-                                        </Label>
-                                      </div>
-                                    )}
+                                                                        render={({ field: controllerField }) => (
+                                                                          <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-[var(--puembo-green)]/30 hover:shadow-sm transition-all">
+                                                                            <Checkbox
+                                                                              id={`${fieldId}-${option.id}`}
+                                                                              checked={controllerField.value}
+                                                                              onCheckedChange={
+                                                                                controllerField.onChange
+                                                                              }
+                                                                              className="data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+                                                                            />
+                                    
+                                                                            <Label
+                                                                              htmlFor={`${fieldId}-${option.id}`}
+                                                                              className="font-normal cursor-pointer flex-grow py-1"
+                                                                            >
+                                                                              {option.label}
+                                                                            </Label>
+                                                                          </div>
+                                                                        )}
+                                    
                                   />
                                 ))}
                               </div>
@@ -585,7 +573,11 @@ export default function PublicForm() {
                   type="submit"
                   disabled={sending}
                 >
-                  {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Enviar Respuesta"}
+                  {sending ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    "Enviar Respuesta"
+                  )}
                 </Button>
 
                 <p className="text-center text-xs text-gray-400 mt-4">

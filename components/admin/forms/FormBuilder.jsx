@@ -841,20 +841,21 @@ export default function FormBuilder({
   };
 
   const updateFieldType = (index, newType) => {
-    const currentField = fields[index];
+    // Use getValues to get the current live data from the form
+    const currentFieldData = form.getValues(`fields.${index}`);
     const needsOptions = newType === "radio" || newType === "checkbox";
 
     const updatedField = {
-      ...currentField,
+      ...currentFieldData,
       type: newType,
       options: needsOptions
-        ? currentField.options?.length
-          ? currentField.options
+        ? currentFieldData.options?.length
+          ? currentFieldData.options
           : [{ value: "", label: "", id: uuidv4() }]
         : undefined,
     };
 
-    // Use setValue instead of update to avoid losing active state
+    // Use setValue to update the form state precisely
     Object.keys(updatedField).forEach((key) => {
       form.setValue(`fields.${index}.${key}`, updatedField[key]);
     });
@@ -935,7 +936,7 @@ export default function FormBuilder({
   const activeDragIndex = fields.findIndex((f) => f.id === activeDragId);
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-100 pb-20">
+    <div className="flex flex-col min-h-screen bg-gray-100 pb-20 px-4 pt-4">
       {/* Top Bar */}
       <div className="sticky top-0 z-50 bg-white border-b shadow-sm px-4 py-3 flex items-center justify-between">
         <h1 className="font-semibold text-lg text-gray-700">
@@ -954,13 +955,14 @@ export default function FormBuilder({
             size="sm"
             onClick={form.handleSubmit(onSubmit)}
             disabled={isSaving}
-            variant="default"
-            className={cn(
-              "text-white min-w-[80px]",
-              !isSaving && "bg-[var(--puembo-green)] hover:bg-green-700"
-            )}
+            variant="green"
+            className={cn(!isSaving)}
           >
-            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar"}
+            {isSaving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              "Guardar"
+            )}
           </Button>
         </div>
       </div>
