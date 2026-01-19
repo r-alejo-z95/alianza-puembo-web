@@ -25,11 +25,9 @@ export function ClientEventsProvider({ children, initialEvents = [] }) {
             console.error('Error fetching events:', error);
             toast.error('Error al cargar los eventos.');
         } else {
-            const now = getNowInEcuador();
-            const upcomingEvents = (data || []).filter(event => new Date(event.end_time || event.start_time) >= now);
             const eventsPerPage = 3; // Must match the value in lib/data/events.ts
 
-            const eventsWithPage = upcomingEvents.map((event, index) => ({
+            const eventsWithPage = (data || []).map((event, index) => ({
                 ...event,
                 page: Math.floor(index / eventsPerPage) + 1,
             }));

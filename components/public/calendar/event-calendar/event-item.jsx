@@ -53,7 +53,7 @@ function EventWrapper({
       {isAdmin ? (
         <button
           className={cn(
-            "cursor-pointer focus-visible:border-ring focus-visible:ring-ring/50 flex size-full overflow-hidden px-1 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg data-past-event:line-through sm:px-2",
+            "cursor-pointer focus-visible:border-ring focus-visible:ring-ring/50 flex size-full overflow-hidden px-1 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-dragging:cursor-grabbing data-dragging:shadow-lg sm:px-2",
             getEventColorClasses(event.color),
             getBorderRadiusClasses(isFirstDay, isLastDay),
             className
@@ -72,7 +72,7 @@ function EventWrapper({
           <PopoverTrigger asChild>
             <button
               className={cn(
-                "cursor-pointer focus-visible:border-ring focus-visible:ring-ring/50 flex size-full overflow-hidden px-1 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] data-past-event:line-through sm:px-2",
+                "cursor-pointer focus-visible:border-ring focus-visible:ring-ring/50 flex size-full overflow-hidden px-1 text-left font-medium backdrop-blur-md transition outline-none select-none focus-visible:ring-[3px] sm:px-2",
                 getEventColorClasses(event.color),
                 getBorderRadiusClasses(isFirstDay, isLastDay),
                 className
@@ -87,13 +87,23 @@ function EventWrapper({
             </button>
           </PopoverTrigger>
           <PopoverContent side="top-start" className="bg-gray-100/90 backdrop-blur-xs border-white min-w-[100px] max-w-3xs break-words text-xs">
-            <Link href={`/eventos/proximos-eventos?page=${event.page}#` + encodeURIComponent(event.title)} target="_blank" rel="noopener noreferrer" className='cursor-pointer'>
-              <p className="font-bold text-base mb-1 text-black">{event.title}</p>
-              {event.description && (
-                <p className="text-gray-500 mb-2">{event.description}</p>
-              )}
-              <p className="text-gray-600">{getPopoverEventTime()}</p>
-            </Link>
+            {isEventInPast ? (
+              <div className='cursor-default'>
+                <p className="font-bold text-base mb-1 text-black">{event.title}</p>
+                {event.description && (
+                  <p className="text-gray-500 mb-2">{event.description}</p>
+                )}
+                <p className="text-gray-600">{getPopoverEventTime()}</p>
+              </div>
+            ) : (
+              <Link href={`/eventos/proximos-eventos?page=${event.page}#` + encodeURIComponent(event.title)} target="_blank" rel="noopener noreferrer" className='cursor-pointer'>
+                <p className="font-bold text-base mb-1 text-black">{event.title}</p>
+                {event.description && (
+                  <p className="text-gray-500 mb-2">{event.description}</p>
+                )}
+                <p className="text-gray-600">{getPopoverEventTime()}</p>
+              </Link>
+            )}
           </PopoverContent>
         </Popover>
       )}
@@ -231,7 +241,7 @@ export function EventItem({
   return (
     <button
       className={cn(
-        "focus-visible:border-ring focus-visible:ring-ring/50 flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:ring-[3px] data-past-event:line-through data-past-event:opacity-90",
+        "focus-visible:border-ring focus-visible:ring-ring/50 flex w-full flex-col gap-1 rounded p-2 text-left transition outline-none focus-visible:ring-[3px] data-past-event:opacity-90",
         getEventColorClasses(eventColor),
         className
       )}
