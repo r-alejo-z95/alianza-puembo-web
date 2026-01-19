@@ -36,14 +36,22 @@ export async function getEventsForCalendar(): Promise<(Event & { page?: number }
 
   const now = getNowInEcuador();
   const eventsPerPage = 4;
-  
-  return (events as Event[]).map((event, index) => {
-    // Calculate page based on its position in the chronological list of all events
-    // or just pass a default if it's past. 
-    // Actually, it's better to keep the same logic but for all events.
+
+  const upcomingEvents = (events as Event[])
+    .filter(event => new Date(event.end_time || event.start_time) >= now);
+
+  return (events as Event[]).map((event) => {
+    const isUpcoming = new Date(event.end_time || event.start_time) >= now;
+    let page = 1;
+
+    if (isUpcoming) {
+      const indexInUpcoming = upcomingEvents.findIndex(e => e.id === event.id);
+      page = Math.floor(indexInUpcoming / eventsPerPage) + 1;
+    }
+
     return {
       ...event,
-      page: Math.floor(index / eventsPerPage) + 1,
+      page,
     };
   });
 }

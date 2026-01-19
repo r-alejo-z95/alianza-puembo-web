@@ -86,22 +86,29 @@ function EventWrapper({
               {children}
             </button>
           </PopoverTrigger>
-          <PopoverContent side="top-start" className="bg-gray-100/90 backdrop-blur-xs border-white min-w-[100px] max-w-3xs break-words text-xs">
+          <PopoverContent side="top" align="start" className="bg-white text-black p-4 border-t-4 border-t-[var(--puembo-green)] shadow-2xl ring-1 ring-black/5 min-w-[200px] max-w-sm break-words text-sm rounded-xl">
             {isEventInPast ? (
-              <div className='cursor-default'>
-                <p className="font-bold text-base mb-1 text-black">{event.title}</p>
+              <div className='cursor-default space-y-2'>
+                <p className="font-bold text-lg text-gray-900 leading-tight">{event.title}</p>
                 {event.description && (
-                  <p className="text-gray-500 mb-2">{event.description}</p>
+                  <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{event.description}</p>
                 )}
-                <p className="text-gray-600">{getPopoverEventTime()}</p>
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <div className="w-2 h-2 rounded-full bg-gray-300" />
+                  <p className="text-xs font-medium text-gray-500">{getPopoverEventTime()}</p>
+                </div>
               </div>
             ) : (
-              <Link href={`/eventos/proximos-eventos?page=${event.page}#` + encodeURIComponent(event.title)} target="_blank" rel="noopener noreferrer" className='cursor-pointer'>
-                <p className="font-bold text-base mb-1 text-black">{event.title}</p>
+              <Link href={`/eventos/proximos-eventos?page=${event.page}#` + encodeURIComponent(event.title)} target="_blank" rel="noopener noreferrer" className='cursor-pointer block space-y-2 group'>
+                <p className="font-bold text-lg text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors leading-tight">{event.title}</p>
                 {event.description && (
-                  <p className="text-gray-500 mb-2">{event.description}</p>
+                  <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{event.description}</p>
                 )}
-                <p className="text-gray-600">{getPopoverEventTime()}</p>
+                <div className="flex items-center gap-2 pt-2 border-t border-green-50">
+                  <div className="w-2 h-2 rounded-full bg-[var(--puembo-green)]" />
+                  <p className="text-xs font-medium text-[var(--puembo-green)]">{getPopoverEventTime()}</p>
+                </div>
+                <p className="text-[10px] text-[var(--puembo-green)]/70 font-medium pt-1">Ver detalles completos →</p>
               </Link>
             )}
           </PopoverContent>
@@ -271,7 +278,7 @@ export function EventItem({
         )}
       </div>
       {event.description && (
-        <div className="my-1 text-xs opacity-90">{event.description}</div>
+        <div className="my-1 text-xs opacity-90 whitespace-pre-wrap">{event.description}</div>
       )}
     </button>
   );

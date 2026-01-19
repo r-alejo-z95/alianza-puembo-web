@@ -25,12 +25,26 @@ export function ClientEventsProvider({ children, initialEvents = [] }) {
             console.error('Error fetching events:', error);
             toast.error('Error al cargar los eventos.');
         } else {
-            const eventsPerPage = 3; // Must match the value in lib/data/events.ts
+            const now = getNowInEcuador();
+            const eventsPerPage = 4; // Standardized to 4
 
-            const eventsWithPage = (data || []).map((event, index) => ({
-                ...event,
-                page: Math.floor(index / eventsPerPage) + 1,
-            }));
+            const upcomingEvents = (data || [])
+                .filter(event => new Date(event.end_time || event.start_time) >= now);
+
+            const eventsWithPage = (data || []).map((event) => {
+                const isUpcoming = new Date(event.end_time || event.start_time) >= now;
+                let page = 1;
+
+                if (isUpcoming) {
+                    const indexInUpcoming = upcomingEvents.findIndex(e => e.id === event.id);
+                    page = Math.floor(indexInUpcoming / eventsPerPage) + 1;
+                }
+
+                return {
+                    ...event,
+                    page,
+                };
+            });
             setEvents(eventsWithPage);
         }
         setLoading(false);
