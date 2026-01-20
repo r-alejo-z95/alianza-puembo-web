@@ -687,73 +687,79 @@ export default function FormBuilder({
       <div className="w-full max-w-6xl mx-auto pt-8 px-4 md:px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 relative">
         <div className="col-span-1 md:col-span-10 space-y-8 md:space-y-10 w-full max-w-full">
           <FormProvider {...form}>
-            {/* Header Card */}
-            <Card className="border-none shadow-2xl bg-white rounded-[2rem] md:rounded-[3rem] overflow-hidden group w-full max-w-full">
-              <div className="relative h-40 md:h-64 bg-black overflow-hidden flex items-center justify-center">
+          {/* Header Card Editorial */}
+          <Card className="border-none shadow-2xl bg-white rounded-[3rem] overflow-hidden group">
+            {/* Area de Imagen (Banner) */}
+            <div className="relative h-40 md:h-56 bg-black overflow-hidden flex items-center justify-center">
                 {imageFile || initialForm?.image_url ? (
-                  <img
-                    src={
-                      imageFile
-                        ? URL.createObjectURL(imageFile)
-                        : initialForm.image_url
-                    }
-                    alt="Header"
-                    className="w-full h-full object-cover opacity-60"
-                  />
+                    <img src={imageFile ? URL.createObjectURL(imageFile) : initialForm.image_url} alt="Header" className="w-full h-full object-cover opacity-50" />
                 ) : (
-                  <div className="flex flex-col items-center gap-4 text-white/20 text-center px-4">
-                    <ImageIcon className="w-12 h-12 md:w-16 md:h-16" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">
-                      Sin Imagen de Cabecera
-                    </span>
-                  </div>
+                    <div className="flex flex-col items-center gap-2 text-white/30 text-center px-4">
+                        <ImageIcon className="w-10 h-10" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.5em]">Portada del Formulario</span>
+                    </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all"
-                >
-                  <ImageIcon className="w-4 h-4 md:w-5 md:h-5" />
-                </button>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  ref={fileInputRef}
-                  onChange={(e) => setImageFile(e.target.files[0])}
-                />
-              </div>
-
-              <CardContent className="p-6 md:p-16 space-y-6 md:space-y-8 -mt-12 md:-mt-20 relative z-10">
-                <div className="space-y-2">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field: inputField }) => (
-                      <Input
-                        className="text-3xl md:text-6xl font-serif font-bold border-none px-0 py-2 h-auto focus-visible:ring-0 bg-transparent text-white placeholder:text-white/20 leading-tight"
-                        placeholder="Título del Formulario"
-                        {...inputField}
-                      />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                
+                <div className="absolute bottom-6 right-8 flex gap-3">
+                    { (imageFile || initialForm?.image_url) && (
+                        <button 
+                            type="button" 
+                            onClick={() => {
+                                setImageFile(null);
+                                form.setValue("image_url", "");
+                                if (fileInputRef.current) fileInputRef.current.value = "";
+                            }}
+                            className="px-4 py-2 rounded-full bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center gap-2"
+                        >
+                            <Trash2 className="w-3 h-3" />
+                            Borrar
+                        </button>
                     )}
-                  />
-                  <div className="h-1 w-16 md:w-20 bg-[var(--puembo-green)] rounded-full shadow-lg shadow-[var(--puembo-green)]/20" />
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all flex items-center gap-2">
+                        <ImageIcon className="w-3 h-3" />
+                        {imageFile || initialForm?.image_url ? "Cambiar" : "Subir Portada"}
+                    </button>
                 </div>
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field: inputField }) => (
-                    <RichTextEditor
-                      content={inputField.value}
-                      onChange={inputField.onChange}
-                      placeholder="Introduce el propósito de este formulario..."
-                      className="border-none px-0 text-base md:text-lg font-light text-gray-500 leading-relaxed"
+                <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={(e) => setImageFile(e.target.files[0])} />
+            </div>
+            
+            {/* Area de Texto (Limpia) */}
+            <CardContent className="p-10 md:p-16 space-y-10 bg-white">
+              <div className="space-y-8">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-px w-8 bg-[var(--puembo-green)]" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Título del Formulario</span>
+                  </div>
+                  <FormField control={form.control} name="title" render={({ field: inputField }) => (
+                    <Input 
+                        className="text-4xl md:text-5xl font-serif font-bold border-none px-0 py-2 h-auto focus-visible:ring-0 bg-transparent text-gray-900 placeholder:text-gray-200 leading-tight border-b-2 border-gray-50 focus:border-b-[var(--puembo-green)] transition-all rounded-none" 
+                        placeholder="Ej: Registro de Bautizos 2026" 
+                        {...inputField} 
                     />
-                  )}
-                />
-              </CardContent>
-            </Card>
+                  )} />
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-px w-8 bg-gray-100" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Descripción Narrativa</span>
+                  </div>
+                  <div className="p-8 rounded-[2rem] bg-gray-50/50 border border-gray-100 focus-within:bg-white focus-within:border-[var(--puembo-green)]/20 transition-all shadow-inner">
+                    <FormField control={form.control} name="description" render={({ field: inputField }) => (
+                      <RichTextEditor 
+                        content={inputField.value} 
+                        onChange={inputField.onChange} 
+                        placeholder="Describe el propósito de este formulario, horarios, requisitos, etc..." 
+                        className="border-none px-0 text-lg font-light text-gray-600 leading-relaxed min-h-[60px]" 
+                      />
+                    )} />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
             {/* Dnd Kit Context */}
             <DndContext
