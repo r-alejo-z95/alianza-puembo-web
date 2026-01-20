@@ -88,13 +88,14 @@ export default function GoogleMapView({ onMapLoad }) {
         </Map>
 
         {/* Botón Flotante Coherente con Hero/Grupos */}
-        <div className="absolute top-4 left-4 xl:top-6 xl:left-6">
+        <div className="absolute top-8 left-8">
           <Button
             variant="green"
-            className="rounded-full px-6 py-3 text-xs font-bold shadow-lg shadow-[var(--puembo-green)]/20 flex items-center gap-2 h-auto"
+            size="xl"
+            className="rounded-full px-6 py-3 font-bold shadow-lg shadow-(--puembo-green)/20 flex items-center gap-2 h-auto"
             onClick={handleGetDirections}
           >
-            <Navigation className="w-3.5 h-3.5" />
+            <Navigation className="w-5 h-5" />
             Como llegar
           </Button>
         </div>
