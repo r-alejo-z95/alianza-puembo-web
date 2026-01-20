@@ -16,12 +16,16 @@ export default function Ubicacion({ youtubeStatus }) {
   const sectionRef = useRef(null);
   const [showMap, setShowMap] = useState(false);
   const [mapIsLoaded, setMapIsLoaded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const handleMapLoad = () => {
     setMapIsLoaded(true);
   };
 
   useEffect(() => {
+    // Detectar si es móvil solo en el cliente para evitar hidratación fallida
+    setIsMobile(window.innerWidth < 768);
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -46,7 +50,7 @@ export default function Ubicacion({ youtubeStatus }) {
   }, []);
 
   return (
-    <section id="ubicacion" ref={sectionRef} className="w-full py-24 bg-gray-50/50">
+    <section id="ubicacion" ref={sectionRef} className="w-full py-24 bg-gray-50/50 overflow-hidden">
       <div className={cn(sectionPx, "max-w-7xl mx-auto space-y-16")}>
         {/* Cabecera de Sección Modernizada */}
         <div className="text-center space-y-4">
@@ -75,21 +79,21 @@ export default function Ubicacion({ youtubeStatus }) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
-          {/* Mapa Interactiva - Solo el mapa, limpio */}
+          {/* Mapa Interactiva - Eliminamos desplazamiento lateral en móvil de forma segura */}
           <motion.div 
-            initial={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0, x: isMobile ? 0 : -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-3 h-[400px] md:h-[500px] overflow-hidden rounded-3xl"
+            className="lg:col-span-3 h-[400px] md:h-[500px] overflow-hidden rounded-3xl w-full"
           >
             {showMap && <GoogleMapView onMapLoad={handleMapLoad} />}
           </motion.div>
 
           {/* Tarjetas de Información */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6 w-full">
             <motion.div 
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: isMobile ? 0 : 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
@@ -126,7 +130,7 @@ export default function Ubicacion({ youtubeStatus }) {
             </motion.div>
 
             <motion.div 
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: isMobile ? 0 : 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
