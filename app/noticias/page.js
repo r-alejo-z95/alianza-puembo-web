@@ -1,10 +1,10 @@
-import { NewsContentSection } from "@/components/public/layout/pages/noticias/NewsContentSection";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { getNews } from "@/lib/data/news";
+import { NewsClient } from "./NewsClient";
 
 export const metadata = {
-  title: "Noticias",
-  description: "Mantente al día con las últimas noticias, anuncios y eventos importantes de Alianza Puembo. ¡No te pierdas nada!",
+  title: "Noticias y Crónicas",
+  description: "Descubre lo que Dios está haciendo en nuestra comunidad. Historias, testimonios y actualizaciones de Alianza Puembo.",
   alternates: {
     canonical: "/noticias",
   },
@@ -16,25 +16,25 @@ export default async function Noticias({ searchParams }) {
   const { paginatedNews, totalPages, hasNextPage } = await getNews(page);
 
   const introSectionData = {
-    title: "Mantente Informado",
+    title: "Crónicas de Nuestra Familia",
     description: [
-      "Aquí encontrarás las últimas noticias, anuncios importantes y eventos destacados de Alianza Puembo. Nuestro objetivo es mantenerte conectado con todo lo que sucede en nuestra comunidad de fe.",
-      "Desde testimonios inspiradores hasta actualizaciones de proyectos y oportunidades de servicio, esta sección es tu fuente principal para estar al día. ¡No te pierdas nada!",
+      "Esta no es solo una sección de anuncios; es un diario de la fidelidad de Dios. Aquí compartimos los frutos de los ministerios, los testimonios de transformación y el impacto de nuestra comunidad en Puembo y el mundo.",
+      "Te invitamos a recorrer estas historias y celebrar con nosotros cada paso que damos como una familia de familias.",
     ],
     imageUrl: "/noticias/news-intro.jpg",
-    imageAlt: "Chica tomando fotos",
+    imageAlt: "Comunidad compartiendo",
     imagePosition: "left",
   };
 
   return (
     <PublicPageLayout
       title="Noticias"
-      description="Mantente informado sobre los últimos acontecimientos de nuestra iglesia."
+      description="Historias que inspiran y nos mantienen unidos."
       imageUrl="/noticias/Noticias.jpg"
       imageAlt="Personas compartiendo"
       introSectionData={page === 1 ? introSectionData : undefined}
     >
-      <NewsContentSection
+      <NewsClient 
         news={paginatedNews}
         totalPages={totalPages}
         hasNextPage={hasNextPage}
@@ -43,4 +43,3 @@ export default async function Noticias({ searchParams }) {
     </PublicPageLayout>
   );
 }
-
