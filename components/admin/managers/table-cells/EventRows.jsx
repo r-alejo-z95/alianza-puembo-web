@@ -3,7 +3,7 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import { TableRow, TableCell } from '@/components/ui/table';
 import { OverflowCell } from './OverflowCell';
 import { toast } from 'sonner';
-import { Edit, Trash2, Link as LinkIcon, Copy, MapPin, Calendar, Clock, ExternalLink } from 'lucide-react';
+import { Edit, Trash2, Link as LinkIcon, Copy, MapPin, Calendar, Clock, ExternalLink, Repeat } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getEventColorClasses } from '@/components/public/calendar/event-calendar/utils';
 import { formatEventDateRange, formatEventTimeRange } from '@/lib/date-utils';
@@ -106,6 +106,13 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
     const formattedDate = formatEventDateRange(event.start_time, event.end_time, event.is_multi_day);
     const formattedTime = formatEventTimeRange(event.start_time, event.end_time, event.all_day, event.is_multi_day);
 
+    const recurrenceLabel = {
+        weekly: "Semanal",
+        biweekly: "Quincenal",
+        monthly: "Mensual",
+        yearly: "Anual"
+    };
+
     if (compact) {
         return (
             <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4 relative group">
@@ -114,6 +121,12 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                         <div className="flex items-center gap-2">
                             {event.color && <div className={`w-2.5 h-2.5 rounded-full ${getEventColorClasses(event.color)}`} />}
                             <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Actividad</span>
+                            {event.is_recurring && (
+                                <div className="flex items-center gap-1 ml-2 px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[8px] font-black uppercase tracking-tighter border border-amber-100">
+                                    <Repeat className="w-2.5 h-2.5" />
+                                    {recurrenceLabel[event.recurrence_pattern] || "Recurrente"}
+                                </div>
+                            )}
                         </div>
                         <h3 className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2">
                             {event.title}
@@ -156,9 +169,17 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                 <div className="max-w-[180px] flex items-center gap-3">
                     {event.color && <div className={`w-2 h-2 rounded-full shrink-0 ${getEventColorClasses(event.color)}`} />}
                     <div className="flex-grow min-w-0">
-                        <OverflowCell className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors">
-                            {event.title}
-                        </OverflowCell>
+                        <div className="flex flex-col gap-1">
+                            <OverflowCell className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors">
+                                {event.title}
+                            </OverflowCell>
+                            {event.is_recurring && (
+                                <div className="flex items-center gap-1 w-fit px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[8px] font-black uppercase tracking-tighter border border-amber-100">
+                                    <Repeat className="w-2.5 h-2.5" />
+                                    {recurrenceLabel[event.recurrence_pattern] || "Recurrente"}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </TableCell>
