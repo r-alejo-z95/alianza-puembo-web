@@ -4,252 +4,223 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils.ts";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { menuItems } from "./config";
-import { MenuIcon } from "lucide-react";
-import { dropShadow, textShadow } from "@/lib/styles";
+import { menuItems, socialLinks } from "./config";
+import { Menu, X, ArrowRight } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = React.useState(false);
-  const [isSheetOpen, setIsSheetOpen] = React.useState(false);
+  const [activeMenu, setActiveMenu] = React.useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const isHomepage = pathname === "/";
 
   React.useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 0);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-    if (isHomepage) {
-      setScrolled(window.scrollY > 0); // Immediately set scrolled based on current scroll position
-      window.addEventListener("scroll", handleScroll);
-    } else {
-      setScrolled(true); // Always show background on non-homepage routes
-    }
-
-    return () => {
-      if (isHomepage) {
-        window.removeEventListener("scroll", handleScroll);
-      }
-    };
-  }, [isHomepage]);
-
-
-
-  const headerClasses = cn(
-    "top-0 z-50 w-full transition-colors duration-300 py-1 px-8 lg:px-12",
-    {
-      "fixed": isHomepage,
-      "sticky": !isHomepage,
-      "bg-transparent": isHomepage && !scrolled,
-      "bg-black":
-        !isHomepage || scrolled,
-    }
-  );
-
-
+  React.useEffect(() => {
+    setActiveMenu(null);
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   return (
-    <header className={headerClasses}>
-      <div className="container flex h-16 items-center justify-between mx-auto">
-
-        <div className="lg:hidden w-6" />
-        <motion.div
-          initial={{ opacity: 0, y: 0 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className={cn(
-            "hover:scale-105 transition duration-700"
-          )}
-        >
-          <Link href="/" className="flex items-center">
+    <>
+      <nav
+        className={cn(
+          "top-0 z-[100] w-full transition-all duration-500 ease-in-out border-b",
+          // Usamos fixed en la Home para que el contenido empiece desde arriba (detrás del nav)
+          // Usamos sticky en el resto para un flujo natural
+          isHomepage ? "fixed" : "sticky md:sticky",
+          // Fondo sólido en móvil siempre. En desktop transparencia condicional en Home.
+          "bg-black py-3 md:py-4 border-white/10 shadow-2xl border-transparent",
+          isHomepage &&
+            !scrolled &&
+            !activeMenu &&
+            "md:bg-transparent md:py-8 md:shadow-none"
+        )}
+        onMouseLeave={() => setActiveMenu(null)}
+      >
+        <div className="container mx-auto px-6 flex items-center justify-between">
+          {/* LOGO AREA - Optimized sizes */}
+          <Link href="/" className="relative z-[110] group shrink-0">
             <Image
               src="/brand/logo-puembo-white.png"
-              alt="Alianza Puembo Logo"
-              width={150}
-              height={97}
+              alt="Iglesia Alianza Puembo"
+              width={140}
+              height={90}
               priority
-              quality={100}
-              sizes="33vw"
-              className={`${dropShadow} h-auto w-22 flex-shrink-0`}
+              className="h-auto w-24 transition-all duration-500 group-hover:opacity-80"
             />
           </Link>
-        </motion.div>
-        {/* Desktop Navigation */}
-        <NavigationMenu className="hidden lg:flex">
-          <NavigationMenuList>
-            {menuItems.map((item) =>
-              item.subroutes ? (
-                <NavigationMenuItem key={item.name}>
-                  <NavigationMenuTrigger className={`${textShadow} cursor-pointer text-white bg-transparent hover:text-(--puembo-green) focus:text-(--puembo-green) hover:[text-shadow:none] focus:[text-shadow:none] focus:bg-transparent hover:bg-transparent`}>{item.name}</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                      {item.subroutes.map((subroute) => (
-                        <ListItem
-                          key={subroute.name}
-                          title={subroute.name}
-                          href={subroute.href}
-                          external={subroute.external}
-                        >
-                          {subroute.description}
-                        </ListItem>
-                      ))}
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              ) : (
-                <NavigationMenuItem key={item.name}>
-                  <NavigationMenuLink
-                    className={cn(
-                      navigationMenuTriggerStyle(),
-                      "text-white bg-transparent",
-                      "hover:[text-shadow:none] focus:[text-shadow:none] hover:text-(--puembo-green) focus:text-(--puembo-green) focus:bg-transparent hover:bg-transparent",
-                      textShadow,
-                    )}
-                    href={item.href}
-                  >
-                    {item.name}
-                  </NavigationMenuLink>
-                </NavigationMenuItem>
-              )
-            )}
-          </NavigationMenuList>
-        </NavigationMenu>
 
-        {/* Mobile Navigation */}
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild className="lg:hidden hover:bg-transparent">
-            <Button variant="ghost" size="icon">
-              <MenuIcon className={`${dropShadow} h-6 w-6 text-white`} />
-              <span className="sr-only">Toggle Menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="top" className="bg-black border-none">
-            <SheetHeader>
-              <SheetTitle>
-                <Link href="/" className="flex items-center justify-center space-x-2" onClick={() => setIsSheetOpen(false
-                )}>
-                  <Image
-                    src="/brand/logo-puembo-white.png"
-                    alt="Alianza Puembo Logo"
-                    width={150}
-                    height={97}
-                    sizes="33vw"
-                    priority
-                    quality={100}
-                    className={`${dropShadow} h-16 w-auto`}
-                  />
+          {/* DESKTOP NARRATIVE NAV */}
+          <div className="hidden lg:flex items-center gap-2">
+            {menuItems.map((item) => (
+              <div
+                key={item.name}
+                onMouseEnter={() =>
+                  setActiveMenu(item.subroutes ? item.name : null)
+                }
+                className="relative"
+              >
+                <Link
+                  href={item.href || "#"}
+                  className={cn(
+                    "px-5 py-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all duration-300 block",
+                    activeMenu === item.name
+                      ? "text-[var(--puembo-green)]"
+                      : "text-white/70 hover:text-white"
+                  )}
+                >
+                  {item.name}
                 </Link>
-              </SheetTitle>
-              <SheetDescription className="sr-only">
-                Navegación principal del sitio.
-              </SheetDescription>
-            </SheetHeader>
+              </div>
+            ))}
+          </div>
 
-            <div className="w-full md:w-2/3 max-h-[calc(100vh-160px)] mx-auto flex flex-col px-4 overflow-y-auto lg:hidden">
-              <Accordion type="single" collapsible>
-                {menuItems.map((item) =>
-                  item.subroutes ? (
-                    <AccordionItem key={item.name} value={item.name}>
-                      <AccordionTrigger className="text-primary-foreground font-medium text-lg">
-                        {item.name}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        {item.subroutes.map((subroute) => {
-                          const linkProps = subroute.external
-                            ? { target: "_blank", rel: "noopener noreferrer" }
-                            : {};
-                          return (
-                            <Link
-                              key={subroute.name}
-                              href={subroute.href}
-                              className="block px-4 py-4 border-b border-gray-100 bg-background last:border-b-0"
-                              onClick={() => setIsSheetOpen(false)}
-                              {...linkProps}
-                            >
-                              {subroute.name}
-                            </Link>
-                          );
-                        })}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ) : (
+          {/* MOBILE TOGGLE */}
+          <div className="lg:hidden relative z-[110]">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-white p-2 hover:bg-white/10 rounded-full transition-colors"
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-7 h-7" />
+              ) : (
+                <Menu className="w-7 h-7" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* MEGA MENU OVERLAY (Desktop) */}
+        <AnimatePresence>
+          {activeMenu && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.4, ease: "circOut" }}
+              className="absolute top-full left-0 w-full bg-black/95 backdrop-blur-xl border-b border-white/10 pt-8 pb-16 hidden lg:block"
+            >
+              <div className="container mx-auto px-12">
+                <div className="grid grid-cols-12 gap-12">
+                  <div className="col-span-3 space-y-6">
+                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--puembo-green)]">
+                      Sección
+                    </span>
+                    <h2 className="text-5xl font-serif font-bold text-white leading-tight">
+                      {activeMenu}
+                    </h2>
+                    <p className="text-gray-500 text-sm font-light leading-relaxed">
+                      Descubre más sobre nuestra familia y cómo puedes ser parte
+                      de lo que Dios está haciendo.
+                    </p>
+                  </div>
+
+                  <div className="col-span-9 grid grid-cols-3 gap-x-8 gap-y-4 pt-10">
+                    {menuItems
+                      .find((i) => i.name === activeMenu)
+                      ?.subroutes?.map((sub) => (
+                        <Link
+                          key={sub.name}
+                          href={sub.href}
+                          className="group p-6 rounded-[2rem] hover:bg-white/5 transition-all duration-500 border border-transparent hover:border-white/10"
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-lg font-bold text-white group-hover:text-[var(--puembo-green)] transition-colors">
+                                {sub.name}
+                              </h3>
+                              <ArrowRight className="w-4 h-4 text-[var(--puembo-green)] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                            </div>
+                            <p className="text-xs text-gray-500 font-light leading-relaxed line-clamp-2">
+                              {sub.description}
+                            </p>
+                          </div>
+                        </Link>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+
+      {/* MOBILE FULL-SCREEN MENU */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: "-100%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "-100%" }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-0 z-[95] bg-black flex flex-col"
+          >
+            <div className="flex-grow overflow-y-auto px-8 pt-28 pb-12">
+              <div className="space-y-10">
+                {menuItems.map((item, idx) => (
+                  <motion.div
+                    key={item.name}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + idx * 0.05 }}
+                  >
                     <Link
-                      key={item.name}
-                      href={item.href}
-                      className="text-primary-foreground font-medium text-lg py-4 block border-b last:border-b-0"
-                      onClick={() => setIsSheetOpen(false
-                      )}>
+                      href={item.href || "#"}
+                      className="text-4xl font-serif font-bold text-white hover:text-[var(--puembo-green)] transition-colors block"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
                       {item.name}
                     </Link>
-                  )
-                )}
-              </Accordion>
+                    {item.subroutes && (
+                      <div className="mt-4 ml-2 space-y-4 border-l border-white/10 pl-6">
+                        {item.subroutes.slice(0, 4).map((sub) => (
+                          <Link
+                            key={sub.name}
+                            href={sub.href}
+                            className="block text-xl text-gray-500 hover:text-white transition-colors"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            {sub.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
             </div>
 
-          </SheetContent>
-        </Sheet>
-      </div>
-    </header>
+            <div className="p-8 border-t border-white/10 bg-white/[0.02]">
+              <div className="flex justify-between items-center">
+                <div className="flex gap-6">
+                  {socialLinks.map((s) => (
+                    <a
+                      key={s.name}
+                      href={s.href}
+                      target="_blank"
+                      className="text-gray-500 hover:text-white transition-colors"
+                    >
+                      <s.icon className="w-5 h-5" />
+                    </a>
+                  ))}
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">
+                  Puembo, Ecuador
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
-
-const ListItem = React.forwardRef(
-  ({ className, title, children, href, external = false, ...props }, ref) => {
-    const linkProps = external
-      ? { target: "_blank", rel: "noopener noreferrer" }
-      : {};
-
-    return (
-      <li>
-        <NavigationMenuLink asChild>
-          <a
-            ref={ref}
-            href={href}
-            className={cn(
-              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/60 group",
-              className
-            )}
-            {...linkProps}
-            {...props}
-          >
-            <div className="text-sm font-medium leading-none group-hover:text-(--puembo-green) transition-colors duration-200">{title}</div>
-            {children && (
-              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                {children}
-              </p>
-            )}
-          </a>
-        </NavigationMenuLink>
-      </li>
-    );
-  }
-);
-ListItem.displayName = "ListItem";
