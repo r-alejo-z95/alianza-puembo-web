@@ -60,8 +60,8 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
     }
   }, [newsItem, form]);
 
-  const onSubmit = (data) => {
-    onSave(
+  const onSubmit = async (data) => {
+    await onSave(
       {
         ...data,
         news_date: data.date || null,
@@ -75,53 +75,54 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
         <div className="space-y-8">
-          {/* Título */}
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Type className="w-3.5 h-3.5" />
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest">
-                    Título de la Crónica
-                  </FormLabel>
-                </div>
-                <FormControl>
-                  <Input
-                    placeholder="Escribe un título imponente..."
-                    className="h-14 text-lg font-serif font-bold rounded-2xl bg-gray-50 border-gray-100 focus:bg-white transition-all shadow-sm"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Título y Descripción */}
+          <div className="space-y-6">
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Type className="w-3.5 h-3.5" />
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest">
+                      Título de la Crónica
+                    </FormLabel>
+                  </div>
+                  <FormControl>
+                    <Input
+                      placeholder="Escribe un título imponente..."
+                      className="h-14 text-lg font-serif font-bold rounded-2xl bg-gray-50 border-gray-100 focus:bg-white transition-all shadow-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Descripción */}
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <AlignLeft className="w-3.5 h-3.5" />
-                  <FormLabel className="text-[10px] font-black uppercase tracking-widest">
-                    Contenido Narrativo
-                  </FormLabel>
-                </div>
-                <FormControl>
-                  <Textarea
-                    placeholder="Relata lo sucedido con detalle..."
-                    className="min-h-[180px] rounded-2xl bg-gray-50 border-gray-100 focus:bg-white transition-all text-base font-light leading-relaxed p-6 shadow-sm"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <AlignLeft className="w-3.5 h-3.5" />
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest">
+                      Contenido Narrativo
+                    </FormLabel>
+                  </div>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Relata lo sucedido con detalle..."
+                      className="min-h-[180px] rounded-2xl bg-gray-50 border-gray-100 focus:bg-white transition-all text-base font-light leading-relaxed p-6 shadow-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
           {/* Fecha y Hora */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -139,7 +140,7 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                   <FormControl>
                     <Input
                       type="date"
-                      className="h-12 rounded-xl bg-gray-50 border-gray-100 shadow-sm"
+                      className="h-12 rounded-xl bg-white border-gray-100 shadow-sm"
                       {...field}
                     />
                   </FormControl>
@@ -161,7 +162,7 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                   <FormControl>
                     <Input
                       type="time"
-                      className="h-12 rounded-xl bg-gray-50 border-gray-100 shadow-sm"
+                      className="h-12 rounded-xl bg-white border-gray-100 shadow-sm"
                       {...field}
                     />
                   </FormControl>
@@ -173,13 +174,10 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
 
           {/* Multimedia */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-gray-400">
-              <ImageIcon className="w-3.5 h-3.5" />
-              <FormLabel className="text-[10px] font-black uppercase tracking-widest">
-                Imagen Destacada
-              </FormLabel>
-            </div>
-            <div className="p-8 border-2 border-dashed border-gray-100 rounded-[2rem] bg-gray-50/50 flex flex-col items-center justify-center gap-4 transition-all hover:bg-gray-50 hover:border-[var(--puembo-green)]/20 group">
+            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              Imagen Destacada
+            </FormLabel>
+            <div className="p-8 border-2 border-dashed border-gray-100 rounded-[2rem] bg-gray-50/50 flex flex-col items-center justify-center gap-4 hover:border-[var(--puembo-green)]/20 group transition-all relative">
               <Input
                 type="file"
                 accept="image/*"
@@ -207,26 +205,36 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                 ref={fileInputRef}
               />
               <div
-                className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-[var(--puembo-green)] transition-colors cursor-pointer"
+                className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-[var(--puembo-green)] transition-colors cursor-pointer"
                 onClick={() => fileInputRef.current.click()}
               >
                 <Plus className="w-8 h-8" />
               </div>
-              <div className="text-center">
-                <p className="text-sm font-bold text-gray-600">
-                  {imageFile ? "Imagen seleccionada" : "Cargar fotografía"}
+              <div className="text-center space-y-3">
+                <p className="text-xs font-bold text-gray-500">
+                  {imageFile || newsItem?.image_url
+                    ? "Imagen lista"
+                    : "Cargar fotografía"}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">
-                  {imageFile
-                    ? imageFile.file.name
-                    : "Formatos aceptados: JPG, PNG, WEBP"}
-                </p>
+
+                {imageFile ? (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm animate-in zoom-in-95">
+                    <ImageIcon className="w-3 h-3" />
+                    <span className="truncate max-w-[150px]">
+                      {imageFile.file.name}
+                    </span>
+                  </div>
+                ) : newsItem?.image_url ? (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] rounded-full text-[10px] font-black uppercase tracking-widest border border-[var(--puembo-green)]/20 shadow-sm">
+                    <ImageIcon className="w-3 h-3" />
+                    <span>Imagen actual guardada</span>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+                    Formatos: JPG, PNG, WEBP
+                  </p>
+                )}
               </div>
-              {newsItem?.image_url && !imageFile && (
-                <p className="text-[10px] text-[var(--puembo-green)] font-black uppercase tracking-widest mt-2">
-                  Manteniendo imagen actual
-                </p>
-              )}
             </div>
           </div>
         </div>
@@ -239,7 +247,7 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
             className="rounded-full px-8 font-bold text-gray-400"
             onClick={onCancel}
           >
-            <X className="w-4 h-4 mr-2" /> Cancelar
+            Cerrar
           </Button>
           <Button
             type="submit"

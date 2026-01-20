@@ -185,7 +185,7 @@ export default function EventForm({ event, onSave, onCancel }) {
     }
   }, [event, form]);
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
     let start_time_utc, end_time_utc;
     if (data.is_multi_day) {
       start_time_utc = ecuadorToUTC(data.start_date, "00:00").toISOString();
@@ -201,7 +201,7 @@ export default function EventForm({ event, onSave, onCancel }) {
       end_time_utc = ecuadorToUTC(data.start_date, data.end_time).toISOString();
     }
 
-    onSave(
+    await onSave(
       {
         ...data,
         start_time: start_time_utc,

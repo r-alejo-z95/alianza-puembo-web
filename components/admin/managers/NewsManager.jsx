@@ -21,7 +21,7 @@ import NewsForm from "@/components/admin/forms/NewsForm";
 import { NewsRow } from "./table-cells/NewsRows";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { useAdminNewsContext } from "@/components/providers/NewsProvider";
-import { Loader2, Plus, ListFilter } from "lucide-react";
+import { Loader2, Plus, ListFilter, Newspaper } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 
 export default function NewsManager() {
@@ -57,7 +57,7 @@ export default function NewsManager() {
     () => Math.ceil(news.length / itemsPerPage),
     [news.length, itemsPerPage]
   );
-  
+
   const currentNews = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -73,7 +73,9 @@ export default function NewsManager() {
               <ListFilter className="w-3 h-3" />
               <span>Listado de Contenido</span>
             </div>
-            <CardTitle className="text-3xl font-serif font-bold text-gray-900">Historial de Noticias</CardTitle>
+            <CardTitle className="text-3xl font-serif font-bold text-gray-900">
+              Historial de Noticias
+            </CardTitle>
           </div>
           <Button
             variant="green"
@@ -87,19 +89,23 @@ export default function NewsManager() {
             Nueva Noticia
           </Button>
         </CardHeader>
-        
+
         <CardContent className="p-0">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-32 space-y-4">
               <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)] opacity-20" />
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Cargando Historias</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">
+                Cargando Historias
+              </p>
             </div>
           ) : news.length === 0 ? (
             <div className="py-32 text-center space-y-4">
               <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
                 <Newspaper className="w-8 h-8 text-gray-200" />
               </div>
-              <p className="text-gray-400 font-light italic">No hay noticias publicadas todavía.</p>
+              <p className="text-gray-400 font-light italic">
+                No hay noticias publicadas todavía.
+              </p>
             </div>
           ) : (
             <div id="news-table">
@@ -108,12 +114,24 @@ export default function NewsManager() {
                 <Table className="w-full">
                   <TableHeader className="bg-gray-50/50">
                     <TableRow className="hover:bg-transparent border-b border-gray-100">
-                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Título</TableHead>
-                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Extracto</TableHead>
-                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Fecha y Hora</TableHead>
-                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Multimedia</TableHead>
-                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Autor</TableHead>
-                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Acciones</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        Título
+                      </TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        Extracto
+                      </TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        Fecha y Hora
+                      </TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">
+                        Multimedia
+                      </TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">
+                        Autor
+                      </TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">
+                        Acciones
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -170,11 +188,15 @@ export default function NewsManager() {
             <DialogHeader className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="h-px w-8 bg-[var(--puembo-green)]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Editor de Contenido</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+                  Editor de Contenido
+                </span>
               </div>
               <DialogTitle className="text-4xl font-serif font-bold text-white leading-tight">
                 {selectedNews?.id ? "Refinar" : "Crear"} <br />
-                <span className="text-[var(--puembo-green)] italic">Historia</span>
+                <span className="text-[var(--puembo-green)] italic">
+                  Historia
+                </span>
               </DialogTitle>
             </DialogHeader>
           </div>

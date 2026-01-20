@@ -6,15 +6,18 @@ import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { MessageSquare, ShieldCheck, X, Save } from 'lucide-react';
+import { MessageSquare, ShieldCheck, X, Save, Loader2 } from 'lucide-react';
 import { cn } from "@/lib/utils.ts";
 
 export default function PrayerRequestStatusDialog({ request, onStatusChange, onClose }) {
   const [selectedStatus, setSelectedStatus] = useState(request.status);
+  const [loading, setLoading] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (selectedStatus !== request.status) {
-      onStatusChange(request.id, selectedStatus);
+      setLoading(true);
+      await onStatusChange(request.id, selectedStatus);
+      setLoading(false);
     } else {
       toast.info('No se realizaron cambios.');
     }
@@ -78,11 +81,12 @@ export default function PrayerRequestStatusDialog({ request, onStatusChange, onC
 
       {/* Footer Acciones */}
       <div className="flex justify-end gap-4 pt-8 border-t border-gray-50">
-        <Button variant="ghost" onClick={onClose} className="rounded-full px-8 text-gray-400">
+        <Button variant="ghost" onClick={onClose} className="rounded-full px-8 text-gray-400" disabled={loading}>
             <X className="w-4 h-4 mr-2" /> Cancelar
         </Button>
-        <Button onClick={handleSave} variant="green" className="rounded-full px-10 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 hover:-translate-y-0.5 transition-all">
-            <Save className="w-4 h-4 mr-2" /> Guardar Cambios
+        <Button onClick={handleSave} variant="green" disabled={loading} className="rounded-full px-10 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 hover:-translate-y-0.5 transition-all">
+            {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+            {loading ? "Guardando..." : "Guardar Cambios"}
         </Button>
       </div>
     </div>
