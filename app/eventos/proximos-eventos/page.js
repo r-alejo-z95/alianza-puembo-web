@@ -1,6 +1,6 @@
-import { UpcomingEventsContentSection } from "@/components/public/layout/pages/eventos/UpcomingEventsContentSection";
 import { getUpcomingEvents } from '@/lib/data/events.ts';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
+import { UpcomingEventsClient } from "./UpcomingEventsClient";
 
 export const metadata = {
   title: "Próximos Eventos",
@@ -34,7 +34,7 @@ export default async function ProximosEventos({ searchParams }) {
       imageAlt="Personas en un evento de la iglesia"
       introSectionData={page === 1 ? introSectionData : undefined}
     >
-      <UpcomingEventsContentSection
+      <UpcomingEventsClient 
         paginatedEvents={paginatedEvents}
         totalPages={totalPages}
         hasNextPage={hasNextPage}

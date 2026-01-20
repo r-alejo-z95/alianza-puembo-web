@@ -121,10 +121,7 @@ function EventWrapper({
               </div>
             ) : (
               <Link
-                href={
-                  `/eventos/proximos-eventos?page=${event.page}#` +
-                  encodeURIComponent(event.title)
-                }
+                href={`/eventos/${event.slug}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="cursor-pointer block space-y-2 group"

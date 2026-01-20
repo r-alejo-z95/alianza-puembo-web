@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
 import { getNowInEcuador } from '@/lib/date-utils';
+import { unstable_noStore as noStore } from 'next/cache';
 
 interface Event {
   id: string;
   title: string;
+  slug: string;
   description: string;
   start_time: string;
   end_time: string;
@@ -19,7 +21,6 @@ interface Event {
 
 /**
  * @description Obtiene todos los eventos para el calendario público.
- * @returns {Promise<Array>} Una promesa que se resuelve en un array de eventos completos.
  */
 export async function getEventsForCalendar(): Promise<(Event & { page?: number })[]> {
   const supabase = await createClient();
@@ -58,9 +59,6 @@ export async function getEventsForCalendar(): Promise<(Event & { page?: number }
 
 /**
  * @description Obtiene los próximos eventos paginados.
- * @param {number} page - El número de página actual.
- * @param {number} eventsPerPage - El número de eventos por página.
- * @returns {Promise<{paginatedEvents: Array, totalPages: number, hasNextPage: boolean}>} Un objeto con los eventos paginados y la información de paginación.
  */
 export async function getUpcomingEvents(page: number = 1, eventsPerPage: number = 4): Promise<{ paginatedEvents: Event[], totalPages: number, hasNextPage: boolean }> {
   const supabase = await createClient();
@@ -76,7 +74,8 @@ export async function getUpcomingEvents(page: number = 1, eventsPerPage: number 
   }
 
   const now = getNowInEcuador();
-  const upcomingEvents = (events as Event[]).filter(event => new Date(event.end_time || event.start_time) >= now);
+  const upcomingEvents = (events as Event[])
+    .filter(event => new Date(event.end_time || event.start_time) >= now);
 
   const totalPages = Math.ceil(upcomingEvents.length / eventsPerPage);
   const paginatedEvents = upcomingEvents.slice(
@@ -88,3 +87,45 @@ export async function getUpcomingEvents(page: number = 1, eventsPerPage: number 
 
   return { paginatedEvents, totalPages, hasNextPage };
 }
+
+/**
+
+ * @description Obtiene un evento por su Slug directamente desde la DB.
+
+ */
+
+export async function getEventBySlug(slug: string): Promise<Event | null> {
+
+  noStore();
+
+  const supabase = await createClient();
+
+  
+
+  const { data, error } = await supabase
+
+    .from('events')
+
+    .select('*')
+
+    .eq('slug', slug)
+
+    .maybeSingle();
+
+
+
+  if (error) {
+
+    console.error(`Error fetching event with slug ${slug}:`, error);
+
+    return null;
+
+  }
+
+  
+
+  return data;
+
+}
+
+

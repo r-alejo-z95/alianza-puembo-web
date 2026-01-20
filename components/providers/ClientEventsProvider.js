@@ -60,6 +60,7 @@ export function ClientEventsProvider({ children, initialEvents = [] }) {
     // Transform events for calendar format
     const calendarEvents = events.map(event => ({
         id: event.id,
+        slug: event.slug,
         title: event.title,
         description: event.description,
         start: new Date(event.start_time),
