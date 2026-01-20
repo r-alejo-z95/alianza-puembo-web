@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { getLomPosts } from "@/lib/data/client/lom";
 import { getThisWeekPassages } from "@/lib/data/client/passages";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
 import { LomClient } from "./LomClient";
+import { Loader2 } from "lucide-react";
 
 export const metadata = {
   title: "Lee, Ora, Medita",
@@ -12,27 +14,26 @@ export const metadata = {
   },
 };
 
+function LoadingState() {
+  return (
+    <div className="flex h-96 w-full items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+    </div>
+  );
+}
+
 export default async function LomPage() {
-  // Nota: Estas funciones de 'client' en realidad funcionan en server si se llaman en un Server Component
-  // ya que usan el cliente de Supabase estándar.
   const [lomPosts, weeklyPassages] = await Promise.all([
     getLomPosts(),
     getThisWeekPassages(),
   ]);
 
-    // Filtrar posts publicados hasta hoy
+  const today = formatEcuadorDateForInput(getNowInEcuador());
 
-    const today = formatEcuadorDateForInput(getNowInEcuador());
+  const publishedPosts = lomPosts.filter(
+    (post) => formatEcuadorDateForInput(post.publication_date) <= today
+  );
 
-    const publishedPosts = lomPosts.filter(
-
-      (post) => formatEcuadorDateForInput(post.publication_date) <= today
-
-    );
-
-  
-
-  // Ordenar pasajes semanales por día de la semana (creando una copia para evitar mutar el original)
   const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
   const sortedPassages = [...weeklyPassages].sort((a, b) => {
     return (
@@ -40,28 +41,19 @@ export default async function LomPage() {
     );
   });
 
-  
-
-    return (
-
-      <PublicPageLayout
-
-        title="Devocionales LOM"
-
-        description="Un espacio diario para encontrarte con Dios a través de Su Palabra."
-
-        imageUrl="/recursos/lom/Lom.png"
-
-        imageAlt="Nubes en el cielo con luz del sol"
-
-      >
-
-        <LomClient initialPosts={publishedPosts} initialPassages={sortedPassages} />
-
-      </PublicPageLayout>
-
-    );
-
-  }
-
-  
+  return (
+    <PublicPageLayout
+      title="Devocionales LOM"
+      description="Un espacio diario para encontrarte con Dios a través de Su Palabra."
+      imageUrl="/recursos/lom/Lom.png"
+      imageAlt="Nubes en el cielo con luz del sol"
+    >
+      <Suspense fallback={<LoadingState />}>
+        <LomClient
+          initialPosts={publishedPosts}
+          initialPassages={sortedPassages}
+        />
+      </Suspense>
+    </PublicPageLayout>
+  );
+}

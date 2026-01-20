@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { getPublicPrayerRequests } from '@/lib/data/prayer.ts';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { OracionClient } from "./OracionClient";
+import { Loader2 } from "lucide-react";
 
 export const metadata = {
   title: "Muro de Oración",
@@ -9,6 +11,14 @@ export const metadata = {
     canonical: "/oracion",
   },
 };
+
+function LoadingState() {
+  return (
+    <div className="flex h-96 w-full items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+    </div>
+  );
+}
 
 export default async function OracionPage() {
   const requests = await getPublicPrayerRequests();
@@ -27,7 +37,9 @@ export default async function OracionPage() {
       imageAlt="Personas orando"
       introSectionData={introSectionData}
     >
-      <OracionClient requests={requests} />
+      <Suspense fallback={<LoadingState />}>
+        <OracionClient requests={requests} />
+      </Suspense>
     </PublicPageLayout>
   );
 }

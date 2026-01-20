@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { getNews } from "@/lib/data/news";
 import { NewsClient } from "./NewsClient";
+import { Loader2 } from "lucide-react";
 
 export const metadata = {
   title: "Noticias y Crónicas",
@@ -9,6 +11,14 @@ export const metadata = {
     canonical: "/noticias",
   },
 };
+
+function LoadingState() {
+  return (
+    <div className="flex h-96 w-full items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+    </div>
+  );
+}
 
 export default async function Noticias({ searchParams }) {
   const resolvedSearchParams = await searchParams;
@@ -34,12 +44,14 @@ export default async function Noticias({ searchParams }) {
       imageAlt="Personas compartiendo"
       introSectionData={page === 1 ? introSectionData : undefined}
     >
-      <NewsClient 
-        news={paginatedNews}
-        totalPages={totalPages}
-        hasNextPage={hasNextPage}
-        page={page}
-      />
+      <Suspense fallback={<LoadingState />}>
+        <NewsClient 
+          news={paginatedNews}
+          totalPages={totalPages}
+          hasNextPage={hasNextPage}
+          page={page}
+        />
+      </Suspense>
     </PublicPageLayout>
   );
 }

@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { getUpcomingEvents } from '@/lib/data/events.ts';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { UpcomingEventsClient } from "./UpcomingEventsClient";
+import { Loader2 } from "lucide-react";
 
 export const metadata = {
   title: "Próximos Eventos",
@@ -9,6 +11,14 @@ export const metadata = {
     canonical: "/eventos/proximos-eventos",
   },
 };
+
+function LoadingState() {
+  return (
+    <div className="flex h-96 w-full items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+    </div>
+  );
+}
 
 export default async function ProximosEventos({ searchParams }) {
   const resolvedSearchParams = await searchParams;
@@ -34,12 +44,14 @@ export default async function ProximosEventos({ searchParams }) {
       imageAlt="Personas en un evento de la iglesia"
       introSectionData={page === 1 ? introSectionData : undefined}
     >
-      <UpcomingEventsClient 
-        paginatedEvents={paginatedEvents}
-        totalPages={totalPages}
-        hasNextPage={hasNextPage}
-        page={page}
-      />
+      <Suspense fallback={<LoadingState />}>
+        <UpcomingEventsClient 
+          paginatedEvents={paginatedEvents}
+          totalPages={totalPages}
+          hasNextPage={hasNextPage}
+          page={page}
+        />
+      </Suspense>
     </PublicPageLayout>
   );
 }
