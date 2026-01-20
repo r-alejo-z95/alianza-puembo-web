@@ -1,15 +1,13 @@
 'use client';
 
-import { Youtube } from "lucide-react";
+import { Youtube, MapPin, Clock, ExternalLink } from "lucide-react";
 import dynamic from 'next/dynamic';
 import { cn } from "@/lib/utils.ts";
 import {
   sectionPx,
-  secondaryTextSizes,
-  subTitleSizes,
-  secondSubTitleSizes,
 } from "@/lib/styles.ts";
 import { useEffect, useRef, useState } from "react";
+import { motion } from 'framer-motion';
 
 const GoogleMapView = dynamic(() => import('@/components/public/map/InteractiveMap'), { ssr: false });
 
@@ -29,11 +27,11 @@ export default function Ubicacion({ youtubeStatus }) {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setShowMap(true);
-            observer.disconnect(); // Stop observing once it's in view
+            observer.disconnect();
           }
         });
       },
-      { threshold: 0.1 } // Trigger when 10% of the section is visible
+      { threshold: 0.1 }
     );
 
     if (sectionRef.current) {
@@ -48,59 +46,113 @@ export default function Ubicacion({ youtubeStatus }) {
   }, []);
 
   return (
-    <section id="ubicacion" ref={sectionRef} className={cn(sectionPx, "w-full h-[50%] py-16")}>
-      <div className="mx-auto flex flex-col gap-8">
-        <h2
-          className={cn(
-            subTitleSizes,
-            "text-center font-merriweather font-bold"
-          )}
-        >
-          ¡Queremos conocerte! Visítanos
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-0 w-full mx-auto">
-          <div className="overflow-scroll">
+    <section id="ubicacion" ref={sectionRef} className="w-full py-24 bg-gray-50/50">
+      <div className={cn(sectionPx, "max-w-7xl mx-auto space-y-16")}>
+        {/* Cabecera de Sección */}
+        <div className="text-center space-y-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex items-center justify-center gap-3"
+          >
+            <div className="h-1 w-12 bg-[var(--puembo-green)] rounded-full" />
+            <span className="text-xs font-black uppercase tracking-[0.3em] text-[var(--puembo-green)]">
+              Te esperamos
+            </span>
+            <div className="h-1 w-12 bg-[var(--puembo-green)] rounded-full" />
+          </motion.div>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gray-900"
+          >
+            ¡Queremos conocerte! <br />
+            <span className="text-[var(--puembo-green)]">Visítanos</span>
+          </motion.h2>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
+          {/* Mapa Interactiva */}
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="lg:col-span-3 h-[400px] md:h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white"
+          >
             {showMap && <GoogleMapView onMapLoad={handleMapLoad} />}
-          </div>
-          <div className="flex flex-col gap-4 md:gap-8 justify-center items-center text-center">
-            <div className="flex flex-col md:gap-4">
-              <p
-                className={cn(
-                  secondSubTitleSizes,
-                  "font-merriweather font-bold"
-                )}
-              >
-                10:00 | 12:00
-              </p>
-              <p className={cn(secondaryTextSizes)}>Servicios dominicales</p>
-            </div>
-            <div className="flex flex-col md:gap-4">
-              <p
-                className={cn(
-                  secondSubTitleSizes,
-                  "font-merriweather font-bold"
-                )}
-              >
-                10:00
-              </p>
-              <div className="flex items-center gap-2">
-                <p className={cn(secondaryTextSizes)}>Servicio online</p>
-                <a
-                  href={videoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Youtube channel"
-                >
-                  <Youtube className="size-7 text-red-500 hover:text-red-600 transition-colors" />
-                </a>
+          </motion.div>
+
+          {/* Tarjetas de Información */}
+          <div className="lg:col-span-2 space-y-6">
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 space-y-6"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-[var(--puembo-green)]/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-6 h-6 text-[var(--puembo-green)]" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Horarios</h3>
+                  <div className="space-y-4 pt-2">
+                    <div>
+                      <p className="text-2xl font-serif font-bold text-gray-800">10:00 | 12:00</p>
+                      <p className="text-sm text-gray-500 font-medium">Servicios Presenciales</p>
+                    </div>
+                    <div className="flex items-center justify-between group">
+                      <div>
+                        <p className="text-2xl font-serif font-bold text-gray-800">10:00</p>
+                        <p className="text-sm text-gray-500 font-medium">Transmisión Online</p>
+                      </div>
+                      <a
+                        href={videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-3 bg-red-50 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition-all duration-300 shadow-sm"
+                      >
+                        <Youtube className="w-6 h-6" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex flex-col md:gap-2">
-              <p className={cn(secondaryTextSizes)}>
-                Julio Tobar Donoso y 24 de Mayo
-              </p>
-              <p className={cn(secondaryTextSizes)}>Puembo, Ecuador</p>
-            </div>
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-[var(--puembo-green)]/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-6 h-6 text-[var(--puembo-green)]" />
+                </div>
+                <div className="flex-grow">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">Dirección</h3>
+                  <p className="text-gray-600 leading-relaxed mt-2">
+                    Julio Tobar Donoso y 24 de Mayo <br />
+                    Puembo, Ecuador
+                  </p>
+                  <a 
+                    href="https://www.google.com/maps/dir//Iglesia+Alianza+Puembo" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 mt-4 text-sm font-bold text-[var(--puembo-green)] hover:gap-3 transition-all"
+                  >
+                    Cómo llegar <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
