@@ -13,6 +13,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { sectionTitle } from '@/lib/styles';
 import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 const prayerRequestSchema = z.object({
   name: z.string().optional(),
@@ -33,6 +35,7 @@ export default function PrayerRequestForm({ action }) {
   });
 
   const isAnonymous = form.watch('is_anonymous');
+  const requestText = form.watch('request_text');
 
   const handleFormSubmit = async (data) => {
     const formData = new FormData();
@@ -52,97 +55,118 @@ export default function PrayerRequestForm({ action }) {
   };
 
   return (
-    <Card className="w-full max-w-2xl">
-      <CardHeader>
-        <CardTitle><h2 className={`${sectionTitle} text-center mb-8 text-(--puembo-green)`}>
-          Envía tu Petición
-        </h2></CardTitle>
-      </CardHeader>
-      <CardContent className="text-left">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6 flex flex-col items-center justify-center">
-            <div className="flex flex-col md:flex-row items-start justify-center space-y-4 md:space-x-4">
-              <FormField
-                control={form.control}
-                name="is_public"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>¿Petición Pública?</FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        Tu petición se verá en la cartelera.
-                      </p>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="is_anonymous"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>¿Petición Anónima?</FormLabel>
-                      <p className="text-sm text-muted-foreground">
-                        Tu nombre no será visible.
-                      </p>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-            {!isAnonymous && (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={form.control}
+            name="is_public"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 transition-colors hover:bg-white hover:border-green-100">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+                  />
+                </FormControl>
+                <div className="space-y-0.5">
+                  <FormLabel className="text-sm font-bold text-gray-900 cursor-pointer">¿Petición Pública?</FormLabel>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-tight">Visible en cartelera</p>
+                </div>
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="is_anonymous"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 transition-colors hover:bg-white hover:border-green-100">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+                  />
+                </FormControl>
+                <div className="space-y-0.5">
+                  <FormLabel className="text-sm font-bold text-gray-900 cursor-pointer">¿Petición Anónima?</FormLabel>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-tight">Tu nombre no será visible</p>
+                </div>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="space-y-6">
+          {!isAnonymous && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+            >
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nombre (Opcional)</FormLabel>
+                    <FormLabel className="text-sm font-bold text-gray-700 uppercase tracking-widest ml-1">Tu Nombre</FormLabel>
                     <FormControl>
-                      <Input placeholder="Tu nombre" {...field} />
+                      <Input 
+                        placeholder="Escribe tu nombre..." 
+                        className="h-12 rounded-xl bg-gray-50/30 border-gray-200 focus:bg-white transition-all"
+                        {...field} 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+            </motion.div>
+          )}
+
+          <FormField
+            control={form.control}
+            name="request_text"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <div className="flex justify-between items-end mb-1 ml-1">
+                  <FormLabel className="text-sm font-bold text-gray-700 uppercase tracking-widest">Tu Petición</FormLabel>
+                  <span className={cn(
+                    "text-[10px] font-bold tracking-tighter",
+                    requestText?.length > 450 ? "text-red-500" : "text-gray-400"
+                  )}>
+                    {requestText?.length || 0} / 500
+                  </span>
+                </div>
+                <FormControl>
+                  <Textarea
+                    placeholder="Escribe aquí tu petición. Confiamos en que Dios escucha y obra."
+                    className="min-h-[160px] rounded-2xl bg-gray-50/30 border-gray-200 focus:bg-white transition-all resize-none p-4 text-base"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-            <FormField
-              control={form.control}
-              name="request_text"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Tu petición</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Escribe aquí tu petición. Confiamos en que Dios escucha y obra."
-                      className="min-h-[120px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className='w-full flex justify-center'>
-              <Button variant="secondary" type="submit" disabled={form.formState.isSubmitting} className="w-40">
-                {form.formState.isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Enviar Petición'}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          />
+        </div>
+
+        <div className='w-full pt-2'>
+          <Button 
+            variant="green" 
+            type="submit" 
+            disabled={form.formState.isSubmitting} 
+            className="w-full h-12 text-base font-bold rounded-xl shadow-lg shadow-green-100 hover:shadow-green-200 transition-all active:scale-[0.98]"
+          >
+            {form.formState.isSubmitting ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              'Enviar Petición de Oración'
+            )}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

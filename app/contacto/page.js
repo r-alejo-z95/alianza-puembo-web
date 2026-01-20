@@ -1,6 +1,5 @@
-import { ContactFormSection } from "@/components/public/layout/pages/contacto/ContactFormSection";
-import { ContactInfoSection } from "@/components/public/layout/pages/contacto/ContactInfoSection";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
+import { ContactClient } from "./ContactClient";
 
 export const metadata = {
   title: "Contáctanos",
@@ -14,7 +13,7 @@ export default function ContactPage() {
   const introSectionData = {
     title: "Conéctate con Nosotros",
     description: "Estamos aquí para escucharte y servirte. Ya sea que tengas preguntas, sugerencias o necesites apoyo, no dudes en contactarnos. Tu voz es importante para nosotros.",
-    titleColor: "text-(--puembo-green)",
+    titleColor: "text-[var(--puembo-green)]",
   };
 
   return (
@@ -25,8 +24,7 @@ export default function ContactPage() {
       imageAlt="Personas interactuando en un evento de la iglesia"
       introSectionData={introSectionData}
     >
-      <ContactFormSection />
-      <ContactInfoSection />
+      <ContactClient />
     </PublicPageLayout>
   );
 }
