@@ -100,7 +100,12 @@ export default function ContactForm() {
               <p className="text-xs text-red-500 font-medium ml-1">{state.errors.message[0]}</p>
             )}
           </div>
-          <div className="pt-2">
+          <div className="space-y-6 pt-4">
+            <div className="bg-gray-50/80 p-4 rounded-xl border border-gray-100">
+                <p className="text-[10px] text-gray-500 leading-relaxed text-center">
+                    Al enviar este formulario, usted autoriza a la Iglesia Alianza Puembo el tratamiento de sus datos personales para fines de contacto y gestión eclesial, conforme a la Ley Orgánica de Protección de Datos Personales de Ecuador.
+                </p>
+            </div>
             <SubmitButton />
           </div>
         </form>

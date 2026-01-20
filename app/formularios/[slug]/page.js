@@ -2,14 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,25 +27,35 @@ import { toast } from "sonner";
 import {
   ImageIcon,
   FileUp,
-  Calendar as CalendarIcon,
   FileText,
   Loader2,
+  ChevronLeft,
+  SendHorizontal,
+  CheckCircle2,
+  XCircle,
+  Home,
+  RefreshCcw,
 } from "lucide-react";
 import Image from "next/image";
 import { getNowInEcuador, formatInEcuador } from "@/lib/date-utils";
-
-// Simple Loading Spinner Components
+import { cn } from "@/lib/utils.ts";
 
 const LoadingSpinner = () => (
-  <div className="flex flex-col gap-6 justify-center items-center h-full animate-in fade-in duration-500">
-    <Loader2 className="h-16 w-16 animate-spin text-[var(--puembo-green)]" />
+  <div className="flex flex-col gap-6 justify-center items-center h-screen animate-in fade-in duration-500">
+    <Loader2 className="h-12 w-12 animate-spin text-[var(--puembo-green)] opacity-20" />
+    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">
+      Cargando Formulario
+    </p>
   </div>
 );
 
 const SendingSpinner = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm animate-in fade-in duration-300">
-    <div className="flex flex-col gap-6 justify-center items-center">
-      <Loader2 className="h-20 w-20 animate-spin text-[var(--puembo-green)]" />
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="flex flex-col gap-6 justify-center items-center bg-white p-12 rounded-[3rem] shadow-2xl">
+      <Loader2 className="h-16 w-16 animate-spin text-[var(--puembo-green)]" />
+      <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--puembo-green)]">
+        Enviando Respuesta...
+      </p>
     </div>
   </div>
 );
@@ -49,15 +65,25 @@ export default function PublicForm() {
     register,
     handleSubmit,
     control,
-    formState: { errors },
+    formState: { errors, isValid, isDirty },
     reset,
-  } = useForm();
+  } = useForm({
+    mode: "onChange", // Habilita la validación en tiempo real
+  });
 
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [fileNames, setFileNames] = useState({});
+  const [submissionStatus, setSubmissionStatus] = useState(null); // 'success' | 'error' | null
   const { slug } = useParams();
+  const router = useRouter();
+
+  // Determinamos si el botón debe estar deshabilitado
+  // Caso 1: Hay obligatorios -> isValid los maneja.
+  // Caso 2: No hay obligatorios -> Necesitamos al menos que sea isDirty (algún cambio).
+  const hasRequiredFields = form?.form_fields.some(f => f.required || f.is_required);
+  const isSubmitDisabled = sending || (hasRequiredFields ? !isValid : !isDirty);
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -109,14 +135,13 @@ export default function PublicForm() {
                 resolve({
                   type: "file",
                   name: file.name,
-                  data: reader.result.split(",")[1], // Base64 content
+                  data: reader.result.split(",")[1],
                 });
               };
               reader.onerror = reject;
               reader.readAsDataURL(file);
             });
             processedData[key] = await fileReadPromise;
-
             rawDataForDb[key] = `[Archivo: ${file.name}]`;
           } else if (
             fieldType === "checkbox" &&
@@ -129,7 +154,6 @@ export default function PublicForm() {
                 const option = fieldDef.options.find(
                   (opt) => opt.value === optionKey
                 );
-
                 return option ? option.label : optionKey;
               });
             processedData[key] = selectedLabels.join("\n");
@@ -140,99 +164,75 @@ export default function PublicForm() {
             rawDataForDb[key] = option ? option.label : value;
           } else if (Array.isArray(value)) {
             processedData[key] = value.join("\n");
-
             rawDataForDb[key] = value;
           } else {
             processedData[key] = value;
-
             rawDataForDb[key] = value;
           }
         }
       }
 
       const timestamp = formatInEcuador(getNowInEcuador(), "d/M/yyyy HH:mm:ss");
-
       processedData.Timestamp = timestamp;
-
       rawDataForDb.Timestamp = timestamp;
 
       const { data: edgeFunctionData, error: edgeFunctionError } =
         await supabase.functions.invoke("sheets-drive-integration", {
           body: JSON.stringify({
             formId: form.id,
-
             formData: processedData,
           }),
         });
 
-      if (edgeFunctionError) {
-        console.error("Error invoking Edge Function:", edgeFunctionError);
-
-        toast.error(
-          `Error al enviar a Google Sheets: ${edgeFunctionError.message || "Error desconocido"}`
+      if (edgeFunctionError || edgeFunctionData?.error) {
+        throw new Error(
+          edgeFunctionError?.message ||
+            edgeFunctionData?.error ||
+            "Error en la integración"
         );
-      } else if (edgeFunctionData.error) {
-        console.error("Edge Function returned error:", edgeFunctionData.error);
-
-        toast.error(`Error de Google Sheets: ${edgeFunctionData.error}`);
       }
 
-      const { error: dbError } = await supabase
+      await supabase.from("form_submissions").insert([
+        {
+          form_id: form.id,
+          data: rawDataForDb,
+          ip_address: "Client-side submission",
+          user_agent: navigator.userAgent,
+        },
+      ]);
 
-        .from("form_submissions")
-
-        .insert([
-          {
-            form_id: form.id,
-
-            data: rawDataForDb,
-
-            ip_address: "Not captured (Client-side)",
-
-            user_agent: navigator.userAgent,
-          },
-        ]);
-
-      if (dbError) {
-        console.error("Error saving to Supabase DB:", dbError);
-      }
-
-      if (!edgeFunctionError && !dbError && !edgeFunctionData?.error) {
-        toast.success("Formulario enviado con éxito!");
-
-        reset();
-
-        setFileNames({});
-      }
+      setSubmissionStatus("success");
+      reset();
+      setFileNames({});
     } catch (error) {
-      console.error("Error during form submission:", error);
-
-      toast.error(
-        `Error inesperado al enviar el formulario: ${error.message || "Error desconocido"}`
-      );
+      console.error("Error during submission:", error);
+      setSubmissionStatus("error");
     }
-
     setSending(false);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50/50">
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  const handleResetForm = () => {
+    setSubmissionStatus(null);
+    reset();
+    setFileNames({});
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (loading) return <LoadingSpinner />;
 
   if (!form) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-center space-y-4">
-          <p className="text-xl font-medium text-gray-600">
-            Formulario no encontrado.
+      <div className="min-h-screen flex items-center justify-center bg-gray-50/50 p-6">
+        <div className="text-center space-y-6">
+          <p className="text-2xl font-serif font-bold text-gray-900">
+            Formulario no encontrado
           </p>
-
-          <Button variant="green" onClick={() => (window.location.href = "/")}>
-            Volver al inicio
+          <Button
+            variant="green"
+            className="rounded-full px-8"
+            onClick={() => router.push("/")}
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" /> Volver al Inicio
           </Button>
         </div>
       </div>
@@ -240,11 +240,12 @@ export default function PublicForm() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex flex-col items-center py-8 px-4 md:py-12">
+    <div className="min-h-screen bg-[#FDFDFD] flex flex-col items-center py-12 px-4 md:py-24 relative overflow-x-hidden">
       {sending && <SendingSpinner />}
 
-      <div className="w-full max-w-2xl space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <Card className="overflow-hidden border-none shadow-xl shadow-gray-200/50">
+      <div className="w-full max-w-2xl space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        {/* Main Card */}
+        <Card className="overflow-hidden border-none shadow-2xl rounded-[3rem] bg-white">
           {form.image_url && (
             <div className="relative w-full aspect-video md:aspect-[21/9]">
               <Image
@@ -254,89 +255,82 @@ export default function PublicForm() {
                 className="object-cover"
                 priority
               />
-
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             </div>
           )}
 
-          <CardHeader className="space-y-6 pt-8 pb-4">
-            <div className="space-y-2">
-              <CardTitle className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 leading-tight font-serif">
+          <CardHeader className="p-8 md:p-16 space-y-8 pb-4">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-px w-8 bg-[var(--puembo-green)]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+                  Formulario
+                </span>
+              </div>
+              <CardTitle className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900 leading-tight font-serif">
                 {form.title}
               </CardTitle>
-
-              <div className="h-1.5 w-20 bg-[var(--puembo-green)] rounded-full" />
+              <div className="h-1 w-20 bg-[var(--puembo-green)]/20 rounded-full" />
             </div>
 
             {form.description && (
               <div
-                className="tiptap-content text-gray-600 leading-snug text-sm"
+                className="tiptap-content text-gray-600 text-base leading-relaxed space-y-4"
                 dangerouslySetInnerHTML={{ __html: form.description }}
               />
             )}
-
-            <hr className="border-t border-gray-100 mt-4" />
           </CardHeader>
 
-          <CardContent className="pt-4 pb-8">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          <CardContent className="px-8 md:px-16 pt-8 pb-16">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
               {form.form_fields.map((field) => {
                 const fieldId = `field-${field.id}`;
-
                 const fieldType = field.type || field.field_type;
-
                 const isRequired = field.required ?? field.is_required;
-
                 const placeholder = field.placeholder || "";
-
                 const registrationProps = register(field.label, {
                   required: isRequired,
                 });
 
                 return (
-                  <div key={field.id} className="group space-y-4">
-                    {/* Field Label and Attachment */}
-
-                    <div className="space-y-2">
+                  <div key={field.id} className="group space-y-6">
+                    <div className="space-y-3">
                       <Label
                         htmlFor={fieldId}
-                        className="text-[17px] font-semibold text-gray-800 group-focus-within:text-[var(--puembo-green)] transition-colors"
+                        className="text-lg font-bold text-gray-900 group-focus-within:text-[var(--puembo-green)] transition-colors block"
                       >
                         {field.label}
-
                         {isRequired && (
-                          <span className="text-red-500 ml-1">*</span>
+                          <span className="text-red-500 ml-1.5">*</span>
                         )}
                       </Label>
 
                       {field.attachment_url && (
-                        <div className="mt-2 rounded-xl overflow-hidden border border-gray-100 bg-gray-50/50 p-2">
+                        <div className="mt-4 rounded-3xl overflow-hidden border border-gray-100 bg-gray-50/50 p-3 shadow-inner">
                           {field.attachment_type === "image" ? (
                             <Image
                               src={field.attachment_url}
-                              alt="Adjunto de pregunta"
-                              width={600}
-                              height={400}
-                              className="rounded-lg w-full h-auto object-contain max-h-[400px]"
+                              alt="Referencia"
+                              width={800}
+                              height={500}
+                              className="rounded-2xl w-full h-auto object-contain max-h-[400px]"
                             />
                           ) : (
                             <a
                               href={field.attachment_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg hover:border-[var(--puembo-green)] hover:shadow-md transition-all group/file"
+                              className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl hover:border-[var(--puembo-green)] hover:shadow-lg transition-all group/file"
                             >
-                              <div className="p-2 bg-blue-50 rounded-lg group-hover/file:bg-[var(--puembo-green)]/10 transition-colors">
-                                <FileText className="w-6 h-6 text-blue-600 group-hover/file:text-[var(--puembo-green)]" />
+                              <div className="p-3 bg-gray-50 rounded-xl group-hover/file:bg-[var(--puembo-green)]/10 transition-colors">
+                                <FileText className="w-6 h-6 text-gray-400 group-hover/file:text-[var(--puembo-green)]" />
                               </div>
-
                               <div className="flex flex-col">
-                                <span className="text-sm font-medium text-gray-700">
-                                  Documento adjunto
+                                <span className="text-sm font-bold text-gray-700">
+                                  Ver documento adjunto
                                 </span>
-
-                                <span className="text-xs text-blue-600 underline">
-                                  Haga clic para ver
+                                <span className="text-[10px] uppercase tracking-widest text-[var(--puembo-green)] font-black">
+                                  Haga clic para abrir
                                 </span>
                               </div>
                             </a>
@@ -345,28 +339,20 @@ export default function PublicForm() {
                       )}
                     </div>
 
-                    {/* Input Field */}
-
                     <div className="relative">
                       {(() => {
+                        const baseInputClass =
+                          "h-14 bg-gray-50/50 border-gray-100 rounded-2xl focus:bg-white focus:ring-[var(--puembo-green)]/10 focus:border-[var(--puembo-green)] transition-all text-base";
+
                         switch (fieldType) {
                           case "text":
-                            return (
-                              <Input
-                                id={fieldId}
-                                placeholder={placeholder}
-                                className="h-12 bg-gray-50/30 border-gray-200 focus:bg-white focus:ring-2 focus:ring-[var(--puembo-green)]/20 focus:border-[var(--puembo-green)] transition-all"
-                                {...registrationProps}
-                              />
-                            );
-
                           case "email":
                             return (
                               <Input
                                 id={fieldId}
-                                type="email"
+                                type={fieldType}
                                 placeholder={placeholder}
-                                className="h-12 bg-gray-50/30 border-gray-200 focus:bg-white focus:ring-2 focus:ring-[var(--puembo-green)]/20 focus:border-[var(--puembo-green)] transition-all"
+                                className={baseInputClass}
                                 {...registrationProps}
                               />
                             );
@@ -377,22 +363,19 @@ export default function PublicForm() {
                                 name={field.label}
                                 control={control}
                                 rules={{ required: isRequired }}
-                                render={({ field: controllerField }) => (
+                                render={({ field: ctrlField }) => (
                                   <Input
                                     id={fieldId}
                                     type="text"
                                     inputMode="numeric"
                                     placeholder={placeholder}
-                                    className="h-12 bg-gray-50/30 border-gray-200 focus:bg-white focus:ring-2 focus:ring-[var(--puembo-green)]/20 focus:border-[var(--puembo-green)] transition-all"
-                                    value={controllerField.value || ""}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-
-                                      if (/^[0-9+\- ]*$/.test(val)) {
-                                        controllerField.onChange(val);
-                                      }
-                                    }}
-                                    onBlur={controllerField.onBlur}
+                                    className={baseInputClass}
+                                    value={ctrlField.value || ""}
+                                    onChange={(e) =>
+                                      /^[0-9+\- ]*$/.test(e.target.value) &&
+                                      ctrlField.onChange(e.target.value)
+                                    }
+                                    onBlur={ctrlField.onBlur}
                                   />
                                 )}
                               />
@@ -403,7 +386,10 @@ export default function PublicForm() {
                               <Textarea
                                 id={fieldId}
                                 placeholder={placeholder}
-                                className="min-h-[120px] bg-gray-50/30 border-gray-200 focus:bg-white focus:ring-2 focus:ring-[var(--puembo-green)]/20 focus:border-[var(--puembo-green)] transition-all resize-none p-4"
+                                className={cn(
+                                  baseInputClass,
+                                  "min-h-[150px] py-4 resize-none"
+                                )}
                                 {...registrationProps}
                               />
                             );
@@ -413,7 +399,10 @@ export default function PublicForm() {
                               <Input
                                 id={fieldId}
                                 type="date"
-                                className="h-12 w-full md:w-auto bg-gray-50/30 border-gray-200 focus:bg-white focus:ring-2 focus:ring-[var(--puembo-green)]/20 focus:border-[var(--puembo-green)] transition-all"
+                                className={cn(
+                                  baseInputClass,
+                                  "w-full md:w-auto px-6"
+                                )}
                                 {...registrationProps}
                               />
                             );
@@ -424,30 +413,32 @@ export default function PublicForm() {
                                 name={field.label}
                                 control={control}
                                 rules={{ required: isRequired }}
-                                render={({ field: controllerField }) => (
+                                render={({ field: ctrlField }) => (
                                   <RadioGroup
-                                    onValueChange={controllerField.onChange}
-                                    value={controllerField.value || ""}
-                                    className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2"
+                                    onValueChange={ctrlField.onChange}
+                                    value={ctrlField.value || ""}
+                                    className="grid grid-cols-1 sm:grid-cols-2 gap-4"
                                   >
-                                    {field.options.map((option) => (
-                                      <div
-                                        key={option.id}
-                                        className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-[var(--puembo-green)]/30 hover:shadow-sm transition-all"
+                                    {field.options.map((opt) => (
+                                      <Label
+                                        key={opt.id}
+                                        htmlFor={`${fieldId}-${opt.id}`}
+                                        className={cn(
+                                          "flex items-center gap-3 p-5 rounded-2xl border transition-all cursor-pointer",
+                                          ctrlField.value === opt.value
+                                            ? "bg-white border-[var(--puembo-green)] shadow-md ring-1 ring-[var(--puembo-green)]/10"
+                                            : "bg-gray-50/50 border-gray-100 hover:bg-white"
+                                        )}
                                       >
                                         <RadioGroupItem
-                                          value={option.value}
-                                          id={`${fieldId}-${option.id}`}
+                                          value={opt.value}
+                                          id={`${fieldId}-${opt.id}`}
                                           className="text-[var(--puembo-green)] border-gray-300"
                                         />
-
-                                        <Label
-                                          htmlFor={`${fieldId}-${option.id}`}
-                                          className="font-normal cursor-pointer flex-grow py-1"
-                                        >
-                                          {option.label}
-                                        </Label>
-                                      </div>
+                                        <span className="font-bold text-gray-700">
+                                          {opt.label}
+                                        </span>
+                                      </Label>
                                     ))}
                                   </RadioGroup>
                                 )}
@@ -457,41 +448,41 @@ export default function PublicForm() {
                           case "checkbox":
                             return (
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {field.options.map((option) => (
+                                {field.options.map((opt) => (
                                   <Controller
-                                    key={option.id}
-                                    name={`${field.label}.${option.value}`}
+                                    key={opt.id}
+                                    name={`${field.label}.${opt.value}`}
                                     control={control}
-                                                                        render={({ field: controllerField }) => (
-                                                                          <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-[var(--puembo-green)]/30 hover:shadow-sm transition-all">
-                                                                            <Checkbox
-                                                                              id={`${fieldId}-${option.id}`}
-                                                                              checked={controllerField.value}
-                                                                              onCheckedChange={
-                                                                                controllerField.onChange
-                                                                              }
-                                                                              className="data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
-                                                                            />
-                                    
-                                                                            <Label
-                                                                              htmlFor={`${fieldId}-${option.id}`}
-                                                                              className="font-normal cursor-pointer flex-grow py-1"
-                                                                            >
-                                                                              {option.label}
-                                                                            </Label>
-                                                                          </div>
-                                                                        )}
-                                    
+                                    render={({ field: ctrlField }) => (
+                                      <Label
+                                        htmlFor={`${fieldId}-${opt.id}`}
+                                        className={cn(
+                                          "flex items-center gap-3 p-5 rounded-2xl border transition-all cursor-pointer",
+                                          ctrlField.value
+                                            ? "bg-white border-[var(--puembo-green)] shadow-md ring-1 ring-[var(--puembo-green)]/10"
+                                            : "bg-gray-50/50 border-gray-100 hover:bg-white"
+                                        )}
+                                      >
+                                        <Checkbox
+                                          id={`${fieldId}-${opt.id}`}
+                                          checked={ctrlField.value}
+                                          onCheckedChange={ctrlField.onChange}
+                                          className="data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)] rounded-md h-5 w-5"
+                                        />
+                                        <span className="font-bold text-gray-700">
+                                          {opt.label}
+                                        </span>
+                                      </Label>
+                                    )}
                                   />
                                 ))}
                               </div>
                             );
 
                           case "file":
-
                           case "image":
                             return (
-                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-2">
                                 <Input
                                   id={fieldId}
                                   type="file"
@@ -501,24 +492,18 @@ export default function PublicForm() {
                                   className="hidden"
                                   {...registrationProps}
                                   onChange={(e) => {
-                                    registrationProps.onChange(e); // Call RHF's onChange
-
+                                    registrationProps.onChange(e);
                                     const file = e.target.files[0];
-
                                     setFileNames((prev) => ({
                                       ...prev,
-
-                                      [field.id]: file
-                                        ? file.name
-                                        : "Ningún archivo seleccionado",
+                                      [field.id]: file ? file.name : null,
                                     }));
                                   }}
                                 />
-
                                 <Button
                                   type="button"
                                   variant="outline"
-                                  className="h-12 px-6 border-dashed border-2 hover:border-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/5 transition-all"
+                                  className="h-14 px-8 border-2 border-dashed rounded-2xl hover:border-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/5 transition-all text-sm font-bold uppercase tracking-widest"
                                   onClick={() =>
                                     document.getElementById(fieldId).click()
                                   }
@@ -528,25 +513,20 @@ export default function PublicForm() {
                                   ) : (
                                     <FileUp className="h-5 w-5 mr-2 text-gray-500" />
                                   )}
-
                                   {fieldType === "image"
-                                    ? "Seleccionar Imagen"
-                                    : "Seleccionar Archivo"}
+                                    ? "Cargar Foto"
+                                    : "Adjuntar Archivo"}
                                 </Button>
-
-                                {fileNames[field.id] ? (
-                                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 text-[var(--puembo-green)] rounded-full text-sm font-medium max-w-full overflow-hidden">
-                                    <FileText className="w-4 h-4 shrink-0" />
-                                    <span className="truncate break-all">{fileNames[field.id]}</span>
+                                {fileNames[field.id] && (
+                                  <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-xs font-black uppercase tracking-widest border border-emerald-100 shadow-sm animate-in zoom-in-95">
+                                    <FileText className="w-3.5 h-3.5" />
+                                    <span className="truncate max-w-[200px]">
+                                      {fileNames[field.id]}
+                                    </span>
                                   </div>
-                                ) : (
-                                  <span className="text-sm text-gray-400 italic">
-                                    No se ha seleccionado nada
-                                  </span>
                                 )}
                               </div>
                             );
-
                           default:
                             return null;
                         }
@@ -554,48 +534,123 @@ export default function PublicForm() {
                     </div>
 
                     {errors[field.label] && (
-                      <p className="text-red-500 text-sm font-medium animate-in slide-in-from-left-2">
-                        {field.label} es obligatorio.
+                      <p className="text-red-500 text-[10px] font-black uppercase tracking-[0.2em] animate-in slide-in-from-left-2 mt-2 ml-2">
+                        Este campo es obligatorio
                       </p>
                     )}
                   </div>
                 );
               })}
 
-              <div className="pt-4">
+              <div className="pt-12 border-t border-gray-100 space-y-8">
+                <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100">
+                  <p className="text-[11px] text-gray-500 leading-relaxed text-center">
+                    <span className="font-bold text-gray-700 block mb-2 uppercase tracking-widest text-[9px]">
+                      Protección de Datos Personales
+                    </span>
+                    Al enviar esta respuesta, usted autoriza a la Iglesia
+                    Alianza Puembo el tratamiento de sus datos personales con
+                    fines informativos, administrativos y de gestión eclesial,
+                    de conformidad con la Ley Orgánica de Protección de Datos
+                    Personales de Ecuador. Garantizamos la confidencialidad y el
+                    uso estrictamente institucional de su información.
+                  </p>
+                </div>
+
                 <Button
-                  className="w-full"
+                  className="w-full rounded-full py-8 text-lg font-bold shadow-2xl shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-1 active:scale-95 flex gap-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                   variant="green"
-                  size="lg"
                   type="submit"
-                  disabled={sending}
+                  disabled={isSubmitDisabled}
                 >
                   {sending ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <Loader2 className="h-6 w-6 animate-spin" />
                   ) : (
-                    "Enviar Respuesta"
+                    <SendHorizontal className="h-6 w-6" />
                   )}
+                  {sending ? "Procesando..." : "Enviar Respuesta"}
                 </Button>
 
-                <p className="text-center text-xs text-gray-400 mt-4">
-                  Sus respuestas se guardarán de forma segura y se enviarán al
-                  equipo de la iglesia.
-                </p>
+                <div className="mt-8 flex flex-col items-center gap-4 text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">
+                    Alianza Puembo ®
+                  </p>
+                  <Image
+                    src="/brand/logo-puembo.png"
+                    alt="Logo"
+                    width={80}
+                    height={30}
+                    className="opacity-20 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500"
+                  />
+                </div>
               </div>
             </form>
           </CardContent>
         </Card>
-
-        <div className="flex justify-center">
-          <Image
-            src="/brand/logo-puembo.png"
-            alt="Logo Alianza Puembo"
-            width={120}
-            height={40}
-            className="opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500"
-          />
-        </div>
       </div>
+
+      {/* Result Modal */}
+      <Dialog
+        open={submissionStatus !== null}
+        onOpenChange={() => submissionStatus === "error" && setSubmissionStatus(null)}
+      >
+        <DialogContent className="rounded-[3rem] border-none shadow-2xl p-8 md:p-12 max-w-sm mx-auto overflow-hidden">
+          <div className="flex flex-col items-center text-center space-y-8">
+            {submissionStatus === "success" ? (
+              <>
+                <div className="w-24 h-24 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 animate-in zoom-in duration-500">
+                  <CheckCircle2 className="w-12 h-12" />
+                </div>
+                <div className="space-y-3">
+                  <DialogTitle className="text-3xl font-serif font-bold text-gray-900">
+                    ¡Recibido!
+                  </DialogTitle>
+                  <DialogDescription className="text-base text-gray-500 font-light leading-relaxed">
+                    Tu respuesta ha sido enviada correctamente. Gracias por completar el formulario.
+                  </DialogDescription>
+                </div>
+                <div className="grid grid-cols-1 gap-3 w-full">
+                  <Button
+                    variant="green"
+                    className="rounded-full w-full py-6 font-bold uppercase tracking-widest text-[10px] gap-2"
+                    onClick={handleResetForm}
+                  >
+                    <RefreshCcw className="w-4 h-4" /> Enviar otra respuesta
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="rounded-full w-full py-6 font-bold uppercase tracking-widest text-[10px] text-gray-400 gap-2"
+                    onClick={() => router.push("/")}
+                  >
+                    <Home className="w-4 h-4" /> Ir al inicio
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center text-red-500 animate-in zoom-in duration-500">
+                  <XCircle className="w-12 h-12" />
+                </div>
+                <div className="space-y-3">
+                  <DialogTitle className="text-3xl font-serif font-bold text-gray-900">
+                    Algo salió mal
+                  </DialogTitle>
+                  <DialogDescription className="text-base text-gray-500 font-light leading-relaxed">
+                    No pudimos procesar tu respuesta en este momento. Por favor, revisa tu conexión e intenta de nuevo.
+                  </DialogDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  className="rounded-full w-full py-6 font-bold uppercase tracking-widest text-xs"
+                  onClick={() => setSubmissionStatus(null)}
+                >
+                  Intentar de nuevo
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
