@@ -1,144 +1,67 @@
-"use client";
-
-import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { getLomPosts } from "@/lib/data/client/lom";
 import { getThisWeekPassages } from "@/lib/data/client/passages";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
-import { contentSection } from "@/lib/styles";
-import { LomSearchBar } from "@/components/public/recursos/lom/LomSearchBar";
-import { LomDevotionalsList } from "@/components/public/recursos/lom/LomDevotionalsList";
-import { LomWeeklyPassages } from "@/components/public/recursos/lom/LomWeeklyPassages";
-import { getWeekDateRange, getBibleLink } from "@/lib/lomUtils";
 import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
-import { Loader2 } from "lucide-react";
+import { LomClient } from "./LomClient";
 
-const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+export const metadata = {
+  title: "Lee, Ora, Medita",
+  description: "Profundiza en la lectura y meditación de la Biblia con nuestros devocionales diarios.",
+  alternates: {
+    canonical: "/recursos/lom",
+  },
+};
 
-export default function LomPage() {
-  const [posts, setPosts] = useState([]);
-  const [passages, setPassages] = useState([]);
-  const [titleSearchTerm, setTitleSearchTerm] = useState("");
-  const [dateSearchTerm, setDateSearchTerm] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const router = useRouter();
+export default async function LomPage() {
+  // Nota: Estas funciones de 'client' en realidad funcionan en server si se llaman en un Server Component
+  // ya que usan el cliente de Supabase estándar.
+  const [lomPosts, weeklyPassages] = await Promise.all([
+    getLomPosts(),
+    getThisWeekPassages(),
+  ]);
 
-  const itemsPerPage = 3;
+    // Filtrar posts publicados hasta hoy
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const [lomPosts, weeklyPassages] = await Promise.all([
-        getLomPosts(),
-        getThisWeekPassages(),
-      ]);
-
-      // Filter posts to only show those published today or earlier in Ecuador
-      const today = formatEcuadorDateForInput(getNowInEcuador());
-      const publishedPosts = lomPosts.filter(
-        (post) => formatEcuadorDateForInput(post.publication_date) <= today
-      );
-
-      setPosts(publishedPosts);
-      const sortedPassages = weeklyPassages.sort((a, b) => {
-        return (
-          daysOfWeek.indexOf(a.day_of_week) - daysOfWeek.indexOf(b.day_of_week)
-        );
-      });
-      setPassages(sortedPassages);
-      setLoading(false);
-    };
-
-    fetchData();
-  }, []);
-
-  const handleDateSearch = (selectedDate) => {
-    setDateSearchTerm(selectedDate);
-    setTitleSearchTerm(""); // Clear title search when date search is used
-    setCurrentPage(1); // Reset to first page on new search
-  };
-
-  const filteredPosts = useMemo(() => {
-    let filtered = posts;
-    if (titleSearchTerm) {
-      filtered = filtered.filter((post) =>
-        post.title.toLowerCase().includes(titleSearchTerm.toLowerCase())
-      );
-    } else if (dateSearchTerm) {
-      filtered = filtered.filter((post) => {
-        const postDate = formatEcuadorDateForInput(post.publication_date);
-        return postDate === dateSearchTerm;
-      });
-    }
-    return filtered;
-  }, [posts, titleSearchTerm, dateSearchTerm]);
-
-  const totalPages = useMemo(
-    () => Math.ceil(filteredPosts.length / itemsPerPage),
-    [filteredPosts.length, itemsPerPage]
-  );
-  const currentPosts = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredPosts.slice(startIndex, endIndex);
-  }, [filteredPosts, currentPage, itemsPerPage]);
-
-  const goToLatestPost = () => {
     const today = formatEcuadorDateForInput(getNowInEcuador());
-    const todaysPost = posts.find((post) => post.publication_date === today);
-    if (todaysPost) {
-      router.push(`/recursos/lom/${todaysPost.slug}`);
-    } else if (posts.length > 0) {
-      // Fallback to the latest post (which is now filtered to not include future ones)
-      router.push(`/recursos/lom/${posts[0].slug}`);
-    }
-  };
 
-  const handlePostClick = (slug) => {
-    router.push(`/recursos/lom/${slug}`);
-  };
+    const publishedPosts = lomPosts.filter(
 
-  return (
-    <PublicPageLayout
-      title="Devocionales LOM"
-      description="Profundiza en la lectura y meditación de la Biblia."
-      imageUrl="/recursos/lom/Lom.png"
-      imageAlt="Nubes en el cielo con luz del sol"
-    >
-      <div className={contentSection}>
-        <LomSearchBar
-          titleSearchTerm={titleSearchTerm}
-          setTitleSearchTerm={setTitleSearchTerm}
-          onDateSearch={handleDateSearch}
-          onGoToLatest={goToLatestPost}
-          whatsappLink="https://chat.whatsapp.com/JFxX6eqfcg5CgnTs3W2hBR"
-        />
+      (post) => formatEcuadorDateForInput(post.publication_date) <= today
 
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)]" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <LomDevotionalsList
-              titleSearchTerm={titleSearchTerm}
-              dateSearchTerm={dateSearchTerm}
-              currentPosts={currentPosts}
-              totalPages={totalPages}
-              currentPage={currentPage}
-              setCurrentPage={setCurrentPage}
-              onPostClick={handlePostClick}
-            />
+    );
 
-            <LomWeeklyPassages
-              passages={passages}
-              getWeekDateRange={getWeekDateRange}
-              getBibleLink={getBibleLink}
-            />
-          </div>
-        )}
-      </div>
-    </PublicPageLayout>
-  );
-}
+  
+
+  // Ordenar pasajes semanales por día de la semana (creando una copia para evitar mutar el original)
+  const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+  const sortedPassages = [...weeklyPassages].sort((a, b) => {
+    return (
+      daysOfWeek.indexOf(a.day_of_week?.trim()) - daysOfWeek.indexOf(b.day_of_week?.trim())
+    );
+  });
+
+  
+
+    return (
+
+      <PublicPageLayout
+
+        title="Devocionales LOM"
+
+        description="Un espacio diario para encontrarte con Dios a través de Su Palabra."
+
+        imageUrl="/recursos/lom/Lom.png"
+
+        imageAlt="Nubes en el cielo con luz del sol"
+
+      >
+
+        <LomClient initialPosts={publishedPosts} initialPassages={sortedPassages} />
+
+      </PublicPageLayout>
+
+    );
+
+  }
+
+  
