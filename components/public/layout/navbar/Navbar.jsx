@@ -32,7 +32,7 @@ export function Navbar() {
     <>
       <nav
         className={cn(
-          "top-0 z-[100] w-full transition-all duration-500 ease-in-out border-b",
+          "top-0 z-[100] w-full transition-all duration-500 ease-in-out border-b max-w-[100vw]",
           // Usamos fixed en la Home para que el contenido empiece desde arriba (detrás del nav)
           // Usamos sticky en el resto para un flujo natural
           isHomepage ? "fixed" : "sticky md:sticky",
