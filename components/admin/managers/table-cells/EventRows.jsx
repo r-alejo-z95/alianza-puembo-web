@@ -3,23 +3,27 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import { TableRow, TableCell } from '@/components/ui/table';
 import { OverflowCell } from './OverflowCell';
 import { toast } from 'sonner';
-import { Edit, Trash2, Link as LinkIcon, Copy, MapPin } from 'lucide-react';
+import { Edit, Trash2, Link as LinkIcon, Copy, MapPin, Calendar, Clock, ExternalLink } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getEventColorClasses } from '@/components/public/calendar/event-calendar/utils';
 import { formatEventDateRange, formatEventTimeRange } from '@/lib/date-utils';
 import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
+import { cn } from '@/lib/utils.ts';
 
 export function EventRow({ event, onEdit, onDelete, compact }) {
     const posterActions = event.poster_url ? (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-center gap-2">
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" asChild>
-                            <a href={event.poster_url} target="_blank" rel="noopener noreferrer" aria-label="Ver póster">
-                                <LinkIcon className="w-4 h-4" />
-                            </a>
-                        </Button>
+                        <a 
+                            href={event.poster_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/10 transition-all duration-300"
+                        >
+                            <LinkIcon className="w-4 h-4" />
+                        </a>
                     </TooltipTrigger>
                     <TooltipContent>Ver póster</TooltipContent>
                 </Tooltip>
@@ -27,85 +31,72 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost" size="icon"
+                        <button
                             onClick={() => {
                                 navigator.clipboard.writeText(event.poster_url);
-                                toast.success('URL del póster copiado al portapapeles.');
+                                toast.success('URL del póster copiado.');
                             }}
-                            aria-label="Copiar URL del póster"
+                            className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/10 transition-all duration-300"
                         >
                             <Copy className="w-4 h-4" />
-                        </Button>
+                        </button>
                     </TooltipTrigger>
-                    <TooltipContent>Copiar URL del póster</TooltipContent>
+                    <TooltipContent>Copiar enlace</TooltipContent>
                 </Tooltip>
             </TooltipProvider>
         </div>
-    ) : "-";
+    ) : <span className="text-[10px] font-black uppercase tracking-widest text-gray-200">Sin Póster</span>;
 
-    const registrationLinkActions = event.registration_link ? (
-        <div className="flex items-center gap-1">
+    const registrationActions = event.registration_link ? (
+        <div className="flex items-center justify-center gap-2">
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" asChild>
-                            <a href={event.registration_link} target="_blank" rel="noopener noreferrer" aria-label="Ir al enlace de registro">
-                                <LinkIcon className="w-4 h-4" />
-                            </a>
-                        </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>Ir al enlace de registro</TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="ghost" size="icon"
-                            onClick={() => {
-                                navigator.clipboard.writeText(event.registration_link);
-                                toast.success('URL de registro copiada al portapapeles.');
-                            }}
-                            aria-label="Copiar URL de registro"
+                        <a 
+                            href={event.registration_link} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="p-2 rounded-xl bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] hover:bg-[var(--puembo-green)] hover:text-white transition-all duration-300"
                         >
-                            <Copy className="w-4 h-4" />
-                        </Button>
+                            <ExternalLink className="w-4 h-4" />
+                        </a>
                     </TooltipTrigger>
-                    <TooltipContent>Copiar URL de registro</TooltipContent>
+                    <TooltipContent>Link de Registro</TooltipContent>
                 </Tooltip>
             </TooltipProvider>
         </div>
-    ) : "-";
-
-    const locationDisplay = event.location ? (
-        <div className="flex items-center gap-1">
-            <MapPin className="w-4 h-4 text-gray-500" />
-            <span className="text-sm">{event.location}</span>
-        </div>
-    ) : "-";
+    ) : <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Sin Link</span>;
 
     const actions = (
-        <div className="flex items-center gap-1">
-            <Button variant="outline" size="icon" aria-label="Editar evento" onClick={onEdit}>
+        <div className="flex items-center justify-end gap-2">
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={onEdit}
+                className="rounded-xl hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)] transition-all duration-300"
+            >
                 <Edit className="w-4 h-4" />
             </Button>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="icon" aria-label="Eliminar evento">
+                    <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="rounded-xl hover:bg-red-50 hover:text-red-500 transition-all duration-300"
+                    >
                         <Trash2 className="w-4 h-4" />
                     </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Esto eliminará permanentemente el evento de nuestros servidores.
+                <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+                    <AlertDialogHeader className="space-y-4">
+                        <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Deseas cancelar este evento?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
+                            Esta acción eliminará el evento de la agenda pública permanentemente.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={onDelete}>Continuar</AlertDialogAction>
+                    <AlertDialogFooter className="pt-6">
+                        <AlertDialogCancel className="rounded-full border-gray-100">Cerrar</AlertDialogCancel>
+                        <AlertDialogAction onClick={onDelete} className="rounded-full bg-red-500 hover:bg-red-600">Confirmar eliminación</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
@@ -117,51 +108,85 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
 
     if (compact) {
         return (
-            <div className='border rounded-lg p-4 shadow-sm space-y-2 relative'>
-                <div className="absolute top-4 right-4">
-                    <AuthorAvatar profile={event.profiles} className="h-6 w-6" />
+            <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4 relative group">
+                <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            {event.color && <div className={`w-2.5 h-2.5 rounded-full ${getEventColorClasses(event.color)}`} />}
+                            <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Actividad</span>
+                        </div>
+                        <h3 className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2">
+                            {event.title}
+                        </h3>
+                    </div>
+                    <AuthorAvatar profile={event.profiles} className="h-10 w-10 border-2 border-white shadow-md" />
                 </div>
-                <div className="flex items-center gap-2">
-                    {event.color && <div className={`w-3 h-3 rounded-full ${getEventColorClasses(event.color)}`} />}
-                    {event.title}
+                
+                <p className="text-sm text-gray-500 font-light line-clamp-2 leading-relaxed">
+                    {event.description || "Sin descripción."}
+                </p>
+
+                <div className="flex flex-wrap gap-4 pt-2">
+                    <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+                        <Calendar className="w-3 h-3" /> {formattedDate}
+                    </div>
+                    {formattedTime && (
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+                            <Clock className="w-3 h-3" /> {formattedTime}
+                        </div>
+                    )}
+                    {event.location && (
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+                            <MapPin className="w-3 h-3" /> {event.location}
+                        </div>
+                    )}
                 </div>
-                {event.description && <div><span className="font-semibold">Descripción:</span> {event.description}</div>}
-                <div><span className="font-semibold">Fecha:</span> {formattedDate}</div>
-                {formattedTime && <div><span className="font-semibold">Hora:</span> {formattedTime}</div>}
-                {event.location && <div><span className="font-semibold">Ubicación:</span> {locationDisplay}</div>}
-                {event.poster_url && <div><span className="font-semibold">Póster:</span> {posterActions}</div>}
-                {event.registration_link && <div><span className="font-semibold">Link de Registro:</span> {registrationLinkActions}</div>}
-                <div className="flex gap-2 pt-2">{actions}</div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                    <div className="flex gap-2">{posterActions} {registrationActions}</div>
+                    <div className="flex gap-2">{actions}</div>
+                </div>
             </div>
         );
     }
 
     return (
-        <TableRow>
-            <TableCell className="max-w-36">
-                <div className="flex items-center gap-2 overflow-hidden">
-                    {event.color && <div className={`w-3 h-3 rounded-full flex-shrink-0 ${getEventColorClasses(event.color)}`} />}
-                    <div className="overflow-hidden text-ellipsis whitespace-nowrap">
-                        <OverflowCell>{event.title}</OverflowCell>
+        <TableRow className="group hover:bg-gray-50/50 transition-colors border-b border-gray-50">
+            <TableCell className="px-8 py-6 w-1/4">
+                <div className="max-w-[180px] flex items-center gap-3">
+                    {event.color && <div className={`w-2 h-2 rounded-full shrink-0 ${getEventColorClasses(event.color)}`} />}
+                    <div className="flex-grow min-w-0">
+                        <OverflowCell className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors">
+                            {event.title}
+                        </OverflowCell>
                     </div>
                 </div>
             </TableCell>
-            <TableCell className="max-w-68 overflow-hidden text-ellipsis whitespace-nowrap">
-                <OverflowCell>{event.description}</OverflowCell>
+            <TableCell className="px-8 py-6 w-1/4">
+                <div className="max-w-[200px]">
+                    <OverflowCell className="text-xs text-gray-500 font-light italic">{event.description || "-"}</OverflowCell>
+                </div>
             </TableCell>
-            <TableCell>
-                <OverflowCell>{formattedDate}</OverflowCell>
+            <TableCell className="px-8 py-6 min-w-[150px]">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
+                        <Calendar className="w-3 h-3 text-[var(--puembo-green)]" /> {formattedDate}
+                    </div>
+                    {formattedTime && (
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <Clock className="w-3 h-3" /> {formattedTime}
+                        </div>
+                    )}
+                </div>
             </TableCell>
-            <TableCell>{formattedTime || "-"}</TableCell>
-            <TableCell className="max-w-40 overflow-hidden text-ellipsis whitespace-nowrap">
-                <OverflowCell>{locationDisplay}</OverflowCell>
+            <TableCell className="px-8 py-6 text-center">{posterActions}</TableCell>
+            <TableCell className="px-8 py-6 text-center">{registrationActions}</TableCell>
+            <TableCell className="px-8 py-6">
+                <div className="flex justify-center">
+                    <AuthorAvatar profile={event.profiles} className="border-2 border-white shadow-sm" />
+                </div>
             </TableCell>
-            <TableCell>{posterActions}</TableCell>
-            <TableCell>{registrationLinkActions}</TableCell>
-            <TableCell>
-                <AuthorAvatar profile={event.profiles} />
-            </TableCell>
-            <TableCell className="min-w-[150px]">{actions}</TableCell>
+            <TableCell className="px-8 py-6">{actions}</TableCell>
         </TableRow>
     );
 }

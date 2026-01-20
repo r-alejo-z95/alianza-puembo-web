@@ -15,7 +15,18 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { ImageIcon } from "lucide-react";
+import {
+  ImageIcon,
+  Save,
+  X,
+  Calendar,
+  Clock,
+  Type,
+  AlignLeft,
+  Plus,
+  Loader2,
+} from "lucide-react";
+import { cn } from "@/lib/utils.ts";
 
 const newsSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
@@ -50,80 +61,125 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
   }, [newsItem, form]);
 
   const onSubmit = (data) => {
-    onSave({
-      ...data,
-      news_date: data.date || null,
-      news_time: data.time || null,
-    }, imageFile);
+    onSave(
+      {
+        ...data,
+        news_date: data.date || null,
+        news_time: data.time || null,
+      },
+      imageFile
+    );
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Título</FormLabel>
-              <FormControl>
-                <Input placeholder="Título de la noticia" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descripción</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Descripción de la noticia..."
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+        <div className="space-y-8">
+          {/* Título */}
           <FormField
             control={form.control}
-            name="date"
+            name="title"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Fecha</FormLabel>
+              <FormItem className="space-y-3">
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Type className="w-3.5 h-3.5" />
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest">
+                    Título de la Crónica
+                  </FormLabel>
+                </div>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input
+                    placeholder="Escribe un título imponente..."
+                    className="h-14 text-lg font-serif font-bold rounded-2xl bg-gray-50 border-gray-100 focus:bg-white transition-all shadow-sm"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          {/* Descripción */}
           <FormField
             control={form.control}
-            name="time"
+            name="description"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Hora (Opcional)</FormLabel>
+              <FormItem className="space-y-3">
+                <div className="flex items-center gap-2 text-gray-400">
+                  <AlignLeft className="w-3.5 h-3.5" />
+                  <FormLabel className="text-[10px] font-black uppercase tracking-widest">
+                    Contenido Narrativo
+                  </FormLabel>
+                </div>
                 <FormControl>
-                  <Input type="time" {...field} />
+                  <Textarea
+                    placeholder="Relata lo sucedido con detalle..."
+                    className="min-h-[180px] rounded-2xl bg-gray-50 border-gray-100 focus:bg-white transition-all text-base font-light leading-relaxed p-6 shadow-sm"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-        </div>
 
-        <FormItem>
-          <FormLabel>Póster (Opcional)</FormLabel>
-          <FormControl>
-            <div className="flex items-center space-x-2">
+          {/* Fecha y Hora */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <FormField
+              control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest">
+                      Fecha de Publicación
+                    </FormLabel>
+                  </div>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      className="h-12 rounded-xl bg-gray-50 border-gray-100 shadow-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="time"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Clock className="w-3.5 h-3.5" />
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest">
+                      Hora (Opcional)
+                    </FormLabel>
+                  </div>
+                  <FormControl>
+                    <Input
+                      type="time"
+                      className="h-12 rounded-xl bg-gray-50 border-gray-100 shadow-sm"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {/* Multimedia */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-gray-400">
+              <ImageIcon className="w-3.5 h-3.5" />
+              <FormLabel className="text-[10px] font-black uppercase tracking-widest">
+                Imagen Destacada
+              </FormLabel>
+            </div>
+            <div className="p-8 border-2 border-dashed border-gray-100 rounded-[2rem] bg-gray-50/50 flex flex-col items-center justify-center gap-4 transition-all hover:bg-gray-50 hover:border-[var(--puembo-green)]/20 group">
               <Input
                 type="file"
                 accept="image/*"
@@ -150,37 +206,57 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                 className="hidden"
                 ref={fileInputRef}
               />
-                                    <Button
-                                      type="button"
-                                      onClick={() => fileInputRef.current.click()}
-                                    >
-                                      <ImageIcon className="h-4 w-4 mr-2" /> Seleccionar Imagen
-                                    </Button>
-                                    {imageFile ? (
-                                      <span className="text-sm text-gray-500 truncate max-w-[200px]">
-                                        {imageFile.file.name}
-                                      </span>
-                                    ) : newsItem?.image_url ? (
-                                      <span className="text-sm text-gray-500">
-                                        Imagen actual guardada
-                                      </span>
-                                    ) : null}
-              
+              <div
+                className="w-16 h-16 rounded-2xl bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-[var(--puembo-green)] transition-colors cursor-pointer"
+                onClick={() => fileInputRef.current.click()}
+              >
+                <Plus className="w-8 h-8" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-bold text-gray-600">
+                  {imageFile ? "Imagen seleccionada" : "Cargar fotografía"}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {imageFile
+                    ? imageFile.file.name
+                    : "Formatos aceptados: JPG, PNG, WEBP"}
+                </p>
+              </div>
+              {newsItem?.image_url && !imageFile && (
+                <p className="text-[10px] text-[var(--puembo-green)] font-black uppercase tracking-widest mt-2">
+                  Manteniendo imagen actual
+                </p>
+              )}
             </div>
-          </FormControl>
-          <FormMessage />
-        </FormItem>
+          </div>
+        </div>
 
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
+        {/* Acciones */}
+        <div className="flex justify-end gap-4 pt-8 border-t border-gray-50">
+          <Button
+            type="button"
+            variant="ghost"
+            className="rounded-full px-8 font-bold text-gray-400"
+            onClick={onCancel}
+          >
+            <X className="w-4 h-4 mr-2" /> Cancelar
           </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting
-              ? "Guardando..."
-              : newsItem?.id
-                ? "Actualizar Noticia"
-                : "Crear Noticia"}
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting}
+            variant="green"
+            className="rounded-full px-10 py-7 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+          >
+            {form.formState.isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" /> Guardando...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                {newsItem?.id ? "Actualizar Crónica" : "Publicar Historia"}
+              </>
+            )}
           </Button>
         </div>
       </form>

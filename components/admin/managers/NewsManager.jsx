@@ -21,7 +21,8 @@ import NewsForm from "@/components/admin/forms/NewsForm";
 import { NewsRow } from "./table-cells/NewsRows";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { useAdminNewsContext } from "@/components/providers/NewsProvider";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, ListFilter } from "lucide-react";
+import { cn } from "@/lib/utils.ts";
 
 export default function NewsManager() {
   const { news, loading, saveNews, deleteNews } = useAdminNewsContext();
@@ -31,7 +32,7 @@ export default function NewsManager() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { isLg } = useScreenSize();
-  const itemsPerPage = isLg ? 5 : 3;
+  const itemsPerPage = isLg ? 10 : 5;
 
   const handleSave = async (newsData, imageFile) => {
     const result = await saveNews(newsData, imageFile, selectedNews);
@@ -45,7 +46,6 @@ export default function NewsManager() {
   const handleDelete = async (newsId) => {
     const success = await deleteNews(newsId);
     if (success) {
-      // Reset to first page if current page becomes empty
       const newTotalPages = Math.ceil((news.length - 1) / itemsPerPage);
       if (currentPage > newTotalPages && newTotalPages > 0) {
         setCurrentPage(1);
@@ -57,6 +57,7 @@ export default function NewsManager() {
     () => Math.ceil(news.length / itemsPerPage),
     [news.length, itemsPerPage]
   );
+  
   const currentNews = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -64,67 +65,76 @@ export default function NewsManager() {
   }, [news, currentPage, itemsPerPage]);
 
   return (
-    <Card className="mb-16">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Lista de Noticias</CardTitle>
-        <Button
-          onClick={() => {
-            setSelectedNews(null);
-            setIsFormOpen(true);
-          }}
-        >
-          Añadir Noticia
-        </Button>
-      </CardHeader>
-      <CardContent className="max-w-full">
-        {loading ? (
-          <div className="flex items-center justify-center h-32">
-            <Loader2 className="h-8 w-8 animate-spin text-[var(--puembo-green)]" />
-          </div>
-        ) : (
-          <div id="news-table">
-            {/* Large screens */}
-            <div className="hidden lg:block overflow-x-auto">
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-bold">Título</TableHead>
-                    <TableHead className="font-bold">Descripción</TableHead>
-                    <TableHead className="font-bold">Fecha</TableHead>
-                    <TableHead className="font-bold">Hora</TableHead>
-                    <TableHead className="font-bold">Imagen</TableHead>
-                    <TableHead className="font-bold">Autor</TableHead>
-                    <TableHead className="font-bold">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentNews.map((item) => (
-                    <NewsRow
-                      key={item.id}
-                      newsItem={item}
-                      onEdit={() => {
-                        setSelectedNews(item);
-                        setIsFormOpen(true);
-                      }}
-                      onDelete={() => handleDelete(item.id)}
-                      compact={false}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-              {totalPages > 1 && (
-                <PaginationControls
-                  hasNextPage={currentPage < totalPages}
-                  totalPages={totalPages}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
-                />
-              )}
+    <div className="space-y-8">
+      <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="p-8 md:p-12 border-b border-gray-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-gray-50/30">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <ListFilter className="w-3 h-3" />
+              <span>Listado de Contenido</span>
             </div>
+            <CardTitle className="text-3xl font-serif font-bold text-gray-900">Historial de Noticias</CardTitle>
+          </div>
+          <Button
+            variant="green"
+            className="rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+            onClick={() => {
+              setSelectedNews(null);
+              setIsFormOpen(true);
+            }}
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Nueva Noticia
+          </Button>
+        </CardHeader>
+        
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-32 space-y-4">
+              <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)] opacity-20" />
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Cargando Historias</p>
+            </div>
+          ) : news.length === 0 ? (
+            <div className="py-32 text-center space-y-4">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
+                <Newspaper className="w-8 h-8 text-gray-200" />
+              </div>
+              <p className="text-gray-400 font-light italic">No hay noticias publicadas todavía.</p>
+            </div>
+          ) : (
+            <div id="news-table">
+              {/* Large screens */}
+              <div className="hidden lg:block overflow-x-auto">
+                <Table className="w-full">
+                  <TableHeader className="bg-gray-50/50">
+                    <TableRow className="hover:bg-transparent border-b border-gray-100">
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Título</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Extracto</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Fecha y Hora</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Multimedia</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Autor</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentNews.map((item) => (
+                      <NewsRow
+                        key={item.id}
+                        newsItem={item}
+                        onEdit={() => {
+                          setSelectedNews(item);
+                          setIsFormOpen(true);
+                        }}
+                        onDelete={() => handleDelete(item.id)}
+                        compact={false}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-            {/* Small screens */}
-            <div className="lg:hidden space-y-4">
-              <div className="w-full">
+              {/* Small screens */}
+              <div className="lg:hidden p-6 space-y-6">
                 {currentNews.map((item) => (
                   <NewsRow
                     key={item.id}
@@ -138,33 +148,45 @@ export default function NewsManager() {
                   />
                 ))}
               </div>
+
               {totalPages > 1 && (
-                <PaginationControls
-                  hasNextPage={currentPage < totalPages}
-                  totalPages={totalPages}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
-                />
+                <div className="p-8 border-t border-gray-50">
+                  <PaginationControls
+                    hasNextPage={currentPage < totalPages}
+                    totalPages={totalPages}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                  />
+                </div>
               )}
             </div>
-          </div>
-        )}
-      </CardContent>
+          )}
+        </CardContent>
+      </Card>
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedNews?.id ? "Editar Noticia" : "Crear Nueva Noticia"}
-            </DialogTitle>
-          </DialogHeader>
-          <NewsForm
-            newsItem={selectedNews}
-            onSave={handleSave}
-            onCancel={() => setIsFormOpen(false)}
-          />
+        <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto border-none rounded-[3rem] shadow-2xl p-0">
+          <div className="bg-black p-8 md:p-12">
+            <DialogHeader className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-px w-8 bg-[var(--puembo-green)]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Editor de Contenido</span>
+              </div>
+              <DialogTitle className="text-4xl font-serif font-bold text-white leading-tight">
+                {selectedNews?.id ? "Refinar" : "Crear"} <br />
+                <span className="text-[var(--puembo-green)] italic">Historia</span>
+              </DialogTitle>
+            </DialogHeader>
+          </div>
+          <div className="p-8 md:p-12 bg-white">
+            <NewsForm
+              newsItem={selectedNews}
+              onSave={handleSave}
+              onCancel={() => setIsFormOpen(false)}
+            />
+          </div>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 }

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import dynamic from 'next/dynamic';
 import { formatEcuadorDateForInput, getNowInEcuador, ecuadorToUTC } from '@/lib/date-utils';
-import { Loader2 } from 'lucide-react';
+import { Loader2, BookOpen, ListFilter, PenTool } from 'lucide-react';
 
 const RichTextEditor = dynamic(
   () => import('@/components/admin/forms/RichTextEditor'),
@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import { LomRow } from './table-cells/LomRow';
 import { useScreenSize } from '@/lib/hooks/useScreenSize';
 import { PaginationControls } from "@/components/shared/PaginationControls";
+import { cn } from "@/lib/utils.ts";
 
 const lomSchema = z.object({
   title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),
@@ -39,13 +40,12 @@ const lomSchema = z.object({
 export default function LomManager() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [editorKey, setEditorKey] = useState(0);
 
-  const { isLg } = useScreenSize();
-  const itemsPerPage = 3; // Always 3 for LOM posts
-
+  const itemsPerPage = 10;
   const supabase = createClient();
 
   const form = useForm({
@@ -85,7 +85,7 @@ export default function LomManager() {
   };
 
   const onSubmit = async (data) => {
-    setLoading(true);
+    setSubmitting(true);
     const { data: { user } } = await supabase.auth.getUser();
 
     const slug = createSlug(data.title);
@@ -116,12 +116,9 @@ export default function LomManager() {
       }
     }
     setSelectedPost(null);
-    form.reset({
-      title: '',
-      content: '',
-      publication_date: '',
-    });
+    form.reset({ title: '', content: '', publication_date: '' });
     setEditorKey((prev) => prev + 1);
+    setSubmitting(false);
     fetchPosts();
   };
 
@@ -133,6 +130,8 @@ export default function LomManager() {
       publication_date: formatEcuadorDateForInput(post.publication_date),
     });
     setEditorKey((prev) => prev + 1);
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (postId) => {
@@ -148,7 +147,6 @@ export default function LomManager() {
   };
 
   const totalPages = useMemo(() => Math.ceil(posts.length / itemsPerPage), [posts.length, itemsPerPage]);
-  const hasNextPage = currentPage * itemsPerPage < posts.length;
   const currentPosts = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -156,108 +154,156 @@ export default function LomManager() {
   }, [posts, currentPage, itemsPerPage]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Crear/Editar Devocional</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Título</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Título del devocional" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="publication_date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fecha de Publicación</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contenido</FormLabel>
-                  <FormControl>
-                    <RichTextEditor key={editorKey} content={field.value} onChange={field.onChange} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => { form.reset({ title: '', content: '', publication_date: '' }); setSelectedPost(null); setEditorKey((prev) => prev + 1); }}>Cancelar</Button>
-              <Button type="submit" disabled={loading} className="w-24 h-10">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (selectedPost ? 'Actualizar' : 'Publicar')}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-
-      <CardHeader className="mt-8">
-        <CardTitle>Devocionales Publicados</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-[var(--puembo-green)]" />
+    <div className="space-y-16">
+      {/* Editorial Form Card */}
+      <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+        <div className="bg-black p-8 md:p-12">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-px w-8 bg-[var(--puembo-green)]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Composición</span>
           </div>
-        ) : (
-          <div id='lom-table'>
-            {/* Pantallas grandes */}
-            <div className="hidden lg:block overflow-x-auto">
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-bold">Título</TableHead>
-                    <TableHead className="font-bold">Fecha de Publicación</TableHead>
-                    <TableHead className="font-bold">Autor</TableHead>
-                    <TableHead className="font-bold">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentPosts.map((post) => (
-                    <LomRow
-                      key={post.id}
-                      post={post}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                      compact={false}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-              {totalPages > 1 && (
-                <PaginationControls
-                  hasNextPage={hasNextPage}
-                  totalPages={totalPages}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
+          <h2 className="text-4xl font-serif font-bold text-white leading-tight">
+            {selectedPost ? "Refinar" : "Escribir"} <br />
+            <span className="text-[var(--puembo-green)] italic">Devocional</span>
+          </h2>
+        </div>
+        
+        <CardContent className="p-8 md:p-12">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Título de la Lectura</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Ej: Caminando sobre las aguas" 
+                          className="h-12 rounded-xl bg-gray-50 border-gray-100 focus:bg-white transition-all"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              )}
-            </div>
+                <FormField
+                  control={form.control}
+                  name="publication_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Fecha de Publicación</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date" 
+                          className="h-12 rounded-xl bg-gray-50 border-gray-100 focus:bg-white transition-all"
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            {/* Pantallas pequeñas */}
-            <div className="lg:hidden space-y-4">
-              <div className="w-full">
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-xs font-black uppercase tracking-widest text-gray-400">Cuerpo del Devocional</FormLabel>
+                    <FormControl>
+                      <div className="rounded-2xl border border-gray-100 overflow-hidden shadow-inner">
+                        <RichTextEditor key={editorKey} content={field.value} onChange={field.onChange} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end gap-4 pt-4">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  className="rounded-full px-8"
+                  onClick={() => { 
+                    form.reset({ title: '', content: '', publication_date: '' }); 
+                    setSelectedPost(null); 
+                    setEditorKey((prev) => prev + 1); 
+                  }}
+                >
+                  Descartar
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={submitting} 
+                  variant="green"
+                  className="rounded-full px-10 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+                >
+                  {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <PenTool className="w-4 h-4 mr-2" />}
+                  {selectedPost ? 'Guardar Cambios' : 'Publicar Lectura'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+
+      {/* History Table Card */}
+      <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="p-8 md:p-12 border-b border-gray-50 bg-gray-50/30 flex flex-row items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <ListFilter className="w-3 h-3" />
+              <span>Archivo Editorial</span>
+            </div>
+            <CardTitle className="text-3xl font-serif font-bold text-gray-900">Lecturas Publicadas</CardTitle>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-32 space-y-4">
+              <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)] opacity-20" />
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Cargando Archivo</p>
+            </div>
+          ) : posts.length === 0 ? (
+            <div className="py-32 text-center space-y-4">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
+                <BookOpen className="w-8 h-8 text-gray-200" />
+              </div>
+              <p className="text-gray-400 font-light italic">No hay devocionales publicados todavía.</p>
+            </div>
+          ) : (
+            <div id='lom-table'>
+              <div className="hidden lg:block overflow-x-auto">
+                <Table className="w-full">
+                  <TableHeader className="bg-gray-50/50">
+                    <TableRow className="hover:bg-transparent border-b border-gray-100">
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Título del Devocional</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Fecha de Publicación</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Autor</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentPosts.map((post) => (
+                      <LomRow
+                        key={post.id}
+                        post={post}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        compact={false}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              <div className="lg:hidden p-6 space-y-6">
                 {currentPosts.map((post) => (
                   <LomRow
                     key={post.id}
@@ -268,18 +314,21 @@ export default function LomManager() {
                   />
                 ))}
               </div>
+
               {totalPages > 1 && (
-                <PaginationControls
-                  hasNextPage={hasNextPage}
-                  totalPages={totalPages}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
-                />
+                <div className="p-8 border-t border-gray-50">
+                  <PaginationControls
+                    hasNextPage={currentPage < totalPages}
+                    totalPages={totalPages}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                  />
+                </div>
               )}
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -7,7 +7,8 @@ import {
   adminPageDescription,
 } from "@/lib/styles.ts";
 import { createClient } from "@/lib/supabase/server";
-import { CheckCircle2, Globe, ExternalLink } from "lucide-react";
+import { CheckCircle2, Globe, ExternalLink, Database } from "lucide-react";
+import { cn } from "@/lib/utils.ts";
 
 export const metadata = {
   title: "Gestionar Formularios",
@@ -31,44 +32,55 @@ export default async function FormulariosAdminPage() {
 
   return (
     <section className={adminPageSection}>
-      <div className={adminPageHeaderContainer}>
-        <div className="grow">
-          <h1 className={adminPageTitle}>Gestionar Formularios</h1>
-          <p className={adminPageDescription}>
-            Crea y administra formularios personalizados para diversos
-            propósitos.
-          </p>
+      <header className={adminPageHeaderContainer}>
+        <div className="flex items-center gap-4 mb-6">
+          <div className="h-px w-12 bg-[var(--puembo-green)]" />
+          <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--puembo-green)]">
+            Herramientas
+          </span>
         </div>
-      </div>
-      <div className="flex flex-col gap-4 mb-4">
+        <h1 className={adminPageTitle}>
+          Gestionar{" "}
+          <span className="text-[var(--puembo-green)] italic">Formularios</span>
+        </h1>
+        <p className={adminPageDescription}>
+          Crea y administra formularios dinámicos para registros, encuestas y
+          recopilación de datos. Conecta con Google para automatizar el
+          almacenamiento.
+        </p>
+      </header>
+
+      <div className="mb-12">
         {isConnected ? (
-          <div className="flex flex-col items-start gap-2 bg-emerald-50 border border-emerald-200 p-4 rounded-xl shadow-sm max-w-md">
-            <div className="flex items-center gap-2 text-emerald-700 font-semibold">
-              <CheckCircle2 className="w-5 h-5" />
-              <span>Conectado a Google</span>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 bg-emerald-50 border border-emerald-100 p-8 rounded-[2rem] shadow-sm max-w-3xl">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-emerald-500/20">
+              <Database className="w-7 h-7" />
             </div>
-            <p className="text-xs text-gray-600 text-left">
-              Los formularios se guardarán automáticamente en el Drive de la
-              cuenta:{" "}
-              <strong>
-                {googleConn.account_name} ({googleConn.account_email})
-              </strong>
-              .
-            </p>
-            <p className="text-xs text-gray-600 text-left">
-              Accede directamente a las respuestas e imagenes adjuntas de los
-              formularios usando los botones de <strong>Respuestas</strong> y{" "}
-              <strong>Carpeta</strong>.
-            </p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-emerald-700 font-bold">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Sincronización Activa con Google Drive</span>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Los formularios se guardan automáticamente en:{" "}
+                <strong>{googleConn.account_name}</strong> (
+                {googleConn.account_email}).
+              </p>
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col items-end gap-2 bg-amber-50 border border-amber-200 p-4 rounded-xl shadow-sm max-w-md">
-            <p className="text-xs text-amber-700 max-w-xs text-right mb-1">
-              Conecta la cuenta de Inscripciones Eventos Puembo
-              (eventospuembo@gmail.com) para habilitar la creación automática de
-              hojas de cálculo y almacenamiento en Drive.
-            </p>
-            <GoogleConnectButton />
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 bg-amber-50 border border-amber-100 p-8 rounded-[2rem] shadow-sm max-w-3xl">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-amber-500/20">
+              <Globe className="w-7 h-7" />
+            </div>
+            <div className="space-y-4">
+              <p className="text-sm text-amber-800 leading-relaxed font-medium">
+                Conecta la cuenta de Inscripciones Eventos Puembo
+                (eventospuembo@gmail.com) para automatizar la creación de hojas
+                de cálculo y el almacenamiento de adjuntos en Drive.
+              </p>
+              <GoogleConnectButton />
+            </div>
           </div>
         )}
       </div>

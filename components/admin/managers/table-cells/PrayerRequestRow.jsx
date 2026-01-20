@@ -3,12 +3,13 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import { TableRow, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { OverflowCell } from './OverflowCell';
-import { Trash2, Edit } from 'lucide-react';
+import { Trash2, Edit, Calendar, User, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import PrayerRequestStatusDialog from '../../forms/PrayerRequestStatusDialog';
 import { useState } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatInEcuador } from '@/lib/date-utils';
+import { cn } from "@/lib/utils.ts";
 
 export function PrayerRequestRow({ request, onDelete, onStatusChange, compact }) {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
@@ -16,117 +17,166 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
   const statusBadge = (status) => {
     switch (status) {
       case 'pending':
-        return <Badge>Pendiente</Badge>;
+        return <Badge className="bg-amber-50 text-amber-600 border-amber-100 rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest">Pendiente</Badge>;
       case 'approved':
-        return <Badge variant="approved">Aprobada</Badge>;
+        return <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest">Aprobada</Badge>;
       case 'rejected':
-        return <Badge variant="destructive">Rechazada</Badge>;
+        return <Badge className="bg-red-50 text-red-600 border-red-100 rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest">Rechazada</Badge>;
       default:
-        return <Badge variant="secondary">Desconocido</Badge>;
+        return <Badge variant="secondary" className="rounded-full px-3 text-[10px] uppercase">Desconocido</Badge>;
     }
   };
 
   const actions = (
-    <div className="flex gap-2">
+    <div className="flex items-center justify-end gap-2">
       {request.is_public ? (
         <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
           <DialogTrigger asChild>
-            <Button variant="outline" size="icon" aria-label="Cambiar estado">
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="rounded-xl hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)] transition-all duration-300"
+            >
               <Edit className="w-4 h-4" />
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Cambiar Estado de Petición</DialogTitle>
-            </DialogHeader>
-            <PrayerRequestStatusDialog
-              request={request}
-              onStatusChange={onStatusChange}
-              onClose={() => setIsStatusDialogOpen(false)}
-            />
+          <DialogContent className="rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
+            <div className="bg-black p-8">
+                <DialogHeader className="space-y-2">
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Moderación</span>
+                    <DialogTitle className="text-3xl font-serif font-bold text-white leading-tight">Estado de Petición</DialogTitle>
+                </DialogHeader>
+            </div>
+            <div className="p-8 bg-white">
+                <PrayerRequestStatusDialog
+                    request={request}
+                    onStatusChange={onStatusChange}
+                    onClose={() => setIsStatusDialogOpen(false)}
+                />
+            </div>
           </DialogContent>
         </Dialog>
       ) : (
-        <Button disabled variant="outline" size="icon" aria-label="Edicion desactivada">
-          <Edit className="w-4 h-4" />
+        <Button disabled variant="ghost" size="icon" className="opacity-20 rounded-xl">
+          <ShieldCheck className="w-4 h-4" />
         </Button>
       )}
       <AlertDialog>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive" size="icon" aria-label="Eliminar petición">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            className="rounded-xl hover:bg-red-50 hover:text-red-500 transition-all duration-300"
+          >
             <Trash2 className="w-4 h-4" />
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. La petición será eliminada permanentemente.
+        <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+          <AlertDialogHeader className="space-y-4">
+            <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Eliminar esta petición?</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
+              Esta acción eliminará la petición permanentemente de los registros internos.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={() => onDelete(request.id)}>Eliminar</AlertDialogAction>
+          <AlertDialogFooter className="pt-6">
+            <AlertDialogCancel className="rounded-full border-gray-100">Cerrar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => onDelete(request.id)} className="rounded-full bg-red-500 hover:bg-red-600">Eliminar definitivamente</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
   );
 
-  const formattedDate = formatInEcuador(request.created_at, "d 'de' MMM, yyyy HH:mm");
+  const formattedDate = formatInEcuador(request.created_at, "d 'de' MMM, yyyy");
+  const formattedTime = formatInEcuador(request.created_at, "HH:mm");
 
   if (compact) {
     return (
-      <div className='border rounded-lg p-4 shadow-sm space-y-2'>
-        <div><span className="font-semibold">Petición:</span> <OverflowCell>{request.request_text}</OverflowCell></div>
-        <div><span className="font-semibold">Nombre:</span> <OverflowCell>{request.name || "N/A"}</OverflowCell></div>
-        <div><span className="font-semibold">Fecha:</span> {formattedDate}</div>
-        <div><span className="font-semibold">Tipo:</span>
-          <div className="flex gap-2 mt-1">
-            {request.is_public ? (
-              <Badge variant="outline">Pública</Badge>
-            ) : (
-              <Badge variant="blue">Privada</Badge>
-            )}
-            {request.is_anonymous && <Badge variant="secondary">Anónima</Badge>}
+      <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4 relative group">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+                {request.is_public ? <Eye className="w-3 h-3 text-emerald-500" /> : <EyeOff className="w-3 h-3 text-blue-500" />}
+                <span className={cn(
+                    "text-[10px] font-black uppercase tracking-widest",
+                    request.is_public ? "text-emerald-600" : "text-blue-600"
+                )}>
+                    {request.is_public ? "Pública" : "Privada"}
+                </span>
+            </div>
+            <h3 className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-3">
+              "{request.request_text}"
+            </h3>
           </div>
         </div>
-        {request.is_public && (
-          <div><span className="font-semibold">Estado:</span>
-            <div className="flex gap-2 mt-1">
-              {statusBadge(request.status)}
+        
+        <div className="flex flex-col gap-2 pt-2 border-t border-gray-50 mt-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
+                <User className="w-3.5 h-3.5 text-gray-400" />
+                {request.is_anonymous ? "Anónimo" : (request.name || "N/A")}
             </div>
-          </div>
-        )}
-        <div className="flex gap-2 pt-2">{actions}</div>
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+                    <Calendar className="w-3 h-3" /> {formattedDate}
+                </div>
+                {request.is_public && statusBadge(request.status)}
+            </div>
+        </div>
+
+        <div className="flex items-center justify-end pt-4 border-t border-gray-50 mt-2">
+            {actions}
+        </div>
       </div>
     );
   }
 
   return (
-    <TableRow>
-      <TableCell className="max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-        <OverflowCell>{request.request_text}</OverflowCell>
-      </TableCell>
-      <TableCell className="max-w-36 overflow-hidden text-ellipsis whitespace-nowrap">
-        <OverflowCell>{request.name || "N/A"}</OverflowCell>
-      </TableCell>
-      <TableCell>{formattedDate}</TableCell>
-      <TableCell>
-        <div className="flex gap-2">
-          {request.is_public ? (
-            <Badge variant="outline">Pública</Badge>
-          ) : (
-            <Badge variant="blue">Privada</Badge>
-          )}
-          {request.is_anonymous && <Badge variant="secondary">Anónima</Badge>}
+    <TableRow className="group hover:bg-gray-50/50 transition-colors border-b border-gray-50">
+      <TableCell className="px-8 py-6 w-1/3">
+        <div className="max-w-[350px]">
+          <OverflowCell className="text-sm font-medium text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors italic">
+            {`"${request.request_text}"`}
+          </OverflowCell>
         </div>
       </TableCell>
-      {request.is_public ? (
-        <TableCell>{statusBadge(request.status)}</TableCell>
-      ) : <TableCell />
-      }
-      <TableCell>{actions}</TableCell>
+      <TableCell className="px-8 py-6">
+        <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400">
+                <User className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col max-w-[150px]">
+                <OverflowCell className="text-sm font-bold text-gray-700">
+                    {request.is_anonymous ? "Anónimo" : (request.name || "N/A")}
+                </OverflowCell>
+                <OverflowCell className="text-[10px] text-gray-400 uppercase tracking-widest">
+                    {request.email || "Sin email"}
+                </OverflowCell>
+            </div>
+        </div>
+      </TableCell>
+      <TableCell className="px-8 py-6">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
+            <Calendar className="w-3 h-3 text-[var(--puembo-green)]" /> {formattedDate}
+          </div>
+          <p className="text-[10px] text-gray-400 ml-5">{formattedTime}</p>
+        </div>
+      </TableCell>
+      <TableCell className="px-8 py-6 text-center">
+        {request.is_public ? (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-widest border border-emerald-100">
+                <Eye className="w-3 h-3" /> Pública
+            </div>
+        ) : (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-widest border border-blue-100">
+                <EyeOff className="w-3 h-3" /> Privada
+            </div>
+        )}
+      </TableCell>
+      <TableCell className="px-8 py-6 text-center">
+        {request.is_public ? statusBadge(request.status) : <span className="text-[10px] font-black text-gray-200 uppercase tracking-[0.3em]">Interna</span>}
+      </TableCell>
+      <TableCell className="px-8 py-6">{actions}</TableCell>
     </TableRow>
   );
 }

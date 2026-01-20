@@ -8,12 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { toast } from 'sonner';
 import PassageForm from '@/components/admin/forms/PassageForm';
-import { Edit, Trash2, Loader2 } from 'lucide-react';
+import { Edit, Trash2, Loader2, Plus, Calendar, BookOpen, User } from 'lucide-react';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { PaginationControls } from "@/components/shared/PaginationControls";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ecuadorToUTC } from '@/lib/date-utils';
 import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
+import { cn } from "@/lib/utils.ts";
 
 const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
@@ -51,7 +51,7 @@ export default function PassageManager() {
             week_number: passage.week_number, 
             week_start_date: passage.week_start_date, 
             passages: [passage],
-            profiles: passage.profiles // El perfil viene del primer pasaje de la semana
+            profiles: passage.profiles
           });
         }
         return acc;
@@ -100,8 +100,6 @@ export default function PassageManager() {
       } else {
         toast.success('Pasajes guardados con éxito.');
       }
-    } else if (selectedWeek) {
-      toast.success('Todos los pasajes de la semana han sido eliminados.');
     }
 
     setIsFormOpen(false);
@@ -121,89 +119,151 @@ export default function PassageManager() {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Semanas Publicadas</CardTitle>
-        <Button onClick={() => { setSelectedWeek(null); setIsFormOpen(true); }}>Crear Semana</Button>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-[var(--puembo-green)]" />
+    <div className="space-y-8">
+      <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="p-8 md:p-12 border-b border-gray-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-gray-50/30">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <Calendar className="w-3 h-3" />
+              <span>Ciclo de Lectura</span>
+            </div>
+            <CardTitle className="text-3xl font-serif font-bold text-gray-900">Pasajes Semanales</CardTitle>
           </div>
-        ) : (
-          <>
-            <Accordion type="single" collapsible className="w-full">
-              {currentWeeks.map(week => (
-                <AccordionItem value={`week-${week.week_number}`} key={week.week_number}>
-                  <AccordionTrigger className="cursor-pointer">
-                    <div className="flex items-center gap-4">
-                      <span>Semana {week.week_number}</span>
-                      <AuthorAvatar profile={week.profiles} className="h-6 w-6" />
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="flex justify-between items-start">
-                      <ul>
-                        {week.passages.map(passage => (
-                          <li key={passage.id} className="p-2">
-                            <span><strong>{passage.day_of_week}:</strong> {passage.passage_reference}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="icon" aria-label="Editar semana" onClick={() => { setSelectedWeek(week); setIsFormOpen(true); }}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="icon" aria-label="Eliminar semana">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta acción no se puede deshacer. Esto eliminará permanentemente todos los pasajes de la semana.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteWeek(week.week_number)}>Continuar</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+          <Button
+            variant="green"
+            className="rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+            onClick={() => {
+              setSelectedWeek(null);
+              setIsFormOpen(true);
+            }}
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Programar Semana
+          </Button>
+        </CardHeader>
+        
+        <CardContent className="p-8 md:p-12">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 space-y-4">
+              <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)] opacity-20" />
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Cargando Lecturas</p>
+            </div>
+          ) : weeks.length === 0 ? (
+            <div className="py-20 text-center space-y-4">
+              <BookOpen className="w-12 h-12 text-gray-100 mx-auto" />
+              <p className="text-gray-400 font-light italic">No hay pasajes programados todavía.</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <Accordion type="single" collapsible className="w-full space-y-4">
+                {currentWeeks.map(week => (
+                  <AccordionItem 
+                    value={`week-${week.week_number}`} 
+                    key={week.week_number}
+                    className="border border-gray-100 rounded-[2rem] px-6 px-8 transition-all hover:border-[var(--puembo-green)]/20"
+                  >
+                    <AccordionTrigger className="hover:no-underline py-6">
+                      <div className="flex items-center gap-6 text-left">
+                        <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 group-data-[state=open]:bg-[var(--puembo-green)] group-data-[state=open]:text-white transition-colors">
+                          <Calendar className="w-6 h-6" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xl font-serif font-bold text-gray-900">Semana {week.week_number}</p>
+                          <div className="flex items-center gap-2">
+                            <AuthorAvatar profile={week.profiles} className="h-4 w-4" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Programado por {week.profiles?.full_name?.split(' ')[0] || 'Admin'}</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-            {totalPages > 1 && (
-              <PaginationControls
-                hasNextPage={currentPage < totalPages}
-                totalPages={totalPages}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-              />
-            )}
-          </>
-        )}
-      </CardContent>
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-8 pt-2">
+                      <div className="bg-gray-50/50 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-end gap-8 border border-gray-100/50">
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4 w-full">
+                          {week.passages.map(passage => (
+                            <li key={passage.id} className="flex items-center gap-4 group">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)] w-20">{passage.day_of_week}</span>
+                              <span className="text-base font-bold text-gray-700 group-hover:text-black transition-colors">{passage.passage_reference}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="flex gap-3 shrink-0">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => { setSelectedWeek(week); setIsFormOpen(true); }}
+                            className="rounded-xl border-gray-200"
+                          >
+                            <Edit className="w-4 h-4 mr-2" /> Editar
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="rounded-xl text-red-400 hover:text-red-500 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+                              <AlertDialogHeader className="space-y-4">
+                                <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Eliminar esta semana?</AlertDialogTitle>
+                                <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
+                                  Esta acción borrará todos los pasajes asociados a la semana {week.week_number}.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter className="pt-6">
+                                <AlertDialogCancel className="rounded-full border-gray-100">Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteWeek(week.week_number)} className="rounded-full bg-red-500 hover:bg-red-600">Eliminar todo</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+              
+              {totalPages > 1 && (
+                <div className="pt-8 border-t border-gray-50">
+                  <PaginationControls
+                    hasNextPage={currentPage < totalPages}
+                    totalPages={totalPages}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedWeek ? 'Editar Semana' : 'Crear Semana'}</DialogTitle>
-          </DialogHeader>
-          <PassageForm
-            week={selectedWeek}
-            onSave={handleSave}
-            onCancel={() => setIsFormOpen(false)}
-            loading={loading}
-          />
+        <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto border-none rounded-[3rem] shadow-2xl p-0">
+          <div className="bg-black p-8 md:p-12">
+            <DialogHeader className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-px w-8 bg-[var(--puembo-green)]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Configuración</span>
+              </div>
+              <DialogTitle className="text-4xl font-serif font-bold text-white leading-tight">
+                Lecturas de <br />
+                <span className="text-[var(--puembo-green)] italic">la Semana</span>
+              </DialogTitle>
+            </DialogHeader>
+          </div>
+          <div className="p-8 md:p-12 bg-white">
+            <PassageForm
+              week={selectedWeek}
+              onSave={handleSave}
+              onCancel={() => setIsFormOpen(false)}
+              loading={loading}
+            />
+          </div>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 }

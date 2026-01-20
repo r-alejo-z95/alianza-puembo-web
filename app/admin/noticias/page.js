@@ -15,14 +15,18 @@ export default function NoticiasAdminPage() {
   return (
     <NewsProvider>
       <section className={adminPageSection}>
-        <div className={adminPageHeaderContainer}>
+        <header className={adminPageHeaderContainer}>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-px w-12 bg-[var(--puembo-green)]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--puembo-green)]">Editorial</span>
+          </div>
           <h1 className={adminPageTitle}>
-            Gestionar Noticias
+            Gestionar <span className="text-[var(--puembo-green)] italic">Noticias</span>
           </h1>
           <p className={adminPageDescription}>
-            Administra las noticias de la iglesia.
+            Crea, edita y administra las crónicas y novedades que mantienen a nuestra comunidad conectada e inspirada.
           </p>
-        </div>
+        </header>
         <NewsManager />
       </section>
     </NewsProvider>

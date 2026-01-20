@@ -26,10 +26,10 @@ export const imageHeaderContainer: string = "relative w-full h-[20vh] md:h-[30vh
 export const sectionTitle: string = "font-merriweather text-lg md:text-xl lg:text-2xl font-bold";
 export const subSectionTitle: string = "font-merriweather text-base md:text-lg lg:text-xl font-bold mx-auto text-center";
 
-export const adminPageSection: string = "container mx-auto px-4 py-8";
-export const adminPageHeaderContainer: string = "mb-8";
-export const adminPageTitle: string = "text-4xl font-bold tracking-tight font-merriweather text-right md:text-center lg:text-left";
-export const adminPageDescription: string = "mt-4 text-lg text-muted-foreground md:text-center lg:text-left";
+export const adminPageSection: string = "w-full space-y-12";
+export const adminPageHeaderContainer: string = "mb-16 space-y-4";
+export const adminPageTitle: string = "text-5xl md:text-6xl font-serif font-bold tracking-tight text-gray-900";
+export const adminPageDescription: string = "text-lg text-gray-500 font-light max-w-2xl leading-relaxed";
 
 export const textShadow: string =
   "[text-shadow:0_2px_4px_rgba(0,0,0,0.7)]";

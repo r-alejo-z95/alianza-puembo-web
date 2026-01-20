@@ -13,92 +13,87 @@ import {
 import { TableRow, TableCell } from "@/components/ui/table";
 import { OverflowCell } from "./OverflowCell";
 import { toast } from "sonner";
-import { Edit, Trash2, Link as LinkIcon, Copy } from "lucide-react";
+import { Edit, Trash2, Link as LinkIcon, Copy, Calendar, Clock } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatLiteralDate } from "@/lib/date-utils";
 import { AuthorAvatar } from "@/components/shared/AuthorAvatar";
+import { cn } from "@/lib/utils.ts";
 
 const formatNewsTime = (timeStr) => {
   if (!timeStr) return "-";
-  // timeStr is like "14:30:00", take hh:mm
   const parts = timeStr.split(":");
   return `${parts[0]}:${parts[1]}`;
 };
 
 export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
   const posterActions = newsItem.image_url ? (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center justify-center gap-2">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" asChild>
-              <a
-                href={newsItem.image_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Ver imagen"
-              >
-                <LinkIcon className="w-4 h-4" />
-              </a>
-            </Button>
+            <a
+              href={newsItem.image_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/10 transition-all duration-300"
+            >
+              <LinkIcon className="w-4 h-4" />
+            </a>
           </TooltipTrigger>
-          <TooltipContent>Ver imagen</TooltipContent>
+          <TooltipContent>Ver multimedia</TooltipContent>
         </Tooltip>
       </TooltipProvider>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
               onClick={() => {
                 navigator.clipboard.writeText(newsItem.image_url);
-                toast.success("URL de la imagen copiada al portapapeles.");
+                toast.success("URL copiada.");
               }}
-              aria-label="Copiar URL de la imagen"
+              className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/10 transition-all duration-300"
             >
               <Copy className="w-4 h-4" />
-            </Button>
+            </button>
           </TooltipTrigger>
-          <TooltipContent>Copiar URL de la imagen</TooltipContent>
+          <TooltipContent>Copiar enlace</TooltipContent>
         </Tooltip>
       </TooltipProvider>
     </div>
   ) : (
-    "-"
+    <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Sin Imagen</span>
   );
 
   const actions = (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center justify-end gap-2">
       <Button
-        variant="outline"
+        variant="ghost"
         size="icon"
-        aria-label="Editar noticia"
         onClick={onEdit}
+        className="rounded-xl hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)] transition-all duration-300"
       >
         <Edit className="w-4 h-4" />
       </Button>
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button
-            variant="destructive"
+            variant="ghost"
             size="icon"
-            aria-label="Eliminar noticia"
+            className="rounded-xl hover:bg-red-50 hover:text-red-500 transition-all duration-300"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
         </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente
-              la noticia de nuestros servidores.
+        <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+          <AlertDialogHeader className="space-y-4">
+            <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Deseas archivar esta historia?</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
+              Esta acción eliminará la noticia de la vista pública permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={onDelete}>Continuar</AlertDialogAction>
+          <AlertDialogFooter className="pt-6">
+            <AlertDialogCancel className="rounded-full border-gray-100">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={onDelete} className="rounded-full bg-red-500 hover:bg-red-600">Eliminar permanentemente</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -112,54 +107,71 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
 
   if (compact) {
     return (
-      <div className="border rounded-lg p-4 shadow-sm space-y-2 relative">
-        <div className="absolute top-4 right-4">
-          <AuthorAvatar profile={newsItem.profiles} className="h-6 w-6" />
-        </div>
-        <div className="flex items-center gap-2 font-semibold">
-          {newsItem.title}
-        </div>
-        {newsItem.description && (
-          <div>
-            <span className="font-semibold">Descripción:</span>{" "}
-            {newsItem.description}
+      <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4 relative group">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1">
+            <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Noticia</span>
+            <h3 className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2">
+              {newsItem.title}
+            </h3>
           </div>
-        )}
-        <div>
-          <span className="font-semibold">Fecha:</span> {formattedDate}{" "}
-          {formattedTime !== "-" ? `a las ${formattedTime}` : ""}
+          <AuthorAvatar profile={newsItem.profiles} className="h-10 w-10 border-2 border-white shadow-md" />
         </div>
-        {newsItem.image_url && (
-          <div>
-            <span className="font-semibold">Imagen:</span> {posterActions}
+        
+        <p className="text-sm text-gray-500 font-light line-clamp-2 leading-relaxed">
+          {newsItem.description || "Sin descripción."}
+        </p>
+
+        <div className="flex flex-wrap gap-4 pt-2">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+            <Calendar className="w-3 h-3" /> {formattedDate}
           </div>
-        )}
-        <div className="flex gap-2 pt-2">{actions}</div>
+          {formattedTime !== "-" && (
+            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+              <Clock className="w-3 h-3" /> {formattedTime}
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+          <div className="flex gap-2">{posterActions}</div>
+          <div className="flex gap-2">{actions}</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <TableRow>
-      <TableCell className="max-w-48">
-        <div className="overflow-hidden text-ellipsis whitespace-nowrap">
-          <OverflowCell>{newsItem.title}</OverflowCell>
+    <TableRow className="group hover:bg-gray-50/50 transition-colors border-b border-gray-50">
+      <TableCell className="px-8 py-6 w-1/4">
+        <div className="max-w-[200px]">
+          <OverflowCell className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors">{newsItem.title}</OverflowCell>
         </div>
       </TableCell>
-      <TableCell className="max-w-68 overflow-hidden text-ellipsis whitespace-nowrap">
-        <OverflowCell>{newsItem.description || "-"}</OverflowCell>
+      <TableCell className="px-8 py-6 w-1/3">
+        <div className="max-w-[300px]">
+          <OverflowCell className="text-sm text-gray-500 font-light italic">
+            {newsItem.description || "-"}
+          </OverflowCell>
+        </div>
       </TableCell>
-      <TableCell>
-        <OverflowCell>{formattedDate}</OverflowCell>
+      <TableCell className="px-8 py-6 min-w-[150px]">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
+            <Calendar className="w-3 h-3 text-[var(--puembo-green)]" /> {formattedDate}
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <Clock className="w-3 h-3" /> {formattedTime}
+          </div>
+        </div>
       </TableCell>
-      <TableCell>
-        <OverflowCell>{formattedTime}</OverflowCell>
+      <TableCell className="px-8 py-6 text-center">{posterActions}</TableCell>
+      <TableCell className="px-8 py-6">
+        <div className="flex justify-center">
+          <AuthorAvatar profile={newsItem.profiles} className="border-2 border-white shadow-sm" />
+        </div>
       </TableCell>
-      <TableCell>{posterActions}</TableCell>
-      <TableCell>
-        <AuthorAvatar profile={newsItem.profiles} />
-      </TableCell>
-      <TableCell className="min-w-25">{actions}</TableCell>
+      <TableCell className="px-8 py-6">{actions}</TableCell>
     </TableRow>
   );
 }

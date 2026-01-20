@@ -16,16 +16,31 @@ export default function EventosPage() {
   return (
     <EventsProvider>
       <section className={adminPageSection}>
-        <div className={adminPageHeaderContainer}>
+        <header className={adminPageHeaderContainer}>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-px w-12 bg-[var(--puembo-green)]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--puembo-green)]">Planificación</span>
+          </div>
           <h1 className={adminPageTitle}>
-            Gestionar Eventos
+            Gestionar <span className="text-[var(--puembo-green)] italic">Eventos</span>
           </h1>
           <p className={adminPageDescription}>
-            Administra los eventos de la iglesia desde el calendario o la tabla.
+            Organiza, agenda y publica las actividades que fortalecen nuestra comunidad. Gestiona desde la tabla o visualiza en el calendario.
           </p>
-        </div>
+        </header>
         <EventManager />
-        <AdminCalendar />
+        
+        <div className="pt-24 space-y-12">
+          <div className="flex items-center gap-6 px-4">
+            <h2 className="text-3xl font-serif font-bold text-gray-900 whitespace-nowrap">
+              Vista de Calendario
+            </h2>
+            <div className="h-px bg-gray-200 grow" />
+          </div>
+          <div className="bg-white p-8 md:p-12 rounded-[3rem] shadow-2xl border border-gray-100 overflow-hidden">
+            <AdminCalendar />
+          </div>
+        </div>
       </section>
     </EventsProvider>
   );

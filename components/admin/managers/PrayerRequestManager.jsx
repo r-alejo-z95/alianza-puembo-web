@@ -8,7 +8,8 @@ import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components
 import { toast } from 'sonner';
 import { PrayerRequestRow } from './table-cells/PrayerRequestRow';
 import { PaginationControls } from "@/components/shared/PaginationControls";
-import { Loader2 } from 'lucide-react';
+import { Loader2, ListFilter, HandHelping } from 'lucide-react';
+import { cn } from "@/lib/utils.ts";
 
 export default function PrayerRequestManager() {
   const [requests, setRequests] = useState([]);
@@ -16,7 +17,7 @@ export default function PrayerRequestManager() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const { isLg } = useScreenSize();
-  const itemsPerPage = isLg ? 5 : 3;
+  const itemsPerPage = isLg ? 10 : 5;
 
   const supabase = createClient();
 
@@ -49,7 +50,7 @@ export default function PrayerRequestManager() {
 
     if (error) {
       console.error(`Error updating status for request ${id}:`, error);
-      toast.error('Error al actualizar el estado de la petición.');
+      toast.error('Error al actualizar el estado.');
     } else {
       toast.success(`Petición ${newStatus === 'approved' ? 'aprobada' : 'rechazada'} con éxito.`);
       fetchRequests();
@@ -62,13 +63,12 @@ export default function PrayerRequestManager() {
       console.error('Error deleting prayer request:', error);
       toast.error('Error al eliminar la petición.');
     } else {
-      toast.success('Petición eliminada con éxito.');
+      toast.success('Petición eliminada.');
       fetchRequests();
     }
   };
 
   const totalPages = useMemo(() => Math.ceil(requests.length / itemsPerPage), [requests.length, itemsPerPage]);
-  const hasNextPage = currentPage * itemsPerPage < requests.length;
   const currentRequests = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -76,55 +76,60 @@ export default function PrayerRequestManager() {
   }, [requests, currentPage, itemsPerPage]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Peticiones Recibidas</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-[var(--puembo-green)]" />
-          </div>
-        ) : (
-          <div id='prayer-request-table'>
-            {/* Pantallas grandes */}
-            <div className="hidden lg:block overflow-x-auto">
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-bold">Petición</TableHead>
-                    <TableHead className="font-bold">Nombre</TableHead>
-                    <TableHead className="font-bold">Fecha</TableHead>
-                    <TableHead className="font-bold">Tipo</TableHead>
-                    <TableHead className="font-bold">Estado</TableHead>
-                    <TableHead className="font-bold">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentRequests.map((req) => (
-                    <PrayerRequestRow
-                      key={req.id}
-                      request={req}
-                      onDelete={handleDelete}
-                      onStatusChange={handleStatusChange}
-                      compact={false}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-              {totalPages > 1 && (
-                <PaginationControls
-                  hasNextPage={hasNextPage}
-                  totalPages={totalPages}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
-                />
-              )}
+    <div className="space-y-8">
+      <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="p-8 md:p-12 border-b border-gray-50 bg-gray-50/30 flex flex-row items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <ListFilter className="w-3 h-3" />
+              <span>Moderación de Muro</span>
             </div>
+            <CardTitle className="text-3xl font-serif font-bold text-gray-900">Peticiones Recibidas</CardTitle>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-32 space-y-4">
+              <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)] opacity-20" />
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Cargando Peticiones</p>
+            </div>
+          ) : requests.length === 0 ? (
+            <div className="py-32 text-center space-y-4">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
+                <HandHelping className="w-8 h-8 text-gray-200" />
+              </div>
+              <p className="text-gray-400 font-light italic">No hay peticiones de oración registradas.</p>
+            </div>
+          ) : (
+            <div id='prayer-request-table'>
+              <div className="hidden lg:block overflow-x-auto">
+                <Table className="w-full">
+                  <TableHeader className="bg-gray-50/50">
+                    <TableRow className="hover:bg-transparent border-b border-gray-100">
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 w-1/3">Petición</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Remitente</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Fecha</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Privacidad</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Estado</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentRequests.map((req) => (
+                      <PrayerRequestRow
+                        key={req.id}
+                        request={req}
+                        onDelete={handleDelete}
+                        onStatusChange={handleStatusChange}
+                        compact={false}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-            {/* Pantallas pequeñas */}
-            <div className="lg:hidden space-y-4">
-              <div className="w-full">
+              <div className="lg:hidden p-6 space-y-6">
                 {currentRequests.map((req) => (
                   <PrayerRequestRow
                     key={req.id}
@@ -135,18 +140,21 @@ export default function PrayerRequestManager() {
                   />
                 ))}
               </div>
+
               {totalPages > 1 && (
-                <PaginationControls
-                  hasNextPage={hasNextPage}
-                  totalPages={totalPages}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
-                />
+                <div className="p-8 border-t border-gray-50">
+                  <PaginationControls
+                    hasNextPage={currentPage < totalPages}
+                    totalPages={totalPages}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                  />
+                </div>
               )}
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

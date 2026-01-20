@@ -15,14 +15,15 @@ import { toast } from "sonner";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { FormRow } from "./table-cells/FormRow";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, ListFilter, FileText } from "lucide-react";
+import { cn } from "@/lib/utils.ts";
 
 export default function FormManager() {
   const [forms, setForms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
   const supabase = createClient();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -32,7 +33,7 @@ export default function FormManager() {
     setLoading(true);
     const { data, error } = await supabase
       .from("forms")
-      .select("*, form_fields(*), profiles(full_name, email)") // Fetch related form_fields and author profile
+      .select("*, form_fields(*), profiles(full_name, email)")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -41,7 +42,6 @@ export default function FormManager() {
     } else {
       setForms(data);
       if (editFormId) {
-        // Redirect to builder if editFormId is present
         router.push(`/admin/formularios/builder?id=${editFormId}`);
       }
     }
@@ -54,7 +54,6 @@ export default function FormManager() {
 
   const handleDelete = async (formId) => {
     setLoading(true);
-    // Fetch form to get image_url before deleting
     const { data: formToDelete, error: fetchError } = await supabase
       .from("forms")
       .select("image_url")
@@ -63,33 +62,24 @@ export default function FormManager() {
 
     if (fetchError) {
       console.error("Error fetching form for deletion:", fetchError);
-      toast.error("Error al obtener el formulario para eliminar.");
+      toast.error("Error al obtener el formulario.");
       setLoading(false);
       return;
     }
 
-    // If there's an image_url, delete the file from storage
     if (formToDelete.image_url) {
       const fileName = formToDelete.image_url.split("/").pop();
-      const { error: deleteStorageError } = await supabase.storage
-        .from("form-images") // Assuming a bucket named 'form-images'
+      await supabase.storage
+        .from("form-images")
         .remove([fileName]);
-
-      if (deleteStorageError) {
-        console.error(
-          "Error deleting form image from storage:",
-          deleteStorageError
-        );
-        toast.error("Error al eliminar la imagen del almacenamiento.");
-      }
     }
 
     const { error } = await supabase.from("forms").delete().eq("id", formId);
     if (error) {
       console.error("Error deleting form:", error);
-      toast.error("Error al eliminar the formulario.");
+      toast.error("Error al eliminar.");
     } else {
-      toast.success("Formulario eliminado con éxito.");
+      toast.success("Formulario eliminado.");
       fetchForms();
     }
   };
@@ -98,6 +88,7 @@ export default function FormManager() {
     () => Math.ceil(forms.length / itemsPerPage),
     [forms.length, itemsPerPage]
   );
+  
   const currentForms = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
@@ -105,83 +96,97 @@ export default function FormManager() {
   }, [forms, currentPage, itemsPerPage]);
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Formularios Creados</CardTitle>
-        <Button onClick={() => router.push("/admin/formularios/builder")}>
-          Añadir Formulario
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-[var(--puembo-green)]" />
-          </div>
-        ) : (
-          <div id="form-table">
-            <div className="hidden lg:block overflow-x-auto">
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="font-bold">Título</TableHead>
-                    <TableHead className="font-bold">
-                      Fecha de Creación
-                    </TableHead>
-                    <TableHead className="font-bold">Link</TableHead>
-                    <TableHead className="font-bold">Respuestas</TableHead>
-                    <TableHead className="font-bold">Carpeta</TableHead>
-                    <TableHead className="font-bold">Autor</TableHead>
-                    <TableHead className="font-bold">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentForms.map((form) => (
-                    <FormRow
-                      key={form.id}
-                      form={form}
-                      onEdit={() => {
-                        router.push(`/admin/formularios/builder?id=${form.id}`);
-                      }}
-                      onDelete={handleDelete}
-                      compact={false}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-              {totalPages > 1 && (
-                <PaginationControls
-                  hasNextPage={currentPage < totalPages}
-                  totalPages={totalPages}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
-                />
-              )}
+    <div className="space-y-8">
+      <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+        <CardHeader className="p-8 md:p-12 border-b border-gray-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-gray-50/30">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <ListFilter className="w-3 h-3" />
+              <span>Inventario de Formularios</span>
             </div>
+            <CardTitle className="text-3xl font-serif font-bold text-gray-900">Formularios Activos</CardTitle>
+          </div>
+          <Button 
+            variant="green"
+            className="rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+            onClick={() => router.push("/admin/formularios/builder")}
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Nuevo Formulario
+          </Button>
+        </CardHeader>
+        
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-32 space-y-4">
+              <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)] opacity-20" />
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Cargando Estructuras</p>
+            </div>
+          ) : forms.length === 0 ? (
+            <div className="py-32 text-center space-y-4">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
+                <FileText className="w-8 h-8 text-gray-200" />
+              </div>
+              <p className="text-gray-400 font-light italic">No hay formularios creados todavía.</p>
+            </div>
+          ) : (
+            <div id="form-table">
+              <div className="hidden lg:block overflow-x-auto">
+                <Table className="w-full">
+                  <TableHeader className="bg-gray-50/50">
+                    <TableRow className="hover:bg-transparent border-b border-gray-100">
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Título</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Acceso Directo</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Datos</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Carpeta</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Autor</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentForms.map((form) => (
+                      <FormRow
+                        key={form.id}
+                        form={form}
+                        onEdit={() => {
+                          router.push(`/admin/formularios/builder?id=${form.id}`);
+                        }}
+                        onDelete={handleDelete}
+                        compact={false}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-            <div className="lg:hidden space-y-4">
-              {currentForms.map((form) => (
-                <FormRow
-                  key={form.id}
-                  form={form}
-                  onEdit={() => {
-                    router.push(`/admin/formularios/builder?id=${form.id}`);
-                  }}
-                  onDelete={handleDelete}
-                  compact={true}
-                />
-              ))}
+              <div className="lg:hidden p-6 space-y-6">
+                {currentForms.map((form) => (
+                  <FormRow
+                    key={form.id}
+                    form={form}
+                    onEdit={() => {
+                      router.push(`/admin/formularios/builder?id=${form.id}`);
+                    }}
+                    onDelete={handleDelete}
+                    compact={true}
+                  />
+                ))}
+              </div>
+
               {totalPages > 1 && (
-                <PaginationControls
-                  hasNextPage={currentPage < totalPages}
-                  totalPages={totalPages}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
-                />
+                <div className="p-8 border-t border-gray-50">
+                  <PaginationControls
+                    hasNextPage={currentPage < totalPages}
+                    totalPages={totalPages}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                  />
+                </div>
               )}
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
