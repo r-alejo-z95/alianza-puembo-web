@@ -1,16 +1,15 @@
-'use client';
+"use client";
 
 import { APIProvider, Map, AdvancedMarker } from "@vis.gl/react-google-maps";
 import { Button } from "@/components/ui/button";
-import { btnStyles } from "@/lib/styles";
 import { cn } from "@/lib/utils.ts";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { Navigation } from "lucide-react";
 
 const containerStyle = {
   width: "100%",
   height: "100%",
-  borderRadius: "0.75rem",
 };
 
 const centerMap = {
@@ -32,7 +31,6 @@ export default function GoogleMapView({ onMapLoad }) {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     if (isMobile) {
-      // Use geo: protocol for all mobile devices searching by name
       const geoUrl = `geo:0,0?q=${encodedLabel}`;
       window.location.href = geoUrl;
     } else {
@@ -44,7 +42,9 @@ export default function GoogleMapView({ onMapLoad }) {
 
       try {
         const position = await new Promise((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            timeout: 5000,
+          });
         });
         const { latitude, longitude } = position.coords;
         const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${encodedLabel}`;
@@ -57,12 +57,15 @@ export default function GoogleMapView({ onMapLoad }) {
   };
 
   return (
-    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} libraries={["marker"]}>
+    <APIProvider
+      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+      libraries={["marker"]}
+    >
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.5 }}
-        className="w-[280px] md:w-full aspect-[3/2] mx-auto rounded-md overflow-hidden flex"
+        className="relative w-full h-full flex"
       >
         <Map
           mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
@@ -83,9 +86,16 @@ export default function GoogleMapView({ onMapLoad }) {
             />
           </AdvancedMarker>
         </Map>
-        <div className="absolute mt-4 ml-4 xl:mt-6 xl:ml-6">
-          <Button variant="green" className={cn(btnStyles)} onClick={handleGetDirections}>
-            Cómo llegar
+
+        {/* Botón Flotante Coherente con Hero/Grupos */}
+        <div className="absolute top-4 left-4 xl:top-6 xl:left-6">
+          <Button
+            variant="green"
+            className="rounded-full px-6 py-3 text-xs font-bold shadow-lg shadow-[var(--puembo-green)]/20 flex items-center gap-2 h-auto"
+            onClick={handleGetDirections}
+          >
+            <Navigation className="w-3.5 h-3.5" />
+            Como llegar
           </Button>
         </div>
       </motion.div>

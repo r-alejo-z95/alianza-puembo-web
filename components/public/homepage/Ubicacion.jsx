@@ -1,6 +1,6 @@
 'use client';
 
-import { Youtube, MapPin, Clock, ExternalLink } from "lucide-react";
+import { Youtube, MapPin, Clock } from "lucide-react";
 import dynamic from 'next/dynamic';
 import { cn } from "@/lib/utils.ts";
 import {
@@ -48,7 +48,7 @@ export default function Ubicacion({ youtubeStatus }) {
   return (
     <section id="ubicacion" ref={sectionRef} className="w-full py-24 bg-gray-50/50">
       <div className={cn(sectionPx, "max-w-7xl mx-auto space-y-16")}>
-        {/* Cabecera de Sección */}
+        {/* Cabecera de Sección Modernizada */}
         <div className="text-center space-y-4">
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -56,11 +56,11 @@ export default function Ubicacion({ youtubeStatus }) {
             viewport={{ once: true }}
             className="flex items-center justify-center gap-3"
           >
-            <div className="h-1 w-12 bg-[var(--puembo-green)] rounded-full" />
-            <span className="text-xs font-black uppercase tracking-[0.3em] text-[var(--puembo-green)]">
+            <div className="h-0.5 w-12 bg-[var(--puembo-green)]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
               Te esperamos
             </span>
-            <div className="h-1 w-12 bg-[var(--puembo-green)] rounded-full" />
+            <div className="h-0.5 w-12 bg-[var(--puembo-green)]" />
           </motion.div>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -75,13 +75,13 @@ export default function Ubicacion({ youtubeStatus }) {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
-          {/* Mapa Interactiva */}
+          {/* Mapa Interactiva - Solo el mapa, limpio */}
           <motion.div 
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="lg:col-span-3 h-[400px] md:h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white"
+            className="lg:col-span-3 h-[400px] md:h-[500px] overflow-hidden rounded-3xl"
           >
             {showMap && <GoogleMapView onMapLoad={handleMapLoad} />}
           </motion.div>
@@ -93,7 +93,7 @@ export default function Ubicacion({ youtubeStatus }) {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 space-y-6"
+              className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 space-y-6"
             >
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-[var(--puembo-green)]/10 rounded-2xl flex items-center justify-center flex-shrink-0">
@@ -130,7 +130,7 @@ export default function Ubicacion({ youtubeStatus }) {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100"
+              className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100"
             >
               <div className="flex items-start gap-4">
                 <div className="w-12 h-12 bg-[var(--puembo-green)]/10 rounded-2xl flex items-center justify-center flex-shrink-0">
@@ -142,14 +142,6 @@ export default function Ubicacion({ youtubeStatus }) {
                     Julio Tobar Donoso y 24 de Mayo <br />
                     Puembo, Ecuador
                   </p>
-                  <a 
-                    href="https://www.google.com/maps/dir//Iglesia+Alianza+Puembo" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 mt-4 text-sm font-bold text-[var(--puembo-green)] hover:gap-3 transition-all"
-                  >
-                    Cómo llegar <ExternalLink className="w-4 h-4" />
-                  </a>
                 </div>
               </div>
             </motion.div>
