@@ -215,7 +215,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
 
         <div className="flex items-center justify-between pt-4 border-t border-gray-50">
           <div className="flex gap-2">
-            {sheetLinkActions} {folderLinkActions}
+            {formLinkActions} {sheetLinkActions} {folderLinkActions}
           </div>
           <div className="flex gap-2">{actions}</div>
         </div>

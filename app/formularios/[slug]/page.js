@@ -65,10 +65,11 @@ export default function PublicForm() {
     register,
     handleSubmit,
     control,
-    formState: { errors, isValid, isDirty },
+    formState: { errors, isValid },
     reset,
+    watch,
   } = useForm({
-    mode: "onChange", // Habilita la validación en tiempo real
+    mode: "onChange",
   });
 
   const [form, setForm] = useState(null);
@@ -79,11 +80,18 @@ export default function PublicForm() {
   const { slug } = useParams();
   const router = useRouter();
 
-  // Determinamos si el botón debe estar deshabilitado
-  // Caso 1: Hay obligatorios -> isValid los maneja.
-  // Caso 2: No hay obligatorios -> Necesitamos al menos que sea isDirty (algún cambio).
+  // Observamos todos los valores del formulario para detectar si está vacío
+  const formValues = watch();
+  const isFormEmpty = !Object.values(formValues).some(value => {
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object' && value !== null) {
+      return Object.values(value).some(v => v === true || (typeof v === 'string' && v.trim() !== ""));
+    }
+    return value !== undefined && value !== null && value !== "" && value !== false;
+  });
+
   const hasRequiredFields = form?.form_fields.some(f => f.required || f.is_required);
-  const isSubmitDisabled = sending || (hasRequiredFields ? !isValid : !isDirty);
+  const isSubmitDisabled = sending || (hasRequiredFields ? !isValid : isFormEmpty);
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -594,7 +602,7 @@ export default function PublicForm() {
         open={submissionStatus !== null}
         onOpenChange={() => submissionStatus === "error" && setSubmissionStatus(null)}
       >
-        <DialogContent className="rounded-[3rem] border-none shadow-2xl p-8 md:p-12 max-w-sm mx-auto overflow-hidden">
+        <DialogContent className="rounded-[3rem] border-none shadow-2xl p-8 md:p-12 max-w-sm mx-auto overflow-hidden [&>button]:hidden">
           <div className="flex flex-col items-center text-center space-y-8">
             {submissionStatus === "success" ? (
               <>
