@@ -32,12 +32,12 @@ export function Navbar() {
     <>
       <nav
         className={cn(
-          "top-0 z-[100] w-full transition-all duration-500 ease-in-out border-b max-w-[100vw]",
+          "top-0 z-[100] w-full transition-all duration-500 ease-in-out max-w-[100vw]",
           // Usamos fixed en la Home para que el contenido empiece desde arriba (detrás del nav)
           // Usamos sticky en el resto para un flujo natural
           isHomepage ? "fixed" : "sticky md:sticky",
           // Fondo sólido en móvil siempre. En desktop transparencia condicional en Home.
-          "bg-black py-3 md:py-4 border-white/10 shadow-2xl border-transparent",
+          "bg-black py-3 md:py-4 shadow-2xl border-transparent",
           isHomepage &&
             !scrolled &&
             !activeMenu &&
@@ -74,7 +74,7 @@ export function Navbar() {
                     "px-5 py-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all duration-300 block",
                     activeMenu === item.name
                       ? "text-[var(--puembo-green)]"
-                      : "text-white/70 hover:text-white"
+                      : "text-white/70 hover:text-(--puembo-green)"
                   )}
                 >
                   {item.name}
