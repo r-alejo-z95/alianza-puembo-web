@@ -5,9 +5,12 @@ import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { contentSection } from "@/lib/styles";
 import { Card, CardContent } from "@/components/ui/card";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
-const ContactForm = dynamic(() => import('@/components/public/forms/ContactForm'), { ssr: false });
+const ContactForm = dynamic(
+  () => import("@/components/public/forms/ContactForm"),
+  { ssr: false }
+);
 
 export function ContactClient() {
   const destinationLabel = "Iglesia Alianza Puembo";
@@ -27,7 +30,7 @@ export function ContactClient() {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true },
-    transition: { duration: 0.6 }
+    transition: { duration: 0.6 },
   };
 
   const contactInfo = [
@@ -39,7 +42,7 @@ export function ContactClient() {
     },
     {
       title: "Teléfono",
-      value: "02 389 5952 / 02 389 5336",
+      value: "02 389 5952",
       href: "tel:023895952",
       icon: Phone,
     },
@@ -79,7 +82,7 @@ export function ContactClient() {
                   <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
                     {item.title}
                   </h3>
-                  <a 
+                  <a
                     href={item.href}
                     onClick={item.onClick}
                     target={item.onClick ? "_blank" : undefined}
@@ -97,7 +100,7 @@ export function ContactClient() {
 
       {/* Formulario Section */}
       <section className="max-w-3xl mx-auto w-full px-4">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -108,12 +111,15 @@ export function ContactClient() {
               <div className="inline-flex p-3 bg-green-50 rounded-2xl text-[var(--puembo-green)] mb-2">
                 <Send className="w-6 h-6 fill-current" />
               </div>
-              <h2 className="text-2xl md:text-3xl font-serif font-bold text-gray-900">Envíanos un Mensaje</h2>
+              <h2 className="text-2xl md:text-3xl font-serif font-bold text-gray-900">
+                Envíanos un Mensaje
+              </h2>
               <p className="text-gray-500 max-w-lg mx-auto text-base">
-                ¿Tienes alguna duda o quieres saber más? Escríbenos y nuestro equipo te responderá lo antes posible.
+                ¿Tienes alguna duda o quieres saber más? Escríbenos y nuestro
+                equipo te responderá lo antes posible.
               </p>
             </div>
-            
+
             <div className="max-w-xl mx-auto">
               <ContactForm />
             </div>
