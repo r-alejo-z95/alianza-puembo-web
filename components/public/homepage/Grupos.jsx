@@ -1,19 +1,17 @@
-'use client';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import {
-  sectionPx,
-} from "@/lib/styles.ts";
+"use client";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { sectionPx } from "@/lib/styles.ts";
 import { cn } from "@/lib/utils.ts";
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { Users, ChevronRight } from 'lucide-react';
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { Users, ChevronRight } from "lucide-react";
 
 export default function Grupos() {
   const router = useRouter();
 
   const handleButtonClick = () => {
-    router.push('/involucrate/ministerios/cuidado/grupos-pequenos');
+    router.push("/involucrate/ministerios/cuidado/grupos-pequenos");
   };
 
   return (
@@ -22,12 +20,13 @@ export default function Grupos() {
         src="/homepage/Group-section.webp"
         alt="Grupos Pequeños en Alianza Puembo"
         fill
-        sizes="100vw"
+        sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
         className="object-cover object-center scale-105"
+        quality={90}
       />
-      
+
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-      
+
       <div
         className={cn(
           sectionPx,
@@ -35,7 +34,7 @@ export default function Grupos() {
         )}
       >
         <div className="max-w-2xl space-y-10">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -48,15 +47,18 @@ export default function Grupos() {
                 Vida en Comunidad
               </span>
             </div>
-            
+
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white leading-[1.1] tracking-tight">
               Grupos <br />
-              <span className="italic text-[var(--puembo-green)] font-medium">Pequeños</span>
+              <span className="italic text-[var(--puembo-green)] font-medium">
+                Pequeños
+              </span>
             </h2>
-            
+
             <p className="text-lg md:text-xl text-gray-200/90 font-light leading-relaxed max-w-lg">
-              No fuimos creados para caminar solos. Encuentra un espacio donde puedas ser tú mismo, 
-              compartir la vida y crecer en tu relación con Dios.
+              No fuimos creados para caminar solos. Encuentra un espacio donde
+              puedas ser tú mismo, compartir la vida y crecer en tu relación con
+              Dios.
             </p>
           </motion.div>
 
@@ -66,8 +68,8 @@ export default function Grupos() {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <Button 
-              variant="green" 
+            <Button
+              variant="green"
               className="rounded-full px-7 py-3.5 text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 h-auto shadow-lg shadow-[var(--puembo-green)]/20 group"
               onClick={handleButtonClick}
             >

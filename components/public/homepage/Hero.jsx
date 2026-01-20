@@ -33,7 +33,8 @@ export default function Hero({ youtubeStatus }) {
 
   const { isLive, videoUrl } = youtubeStatus;
 
-  const premiumBtnClass = "rounded-full px-7 py-3.5 text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2.5 h-auto shadow-lg";
+  const premiumBtnClass =
+    "rounded-full px-7 py-3.5 text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2.5 h-auto shadow-lg";
 
   return (
     <section className="relative w-full h-screen overflow-hidden bg-black">
@@ -50,9 +51,10 @@ export default function Hero({ youtubeStatus }) {
             src={heroImages[currentImageIndex]}
             alt="Iglesia Alianza Puembo"
             fill
-            sizes="100vw"
+            sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
             priority
             className="object-cover object-center lg:object-[center:70%]"
+            quality={90}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/20 to-transparent" />
         </motion.div>
@@ -80,11 +82,14 @@ export default function Hero({ youtubeStatus }) {
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-bold leading-[1.1] tracking-tight">
               Bienvenido <br />
-              <span className="text-[var(--puembo-green)] italic font-medium">a casa</span>
+              <span className="text-[var(--puembo-green)] italic font-medium">
+                a casa
+              </span>
             </h1>
 
             <p className="text-lg md:text-xl text-gray-200/90 font-light leading-relaxed max-w-xl">
-              Somos una familia de familias experimentando la presencia de Dios y caminando juntos en fe.
+              Somos una familia de familias experimentando la presencia de Dios
+              y caminando juntos en fe.
             </p>
           </motion.div>
 
@@ -114,7 +119,14 @@ export default function Hero({ youtubeStatus }) {
                   "bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white hover:text-black"
                 )}
               >
-                <Play className={cn("h-4 w-4", isLive ? "text-red-500 fill-red-500 animate-pulse" : "fill-current")} />
+                <Play
+                  className={cn(
+                    "h-4 w-4",
+                    isLive
+                      ? "text-red-500 fill-red-500 animate-pulse"
+                      : "fill-current"
+                  )}
+                />
                 <span>{isLive ? "En Vivo Ahora" : "Última Prédica"}</span>
               </Button>
             </Link>
