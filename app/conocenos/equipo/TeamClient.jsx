@@ -80,8 +80,8 @@ const MemberCard = ({ member, index, prominent = false }) => (
   >
     <Card
       className={cn(
-        "flex flex-col h-full transition-all duration-300 hover:shadow-2xl border-none bg-white overflow-hidden group",
-        prominent ? "max-w-2xl mx-auto ring-1 ring-black/5" : "max-w-md mx-auto"
+        "flex flex-col h-full transition-all duration-300 hover:shadow-2xl border-none bg-white overflow-hidden group rounded-xl",
+        prominent ? "max-w-2xl mx-auto ring-1 ring-black/5 shadow-xl" : "max-w-md mx-auto shadow-lg"
       )}
     >
       <div className={cn("relative w-full aspect-[3/2] overflow-hidden")}>
@@ -101,7 +101,7 @@ const MemberCard = ({ member, index, prominent = false }) => (
             className={cn(
               sectionTitle,
               "text-gray-900",
-              prominent && "text-2xl md:text-3xl"
+              prominent ? "text-2xl md:text-3xl" : "text-xl"
             )}
           >
             {member.name}
@@ -132,26 +132,30 @@ export function TeamClient() {
   };
 
   return (
-    <div className={cn(contentSection, "bg-gray-50/50 pt-12 pb-24")}>
+    <div className={cn(contentSection, "bg-gray-50/50 pt-12 pb-24 space-y-20")}>
       {/* Pastor Principal */}
-      <div className="mb-20">
+      <div className="w-full">
         <MemberCard member={leadPastor} index={0} prominent={true} />
       </div>
 
-      {/* Separador Visual */}
-      <div className="flex items-center gap-6 mb-16 max-w-7xl px-4">
-        <h2 className="text-2xl md:text-4xl font-serif font-bold text-gray-900 whitespace-nowrap">
-          Equipo Ministerial
-        </h2>
-        <div className="w-full border-b border-(--puembo-green)" />
-      </div>
+      {/* Equipo Section */}
+      <section className="max-w-7xl mx-auto w-full">
+        {/* Separador Visual */}
+        <div className="flex items-center gap-6 mb-16 px-4">
+          <h2 className="text-2xl md:text-4xl font-serif font-bold text-gray-900 whitespace-nowrap">
+            Equipo Ministerial
+          </h2>
+          <div className="h-1.5 bg-[var(--puembo-green)]/20 grow rounded-full" />
+          <div className="h-1.5 w-12 bg-[var(--puembo-green)] rounded-full" />
+        </div>
 
-      {/* Grid de Equipo */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 w-full max-w-7xl mx-auto px-4">
-        {TEAM_MEMBERS.map((member, index) => (
-          <MemberCard key={member.name} member={member} index={index + 1} />
-        ))}
-      </div>
+        {/* Grid de Equipo */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 w-full mx-auto px-4">
+          {TEAM_MEMBERS.map((member, index) => (
+            <MemberCard key={member.name} member={member} index={index + 1} />
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

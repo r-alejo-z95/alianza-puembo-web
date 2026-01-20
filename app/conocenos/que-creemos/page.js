@@ -1,7 +1,5 @@
-import { MissionVision } from "@/components/public/layout/pages/que-creemos/MissionVision";
-import { Declaration } from "@/components/public/layout/pages/que-creemos/Declaration";
-import { BeliefsSection } from "@/components/public/layout/pages/que-creemos/BeliefsSection";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
+import { QueCreemosClient } from "./QueCreemosClient";
 
 export const metadata = {
   title: "Qué Creemos",
@@ -19,9 +17,7 @@ export default function QueCreemosPage() {
       imageUrl="/conocenos/que-creemos/Que-creemos.webp"
       imageAlt="Silueta de manos levantadas en adoración"
     >
-      <MissionVision />
-      <Declaration />
-      <BeliefsSection />
+      <QueCreemosClient />
     </PublicPageLayout>
   );
 }
