@@ -1,4 +1,3 @@
-
 import { createClient } from "@/lib/supabase/server";
 import { unstable_noStore as noStore } from "next/cache";
 import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
@@ -19,7 +18,7 @@ export async function getPassages() {
   return data;
 }
 
-export async function getPassagesByWeek(weekNumber) {
+export async function getPassagesByWeek(weekNumber: number) {
   noStore();
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -42,15 +41,15 @@ export async function getLatestWeekPassages() {
   const endOfToday = `${today}T23:59:59-05:00`;
 
   const { data: currentWeek, error: currentWeekError } = await supabase
-    .from('lom_passages')
-    .select('week_number')
-    .lte('week_start_date', endOfToday)
-    .order('week_start_date', { ascending: false })
+    .from("lom_passages")
+    .select("week_number")
+    .lte("week_start_date", endOfToday)
+    .order("week_start_date", { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (currentWeekError) {
-    console.error('Error fetching current week number:', currentWeekError);
+    console.error("Error fetching current week number:", currentWeekError);
   }
 
   let targetWeekNumber;
@@ -58,12 +57,12 @@ export async function getLatestWeekPassages() {
     targetWeekNumber = currentWeek.week_number;
   } else {
     const { data: latestWeek } = await supabase
-      .from('lom_passages')
-      .select('week_number')
-      .order('week_number', { ascending: false })
+      .from("lom_passages")
+      .select("week_number")
+      .order("week_number", { ascending: false })
       .limit(1)
       .maybeSingle();
-    
+
     if (!latestWeek) return [];
     targetWeekNumber = latestWeek.week_number;
   }

@@ -6,6 +6,8 @@ import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
 import { LomClient } from "./LomClient";
 import { Loader2 } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: "Lee, Ora, Medita",
   description: "Profundiza en la lectura y meditación de la Biblia con nuestros devocionales diarios.",
