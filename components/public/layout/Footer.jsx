@@ -30,7 +30,7 @@ export default function Footer() {
       title: "Comunidad",
       links: [
         { name: "Oración", href: "/oracion" },
-        { name: "Grupos Pequeños", href: "/involucrate/ministerios/cuidado/grupos-pequenos" },
+        { name: "Grupos Pequeños", href: "/ministerios/grupos-pequenos" },
         { name: "Contacto", href: "/contacto" },
       ]
     }

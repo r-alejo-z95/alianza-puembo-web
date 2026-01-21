@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Redes de Amor (Evangelismo)",
@@ -27,13 +28,13 @@ export default function RedesDeAmor() {
     items: [
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/redes-de-amor/pescadores",
+        href: "/ministerios/pescadores",
         itemTitle: "Pescadores",
         itemDescription: "Grupos de evangelismo personal y relacional en diferentes contextos.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion",
+        href: "/ministerios/punto-conexion",
         itemTitle: "Punto de Conexión",
         itemDescription: "Eventos y actividades diseñadas para crear oportunidades de evangelismo.",
       },
@@ -48,6 +49,10 @@ export default function RedesDeAmor() {
       imageAlt="Redes de Amor"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/servicio" 
+        backLabel="Volver a Servicio" 
+      />
       <MinistryContentSection {...networksListData} />
     </PublicPageLayout>
   );

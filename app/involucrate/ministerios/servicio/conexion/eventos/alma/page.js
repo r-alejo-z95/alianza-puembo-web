@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Evento Alma (Matrimonios)",
@@ -54,6 +55,10 @@ export default function Alma() {
       imageAlt="Evento Alma"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/eventos-conexion" 
+        backLabel="Volver a Eventos" 
+      />
       <MinistryContentSection {...eventDetailsData} />
     </PublicPageLayout>
   );

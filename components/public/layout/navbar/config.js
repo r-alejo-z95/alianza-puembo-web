@@ -51,6 +51,7 @@ export const menuItems = [
             subroutes: [
               {
                 name: "Grupos Pequeños",
+                href: "/ministerios/grupos-pequenos",
                 subroutes: [
                   { name: "GP Familiares", href: "/ministerios/gp-familiar", description: "Creciendo juntos en familia" },
                   { name: "GP Legado (Varones)", href: "/ministerios/gp-legado", description: "Forjando hombres de valor" },
@@ -72,6 +73,7 @@ export const menuItems = [
                 subroutes: [
                   {
                     name: "Eventos",
+                    href: "/ministerios/eventos-conexion",
                     subroutes: [
                       { name: "Alma (Matrimonios)", href: "/ministerios/alma", description: "Uniendo corazones" },
                       { name: "Legado (Varones)", href: "/ministerios/legado", description: "Hombres con propósito" },
@@ -81,6 +83,7 @@ export const menuItems = [
                   },
                   {
                     name: "Amor en Acción",
+                    href: "/ministerios/amor-en-accion",
                     subroutes: [
                       { name: "Misión Dignidad", href: "/ministerios/mision-dignidad", description: "Nuestro brazo social principal" },
                       { name: "Brigadas Médicas", href: "/ministerios/brigadas-medicas", description: "Salud y esperanza para comunidades" },
@@ -92,6 +95,7 @@ export const menuItems = [
                   },
                   {
                     name: "Redes de Amor (Evangelismo)",
+                    href: "/ministerios/redes-de-amor",
                     subroutes: [
                       { name: "Pescadores", href: "/ministerios/pescadores", description: "Sembrando la Palabra" },
                       { name: "Punto de Conexión", href: "/ministerios/punto-conexion", description: "Conecta personas nuevas con la comunidad" },
@@ -101,6 +105,7 @@ export const menuItems = [
               },
               {
                 name: "Crecimiento",
+                href: "/ministerios/crecimiento",
                 subroutes: [
                   { name: "Academia Bíblica", href: "/ministerios/academia-biblica", description: "Profundizando en la Palabra" },
                   { name: "Decisiones", href: "/ministerios/decisiones", description: "Restauración y nueva vida" },
@@ -110,10 +115,12 @@ export const menuItems = [
               },
               {
                 name: "Compromiso",
+                href: "/ministerios/compromiso",
                 subroutes: [
                   { name: "MAT (Música, Artes y Tecnología)", href: "/ministerios/mat", description: "Adoración, arte y tecnología" },
                   {
                     name: "MDA (Ministerios de Apoyo)",
+                    href: "/ministerios/mda",
                     subroutes: [
                       { name: "Anfitriones", href: "/ministerios/anfitriones", description: "La primera impresión" },
                       { name: "Punto de Información", href: "/ministerios/punto-informacion", description: "Tu centro de ayuda" },
@@ -124,6 +131,7 @@ export const menuItems = [
                   },
                   {
                     name: "Oración",
+                    href: "/ministerios/oracion",
                     subroutes: [
                       { name: "Círculos de Oración", href: "/ministerios/circulos-oracion", description: "Intercesión comunitaria vía Zoom" },
                       { name: "Intercesores", href: "/ministerios/intercesores", description: "Clamando por el Reino" },

@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Cultura Financiera",
@@ -54,6 +55,10 @@ export default function CulturaFinanciera() {
       imageAlt="Cultura Financiera"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/crecimiento" 
+        backLabel="Volver a Crecimiento" 
+      />
       <MinistryContentSection {...programDetailsData} />
     </PublicPageLayout>
   );

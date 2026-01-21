@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Punto Conexión",
@@ -54,6 +55,10 @@ export default function PuntoDeConexion() {
       imageAlt="Punto Conexión"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/servicio" 
+        backLabel="Volver a Redes de Amor" 
+      />
       <MinistryContentSection {...programDetailsData} />
     </PublicPageLayout>
   );

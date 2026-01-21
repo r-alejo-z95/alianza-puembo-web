@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Compromiso",
@@ -27,19 +28,19 @@ export default function Compromiso() {
     items: [
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/compromiso/mat",
+        href: "/ministerios/mat",
         itemTitle: "MAT (Música, Artes y Tecnología)",
         itemDescription: "Adoración, creatividad y excelencia técnica al servicio de Dios.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/compromiso/mda",
+        href: "/ministerios/mda",
         itemTitle: "MDA (Ministerios de Apoyo)",
         itemDescription: "Equipos que hacen posible el funcionamiento de nuestros servicios y eventos.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/compromiso/oracion",
+        href: "/ministerios/oracion",
         itemTitle: "Oración",
         itemDescription: "El motor espiritual de nuestra iglesia, intercediendo y buscando a Dios.",
       },
@@ -54,6 +55,10 @@ export default function Compromiso() {
       imageAlt="Ministerios de Compromiso"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/servicio" 
+        backLabel="Volver a Servicio" 
+      />
       <MinistryContentSection {...commitmentMinistriesData} />
     </PublicPageLayout>
   );

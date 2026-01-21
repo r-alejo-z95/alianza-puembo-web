@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Hogar Digno",
@@ -54,6 +55,10 @@ export default function HogarDigno() {
       imageAlt="Hogar Digno"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/amor-en-accion" 
+        backLabel="Volver a Amor en Acción" 
+      />
       <MinistryContentSection {...projectDetailsData} />
     </PublicPageLayout>
   );

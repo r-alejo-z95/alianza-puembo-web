@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Cuidado Pastoral",
@@ -27,19 +28,19 @@ export default function CuidadoPastoral() {
     items: [
       {
         type: "link",
-        href: "/involucrate/ministerios/cuidado/grupos-pequenos",
+        href: "/ministerios/grupos-pequenos",
         itemTitle: "Grupos Pequeños",
         itemDescription: "Comunidad auténtica y crecimiento relacional.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/cuidado/jovenes",
+        href: "/ministerios/jovenes",
         itemTitle: "Jóvenes",
         itemDescription: "Acompañando a la nueva generación en su fe.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/cuidado/puembo-kids",
+        href: "/ministerios/puembo-kids",
         itemTitle: "Puembo Kids",
         itemDescription: "Sembrando el amor de Dios en el corazón de los niños.",
       },
@@ -54,6 +55,7 @@ export default function CuidadoPastoral() {
       imageAlt="Cuidado Pastoral"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation />
       <MinistryContentSection {...careMinistriesData} />
     </PublicPageLayout>
   );

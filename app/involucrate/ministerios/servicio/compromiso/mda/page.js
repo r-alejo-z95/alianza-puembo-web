@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "MDA (Ministerios de Apoyo)",
@@ -27,31 +28,31 @@ export default function MDA() {
     items: [
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/compromiso/mda/anfitriones",
+        href: "/ministerios/anfitriones",
         itemTitle: "Anfitriones",
         itemDescription: "Recibiendo y dando la bienvenida con amor a nuestra familia.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/compromiso/mda/mesa-de-informacion",
+        href: "/ministerios/punto-informacion",
         itemTitle: "Punto de Información",
         itemDescription: "Tu centro de ayuda y guía para todo lo que sucede en la iglesia.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/compromiso/mda/santa-cena",
+        href: "/ministerios/santa-cena",
         itemTitle: "Santa Cena",
         itemDescription: "Preparando y sirviendo en este acto de adoración y reverencia.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/compromiso/mda/bautizos",
+        href: "/ministerios/bautizos",
         itemTitle: "Bautizos",
         itemDescription: "Apoyando en la celebración de las nuevas decisiones de fe.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/compromiso/mda/visitacion-y-funerales",
+        href: "/ministerios/acompanamiento",
         itemTitle: "Acompañamiento",
         itemDescription: "Brindando presencia, empatía y consuelo en momentos de pérdida.",
       },
@@ -66,6 +67,10 @@ export default function MDA() {
       imageAlt="MDA (Ministerios de Apoyo)"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/servicio" 
+        backLabel="Volver a Servicio" 
+      />
       <MinistryContentSection {...mdaTeamsData} />
     </PublicPageLayout>
   );

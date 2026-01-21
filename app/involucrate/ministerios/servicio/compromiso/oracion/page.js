@@ -1,9 +1,10 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
-  title: "Ministerio de Oración",
+  title: "Oración",
   description: "El motor espiritual de Alianza Puembo. Únete a nuestros Círculos de Oración, Intercesores y Miércoles de Oración para buscar a Dios juntos.",
   alternates: {
     canonical: "/involucrate/ministerios/servicio/compromiso/oracion",
@@ -12,49 +13,53 @@ export const metadata = {
 
 export default function Oracion() {
   const introSectionData = {
-    title: "Oración: El Motor de la Iglesia",
+    title: "Oración: Nuestra Conexión con el Padre",
     description: [
-      "El Ministerio de Oración es el corazón y el motor espiritual de Alianza Puembo. Creemos firmemente en el poder transformador de la oración y en la importancia de buscar a Dios en todo tiempo. Es a través de la oración que vemos milagros, vidas transformadas y el Reino de Dios avanzando.",
-      "Te invitamos a unirte a nuestros diferentes espacios de oración, donde juntos clamamos por nuestra iglesia, nuestra ciudad y el mundo.",
+      "Creemos que la oración no es solo una actividad, sino el aliento de vida de nuestra iglesia. En Alianza Puembo, buscamos el rostro de Dios de manera constante y apasionada, sabiendo que Él escucha y responde el clamor de Sus hijos.",
+      "Te invitamos a sumarte a nuestros diversos espacios de intercesión, donde juntos levantamos nuestras peticiones y agradecimientos delante del Trono de la Gracia.",
     ],
     imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/Oracion.jpg",
-    imageAlt: "Grupo de personas orando juntas",
+    imageAlt: "Persona orando",
     imagePosition: "right",
   };
 
-  const prayerMinistriesData = {
-    title: "Nuestros Espacios de Oración",
+  const prayerGroupsData = {
+    title: "Espacios de Oración",
     items: [
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion",
+        href: "/ministerios/circulos-oracion",
         itemTitle: "Círculos de Oración",
-        itemDescription: "Grupos rotativos basados en el devocional 'El Hacedor de Círculos'.",
+        itemDescription: "Intercesión comunitaria vía Zoom por propósitos específicos.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/compromiso/oracion/intercesores",
+        href: "/ministerios/intercesores",
         itemTitle: "Intercesores",
-        itemDescription: "Equipo dedicado a la intercesión profética por la iglesia y sus necesidades.",
+        itemDescription: "Clamando por la visión, el liderazgo y el avance del Reino.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion",
+        href: "/ministerios/miercoles-oracion",
         itemTitle: "Miércoles de Oración",
-        itemDescription: "Servicio semanal dedicado exclusivamente a la oración y la búsqueda de Dios.",
+        itemDescription: "Nuestro servicio semanal de búsqueda y adoración a las 06h30.",
       },
     ],
   };
 
   return (
     <PublicPageLayout
-      title="Ministerio de Oración"
-      description="El motor espiritual de Alianza Puembo."
+      title="Oración"
+      description="El motor espiritual de nuestra familia."
       imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/Oracion.jpg"
-      imageAlt="Ministerio de Oración"
+      imageAlt="Oración"
       introSectionData={introSectionData}
     >
-      <MinistryContentSection {...prayerMinistriesData} />
+      <MinistryNavigation 
+        backLink="/ministerios/servicio" 
+        backLabel="Volver a Servicio" 
+      />
+      <MinistryContentSection {...prayerGroupsData} />
     </PublicPageLayout>
   );
 }

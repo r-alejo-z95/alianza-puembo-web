@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Eventos de Conexión",
@@ -27,25 +28,25 @@ export default function Eventos() {
     items: [
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/eventos/alma",
+        href: "/ministerios/alma",
         itemTitle: "Alma (para Matrimonios)",
         itemDescription: "Un evento para fortalecer la conexión y el propósito en el matrimonio.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/eventos/legado",
+        href: "/ministerios/legado",
         itemTitle: "Legado (para Varones)",
         itemDescription: "Un tiempo para desafiar a los hombres a vivir un legado de fe e integridad.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/eventos/cautivante",
+        href: "/ministerios/cautivante",
         itemTitle: "Cautivante (para Mujeres)",
         itemDescription: "Un encuentro para que las mujeres descubran su belleza, valor y propósito en Dios.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/eventos/eje",
+        href: "/ministerios/eje",
         itemTitle: "Eje (para Jóvenes)",
         itemDescription: "El evento juvenil del año, lleno de energía, adoración y un mensaje que marca vidas.",
       },
@@ -60,6 +61,10 @@ export default function Eventos() {
       imageAlt="Eventos de Conexión"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/servicio" 
+        backLabel="Volver a Servicio" 
+      />
       <MinistryContentSection {...eventsListData} />
     </PublicPageLayout>
   );

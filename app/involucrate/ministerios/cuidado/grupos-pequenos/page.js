@@ -1,5 +1,6 @@
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Grupos Pequeños",
@@ -24,72 +25,30 @@ export default function GruposPequenos() {
     buttonVariant: "green",
   };
 
-  const benefitsData = {
-    title: "Beneficios de unirte a un Grupo Pequeño",
-    items: [
-      {
-        type: "icon",
-        iconType: 'CheckCircle',
-        itemTitle: "Crecimiento Espiritual",
-        itemDescription: "Estudia la Biblia en un ambiente íntimo y aplica sus verdades a tu vida diaria.",
-      },
-      {
-        type: "icon",
-        iconType: 'CheckCircle',
-        itemTitle: "Comunidad y Amistad",
-        itemDescription: "Construye relaciones profundas y duraderas con personas que comparten tu fe.",
-      },
-      {
-        type: "icon",
-        iconType: 'CheckCircle',
-        itemTitle: "Apoyo y Oración",
-        itemDescription: "Encuentra un espacio seguro para compartir tus cargas y recibir apoyo en oración.",
-      },
-      {
-        type: "icon",
-        iconType: 'CheckCircle',
-        itemTitle: "Servicio y Misión",
-        itemDescription: "Descubre oportunidades para servir a tu comunidad y extender el Reino de Dios.",
-      },
-      {
-        type: "icon",
-        iconType: 'CheckCircle',
-        itemTitle: "Discipulado Personalizado",
-        itemDescription: "Recibe mentoría y guía en tu desarrollo espiritual de la mano de líderes experimentados.",
-      },
-      {
-        type: "icon",
-        iconType: 'CheckCircle',
-        itemTitle: "Impacto en tu Entorno",
-        itemDescription: "Sé parte de la transformación de tu comunidad, llevando el amor y la esperanza de Cristo a quienes te rodean.",
-      },
-    ],
-  };
-
   const smallGroupsData = {
     title: "Grupos Pequeños",
     items: [
       {
         type: "link",
-        href: "/involucrate/ministerios/cuidado/grupos-pequenos/familiar",
+        href: "/ministerios/gp-familiar",
         itemTitle: "GP Familiares",
         itemDescription: "Creciendo juntos en familia",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/cuidado/grupos-pequenos/legado",
+        href: "/ministerios/gp-legado",
         itemTitle: "GP Legado (Varones)",
         itemDescription: "Forjando hombres de valor",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/cuidado/grupos-pequenos/juntas",
+        href: "/ministerios/gp-juntas",
         itemTitle: "GP Juntas (Mujeres)",
         itemDescription: "Creciendo en comunidad femenina",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/cuidado/grupos-pequenos/ministeriales",
+        href: "/ministerios/gp-ministeriales",
         itemTitle: "GP Ministeriales",
         itemDescription: "Cuidando a los que cuidan",
       },
@@ -104,6 +63,10 @@ export default function GruposPequenos() {
       imageAlt="Grupo pequeño"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/cuidado" 
+        backLabel="Volver a Cuidado Pastoral" 
+      />
       <MinistryContentSection {...smallGroupsData} />
     </PublicPageLayout>
   );

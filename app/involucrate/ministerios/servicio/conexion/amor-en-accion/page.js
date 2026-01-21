@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Amor en Acción",
@@ -27,37 +28,37 @@ export default function AmorEnAccion() {
     items: [
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/mision-dignidad",
+        href: "/ministerios/mision-dignidad",
         itemTitle: "Misión Dignidad",
         itemDescription: "Nuestro brazo social principal, atendiendo diversas necesidades de la comunidad.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/brigadas-medicas",
+        href: "/ministerios/brigadas-medicas",
         itemTitle: "Brigadas Médicas",
         itemDescription: "Atención médica y de salud para comunidades vulnerables.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero",
+        href: "/ministerios/boutique",
         itemTitle: "Boutique de Moda Circular",
         itemDescription: "Vistiendo con dignidad y sostenibilidad a quienes más lo necesitan.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna",
+        href: "/ministerios/navidad-digna",
         itemTitle: "Navidad Digna",
         itemDescription: "Nuestra celebración anual de generosidad que ocurre una vez al año.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor",
+        href: "/ministerios/canasta-de-amor",
         itemTitle: "Canasta de Amor",
         itemDescription: "Apoyo solidario de alimentos, exclusivo para nuestra familia de fe.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/hogar-digno",
+        href: "/ministerios/hogar-digno",
         itemTitle: "Hogar Digno",
         itemDescription: "Transformando espacios en hogares de esperanza y paz.",
       },
@@ -72,6 +73,10 @@ export default function AmorEnAccion() {
       imageAlt="Amor en Acción"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/servicio" 
+        backLabel="Volver a Servicio" 
+      />
       <MinistryContentSection {...projectsListData} />
     </PublicPageLayout>
   );

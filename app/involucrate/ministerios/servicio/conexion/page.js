@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Conexión",
@@ -27,19 +28,19 @@ export default function Conexion() {
     items: [
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/eventos",
+        href: "/ministerios/eventos-conexion",
         itemTitle: "Eventos",
         itemDescription: "Eventos especiales diseñados para alcanzar a diferentes grupos de personas.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/amor-en-accion",
+        href: "/ministerios/amor-en-accion",
         itemTitle: "Amor en Acción",
         itemDescription: "Proyectos de servicio que demuestran el amor de Dios a través de obras.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/conexion/redes-de-amor",
+        href: "/ministerios/redes-de-amor",
         itemTitle: "Redes de Amor (Evangelismo)",
         itemDescription: "Grupos dedicados a compartir el evangelio de manera personal y creativa.",
       },
@@ -54,6 +55,10 @@ export default function Conexion() {
       imageAlt="Ministerios de Conexión"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/servicio" 
+        backLabel="Volver a Servicio" 
+      />
       <MinistryContentSection {...connectionMinistriesData} />
     </PublicPageLayout>
   );

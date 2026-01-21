@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Crecimiento",
@@ -27,25 +28,25 @@ export default function Crecimiento() {
     items: [
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/crecimiento/academia-biblica",
+        href: "/ministerios/academia-biblica",
         itemTitle: "Academia Bíblica",
         itemDescription: "Cursos y seminarios para profundizar en el conocimiento de la Palabra de Dios.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/crecimiento/celebra",
+        href: "/ministerios/decisiones",
         itemTitle: "Decisiones",
         itemDescription: "Un paso de fe para celebrar la recuperación y una nueva vida en Cristo.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/crecimiento/cultura-financiera",
+        href: "/ministerios/cultura-financiera",
         itemTitle: "Cultura Financiera",
         itemDescription: "Principios bíblicos para administrar tus finanzas con sabiduría y propósito.",
       },
       {
         type: "link",
-        href: "/involucrate/ministerios/servicio/crecimiento/sanidad",
+        href: "/ministerios/sanidad",
         itemTitle: "Encuentros de Sanidad",
         itemDescription: "Restauración y libertad interior para hombres y mujeres.",
       },
@@ -60,6 +61,10 @@ export default function Crecimiento() {
       imageAlt="Ministerios de Crecimiento"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/servicio" 
+        backLabel="Volver a Servicio" 
+      />
       <MinistryContentSection {...growthMinistriesData} />
     </PublicPageLayout>
   );

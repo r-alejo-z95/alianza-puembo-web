@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Encuentros de Sanidad para hombres y mujeres",
@@ -54,6 +55,10 @@ export default function Sanidad() {
       imageAlt="Encuentros de Sanidad"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/servicio" 
+        backLabel="Volver a Crecimiento" 
+      />
       <MinistryContentSection {...programDetailsData} />
     </PublicPageLayout>
   );

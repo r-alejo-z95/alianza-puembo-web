@@ -9,7 +9,16 @@ const nextConfig = {
       { source: '/ministerios/cuidado', destination: '/involucrate/ministerios/cuidado' },
       { source: '/ministerios/servicio', destination: '/involucrate/ministerios/servicio' },
       
-      // Cuidado Pastoral
+      // Sub-Categorías
+      { source: '/ministerios/grupos-pequenos', destination: '/involucrate/ministerios/cuidado/grupos-pequenos' },
+      { source: '/ministerios/amor-en-accion', destination: '/involucrate/ministerios/servicio/conexion/amor-en-accion' },
+      { source: '/ministerios/redes-de-amor', destination: '/involucrate/ministerios/servicio/conexion/redes-de-amor' },
+      { source: '/ministerios/eventos-conexion', destination: '/involucrate/ministerios/servicio/conexion/eventos' },
+      { source: '/ministerios/compromiso', destination: '/involucrate/ministerios/servicio/compromiso' },
+      { source: '/ministerios/mda', destination: '/involucrate/ministerios/servicio/compromiso/mda' },
+      { source: '/ministerios/oracion', destination: '/involucrate/ministerios/servicio/compromiso/oracion' },
+
+      // Cuidado Pastoral - Hijos
       { source: '/ministerios/gp-familiar', destination: '/involucrate/ministerios/cuidado/grupos-pequenos/familiar' },
       { source: '/ministerios/gp-legado', destination: '/involucrate/ministerios/cuidado/grupos-pequenos/legado' },
       { source: '/ministerios/gp-juntas', destination: '/involucrate/ministerios/cuidado/grupos-pequenos/juntas' },

@@ -1,5 +1,6 @@
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Puembo Kids",
@@ -71,6 +72,10 @@ export default function PuemboKids() {
       imageAlt="Celebración de Puembo Kids"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/cuidado" 
+        backLabel="Volver a Cuidado Pastoral" 
+      />
       <MinistryContentSection {...kidsGroupsData} />
     </PublicPageLayout>
   );

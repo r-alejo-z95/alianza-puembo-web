@@ -10,8 +10,8 @@ import { Users, ChevronRight } from "lucide-react";
 export default function Grupos() {
   const router = useRouter();
 
-  const handleButtonClick = () => {
-    router.push("/involucrate/ministerios/cuidado/grupos-pequenos");
+  const handleJoin = () => {
+    router.push("/ministerios/grupos-pequenos");
   };
 
   return (

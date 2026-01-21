@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "GP Juntas (Mujeres)",
@@ -54,6 +55,10 @@ export default function GPJuntas() {
       imageAlt="GP Juntas"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/grupos-pequenos" 
+        backLabel="Volver a Grupos Pequeños" 
+      />
       <MinistryContentSection {...focusAreas} />
     </PublicPageLayout>
   );

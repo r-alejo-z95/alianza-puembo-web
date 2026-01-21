@@ -1,6 +1,7 @@
 
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 
 export const metadata = {
   title: "Bautizos",
@@ -54,6 +55,10 @@ export default function Bautizos() {
       imageAlt="Bautizos"
       introSectionData={introSectionData}
     >
+      <MinistryNavigation 
+        backLink="/ministerios/mda" 
+        backLabel="Volver a MDA" 
+      />
       <MinistryContentSection {...rolesData} />
     </PublicPageLayout>
   );
