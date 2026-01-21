@@ -139,9 +139,14 @@ export default function Footer() {
                 Admin
               </Link>
             )}
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 italic">
-              Hecho con fe
-            </span>
+            <a
+              href="https://github.com/r-alejo-z95"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 hover:text-[var(--puembo-green)] transition-colors italic"
+            >
+              Hecho con amor por RZ
+            </a>
           </div>
         </div>
       </div>
