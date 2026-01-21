@@ -32,7 +32,8 @@ export async function getNews(
   const { data: news, error } = await supabase
     .from("news")
     .select("*")
-    .order("news_date", { ascending: true, nullsFirst: true });
+    .order("news_date", { ascending: true, nullsFirst: true })
+    .order("news_time", { ascending: true, nullsFirst: true });
 
   if (error) {
     console.error("Error fetching news:", error);

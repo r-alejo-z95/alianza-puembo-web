@@ -26,7 +26,7 @@ const formatNewsTime = (timeStr) => {
   return `${parts[0]}:${parts[1]}`;
 };
 
-export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
+export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact }) {
   const posterActions = newsItem.image_url ? (
     <div className="flex items-center justify-center gap-2">
       <TooltipProvider>
@@ -106,6 +106,9 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
     : "-";
   const formattedTime = newsItem.news_time ? formatNewsTime(newsItem.news_time) : "-";
 
+  // Construir URL con página y ancla
+  const publicHref = `/noticias?page=${publicPage}#${newsItem.id}`;
+
   if (compact) {
     return (
       <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4 relative group">
@@ -113,7 +116,7 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
           <div className="space-y-1">
             <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Noticia</span>
             <OverflowCell 
-              href={`/noticias#${newsItem.id}`}
+              href={publicHref}
               linkText="Ver noticia"
               className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2"
             >
@@ -151,7 +154,7 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
       <TableCell className="px-8 py-6 w-1/4">
         <div className="max-w-[200px]">
           <OverflowCell 
-            href={`/noticias#${newsItem.id}`}
+            href={publicHref}
             linkText="Ver noticia"
             className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors"
           >

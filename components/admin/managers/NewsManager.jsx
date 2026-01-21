@@ -135,36 +135,50 @@ export default function NewsManager() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {currentNews.map((item) => (
-                      <NewsRow
-                        key={item.id}
-                        newsItem={item}
-                        onEdit={() => {
-                          setSelectedNews(item);
-                          setIsFormOpen(true);
-                        }}
-                        onDelete={() => handleDelete(item.id)}
-                        compact={false}
-                      />
-                    ))}
+                    {currentNews.map((item) => {
+                      // Calcular la página pública (4 items por página)
+                      // Buscamos el índice global de este item en el array total 'news'
+                      const globalIndex = news.findIndex(n => n.id === item.id);
+                      const publicPage = Math.floor(globalIndex / 4) + 1;
+
+                      return (
+                        <NewsRow
+                          key={item.id}
+                          newsItem={item}
+                          publicPage={publicPage}
+                          onEdit={() => {
+                            setSelectedNews(item);
+                            setIsFormOpen(true);
+                          }}
+                          onDelete={() => handleDelete(item.id)}
+                          compact={false}
+                        />
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
 
               {/* Small screens */}
               <div className="lg:hidden p-6 space-y-6">
-                {currentNews.map((item) => (
-                  <NewsRow
-                    key={item.id}
-                    newsItem={item}
-                    onEdit={() => {
-                      setSelectedNews(item);
-                      setIsFormOpen(true);
-                    }}
-                    onDelete={() => handleDelete(item.id)}
-                    compact={true}
-                  />
-                ))}
+                {currentNews.map((item) => {
+                  const globalIndex = news.findIndex(n => n.id === item.id);
+                  const publicPage = Math.floor(globalIndex / 4) + 1;
+
+                  return (
+                    <NewsRow
+                      key={item.id}
+                      newsItem={item}
+                      publicPage={publicPage}
+                      onEdit={() => {
+                        setSelectedNews(item);
+                        setIsFormOpen(true);
+                      }}
+                      onDelete={() => handleDelete(item.id)}
+                      compact={true}
+                    />
+                  );
+                })}
               </div>
 
               {totalPages > 1 && (
