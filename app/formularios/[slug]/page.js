@@ -155,7 +155,11 @@ export default function PublicForm() {
               reader.readAsDataURL(file);
             });
             processedData[key] = await fileReadPromise;
-            rawDataForDb[key] = `[Archivo: ${file.name}]`;
+            rawDataForDb[key] = {
+              _type: "file",
+              name: file.name,
+              info: "Subido al Drive"
+            };
           } else if (
             fieldType === "checkbox" &&
             typeof value === "object" &&

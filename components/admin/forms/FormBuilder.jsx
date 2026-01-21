@@ -56,6 +56,7 @@ import {
   Settings,
   Save,
 } from "lucide-react";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import RichTextEditor from "./RichTextEditor";
 import { cn } from "@/lib/utils";
@@ -103,18 +104,19 @@ const fieldSchema = z.object({
         label: z.string().min(1, "Label requerido."),
       })
     )
-    .optional(),
+    .optional()
+    .nullable(),
   required: z.boolean().default(false),
-  order_index: z.number(),
-  placeholder: z.string().optional(),
-  attachment_url: z.string().optional(),
-  attachment_type: z.string().optional(),
+  order_index: z.number().default(0),
+  placeholder: z.string().optional().nullable(),
+  attachment_url: z.string().optional().nullable(),
+  attachment_type: z.string().optional().nullable(),
 });
 
 const formSchema = z.object({
   title: z.string().min(3, "Título requerido."),
-  description: z.string().optional(),
-  image_url: z.string().url("URL inválida.").optional().or(z.literal("")),
+  description: z.string().optional().nullable(),
+  image_url: z.string().optional().nullable().or(z.literal("")),
   fields: z.array(fieldSchema),
 });
 
@@ -184,7 +186,7 @@ function FieldCard({
   return (
     <Card
       className={cn(
-        "transition-all duration-500 rounded-[2.5rem] border-2 bg-white overflow-hidden",
+        "transition-all duration-500 rounded-[2.5rem] border-2 bg-white overflow-hidden field-card-container",
         isActive
           ? "border-[var(--puembo-green)] shadow-2xl z-10 -translate-y-1"
           : "border-gray-100 hover:border-gray-200 shadow-sm"
@@ -205,6 +207,7 @@ function FieldCard({
                         placeholder="Escribe la pregunta aquí..."
                         className="text-xl font-bold font-serif border-none px-0 h-auto focus-visible:ring-0 bg-transparent border-b-2 border-gray-100 focus:border-[var(--puembo-green)] rounded-none transition-all flex-grow"
                         {...inputField}
+                        value={inputField.value || ""}
                       />
                     )}
                   />
@@ -297,6 +300,7 @@ function FieldCard({
                               placeholder={`Opción ${optionIndex + 1}`}
                               className="flex-grow h-10 border-none bg-gray-50/50 rounded-xl focus:bg-white transition-all px-4"
                               {...optionField}
+                              value={optionField.value || ""}
                               onChange={(e) => {
                                 optionField.onChange(e);
                                 const val = e.target.value
@@ -559,10 +563,39 @@ export default function FormBuilder({
   const [activeDragId, setActiveDragId] = useState(null);
   const fileInputRef = useRef(null);
 
+  const onInvalid = (errors) => {
+    // Auto-scroll al primer error
+    if (errors.title) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (errors.fields) {
+      const firstErrorIndex = Object.keys(errors.fields)[0];
+      const element = document.getElementById(`field-card-${firstErrorIndex}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const fieldId = fields[firstErrorIndex]?.id;
+        if (fieldId) setActiveId(fieldId);
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      toast.error("Hay errores en el formulario. Revisa los campos marcados.");
+    } else {
+      toast.error("Error de validación inesperado.");
+    }
+  };
+
+  const handleGlobalClick = (e) => {
+    // Si el clic NO es dentro de una tarjeta de pregunta o el header del form, cerramos el modo edición
+    if (!e.target.closest('.field-card-container') && !e.target.closest('.form-header-card')) {
+      setActiveId(null);
+    }
+  };
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: { title: "", description: "", image_url: "", fields: [] },
   });
+
   const { fields, append, move, remove } = useFieldArray({
     control: form.control,
     name: "fields",
@@ -639,9 +672,9 @@ export default function FormBuilder({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-32">
+    <div className="min-h-screen bg-gray-50/50 pb-32 cursor-default" onClick={handleGlobalClick}>
       {/* Top Controls */}
-      <div className="sticky top-[73px] z-[55] bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 md:px-8 pt-4 flex items-center justify-between">
+      <div className="sticky top-[73px] z-[55] bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 md:px-8 pt-4 flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-4">
           <Layout className="w-5 h-5 text-gray-400" />
           <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 hidden sm:inline-block">
@@ -661,15 +694,18 @@ export default function FormBuilder({
           <Button
             variant="green"
             className="rounded-full px-6 md:px-8 py-5 md:py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 h-10 md:h-auto"
-            onClick={form.handleSubmit((d) =>
-              onSave(
-                {
-                  ...d,
-                  fields: d.fields.map((f, i) => ({ ...f, order_index: i })),
-                },
-                imageFile
-              )
-            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              form.handleSubmit((d) =>
+                onSave(
+                  {
+                    ...d,
+                    fields: d.fields.map((f, i) => ({ ...f, order_index: i })),
+                  },
+                  imageFile
+                )
+              , onInvalid)();
+            }}
             disabled={isSaving}
           >
             {isSaving ? (
@@ -688,7 +724,7 @@ export default function FormBuilder({
         <div className="col-span-1 md:col-span-10 space-y-8 md:space-y-10 w-full max-w-full">
           <FormProvider {...form}>
           {/* Header Card Editorial */}
-          <Card className="border-none shadow-2xl bg-white rounded-[3rem] overflow-hidden group">
+          <Card className="border-none shadow-2xl bg-white rounded-[3rem] overflow-hidden group form-header-card" onClick={(e) => e.stopPropagation()}>
             {/* Area de Imagen (Banner) */}
             <div className="relative h-40 md:h-56 bg-black overflow-hidden flex items-center justify-center">
                 {imageFile || initialForm?.image_url ? (
@@ -734,9 +770,10 @@ export default function FormBuilder({
                   </div>
                   <FormField control={form.control} name="title" render={({ field: inputField }) => (
                     <Input 
-                        className="text-4xl md:text-5xl font-serif font-bold border-none px-0 py-2 h-auto focus-visible:ring-0 bg-transparent text-gray-900 placeholder:text-gray-200 leading-tight border-b-2 border-gray-50 focus:border-b-[var(--puembo-green)] transition-all rounded-none" 
+                        className="text-4xl md:text-5xl font-serif font-bold border-0 border-b-2 border-gray-50 px-4 py-4 h-auto focus-visible:ring-0 focus-visible:border-b-[var(--puembo-green)] focus-visible:bg-gray-50/50 transition-all rounded-t-2xl rounded-b-none bg-transparent text-gray-900 placeholder:text-gray-200 leading-tight shadow-none" 
                         placeholder="Ej: Registro de Bautizos 2026" 
                         {...inputField} 
+                        value={inputField.value || ""}
                     />
                   )} />
                 </div>
@@ -746,7 +783,7 @@ export default function FormBuilder({
                     <div className="h-px w-8 bg-gray-100" />
                     <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Descripción Narrativa</span>
                   </div>
-                  <div className="p-8 rounded-[2rem] bg-gray-50/50 border border-gray-100 focus-within:bg-white focus-within:border-[var(--puembo-green)]/20 transition-all shadow-inner">
+                  <div className="p-8 rounded-[2rem] bg-gray-50/50 border-2 border-transparent focus-within:bg-white focus-within:border-[var(--puembo-green)]/20 focus-within:shadow-xl transition-all shadow-inner group/desc">
                     <FormField control={form.control} name="description" render={({ field: inputField }) => (
                       <RichTextEditor 
                         content={inputField.value} 
@@ -773,7 +810,7 @@ export default function FormBuilder({
                 items={fields.map((f) => f.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <div className="space-y-6 pb-20">
+                <div className="space-y-6 pb-20 questions-container">
                   {fields.map((field, index) => (
                     <SortableItem
                       key={field.id}
@@ -784,7 +821,7 @@ export default function FormBuilder({
                       isActive={activeId === field.id}
                       activeId={activeId}
                       setActiveId={setActiveId}
-                      onRemove={remove}
+                      onRemove={() => remove(index)}
                       onUpdateFieldType={updateFieldType}
                       onUploadAttachment={(i, f) => {
                         const r = new FileReader();
@@ -846,7 +883,7 @@ export default function FormBuilder({
   );
 }
 
-function SortableItem({ id, ...props }) {
+function SortableItem({ id, index, ...props }) {
   const {
     attributes,
     listeners,
@@ -861,8 +898,8 @@ function SortableItem({ id, ...props }) {
     opacity: isDragging ? 0 : 1,
   };
   return (
-    <div ref={setNodeRef} style={style}>
-      <FieldCard {...props} dragHandleProps={{ ...attributes, ...listeners }} />
+    <div ref={setNodeRef} style={style} id={`field-card-${index}`}>
+      <FieldCard {...props} index={index} dragHandleProps={{ ...attributes, ...listeners }} />
     </div>
   );
 }

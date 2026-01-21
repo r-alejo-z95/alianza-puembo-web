@@ -27,7 +27,7 @@ export default function FormManager() {
   const supabase = createClient();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const editFormId = searchParams.get("editFormId");
+  const editFormSlug = searchParams.get("editFormSlug");
 
   const fetchForms = async () => {
     setLoading(true);
@@ -41,8 +41,8 @@ export default function FormManager() {
       toast.error("Error al cargar los formularios.");
     } else {
       setForms(data);
-      if (editFormId) {
-        router.push(`/admin/formularios/builder?id=${editFormId}`);
+      if (editFormSlug) {
+        router.push(`/admin/formularios/builder?slug=${editFormSlug}`);
       }
     }
     setLoading(false);
@@ -149,7 +149,7 @@ export default function FormManager() {
                         key={form.id}
                         form={form}
                         onEdit={() => {
-                          router.push(`/admin/formularios/builder?id=${form.id}`);
+                          router.push(`/admin/formularios/builder?slug=${form.slug}`);
                         }}
                         onDelete={handleDelete}
                         compact={false}
@@ -165,7 +165,7 @@ export default function FormManager() {
                     key={form.id}
                     form={form}
                     onEdit={() => {
-                      router.push(`/admin/formularios/builder?id=${form.id}`);
+                      router.push(`/admin/formularios/builder?slug=${form.slug}`);
                     }}
                     onDelete={handleDelete}
                     compact={true}

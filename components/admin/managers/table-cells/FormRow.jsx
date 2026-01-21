@@ -21,6 +21,7 @@ import {
   Calendar,
   Database,
   FileSpreadsheet,
+  BarChart3,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -171,6 +172,24 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
           className="scale-75 cursor-pointer"
         />
       </div>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link href={`/admin/formularios/analiticas/${form.slug}`}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all duration-300"
+              >
+                <BarChart3 className="w-4 h-4" />
+              </Button>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent>Ver Analíticas</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
       <Button
         variant="ghost"
         size="icon"
