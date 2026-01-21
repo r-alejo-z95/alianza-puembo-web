@@ -4,7 +4,7 @@ import { MinistryContentSection } from "@/components/public/layout/pages/involuc
 
 export const metadata = {
   title: "Navidad Digna",
-  description: "Llevando alegría y esperanza a niños y familias en Navidad a través de regalos, alimentos y un mensaje de amor.",
+  description: "Nuestra celebración especial de generosidad que ocurre una vez al año para bendecir a otros y compartir el amor de Cristo.",
   alternates: {
     canonical: "/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna",
   },
@@ -14,34 +14,34 @@ export default function NavidadDigna() {
   const introSectionData = {
     title: "Navidad Digna: Compartiendo la Alegría",
     description: [
-      "Navidad Digna es uno de nuestros proyectos más queridos, donde buscamos llevar la alegría y el verdadero significado de la Navidad a niños y familias en situación de vulnerabilidad. Creemos que nadie debería pasar la Navidad sin un regalo y sin sentir el amor de Dios.",
-      "A través de la recolección de juguetes, ropa y alimentos, y la organización de eventos festivos, hacemos de la Navidad un tiempo de esperanza y dignidad para muchos.",
+      "Navidad Digna es nuestra celebración especial de generosidad que une a la iglesia una vez al año para bendecir a otros.",
+      "Es un proyecto de amor donde buscamos llevar el verdadero significado de la Navidad a niños y familias en situación de vulnerabilidad, demostrando que en Cristo siempre hay esperanza.",
     ],
     imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna/NavidadDigna.jpg",
-    imageAlt: "Niños recibiendo regalos de Navidad",
+    imageAlt: "Navidad Digna",
     imagePosition: "right",
   };
 
   const projectDetailsData = {
-    title: "¿Cómo puedes participar?",
+    title: "Nuestro Impacto",
     items: [
       {
         type: "icon",
+        iconType: "Calendar",
+        itemTitle: "Una Vez al Año",
+        itemDescription: "Nos unimos en la temporada navideña para un impacto masivo de amor y servicio.",
+      },
+      {
+        type: "icon",
         iconType: "Gift",
-        itemTitle: "Donando Juguetes",
-        itemDescription: "Regala juguetes nuevos o en excelente estado para niños de todas las edades.",
+        itemTitle: "Dignidad y Amor",
+        itemDescription: "Cada regalo y actividad está diseñada para honrar y dignificar a quienes reciben.",
       },
       {
         type: "icon",
-        iconType: "Soup",
-        itemTitle: "Donando Alimentos",
-        itemDescription: "Contribuye con alimentos no perecederos para armar canastas navideñas.",
-      },
-      {
-        type: "icon",
-        iconType: "Users",
-        itemTitle: "Voluntariado",
-        itemDescription: "Ayúdanos en la organización y distribución de los regalos y alimentos.",
+        iconType: "Heart",
+        itemTitle: "Impacto Comunitario",
+        itemDescription: "Llegamos a sectores vulnerables con el mensaje de esperanza del Evangelio.",
       },
     ],
   };
@@ -49,7 +49,7 @@ export default function NavidadDigna() {
   return (
     <PublicPageLayout
       title="Navidad Digna"
-      description="Llevando alegría y esperanza en Navidad."
+      description="Ocurre una vez al año."
       imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna/NavidadDigna.jpg"
       imageAlt="Navidad Digna"
       introSectionData={introSectionData}

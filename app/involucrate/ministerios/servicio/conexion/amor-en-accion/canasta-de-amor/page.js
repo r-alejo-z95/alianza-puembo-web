@@ -4,7 +4,7 @@ import { MinistryContentSection } from "@/components/public/layout/pages/involuc
 
 export const metadata = {
   title: "Canasta de Amor",
-  description: "Entrega de alimentos y víveres a familias en situación de necesidad. Un gesto de amor que alimenta el cuerpo y el alma.",
+  description: "Un programa de apoyo solidario y provisión de alimentos, dedicado exclusivamente a los miembros de nuestra familia de fe en Alianza Puembo.",
   alternates: {
     canonical: "/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor",
   },
@@ -12,36 +12,36 @@ export const metadata = {
 
 export default function CanastaDeAmor() {
   const introSectionData = {
-    title: "Canasta de Amor: Alimentando la Esperanza",
+    title: "Canasta de Amor: Solidaridad en Familia",
     description: [
-      "El proyecto Canasta de Amor se enfoca en la recolección y distribución regular de alimentos y víveres de primera necesidad a familias que enfrentan inseguridad alimentaria. Creemos que nadie debería pasar hambre y que un plato de comida es un acto de amor.",
-      "Tu contribución, por pequeña que sea, puede asegurar que una familia tenga alimento en su mesa. Únete a nosotros para llevar sustento y esperanza.",
+      "La Canasta de Amor es un programa de apoyo solidario y provisión, dedicado exclusivamente a los miembros de nuestra familia de fe.",
+      "Como comunidad, nos cuidamos unos a otros, asegurando que ninguna familia de nuestra iglesia carezca de lo esencial para su sustento diario.",
     ],
     imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor/CanastaDeAmor.jpg",
-    imageAlt: "Voluntarios entregando canastas de alimentos",
+    imageAlt: "Canasta de Amor",
     imagePosition: "right",
   };
 
   const projectDetailsData = {
-    title: "¿Cómo puedes apoyar?",
+    title: "Nuestro Compromiso",
     items: [
       {
         type: "icon",
+        iconType: "ShieldCheck",
+        itemTitle: "Exclusivo para Miembros",
+        itemDescription: "Un beneficio directo para quienes forman parte de nuestra familia de fe activa.",
+      },
+      {
+        type: "icon",
+        iconType: "HeartHandshake",
+        itemTitle: "Apoyo en Familia",
+        itemDescription: "Damos por gracia lo que recibimos, cuidando la provisión de cada hermano.",
+      },
+      {
+        type: "icon",
         iconType: "Soup",
-        itemTitle: "Donando Alimentos",
-        itemDescription: "Alimentos no perecederos como arroz, fideos, enlatados, aceite, etc.",
-      },
-      {
-        type: "icon",
-        iconType: "DollarSign",
-        itemTitle: "Aportes Económicos",
-        itemDescription: "Tu donación nos permite comprar alimentos al por mayor y cubrir necesidades específicas.",
-      },
-      {
-        type: "icon",
-        iconType: "Handshake",
-        itemTitle: "Voluntariado",
-        itemDescription: "Ayúdanos a armar y distribuir las canastas de amor.",
+        itemTitle: "Sustento Diario",
+        itemDescription: "Recolección y distribución de víveres esenciales para familias con necesidades temporales.",
       },
     ],
   };
@@ -49,7 +49,7 @@ export default function CanastaDeAmor() {
   return (
     <PublicPageLayout
       title="Canasta de Amor"
-      description="Alimentando la esperanza a través de la Canasta de Amor."
+      description="Exclusivo para miembros de la iglesia."
       imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor/CanastaDeAmor.jpg"
       imageAlt="Canasta de Amor"
       introSectionData={introSectionData}

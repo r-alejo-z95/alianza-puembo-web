@@ -4,7 +4,7 @@ import { MinistryContentSection } from "@/components/public/layout/pages/involuc
 
 export const metadata = {
   title: "Círculos de Oración",
-  description: "Grupos rotativos de oración basados en el devocional 'El Hacedor de Círculos'. Un espacio para orar con propósito y ver la mano de Dios.",
+  description: "Únete a nuestros grupos de intercesión comunitaria vía Zoom. Un espacio para clamar juntos por necesidades específicas y ver la mano de Dios obrar.",
   alternates: {
     canonical: "/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion",
   },
@@ -12,36 +12,36 @@ export const metadata = {
 
 export default function CirculosDeOracion() {
   const introSectionData = {
-    title: "Círculos de Oración: Orando con Propósito",
+    title: "Círculos de Oración: Intercesión Comunitaria",
     description: [
-      "Los Círculos de Oración son grupos pequeños y rotativos que se reúnen para orar con un propósito específico, inspirados en el devocional 'El Hacedor de Círculos'. Creemos que la oración ferviente y persistente tiene el poder de mover la mano de Dios y transformar circunstancias.",
-      "Cada grupo se compromete a orar por un período de 40 días, enfocándose en áreas específicas de la vida personal, familiar, de la iglesia y de la comunidad. Es una oportunidad para experimentar el poder de la oración colectiva.",
+      "Los Círculos de Oración tienen como espíritu la intercesión comunitaria. Son grupos donde nos unimos para clamar con fe, creyendo que la oración persistente transforma vidas y circunstancias.",
+      "Nuestras reuniones se realizan de manera virtual vía Zoom, permitiendo que todos se sumen desde donde estén para unir nuestras peticiones en un solo clamor.",
     ],
     imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion/CirculosDeOracion.jpg",
-    imageAlt: "Personas formando un círculo de oración",
+    imageAlt: "Círculos de Oración",
     imagePosition: "right",
   };
 
   const programDetailsData = {
-    title: "¿Cómo funcionan?",
+    title: "Propósito y Modalidad",
     items: [
       {
         type: "icon",
+        iconType: "Globe",
+        itemTitle: "Vía Zoom",
+        itemDescription: "Nos conectamos digitalmente para que la distancia no sea un obstáculo para la oración unida.",
+      },
+      {
+        type: "icon",
+        iconType: "Target",
+        itemTitle: "Propósitos Específicos",
+        itemDescription: "Oramos por peticiones concretas de nuestra comunidad, ciudad y naciones.",
+      },
+      {
+        type: "icon",
         iconType: "Users",
-        itemTitle: "Grupos Pequeños",
-        itemDescription: "Conformados por un número reducido de personas para una oración más íntima y enfocada.",
-      },
-      {
-        type: "icon",
-        iconType: "Calendar",
-        itemTitle: "Compromiso de 40 Días",
-        itemDescription: "Cada ciclo dura 40 días, con un enfoque temático para la oración.",
-      },
-      {
-        type: "icon",
-        iconType: "BookOpen",
-        itemTitle: "Basado en el Devocional",
-        itemDescription: "Utilizamos 'El Hacedor de Círculos' como guía para nuestras oraciones.",
+        itemTitle: "Comunidad de Fe",
+        itemDescription: "Fortalecemos nuestra fe al compartir testimonios y ver respuestas a nuestras oraciones.",
       },
     ],
   };
@@ -49,7 +49,7 @@ export default function CirculosDeOracion() {
   return (
     <PublicPageLayout
       title="Círculos de Oración"
-      description="Orando con propósito y viendo la mano de Dios."
+      description="Intercesión comunitaria vía Zoom."
       imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion/CirculosDeOracion.jpg"
       imageAlt="Círculos de Oración"
       introSectionData={introSectionData}

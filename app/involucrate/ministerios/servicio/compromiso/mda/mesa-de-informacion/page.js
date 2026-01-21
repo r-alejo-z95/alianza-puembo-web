@@ -3,8 +3,8 @@ import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLay
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
 
 export const metadata = {
-  title: "Mesa de Información",
-  description: "Proporcionando información y orientación a los visitantes y miembros de Alianza Puembo. El centro de ayuda de nuestra iglesia.",
+  title: "Punto de Información",
+  description: "Tu centro de ayuda y guía en Alianza Puembo. Encuentra respuestas, recursos y conoce más sobre nuestra familia de fe.",
   alternates: {
     canonical: "/involucrate/ministerios/servicio/compromiso/mda/mesa-de-informacion",
   },
@@ -12,13 +12,13 @@ export const metadata = {
 
 export default function MesaDeInformacion() {
   const introSectionData = {
-    title: "Mesa de Información: Tu Centro de Ayuda",
+    title: "Punto de Información: Tu Centro de Ayuda",
     description: [
-      "La Mesa de Información es el punto central para resolver dudas, obtener recursos y conocer más sobre las actividades y ministerios de Alianza Puembo. Nuestro equipo está listo para brindarte la orientación que necesitas con una sonrisa y eficiencia.",
-      "Si tienes preguntas sobre cómo involucrarte, próximos eventos, o cualquier otra inquietud, acércate a nuestra mesa. Estamos aquí para servirte.",
+      "El Punto de Información es el centro neurálgico para resolver dudas, obtener recursos y conocer de cerca las actividades de Alianza Puembo.",
+      "Nuestro equipo está listo para brindarte la orientación que necesitas con eficacia, claridad y una cálida bienvenida, asegurando que tu experiencia en la iglesia sea fluida y enriquecedora.",
     ],
     imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/mesa-de-informacion/MesaDeInformacion.jpg",
-    imageAlt: "Persona atendiendo en una mesa de información",
+    imageAlt: "Punto de Información",
     imagePosition: "right",
   };
 
@@ -27,31 +27,31 @@ export default function MesaDeInformacion() {
     items: [
       {
         type: "icon",
-        iconType: "Info",
-        itemTitle: "Información General",
-        itemDescription: "Detalles sobre horarios de servicios, eventos, y ubicación de salones.",
+        iconType: "Smile",
+        itemTitle: "Atención Eficaz",
+        itemDescription: "Resolvemos tus inquietudes de manera rápida y amable.",
       },
       {
         type: "icon",
         iconType: "BookOpen",
-        itemTitle: "Registro y Recursos",
-        itemDescription: "Inscripciones para cursos, eventos y entrega de materiales informativos.",
+        itemTitle: "Recursos y Guía",
+        itemDescription: "Obtén materiales, formularios e información sobre nuestros ministerios.",
       },
       {
         type: "icon",
-        iconType: "Users",
-        itemTitle: "Orientación Ministerial",
-        itemDescription: "Ayuda para encontrar el ministerio adecuado según tus dones e intereses.",
+        iconType: "LinkIcon",
+        itemTitle: "Conexión Inmediata",
+        itemDescription: "Te ayudamos a dar el siguiente paso en tu integración con la comunidad.",
       },
     ],
   };
 
   return (
     <PublicPageLayout
-      title="Mesa de Información"
-      description="Tu centro de ayuda en Alianza Puembo."
+      title="Punto de Información"
+      description="Eficacia y claridad en cada consulta."
       imageUrl="/involucrate/ministerios/servicio/compromiso/mda/mesa-de-informacion/MesaDeInformacion.jpg"
-      imageAlt="Mesa de Información"
+      imageAlt="Punto de Información"
       introSectionData={introSectionData}
     >
       <MinistryContentSection {...servicesData} />

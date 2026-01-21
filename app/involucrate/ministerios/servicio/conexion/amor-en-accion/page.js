@@ -4,7 +4,7 @@ import { MinistryContentSection } from "@/components/public/layout/pages/involuc
 
 export const metadata = {
   title: "Amor en Acción",
-  description: "Proyectos de servicio en Alianza Puembo que demuestran el amor de Dios a través de obras. Incluye Misión Dignidad, brigadas médicas, ropero y más.",
+  description: "Proyectos de servicio en Alianza Puembo que demuestran el amor de Dios a través de obras. Incluye Misión Dignidad, brigadas médicas, boutique de moda circular y más.",
   alternates: {
     canonical: "/involucrate/ministerios/servicio/conexion/amor-en-accion",
   },
@@ -14,8 +14,8 @@ export default function AmorEnAccion() {
   const introSectionData = {
     title: "Amor en Acción: Manos que Sirven",
     description: [
-      "Amor en Acción es el corazón de nuestro servicio a la comunidad. A través de diversos proyectos, buscamos llevar esperanza, ayuda y el amor de Cristo a quienes más lo necesitan, demostrando nuestra fe con obras concretas.",
-      "Te invitamos a unirte a nuestras iniciativas y ser parte de la transformación de vidas y comunidades.",
+      "Amor en Acción es el corazón de nuestro servicio a la comunidad. A través de diversos proyectos, buscamos llevar esperanza, ayuda y el amor de Cristo a quienes más lo necesitan, demostrando nuestra fe con obras concretas que honran a las personas.",
+      "Te invitamos a unirte a nuestras iniciativas y ser parte de la transformación de vidas y comunidades a través de la generosidad radical.",
     ],
     imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/AmorEnAccion.jpg",
     imageAlt: "Voluntarios entregando ayuda a personas necesitadas",
@@ -40,26 +40,26 @@ export default function AmorEnAccion() {
       {
         type: "link",
         href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero",
-        itemTitle: "Ropero",
-        itemDescription: "Donación y distribución de ropa y artículos de primera necesidad.",
+        itemTitle: "Boutique de Moda Circular",
+        itemDescription: "Vistiendo con dignidad y sostenibilidad a quienes más lo necesitan.",
       },
       {
         type: "link",
         href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna",
         itemTitle: "Navidad Digna",
-        itemDescription: "Llevando alegría y regalos a niños y familias en Navidad.",
+        itemDescription: "Nuestra celebración anual de generosidad que ocurre una vez al año.",
       },
       {
         type: "link",
         href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor",
         itemTitle: "Canasta de Amor",
-        itemDescription: "Entrega de alimentos y víveres a familias en situación de necesidad.",
+        itemDescription: "Apoyo solidario de alimentos, exclusivo para nuestra familia de fe.",
       },
       {
         type: "link",
         href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/hogar-digno",
         itemTitle: "Hogar Digno",
-        itemDescription: "Apoyo para mejorar las condiciones de vivienda de familias necesitadas.",
+        itemDescription: "Transformando espacios en hogares de esperanza y paz.",
       },
     ],
   };

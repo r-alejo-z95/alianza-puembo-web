@@ -84,9 +84,9 @@ export const menuItems = [
                     subroutes: [
                       { name: "Misión Dignidad", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/mision-dignidad", description: "Nuestro brazo social principal" },
                       { name: "Brigadas Médicas", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/brigadas-medicas", description: "Salud y esperanza para comunidades" },
-                      { name: "Ropero", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero", description: "Vistiendo con dignidad" },
-                      { name: "Navidad Digna", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna", description: "Compartiendo la alegría navideña" },
-                      { name: "Canasta de Amor", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor", description: "Alimentando la esperanza" },
+                      { name: "Boutique de Moda Circular", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero", description: "Vistiendo con dignidad" },
+                      { name: "Navidad Digna", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna", description: "Ocurre una vez al año" },
+                      { name: "Canasta de Amor", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor", description: "Exclusivo para miembros de la iglesia" },
                       { name: "Hogar Digno", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/hogar-digno", description: "Construyendo esperanza en hogares" },
                     ],
                   },
@@ -94,7 +94,7 @@ export const menuItems = [
                     name: "Redes de Amor (Evangelismo)",
                     subroutes: [
                       { name: "Pescadores", href: "/involucrate/ministerios/servicio/conexion/redes-de-amor/pescadores", description: "Sembrando la Palabra" },
-                      { name: "Punto de Conexión", href: "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion", description: "Creando oportunidades" },
+                      { name: "Punto de Conexión", href: "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion", description: "Conecta personas nuevas con la comunidad" },
                     ],
                   },
                 ],
@@ -103,9 +103,9 @@ export const menuItems = [
                 name: "Crecimiento",
                 subroutes: [
                   { name: "Academia Bíblica", href: "/involucrate/ministerios/servicio/crecimiento/academia-biblica", description: "Profundizando en la Palabra" },
-                  { name: "Celebra", href: "/involucrate/ministerios/servicio/crecimiento/celebra", description: "Restauración y nueva vida" },
+                  { name: "Decisiones", href: "/involucrate/ministerios/servicio/crecimiento/celebra", description: "Restauración y nueva vida" },
                   { name: "Cultura Financiera", href: "/involucrate/ministerios/servicio/crecimiento/cultura-financiera", description: "Administrando con sabiduría" },
-                  { name: "Sanidad", href: "/involucrate/ministerios/servicio/crecimiento/sanidad", description: "Restaurando el corazón" },
+                  { name: "Encuentros de Sanidad para hombres y mujeres", href: "/involucrate/ministerios/servicio/crecimiento/sanidad", description: "Restaurando el corazón" },
                 ],
               },
               {
@@ -116,18 +116,18 @@ export const menuItems = [
                     name: "MDA (Ministerios de Apoyo)",
                     subroutes: [
                       { name: "Anfitriones", href: "/involucrate/ministerios/servicio/compromiso/mda/anfitriones", description: "La primera impresión" },
-                      { name: "Mesa de Información", href: "/involucrate/ministerios/servicio/compromiso/mda/mesa-de-informacion", description: "Tu centro de ayuda" },
+                      { name: "Punto de Información", href: "/involucrate/ministerios/servicio/compromiso/mda/mesa-de-informacion", description: "Tu centro de ayuda" },
                       { name: "Santa Cena", href: "/involucrate/ministerios/servicio/compromiso/mda/santa-cena", description: "Un servicio de reverencia" },
                       { name: "Bautizos", href: "/involucrate/ministerios/servicio/compromiso/mda/bautizos", description: "Celebrando un nuevo comienzo" },
-                      { name: "Visitación y Funerales", href: "/involucrate/ministerios/servicio/compromiso/mda/visitacion-y-funerales", description: "Acompañando en todo momento" },
+                      { name: "Visitación y Acompañamiento", href: "/involucrate/ministerios/servicio/compromiso/mda/visitacion-y-funerales", description: "Acompañando en todo momento" },
                     ],
                   },
                   {
                     name: "Oración",
                     subroutes: [
-                      { name: "Círculos de Oración", href: "/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion", description: "Orando con propósito" },
+                      { name: "Círculos de Oración", href: "/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion", description: "Intercesión comunitaria vía Zoom" },
                       { name: "Intercesores", href: "/involucrate/ministerios/servicio/compromiso/oracion/intercesores", description: "Clamando por el Reino" },
-                      { name: "Miércoles de Oración", href: "/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion", description: "Un tiempo sagrado" },
+                      { name: "Miércoles de Oración", href: "/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion", description: "Cada miércoles a las 06h30" },
                     ],
                   },
                 ],
@@ -148,13 +148,13 @@ export const menuItems = [
       {
         name: "Prédicas",
         href: "https://www.youtube.com/@IglesiaAlianzaPuembo/playlists",
-        description: "Escucha mensajes que transforman",
+        description: "Ve y escucha mensajes que transforman",
         external: true,
       },
       {
-        name: "Lee, Ora, Medita",
+        name: "LOM: Lee, Ora, Medita",
         href: "/recursos/lom",
-        description: "Guías diarias para tu devoción personal"
+        description: "Guías diarias para tu devocional personal"
       },
       {
         name: "Galería",

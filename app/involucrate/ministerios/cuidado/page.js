@@ -3,55 +3,55 @@ import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLay
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
 
 export const metadata = {
-  title: "Cuidado",
-  description: "Ministerios de Cuidado en Alianza Puembo. Ofrecemos apoyo y comunidad a través de Grupos Pequeños, Jóvenes y Puembo Kids.",
+  title: "Cuidado Pastoral",
+  description: "En Alianza Puembo somos una familia de familias. En Cuidado Pastoral brindamos el apoyo y el acompañamiento necesario para un crecimiento espiritual saludable.",
   alternates: {
     canonical: "/involucrate/ministerios/cuidado",
   },
 };
 
-export default function Cuidado() {
+export default function CuidadoPastoral() {
   const introSectionData = {
-    title: "Cuidado y Comunidad para Cada Etapa",
+    title: "Cuidado Pastoral: Una Familia que Cuida",
     description: [
-      "Nuestros ministerios de Cuidado están diseñados para acompañarte y fortalecerte en cada etapa de tu vida. Desde los más pequeños hasta los adultos, ofrecemos espacios de contención, crecimiento y comunidad.",
-      "Descubre cómo nuestros Grupos Pequeños, el ministerio de Jóvenes y Puembo Kids pueden ser una bendición para ti y tu familia.",
+      "Creemos que somos una familia de familias; damos por gracia lo que recibimos al servir, pero también necesitamos ser cuidados para un crecimiento espiritual saludable.",
+      "En Alianza Puembo, nuestro Cuidado Pastoral está diseñado para que te sientas visto, amado y acompañado en cada etapa de tu vida. Queremos caminar junto a ti, brindándote espacios de comunidad y apoyo genuino.",
     ],
     imageUrl: "/involucrate/ministerios/cuidado/Cuidado.jpg",
-    imageAlt: "Personas abrazándose en señal de apoyo",
+    imageAlt: "Personas conversando en comunidad",
     imagePosition: "right",
   };
 
   const careMinistriesData = {
-    title: "Ministerios de Cuidado",
+    title: "Nuestros Espacios de Cuidado",
     items: [
       {
         type: "link",
         href: "/involucrate/ministerios/cuidado/grupos-pequenos",
         itemTitle: "Grupos Pequeños",
-        itemDescription: "Conecta, crece y comparte en comunidad.",
+        itemDescription: "Comunidad auténtica y crecimiento relacional.",
       },
       {
         type: "link",
         href: "/involucrate/ministerios/cuidado/jovenes",
         itemTitle: "Jóvenes",
-        itemDescription: "Un espacio dinámico para la nueva generación.",
+        itemDescription: "Acompañando a la nueva generación en su fe.",
       },
       {
         type: "link",
         href: "/involucrate/ministerios/cuidado/puembo-kids",
         itemTitle: "Puembo Kids",
-        itemDescription: "Formando a los más pequeños en el amor de Jesús.",
+        itemDescription: "Sembrando el amor de Dios en el corazón de los niños.",
       },
     ],
   };
 
   return (
     <PublicPageLayout
-      title="Cuidado"
-      description="Ministerios enfocados en el cuidado y la comunidad."
+      title="Cuidado Pastoral"
+      description="Creemos que somos una familia de familias."
       imageUrl="/involucrate/ministerios/cuidado/Cuidado.jpg"
-      imageAlt="Ministerios de Cuidado"
+      imageAlt="Cuidado Pastoral"
       introSectionData={introSectionData}
     >
       <MinistryContentSection {...careMinistriesData} />

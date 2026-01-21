@@ -40,8 +40,8 @@ export default async function LomPage() {
 
   return (
     <PublicPageLayout
-      title="Devocionales LOM"
-      description="Un espacio diario para encontrarte con Dios a través de Su Palabra."
+      title="LOM: Lee, ora, medita"
+      description="Guías diarias para tu devocional personal."
       imageUrl="/recursos/lom/Lom.png"
       imageAlt="Nubes en el cielo con luz del sol"
     >

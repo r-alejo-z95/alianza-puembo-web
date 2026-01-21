@@ -4,7 +4,7 @@ import { MinistryContentSection } from "@/components/public/layout/pages/involuc
 
 export const metadata = {
   title: "Crecimiento",
-  description: "Fomenta tu madurez espiritual en Alianza Puembo con la Academia Bíblica, Celebra, Cultura Financiera y ministerios de Sanidad.",
+  description: "Fomenta tu madurez espiritual en Alianza Puembo con la Academia Bíblica, Decisiones, Cultura Financiera y Encuentros de Sanidad.",
   alternates: {
     canonical: "/involucrate/ministerios/servicio/crecimiento",
   },
@@ -14,8 +14,8 @@ export default function Crecimiento() {
   const introSectionData = {
     title: "Herramientas para tu Crecimiento Espiritual",
     description: [
-      "El crecimiento espiritual es un viaje continuo. Nuestros ministerios de Crecimiento están diseñados para equiparte con el conocimiento, las herramientas y el apoyo que necesitas para profundizar tu relación con Dios y vivir una vida transformada.",
-      "Desde estudios bíblicos profundos hasta programas de sanidad y restauración, te ofrecemos un camino claro para tu desarrollo espiritual.",
+      "El crecimiento espiritual es un viaje continuo. Nuestros ministerios de Crecimiento están diseñados para equiparte con el conocimiento, las herramientas y el apoyo que necesitas para profundizar tu relación con Dios y vivir una vida plenamente transformada.",
+      "Desde estudios bíblicos profundos hasta espacios de sanidad y restauración emocional, te ofrecemos un camino claro para tu desarrollo espiritual y personal.",
     ],
     imageUrl: "/involucrate/ministerios/servicio/crecimiento/Crecimiento.jpg",
     imageAlt: "Persona estudiando la Biblia con atención",
@@ -34,8 +34,8 @@ export default function Crecimiento() {
       {
         type: "link",
         href: "/involucrate/ministerios/servicio/crecimiento/celebra",
-        itemTitle: "Celebra",
-        itemDescription: "Un espacio para celebrar la recuperación de adicciones y una nueva vida en Cristo.",
+        itemTitle: "Decisiones",
+        itemDescription: "Un paso de fe para celebrar la recuperación y una nueva vida en Cristo.",
       },
       {
         type: "link",
@@ -46,8 +46,8 @@ export default function Crecimiento() {
       {
         type: "link",
         href: "/involucrate/ministerios/servicio/crecimiento/sanidad",
-        itemTitle: "Sanidad",
-        itemDescription: "Encuentros de sanidad interior y liberación para hombres y mujeres.",
+        itemTitle: "Encuentros de Sanidad",
+        itemDescription: "Restauración y libertad interior para hombres y mujeres.",
       },
     ],
   };

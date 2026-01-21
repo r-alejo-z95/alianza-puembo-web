@@ -3,8 +3,8 @@ import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLay
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
 
 export const metadata = {
-  title: "Punto de Conexión",
-  description: "Eventos y actividades diseñadas para crear oportunidades de evangelismo en Alianza Puembo. Alcanzando a la comunidad de manera creativa.",
+  title: "Punto Conexión",
+  description: "El puente diseñado para que las personas nuevas se integren, conozcan nuestra visión y se unan a nuestra familia de fe en Alianza Puembo.",
   alternates: {
     canonical: "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion",
   },
@@ -12,49 +12,49 @@ export const metadata = {
 
 export default function PuntoDeConexion() {
   const introSectionData = {
-    title: "Punto de Conexión: Creando Oportunidades",
+    title: "Punto Conexión: Tu Puerta a la Comunidad",
     description: [
-      "Punto de Conexión es un ministerio que organiza eventos y actividades creativas para generar oportunidades de evangelismo en nuestra comunidad. Creemos que el evangelio puede ser compartido de muchas maneras, adaptándonos a las necesidades y contextos de las personas.",
-      "Desde eventos deportivos hasta ferias de salud, buscamos ser un puente para que las personas conozcan el amor de Dios en un ambiente relajado y amigable.",
+      "Punto Conexión es el puente diseñado específicamente para que las personas nuevas se integren con facilidad a nuestra comunidad.",
+      "Nuestra razón de ser es ayudarte a conocer nuestra visión, resolver tus dudas y facilitarte el camino para que te sientas parte de esta familia de familias desde el primer día.",
     ],
     imageUrl: "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion/PuntoDeConexion.jpg",
-    imageAlt: "Evento comunitario con personas interactuando",
+    imageAlt: "Punto Conexión",
     imagePosition: "right",
   };
 
-  const focusAreasData = {
-    title: "Nuestras Iniciativas",
+  const programDetailsData = {
+    title: "Nuestra Labor",
     items: [
       {
         type: "icon",
-        iconType: "Calendar",
-        itemTitle: "Eventos Comunitarios",
-        itemDescription: "Organización de ferias, conciertos, actividades deportivas y culturales.",
+        iconType: "Users",
+        itemTitle: "Integración",
+        itemDescription: "Facilitamos el proceso para que dejes de ser un visitante y te conviertas en parte de la familia.",
       },
       {
         type: "icon",
-        iconType: "MessageSquare",
-        itemTitle: "Charlas y Talleres",
-        itemDescription: "Espacios para abordar temas relevantes desde una perspectiva cristiana.",
+        iconType: "Compass",
+        itemTitle: "Visión y Valores",
+        itemDescription: "Te compartimos el corazón de nuestra iglesia y cómo caminamos juntos.",
       },
       {
         type: "icon",
-        iconType: "Handshake",
-        itemTitle: "Colaboración con Organizaciones",
-        itemDescription: "Alianzas con entidades locales para ampliar nuestro alcance y impacto.",
+        iconType: "Footprints",
+        itemTitle: "Pasos Siguientes",
+        itemDescription: "Te orientamos sobre los ministerios y actividades donde puedes comenzar tu crecimiento.",
       },
     ],
   };
 
   return (
     <PublicPageLayout
-      title="Punto de Conexión"
-      description="Creando oportunidades para compartir el evangelio."
+      title="Punto Conexión"
+      description="Conecta personas nuevas con la comunidad."
       imageUrl="/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion/PuntoDeConexion.jpg"
-      imageAlt="Punto de Conexión"
+      imageAlt="Punto Conexión"
       introSectionData={introSectionData}
     >
-      <MinistryContentSection {...focusAreasData} />
+      <MinistryContentSection {...programDetailsData} />
     </PublicPageLayout>
   );
 }

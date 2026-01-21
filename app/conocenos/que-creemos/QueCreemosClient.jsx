@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { sectionTitle, sectionText, sectionPy, contentSection } from "@/lib/styles";
+import { sectionTitle, sectionText, contentSection } from "@/lib/styles";
 import { cn } from "@/lib/utils.ts";
 import { BeliefBlock } from "@/components/public/layout/pages/que-creemos/BeliefBlock";
 import { Card, CardContent } from "@/components/ui/card";
+import { Heart, TrendingUp, Map } from "lucide-react";
 
 const beliefs = [
   {
@@ -54,6 +55,30 @@ const missionVision = [
     ],
     index: "02"
   },
+];
+
+const coreValues = [
+  {
+    name: "Nuestros Valores",
+    subtitle: "Esencia de familia",
+    detail: "Creemos que la iglesia no es un lugar al que se asiste, sino una familia a la que se pertenece. Nuestros valores reflejan el corazón de Jesús: amor incondicional, integridad radical y una hospitalidad que hace que cada persona, sin importar su historia, se sienta en casa.",
+    icon: Heart,
+    index: "03"
+  },
+  {
+    name: "Nuestros Medibles",
+    subtitle: "Vidas transformadas",
+    detail: "No medimos el éxito por la cantidad de personas en las sillas, sino por las vidas que caminan en libertad. Buscamos el crecimiento espiritual genuino, familias fortalecidas y el impacto tangible que nuestra comunidad genera en Puembo.",
+    icon: TrendingUp,
+    index: "04"
+  },
+  {
+    name: "Nuestra Estrategia",
+    subtitle: "Pasos intencionales",
+    detail: "Conectar a las personas con Dios, Equipar a cada miembro para descubrir su propósito y Servir con pasión. Lo hacemos a través de espacios dinámicos, grupos pequeños y un discipulado relacional que sucede en la vida cotidiana.",
+    icon: Map,
+    index: "05"
+  }
 ];
 
 export function QueCreemosClient() {
@@ -114,6 +139,45 @@ export function QueCreemosClient() {
                   </div>
                 </CardContent>
               </Card>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* Valores, Medibles y Estrategia Section (KEEPING PREMIUM STYLE) */}
+      <section className="max-w-7xl mx-auto w-full px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {coreValues.map((value, index) => (
+            <motion.div
+              key={value.name}
+              {...fadeIn}
+              transition={{ delay: index * 0.15 }}
+              className="group relative"
+            >
+              <div className="bg-white p-10 md:p-12 rounded-[2.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] border border-gray-50 hover:border-[var(--puembo-green)]/20 transition-all duration-700 h-full flex flex-col space-y-8">
+                <div className="flex justify-between items-start">
+                  <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-[var(--puembo-green)] group-hover:bg-[var(--puembo-green)] group-hover:text-white transition-all duration-700">
+                    <value.icon className="w-7 h-7" strokeWidth={1.5} />
+                  </div>
+                  <span className="text-4xl font-black text-gray-50 group-hover:text-green-50 transition-colors duration-700 select-none">
+                    {value.index}
+                  </span>
+                </div>
+                
+                <div className="space-y-4 grow">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)] opacity-70">
+                      {value.subtitle}
+                    </p>
+                    <h3 className="text-3xl font-serif font-bold text-gray-900 tracking-tight">{value.name}</h3>
+                  </div>
+                  <p className="text-gray-500 text-base md:text-lg leading-relaxed font-light">
+                    {value.detail}
+                  </p>
+                </div>
+
+                <div className="h-1 w-10 bg-gray-100 group-hover:w-full group-hover:bg-[var(--puembo-green)]/20 transition-all duration-700 rounded-full" />
+              </div>
             </motion.div>
           ))}
         </div>

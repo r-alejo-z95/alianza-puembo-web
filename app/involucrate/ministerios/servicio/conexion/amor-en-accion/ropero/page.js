@@ -3,55 +3,55 @@ import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLay
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
 
 export const metadata = {
-  title: "Ropero",
-  description: "Donación y distribución de ropa, calzado y artículos de primera necesidad a familias y personas en situación de vulnerabilidad.",
+  title: "Boutique de Moda Circular",
+  description: "Un enfoque digno y sostenible para vestir a nuestra comunidad, promoviendo la generosidad y el cuidado del medio ambiente.",
   alternates: {
     canonical: "/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero",
   },
 };
 
-export default function Ropero() {
+export default function BoutiqueModaCircular() {
   const introSectionData = {
-    title: "Ropero: Vistiendo con Dignidad",
+    title: "Boutique de Moda Circular: Vistiendo con Dignidad",
     description: [
-      "El Ropero de Alianza Puembo es un proyecto de servicio que recolecta y distribuye ropa, calzado y artículos de primera necesidad a familias y personas en situación de vulnerabilidad. Creemos que vestir con dignidad es un paso importante para restaurar la autoestima y la esperanza.",
-      "Tu donación puede hacer una gran diferencia en la vida de alguien. Únete a nosotros en esta labor de amor.",
+      "Nuestra Boutique de Moda Circular es mucho más que un lugar de donación; es un espacio diseñado para honrar a las personas.",
+      "Bajo un enfoque de sostenibilidad y dignidad, recolectamos y distribuimos prendas de vestir de alta calidad, promoviendo la generosidad y el cuidado de los recursos que Dios nos ha dado.",
     ],
     imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero/Ropero.jpg",
-    imageAlt: "Ropa organizada para donación",
+    imageAlt: "Boutique de Moda Circular",
     imagePosition: "right",
   };
 
   const projectDetailsData = {
-    title: "¿Cómo puedes ayudar?",
+    title: "Nuestro Enfoque",
     items: [
       {
         type: "icon",
-        iconType: "Shirt",
-        itemTitle: "Donando Ropa y Calzado",
-        itemDescription: "Aceptamos ropa en buen estado para todas las edades y tallas.",
+        iconType: "Sparkles",
+        itemTitle: "Moda Circular",
+        itemDescription: "Damos una segunda vida a prendas en excelente estado, cuidando nuestro entorno.",
       },
       {
         type: "icon",
-        iconType: "Baby",
-        itemTitle: "Artículos para Bebés",
-        itemDescription: "Pañales, ropa de bebé, juguetes y accesorios.",
+        iconType: "Shirt",
+        itemTitle: "Dignidad Humana",
+        itemDescription: "Seleccionamos lo mejor para que cada persona se sienta valorada y respetada.",
       },
       {
         type: "icon",
         iconType: "Handshake",
-        itemTitle: "Voluntariado",
-        itemDescription: "Ayúdanos a clasificar, organizar y distribuir las donaciones.",
+        itemTitle: "Generosidad",
+        itemDescription: "Un puente entre quienes desean dar y quienes necesitan recibir con amor.",
       },
     ],
   };
 
   return (
     <PublicPageLayout
-      title="Ropero"
-      description="Donando ropa y dignidad a quienes lo necesitan."
+      title="Boutique de Moda Circular"
+      description="Vistiendo con dignidad y sostenibilidad."
       imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero/Ropero.jpg"
-      imageAlt="Ropero"
+      imageAlt="Boutique de Moda Circular"
       introSectionData={introSectionData}
     >
       <MinistryContentSection {...projectDetailsData} />

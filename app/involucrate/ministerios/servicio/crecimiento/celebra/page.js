@@ -3,55 +3,55 @@ import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLay
 import { MinistryContentSection } from "@/components/public/layout/pages/involucrate/ministerios/MinistryContentSection";
 
 export const metadata = {
-  title: "Celebra",
-  description: "Un espacio para celebrar la recuperación de adicciones y una nueva vida en Cristo en Alianza Puembo. Encuentra apoyo, esperanza y libertad.",
+  title: "Decisiones",
+  description: "Un espacio de fe y restauración enfocado en el paso de fe necesario para una vida transformada en Cristo.",
   alternates: {
     canonical: "/involucrate/ministerios/servicio/crecimiento/celebra",
   },
 };
 
-export default function Celebra() {
+export default function Decisiones() {
   const introSectionData = {
-    title: "Celebra: Restauración y Nueva Vida",
+    title: "Decisiones: Restauración y Nueva Vida",
     description: [
-      "Celebra es un ministerio de recuperación basado en principios bíblicos, diseñado para aquellos que luchan con adicciones, heridas emocionales o cualquier hábito destructivo. Creemos que la verdadera libertad se encuentra en Cristo y en el poder de su amor.",
-      "Ofrecemos un ambiente seguro y confidencial donde puedes encontrar apoyo, esperanza y las herramientas necesarias para experimentar una recuperación duradera y una nueva vida en abundancia.",
+      "Decisiones es un ministerio enfocado en el paso de fe más importante: elegir la libertad que solo Cristo ofrece.",
+      "Es un espacio diseñado para aquellos que buscan restaurar su vida de adicciones, hábitos destructivos o heridas emocionales, tomando la decisión valiente de caminar hacia una plenitud espiritual.",
     ],
     imageUrl: "/involucrate/ministerios/servicio/crecimiento/celebra/Celebra.jpg",
-    imageAlt: "Grupo de personas en una sesión de apoyo",
+    imageAlt: "Decisiones",
     imagePosition: "right",
   };
 
   const programDetailsData = {
-    title: "Nuestro Programa",
+    title: "Nuestro Proceso",
     items: [
       {
         type: "icon",
-        iconType: "Handshake",
-        itemTitle: "Grupos de Apoyo",
-        itemDescription: "Sesiones semanales donde compartimos experiencias y nos apoyamos mutuamente.",
-      },
-      {
-        type: "icon",
-        iconType: "BookOpen",
-        itemTitle: "Principios Bíblicos",
-        itemDescription: "Estudio de los 8 principios de recuperación basados en las Bienaventuranzas.",
+        iconType: "Footprints",
+        itemTitle: "Paso de Fe",
+        itemDescription: "Todo cambio real comienza con una decisión intencional de seguir a Jesús.",
       },
       {
         type: "icon",
         iconType: "Sparkles",
-        itemTitle: "Testimonios de Vida",
-        itemDescription: "Historias reales de transformación que inspiran y dan esperanza.",
+        itemTitle: "Restauración",
+        itemDescription: "Procesos bíblicos para sanar heridas y romper patrones de hábitos destructivos.",
+      },
+      {
+        type: "icon",
+        iconType: "Users",
+        itemTitle: "Comunidad de Apoyo",
+        itemDescription: "Un entorno seguro donde caminar junto a otros en la misma ruta de libertad.",
       },
     ],
   };
 
   return (
     <PublicPageLayout
-      title="Celebra"
-      description="Restauración y nueva vida en Cristo."
+      title="Decisiones"
+      description="El paso de fe para una vida restaurada."
       imageUrl="/involucrate/ministerios/servicio/crecimiento/celebra/Celebra.jpg"
-      imageAlt="Celebra"
+      imageAlt="Decisiones"
       introSectionData={introSectionData}
     >
       <MinistryContentSection {...programDetailsData} />

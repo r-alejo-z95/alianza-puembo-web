@@ -4,7 +4,7 @@ import { MinistryContentSection } from "@/components/public/layout/pages/involuc
 
 export const metadata = {
   title: "Miércoles de Oración",
-  description: "Servicio semanal dedicado exclusivamente a la oración y la búsqueda de Dios en Alianza Puembo. Un tiempo para unirse en fe y clamar juntos.",
+  description: "Únete a nuestra comunidad cada miércoles a las 06h30 para un tiempo sagrado de búsqueda de Dios, adoración y clamor unida.",
   alternates: {
     canonical: "/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion",
   },
@@ -14,34 +14,34 @@ export default function MiercolesDeOracion() {
   const introSectionData = {
     title: "Miércoles de Oración: Un Tiempo Sagrado",
     description: [
-      "Cada miércoles, nos reunimos como iglesia para dedicar un tiempo exclusivo a la oración y la búsqueda de Dios. Es un servicio donde la alabanza, la Palabra y la intercesión se unen para crear un ambiente de profunda comunión con el Espíritu Santo.",
-      "Te invitamos a unirte a nosotros en este tiempo sagrado, donde juntos presentamos nuestras peticiones, agradecemos por sus bondades y clamamos por avivamiento en nuestras vidas y en nuestra ciudad.",
+      "Creemos en el poder de comenzar el día buscando el rostro de Dios. Cada miércoles a las 06h30, nos reunimos como familia para adorar, estudiar Su Palabra y levantar nuestras voces en un clamor unido por nuestra comunidad y necesidades personales.",
+      "Es el motor espiritual que nos sostiene y nos prepara para caminar en Su voluntad durante el resto de la semana.",
     ],
     imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion/MiercolesDeOracion.jpg",
-    imageAlt: "Congregación orando en un servicio",
+    imageAlt: "Miércoles de Oración",
     imagePosition: "right",
   };
 
   const serviceDetailsData = {
-    title: "¿Qué esperar?",
+    title: "Detalles del Encuentro",
     items: [
       {
         type: "icon",
         iconType: "Clock",
-        itemTitle: "Horario",
-        itemDescription: "Todos los miércoles a las 7:00 PM en el auditorio principal.",
+        itemTitle: "Horario: 06h30",
+        itemDescription: "Consagramos la primera hora de nuestro miércoles para encontrarnos con el Señor.",
       },
       {
         type: "icon",
         iconType: "Mic",
-        itemTitle: "Alabanza y Adoración",
-        itemDescription: "Tiempo de música que prepara nuestros corazones para la presencia de Dios.",
+        itemTitle: "Adoración y Palabra",
+        itemDescription: "Un tiempo dedicado a la alabanza y la reflexión en las Escrituras.",
       },
       {
         type: "icon",
         iconType: "HandHeart",
-        itemTitle: "Intercesión Colectiva",
-        itemDescription: "Oramos por peticiones específicas, por la iglesia, la nación y el mundo.",
+        itemTitle: "Clamor Unido",
+        itemDescription: "Oramos juntos por las familias, la iglesia y nuestra nación.",
       },
     ],
   };
@@ -49,7 +49,7 @@ export default function MiercolesDeOracion() {
   return (
     <PublicPageLayout
       title="Miércoles de Oración"
-      description="Un tiempo sagrado de oración y búsqueda de Dios."
+      description="Cada miércoles a las 06h30."
       imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion/MiercolesDeOracion.jpg"
       imageAlt="Miércoles de Oración"
       introSectionData={introSectionData}
