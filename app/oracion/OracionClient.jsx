@@ -44,6 +44,21 @@ export function OracionClient({ requests }) {
     transition: { duration: 0.6 }
   };
 
+  // Manejar el scroll al hash ID si existe en la URL
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && requests?.length > 0) {
+      const id = hash.replace("#", "");
+      const timer = setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [requests]);
+
   return (
     <div className={cn(contentSection, "bg-gray-50/50 pt-12 pb-24 space-y-24")}>
       {/* Muro de Oración */}
@@ -63,9 +78,10 @@ export function OracionClient({ requests }) {
             {currentRequests.map((req, index) => (
               <motion.div
                 key={req.id}
+                id={req.id}
                 {...fadeIn}
                 transition={{ delay: (index % 3) * 0.1 }}
-                className="relative bg-white p-8 rounded-3xl shadow-lg border-r-8 border-r-[var(--puembo-green)] hover:shadow-xl transition-all duration-300 group h-full flex flex-col"
+                className="relative bg-white p-8 rounded-3xl shadow-lg border-r-8 border-r-[var(--puembo-green)] hover:shadow-xl transition-all duration-300 group h-full flex flex-col scroll-mt-32"
               >
                 <Quote className="absolute top-4 right-6 w-8 h-8 text-gray-50 group-hover:text-green-50 transition-colors" />
                 <div className="space-y-4 grow">

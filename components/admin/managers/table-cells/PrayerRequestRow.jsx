@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatInEcuador } from '@/lib/date-utils';
 import { cn } from "@/lib/utils.ts";
+import Link from 'next/link';
 
 export function PrayerRequestRow({ request, onDelete, onStatusChange, compact }) {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
@@ -26,6 +27,9 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
         return <Badge variant="secondary" className="rounded-full px-3 text-[10px] uppercase">Desconocido</Badge>;
     }
   };
+
+  const isApprovedAndPublic = request.is_public && request.status === 'approved';
+  const publicHref = isApprovedAndPublic ? `/oracion#${request.id}` : undefined;
 
   const actions = (
     <div className="flex items-center justify-end gap-2">
@@ -104,9 +108,13 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
                     {request.is_public ? "Pública" : "Privada"}
                 </span>
             </div>
-            <h3 className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-3">
-              "{request.request_text}"
-            </h3>
+            <OverflowCell 
+              href={publicHref}
+              linkText="Ver en muro"
+              className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-3"
+            >
+              {request.request_text}
+            </OverflowCell>
           </div>
         </div>
         
@@ -134,8 +142,12 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
     <TableRow className="group hover:bg-gray-50/50 transition-colors border-b border-gray-50">
       <TableCell className="px-8 py-6 w-1/3">
         <div className="max-w-[350px]">
-          <OverflowCell className="text-sm font-medium text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors italic">
-            {`"${request.request_text}"`}
+          <OverflowCell 
+            href={publicHref}
+            linkText="Ver en muro"
+            className="text-sm font-medium text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors italic"
+          >
+            {request.request_text}
           </OverflowCell>
         </div>
       </TableCell>

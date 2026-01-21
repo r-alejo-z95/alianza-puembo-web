@@ -18,6 +18,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatLiteralDate } from "@/lib/date-utils";
 import { AuthorAvatar } from "@/components/shared/AuthorAvatar";
 import { cn } from "@/lib/utils.ts";
+import Link from "next/link";
 
 const formatNewsTime = (timeStr) => {
   if (!timeStr) return "-";
@@ -111,9 +112,13 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
         <div className="flex items-start justify-between">
           <div className="space-y-1">
             <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Noticia</span>
-            <h3 className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2">
+            <OverflowCell 
+              href={`/noticias#${newsItem.id}`}
+              linkText="Ver noticia"
+              className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2"
+            >
               {newsItem.title}
-            </h3>
+            </OverflowCell>
           </div>
           <AuthorAvatar profile={newsItem.profiles} className="h-10 w-10 border-2 border-white shadow-md" />
         </div>
@@ -145,7 +150,13 @@ export function NewsRow({ newsItem, onEdit, onDelete, compact }) {
     <TableRow className="group hover:bg-gray-50/50 transition-colors border-b border-gray-50">
       <TableCell className="px-8 py-6 w-1/4">
         <div className="max-w-[200px]">
-          <OverflowCell className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors">{newsItem.title}</OverflowCell>
+          <OverflowCell 
+            href={`/noticias#${newsItem.id}`}
+            linkText="Ver noticia"
+            className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors"
+          >
+            {newsItem.title}
+          </OverflowCell>
         </div>
       </TableCell>
       <TableCell className="px-8 py-6 w-1/3">

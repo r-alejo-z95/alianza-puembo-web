@@ -9,6 +9,7 @@ import { getEventColorClasses } from '@/components/public/calendar/event-calenda
 import { formatEventDateRange, formatEventTimeRange } from '@/lib/date-utils';
 import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
 import { cn } from '@/lib/utils.ts';
+import Link from 'next/link';
 
 export function EventRow({ event, onEdit, onDelete, compact }) {
     const posterActions = event.poster_url ? (
@@ -118,28 +119,31 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
             <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4 relative group">
                 <div className="flex items-start justify-between">
                     <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                            {event.color && <div className={`w-2.5 h-2.5 rounded-full ${getEventColorClasses(event.color)}`} />}
-                            <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Actividad</span>
-                            {event.is_recurring && (
-                                <div className="flex items-center gap-1 ml-2 px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[8px] font-black uppercase tracking-tighter border border-amber-100">
-                                    <Repeat className="w-2.5 h-2.5" />
-                                    {recurrenceLabel[event.recurrence_pattern] || "Recurrente"}
-                                </div>
-                            )}
-                        </div>
-                        <h3 className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2">
-                            {event.title}
-                        </h3>
-                    </div>
-                    <AuthorAvatar profile={event.profiles} className="h-10 w-10 border-2 border-white shadow-md" />
-                </div>
-                
-                <p className="text-sm text-gray-500 font-light line-clamp-2 leading-relaxed">
-                    {event.description || "Sin descripción."}
-                </p>
-
-                <div className="flex flex-wrap gap-4 pt-2">
+                                            <div className="flex items-center gap-2">
+                                                {event.color && <div className={`w-2.5 h-2.5 rounded-full ${getEventColorClasses(event.color)}`} />}
+                                                <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Actividad</span>
+                                                {event.is_recurring && (
+                                                    <div className="flex items-center gap-1 ml-2 px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[8px] font-black uppercase tracking-tighter border border-amber-100">
+                                                        <Repeat className="w-2.5 h-2.5" />
+                                                        {recurrenceLabel[event.recurrence_pattern] || "Recurrente"}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <OverflowCell 
+                                                href={`/eventos/${event.slug}`}
+                                                linkText="Ver evento"
+                                                className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2"
+                                            >
+                                                {event.title}
+                                            </OverflowCell>
+                                        </div>
+                                        <AuthorAvatar profile={event.profiles} className="h-10 w-10 border-2 border-white shadow-md" />
+                                    </div>
+                                    
+                                    <p className="text-sm text-gray-500 font-light line-clamp-2 leading-relaxed">
+                                        {event.description || "Sin descripción."}
+                                    </p>
+                                        <div className="flex flex-wrap gap-4 pt-2">
                     <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
                         <Calendar className="w-3 h-3" /> {formattedDate}
                     </div>
@@ -170,7 +174,11 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                     {event.color && <div className={`w-2 h-2 rounded-full shrink-0 ${getEventColorClasses(event.color)}`} />}
                     <div className="flex-grow min-w-0">
                         <div className="flex flex-col gap-1">
-                            <OverflowCell className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors">
+                            <OverflowCell 
+                                href={`/eventos/${event.slug}`}
+                                linkText="Ver evento"
+                                className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors"
+                            >
                                 {event.title}
                             </OverflowCell>
                             {event.is_recurring && (

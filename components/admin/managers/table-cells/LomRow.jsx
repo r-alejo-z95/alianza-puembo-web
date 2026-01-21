@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { formatLiteralDate } from '@/lib/date-utils';
 import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
 import { cn } from "@/lib/utils.ts";
+import Link from 'next/link';
 
 export function LomRow({ post, onEdit, onDelete, compact }) {
     const actions = (
@@ -53,9 +54,13 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
                 <div className="flex items-start justify-between">
                     <div className="space-y-1">
                         <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Devocional</span>
-                        <h3 className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2">
+                        <OverflowCell 
+                            href={`/recursos/lom/${post.slug}`}
+                            linkText="Ver devocional"
+                            className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2"
+                        >
                             {post.title}
-                        </h3>
+                        </OverflowCell>
                     </div>
                     <AuthorAvatar profile={post.profiles} className="h-10 w-10 border-2 border-white shadow-md" />
                 </div>
@@ -75,7 +80,11 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
         <TableRow className="group hover:bg-gray-50/50 transition-colors border-b border-gray-50">
             <TableCell className="px-8 py-6 w-1/3">
                 <div className="max-w-[250px]">
-                    <OverflowCell className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors">
+                    <OverflowCell 
+                        href={`/recursos/lom/${post.slug}`}
+                        linkText="Ver devocional"
+                        className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors"
+                    >
                         {post.title}
                     </OverflowCell>
                 </div>

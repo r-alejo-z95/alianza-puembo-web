@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { formatLiteralDate } from "@/lib/date-utils";
 import { Quote } from "lucide-react";
+import { useEffect } from "react";
 
 export function NewsClient({ news, totalPages, hasNextPage, page }) {
   const fadeIn = {
@@ -21,6 +22,22 @@ export function NewsClient({ news, totalPages, hasNextPage, page }) {
     viewport: { once: true },
     transition: { duration: 0.6 }
   };
+
+  // Manejar el scroll al hash ID si existe en la URL
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && news?.length > 0) {
+      const id = hash.replace("#", "");
+      // Pequeño delay para asegurar que el DOM y las animaciones iniciales permitan el scroll
+      const timer = setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [news]);
 
   return (
     <div className={cn(contentSection, "bg-gray-50/50 pt-12 pb-24 space-y-20")}>
@@ -43,12 +60,13 @@ export function NewsClient({ news, totalPages, hasNextPage, page }) {
               return (
                 <motion.div
                   key={item.id}
+                  id={item.id}
                   initial={{ opacity: 0, x: isEven ? -30 : 30 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, margin: "-100px" }}
                   transition={{ duration: 0.8, ease: "easeOut" }}
                   className={cn(
-                    "flex flex-col gap-8 items-center",
+                    "flex flex-col gap-8 items-center scroll-mt-32",
                     isEven ? "md:flex-row" : "md:flex-row-reverse"
                   )}
                 >

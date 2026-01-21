@@ -32,6 +32,7 @@ import {
 import { formatInEcuador } from "@/lib/date-utils";
 import { AuthorAvatar } from "@/components/shared/AuthorAvatar";
 import { cn } from "@/lib/utils.ts";
+import Link from "next/link";
 
 export function FormRow({ form, onEdit, onDelete, compact }) {
   const handleCopyLink = () => {
@@ -197,9 +198,13 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
             <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">
               Formulario
             </span>
-            <h3 className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2">
+            <OverflowCell 
+              href={`/formularios/${form.slug}`}
+              linkText="Ver formulario"
+              className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2"
+            >
               {form.title}
-            </h3>
+            </OverflowCell>
           </div>
           <AuthorAvatar
             profile={form.profiles}
@@ -227,7 +232,11 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
     <TableRow className="group hover:bg-gray-50/50 transition-colors border-b border-gray-50">
       <TableCell className="px-8 py-6 w-1/3">
         <div className="max-w-[250px]">
-          <OverflowCell className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors">
+          <OverflowCell 
+            href={`/formularios/${form.slug}`}
+            linkText="Ver formulario"
+            className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors"
+          >
             {form.title}
           </OverflowCell>
         </div>
