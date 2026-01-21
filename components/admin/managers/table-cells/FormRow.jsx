@@ -33,8 +33,34 @@ import { formatInEcuador } from "@/lib/date-utils";
 import { AuthorAvatar } from "@/components/shared/AuthorAvatar";
 import { cn } from "@/lib/utils.ts";
 import Link from "next/link";
+import { Switch } from "@/components/ui/switch";
+import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
 
 export function FormRow({ form, onEdit, onDelete, compact }) {
+  const [isEnabled, setEnabled] = useState(form.enabled ?? true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const supabase = createClient();
+
+  const handleToggleEnabled = async (checked) => {
+    setIsUpdating(true);
+    const { error } = await supabase
+      .from("forms")
+      .update({ enabled: checked })
+      .eq("id", form.id);
+
+    if (error) {
+      toast.error("Error al actualizar el estado.");
+      console.error(error);
+    } else {
+      setEnabled(checked);
+      toast.success(
+        checked ? "Formulario habilitado" : "Formulario deshabilitado"
+      );
+    }
+    setIsUpdating(false);
+  };
+
   const handleCopyLink = () => {
     const url = `${window.location.origin}/formularios/${form.slug}`;
     navigator.clipboard.writeText(url).then(() => {
@@ -129,6 +155,22 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
 
   const actions = (
     <div className="flex items-center justify-end gap-2">
+      <div className="flex items-center gap-2 mr-4 bg-gray-50/50 px-3 py-1.5 rounded-full border border-gray-100">
+        <span
+          className={cn(
+            "text-[9px] font-black uppercase tracking-widest",
+            isEnabled ? "text-emerald-600" : "text-gray-400"
+          )}
+        >
+          {isEnabled ? "Activo" : "Cerrado"}
+        </span>
+        <Switch
+          checked={isEnabled}
+          onCheckedChange={handleToggleEnabled}
+          disabled={isUpdating}
+          className="scale-75 cursor-pointer"
+        />
+      </div>
       <Button
         variant="ghost"
         size="icon"
@@ -183,7 +225,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
             <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">
               Formulario
             </span>
-            <OverflowCell 
+            <OverflowCell
               href={`/formularios/${form.slug}`}
               linkText="Ver formulario"
               className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2"
@@ -217,7 +259,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
     <TableRow className="group hover:bg-gray-50/50 transition-colors border-b border-gray-50">
       <TableCell className="px-8 py-6 w-1/3">
         <div className="max-w-[250px]">
-          <OverflowCell 
+          <OverflowCell
             href={`/formularios/${form.slug}`}
             linkText="Ver formulario"
             className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors"

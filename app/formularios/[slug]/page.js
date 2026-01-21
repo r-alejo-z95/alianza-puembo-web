@@ -91,7 +91,8 @@ export default function PublicForm() {
   });
 
   const hasRequiredFields = form?.form_fields.some(f => f.required || f.is_required);
-  const isSubmitDisabled = sending || (hasRequiredFields ? !isValid : isFormEmpty);
+  const isFormDisabled = form?.enabled === false;
+  const isSubmitDisabled = sending || isFormDisabled || (hasRequiredFields ? !isValid : isFormEmpty);
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -123,6 +124,10 @@ export default function PublicForm() {
   }, [slug]);
 
   const onSubmit = async (data) => {
+    if (isFormDisabled) {
+      toast.error("Este formulario ya no acepta más respuestas.");
+      return;
+    }
     setSending(true);
     const supabase = createClient();
     try {
@@ -252,8 +257,26 @@ export default function PublicForm() {
       {sending && <SendingSpinner />}
 
       <div className="w-full max-w-2xl space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        {/* Banner de Estado Cerrado */}
+        {isFormDisabled && (
+          <div className="bg-amber-50 border border-amber-100 p-6 rounded-[2rem] flex items-center gap-4 text-amber-800 shadow-sm animate-in zoom-in-95 duration-500">
+            <div className="p-3 bg-white rounded-2xl shadow-sm">
+              <XCircle className="w-6 h-6 text-amber-600" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-black uppercase tracking-widest">Formulario Cerrado</p>
+              <p className="text-sm font-light opacity-80 leading-relaxed">
+                Este formulario ya no acepta más respuestas. Por favor, contacta con la administración si crees que es un error.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Main Card */}
-        <Card className="overflow-hidden border-none shadow-2xl rounded-[3rem] bg-white">
+        <Card className={cn(
+          "overflow-hidden border-none shadow-2xl rounded-[3rem] bg-white transition-opacity duration-500",
+          isFormDisabled && "opacity-60 grayscale-[0.5]"
+        )}>
           {form.image_url && (
             <div className="relative w-full aspect-video md:aspect-[21/9]">
               <Image
@@ -361,6 +384,7 @@ export default function PublicForm() {
                                 type={fieldType}
                                 placeholder={placeholder}
                                 className={baseInputClass}
+                                disabled={isFormDisabled}
                                 {...registrationProps}
                               />
                             );
@@ -378,6 +402,7 @@ export default function PublicForm() {
                                     inputMode="numeric"
                                     placeholder={placeholder}
                                     className={baseInputClass}
+                                    disabled={isFormDisabled}
                                     value={ctrlField.value || ""}
                                     onChange={(e) =>
                                       /^[0-9+\- ]*$/.test(e.target.value) &&
@@ -398,6 +423,7 @@ export default function PublicForm() {
                                   baseInputClass,
                                   "min-h-[150px] py-4 resize-none"
                                 )}
+                                disabled={isFormDisabled}
                                 {...registrationProps}
                               />
                             );
@@ -411,6 +437,7 @@ export default function PublicForm() {
                                   baseInputClass,
                                   "w-full md:w-auto px-6"
                                 )}
+                                disabled={isFormDisabled}
                                 {...registrationProps}
                               />
                             );
@@ -425,6 +452,7 @@ export default function PublicForm() {
                                   <RadioGroup
                                     onValueChange={ctrlField.onChange}
                                     value={ctrlField.value || ""}
+                                    disabled={isFormDisabled}
                                     className="grid grid-cols-1 sm:grid-cols-2 gap-4"
                                   >
                                     {field.options.map((opt) => (
@@ -433,6 +461,7 @@ export default function PublicForm() {
                                         htmlFor={`${fieldId}-${opt.id}`}
                                         className={cn(
                                           "flex items-center gap-3 p-5 rounded-2xl border transition-all cursor-pointer",
+                                          isFormDisabled && "cursor-not-allowed opacity-50",
                                           ctrlField.value === opt.value
                                             ? "bg-white border-[var(--puembo-green)] shadow-md ring-1 ring-[var(--puembo-green)]/10"
                                             : "bg-gray-50/50 border-gray-100 hover:bg-white"
@@ -442,6 +471,7 @@ export default function PublicForm() {
                                           value={opt.value}
                                           id={`${fieldId}-${opt.id}`}
                                           className="text-[var(--puembo-green)] border-gray-300"
+                                          disabled={isFormDisabled}
                                         />
                                         <span className="font-bold text-gray-700">
                                           {opt.label}
@@ -466,6 +496,7 @@ export default function PublicForm() {
                                         htmlFor={`${fieldId}-${opt.id}`}
                                         className={cn(
                                           "flex items-center gap-3 p-5 rounded-2xl border transition-all cursor-pointer",
+                                          isFormDisabled && "cursor-not-allowed opacity-50",
                                           ctrlField.value
                                             ? "bg-white border-[var(--puembo-green)] shadow-md ring-1 ring-[var(--puembo-green)]/10"
                                             : "bg-gray-50/50 border-gray-100 hover:bg-white"
@@ -475,6 +506,7 @@ export default function PublicForm() {
                                           id={`${fieldId}-${opt.id}`}
                                           checked={ctrlField.value}
                                           onCheckedChange={ctrlField.onChange}
+                                          disabled={isFormDisabled}
                                           className="data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)] rounded-md h-5 w-5"
                                         />
                                         <span className="font-bold text-gray-700">
@@ -498,6 +530,7 @@ export default function PublicForm() {
                                     fieldType === "image" ? "image/*" : "*/*"
                                   }
                                   className="hidden"
+                                  disabled={isFormDisabled}
                                   {...registrationProps}
                                   onChange={(e) => {
                                     registrationProps.onChange(e);
@@ -512,6 +545,7 @@ export default function PublicForm() {
                                   type="button"
                                   variant="outline"
                                   className="h-14 px-8 border-2 border-dashed rounded-2xl hover:border-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/5 transition-all text-sm font-bold uppercase tracking-widest"
+                                  disabled={isFormDisabled}
                                   onClick={() =>
                                     document.getElementById(fieldId).click()
                                   }
