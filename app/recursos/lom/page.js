@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { getLomPosts } from "@/lib/data/client/lom";
-import { getThisWeekPassages } from "@/lib/data/client/passages";
+import { getLomPosts } from "@/lib/data/lom";
+import { getLatestWeekPassages } from "@/lib/data/passages";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
 import { LomClient } from "./LomClient";
@@ -25,14 +25,18 @@ function LoadingState() {
 export default async function LomPage() {
   const [lomPosts, weeklyPassages] = await Promise.all([
     getLomPosts(),
-    getThisWeekPassages(),
+    getLatestWeekPassages(),
   ]);
 
+  // Obtenemos la fecha actual en Ecuador (YYYY-MM-DD)
   const today = formatEcuadorDateForInput(getNowInEcuador());
 
-  const publishedPosts = lomPosts.filter(
-    (post) => formatEcuadorDateForInput(post.publication_date) <= today
-  );
+  // Filtramos los posts: la fecha de publicación debe ser menor o igual a hoy en Ecuador
+  const publishedPosts = lomPosts.filter((post) => {
+    // El campo publication_date es tipo DATE (sin hora), por lo que viene como "YYYY-MM-DD"
+    // Aseguramos que se compare correctamente con el "today" de Ecuador
+    return post.publication_date <= today;
+  });
 
   const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
   const sortedPassages = [...weeklyPassages].sort((a, b) => {

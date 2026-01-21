@@ -1,9 +1,30 @@
 import { createClient } from '@/lib/supabase/server';
+import { unstable_noStore as noStore } from 'next/cache';
+
+/**
+ * @description Obtiene todos los devocionales LOM.
+ */
+export async function getLomPosts() {
+  noStore();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('lom_posts')
+    .select('*')
+    .order('publication_date', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching LOM posts:', error);
+    return [];
+  }
+
+  return data;
+}
 
 /**
  * @description Obtiene el devocional LOM más reciente.
  */
 export async function getLatestLomPost(): Promise<{ slug: string } | null> {
+  noStore();
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -25,6 +46,7 @@ export async function getLatestLomPost(): Promise<{ slug: string } | null> {
  * @description Obtiene un devocional LOM por su slug.
  */
 export async function getLomPostBySlug(slug: string): Promise<any | null> {
+  noStore();
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('lom_posts')
@@ -43,6 +65,7 @@ export async function getLomPostBySlug(slug: string): Promise<any | null> {
  * @description Obtiene los posts de navegación (anterior y siguiente) para un devocional LOM.
  */
 export async function getLomNavigationPosts(currentPostDate: string): Promise<{ prevPost: { slug: string, publication_date: string } | null, nextPost: { slug: string, publication_date: string } | null }> {
+  noStore();
   const supabase = await createClient();
 
   const { data: prevPost } = await supabase
