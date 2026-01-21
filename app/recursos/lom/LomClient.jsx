@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { PaginationControls } from "@/components/shared/PaginationControls";
-import { formatInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
+import { formatInEcuador, formatEcuadorDateForInput, formatLiteralDate } from "@/lib/date-utils";
 import { getWeekDateRange, getBibleLink } from "@/lib/lomUtils";
 import { BookOpen, Search, ChevronRight } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
@@ -128,7 +128,7 @@ export function LomClient({ initialPosts = [], initialPassages = [] }) {
                         <CardContent className="p-6 flex flex-col h-full justify-between space-y-4">
                           <div className="space-y-2">
                             <span className="text-[10px] font-bold text-[var(--puembo-green)] uppercase tracking-widest">
-                              {formatInEcuador(
+                              {formatLiteralDate(
                                 post.publication_date,
                                 "d 'de' MMMM, yyyy"
                               )}

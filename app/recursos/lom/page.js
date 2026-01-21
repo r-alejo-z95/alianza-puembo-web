@@ -2,15 +2,15 @@ import { Suspense } from "react";
 import { getLomPosts } from "@/lib/data/lom";
 import { getLatestWeekPassages } from "@/lib/data/passages";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
-import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
 import { LomClient } from "./LomClient";
 import { Loader2 } from "lucide-react";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Lee, Ora, Medita",
-  description: "Profundiza en la lectura y meditación de la Biblia con nuestros devocionales diarios.",
+  description:
+    "Profundiza en la lectura y meditación de la Biblia con nuestros devocionales diarios.",
   alternates: {
     canonical: "/recursos/lom",
   },
@@ -30,20 +30,11 @@ export default async function LomPage() {
     getLatestWeekPassages(),
   ]);
 
-  // Obtenemos la fecha actual en Ecuador (YYYY-MM-DD)
-  const today = formatEcuadorDateForInput(getNowInEcuador());
-
-  // Filtramos los posts: la fecha de publicación debe ser menor o igual a hoy en Ecuador
-  const publishedPosts = lomPosts.filter((post) => {
-    // El campo publication_date es tipo DATE (sin hora), por lo que viene como "YYYY-MM-DD"
-    // Aseguramos que se compare correctamente con el "today" de Ecuador
-    return post.publication_date <= today;
-  });
-
   const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
   const sortedPassages = [...weeklyPassages].sort((a, b) => {
     return (
-      daysOfWeek.indexOf(a.day_of_week?.trim()) - daysOfWeek.indexOf(b.day_of_week?.trim())
+      daysOfWeek.indexOf(a.day_of_week?.trim()) -
+      daysOfWeek.indexOf(b.day_of_week?.trim())
     );
   });
 
@@ -55,10 +46,7 @@ export default async function LomPage() {
       imageAlt="Nubes en el cielo con luz del sol"
     >
       <Suspense fallback={<LoadingState />}>
-        <LomClient
-          initialPosts={publishedPosts}
-          initialPassages={sortedPassages}
-        />
+        <LomClient initialPosts={lomPosts} initialPassages={sortedPassages} />
       </Suspense>
     </PublicPageLayout>
   );

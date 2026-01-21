@@ -3,7 +3,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, BookOpen, Clock } from "lucide-react";
 import { getLomPostBySlug, getLomNavigationPosts } from "@/lib/data/lom.ts";
-import { formatInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
+import {
+  formatEcuadorDateForInput,
+  formatLiteralDate,
+  getTodayEcuadorDateLiteral,
+} from "@/lib/date-utils";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
@@ -38,14 +42,12 @@ export default async function LomPostPage({ params }) {
     post.publication_date
   );
 
-  const todayStr = formatEcuadorDateForInput(new Date());
-  const nextPostDateStr = nextPost
-    ? formatEcuadorDateForInput(nextPost.publication_date)
-    : null;
+  const todayStr = getTodayEcuadorDateLiteral();
+  const nextPostDateStr = nextPost ? nextPost.publication_date : null;
 
   const showNext = nextPost && nextPostDateStr && nextPostDateStr <= todayStr;
 
-  const publicationDate = formatInEcuador(
+  const publicationDate = formatLiteralDate(
     post.publication_date,
     "EEEE d 'de' MMMM, yyyy"
   );
@@ -121,45 +123,43 @@ export default async function LomPostPage({ params }) {
               />
 
               {/* Enhanced Navigation Footer */}
-              <footer className="mt-24 pt-16 border-t border-gray-50">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-10">
-                  {prevPost ? (
-                    <Link
-                      href={`/recursos/lom/${prevPost.slug}`}
-                      className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[var(--puembo-green)] transition-all group"
-                    >
-                      <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[var(--puembo-green)]" />
-                      Lectura Anterior
-                    </Link>
-                  ) : (
-                    <div className="hidden sm:block w-32" />
-                  )}
+              <footer className="mt-24 pt-16 border-t border-gray-50 flex flex-col sm:flex-row items-center justify-between gap-8">
+                {prevPost ? (
+                  <Link
+                    href={`/recursos/lom/${prevPost.slug}`}
+                    className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[var(--puembo-green)] transition-all group"
+                  >
+                    <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[var(--puembo-green)]" />
+                    Lectura Anterior
+                  </Link>
+                ) : (
+                  <div className="hidden sm:block w-32" />
+                )}
 
-                  {showNext ? (
-                    <Link
-                      href={`/recursos/lom/${nextPost.slug}`}
-                      className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[var(--puembo-green)] transition-all group text-right"
-                    >
-                      Lectura Siguiente
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-[var(--puembo-green)]" />
-                    </Link>
-                  ) : (
-                    <div className="hidden sm:block w-32" />
-                  )}
-                </div>
-
-                <div className="mt-24 flex flex-col items-center gap-6 text-center">
-                  <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-300">
-                    Iglesia Alianza Puembo
-                  </p>
-                  <Image
-                    src="/brand/logo-puembo.png"
-                    alt="Logo"
-                    width={100}
-                    height={40}
-                  />
-                </div>
+                {showNext ? (
+                  <Link
+                    href={`/recursos/lom/${nextPost.slug}`}
+                    className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[var(--puembo-green)] transition-all group text-right"
+                  >
+                    Lectura Siguiente
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform text-[var(--puembo-green)]" />
+                  </Link>
+                ) : (
+                  <div className="hidden sm:block w-32" />
+                )}
               </footer>
+
+              <div className="mt-24 flex flex-col items-center gap-6 text-center">
+                <p className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-300">
+                  Iglesia Alianza Puembo
+                </p>
+                <Image
+                  src="/brand/logo-puembo.png"
+                  alt="Logo"
+                  width={100}
+                  height={40}
+                />
+              </div>
             </div>
           </article>
         </div>
