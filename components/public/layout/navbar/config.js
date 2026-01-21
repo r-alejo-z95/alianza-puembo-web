@@ -46,25 +46,25 @@ export const menuItems = [
         subroutes: [
           {
             name: "Cuidado",
-            href: "/involucrate/ministerios/cuidado",
+            href: "/ministerios/cuidado",
             description: "Un abrazo para el alma: ministerios donde recibes",
             subroutes: [
               {
                 name: "Grupos Pequeños",
                 subroutes: [
-                  { name: "GP Familiares", href: "/involucrate/ministerios/cuidado/grupos-pequenos/familiar", description: "Creciendo juntos en familia" },
-                  { name: "GP Legado (Varones)", href: "/involucrate/ministerios/cuidado/grupos-pequenos/legado", description: "Forjando hombres de valor" },
-                  { name: "GP Juntas (Mujeres)", href: "/involucrate/ministerios/cuidado/grupos-pequenos/juntas", description: "Creciendo en comunidad femenina" },
-                  { name: "GP Ministeriales", href: "/involucrate/ministerios/cuidado/grupos-pequenos/ministeriales", description: "Cuidando a los que cuidan" },
+                  { name: "GP Familiares", href: "/ministerios/gp-familiar", description: "Creciendo juntos en familia" },
+                  { name: "GP Legado (Varones)", href: "/ministerios/gp-legado", description: "Forjando hombres de valor" },
+                  { name: "GP Juntas (Mujeres)", href: "/ministerios/gp-juntas", description: "Creciendo en comunidad femenina" },
+                  { name: "GP Ministeriales", href: "/ministerios/gp-ministeriales", description: "Cuidando a los que cuidan" },
                 ],
               },
-              { name: "Jóvenes", href: "/involucrate/ministerios/cuidado/jovenes", description: "Espacio para adolescentes y jóvenes" },
-              { name: "Puembo Kids", href: "/involucrate/ministerios/cuidado/puembo-kids", description: "Iglesia para los más pequeños" },
+              { name: "Jóvenes", href: "/ministerios/jovenes", description: "Espacio para adolescentes y jóvenes" },
+              { name: "Puembo Kids", href: "/ministerios/puembo-kids", description: "Iglesia para los más pequeños" },
             ],
           },
           {
             name: "Servicio",
-            href: "/involucrate/ministerios/servicio",
+            href: "/ministerios/servicio",
             description: "Manos que transforman: ministerios donde das",
             subroutes: [
               {
@@ -73,28 +73,28 @@ export const menuItems = [
                   {
                     name: "Eventos",
                     subroutes: [
-                      { name: "Alma (Matrimonios)", href: "/involucrate/ministerios/servicio/conexion/eventos/alma", description: "Uniendo corazones" },
-                      { name: "Legado (Varones)", href: "/involucrate/ministerios/servicio/conexion/eventos/legado", description: "Hombres con propósito" },
-                      { name: "Cautivante (Mujeres)", href: "/involucrate/ministerios/servicio/conexion/eventos/cautivante", description: "Descubre tu valor" },
-                      { name: "Eje (Jóvenes)", href: "/involucrate/ministerios/servicio/conexion/eventos/eje", description: "El punto de encuentro de la nueva generación" },
+                      { name: "Alma (Matrimonios)", href: "/ministerios/alma", description: "Uniendo corazones" },
+                      { name: "Legado (Varones)", href: "/ministerios/legado", description: "Hombres con propósito" },
+                      { name: "Cautivante (Mujeres)", href: "/ministerios/cautivante", description: "Descubre tu valor" },
+                      { name: "Eje (Jóvenes)", href: "/ministerios/eje", description: "El punto de encuentro de la nueva generación" },
                     ],
                   },
                   {
                     name: "Amor en Acción",
                     subroutes: [
-                      { name: "Misión Dignidad", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/mision-dignidad", description: "Nuestro brazo social principal" },
-                      { name: "Brigadas Médicas", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/brigadas-medicas", description: "Salud y esperanza para comunidades" },
-                      { name: "Boutique de Moda Circular", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero", description: "Vistiendo con dignidad" },
-                      { name: "Navidad Digna", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna", description: "Ocurre una vez al año" },
-                      { name: "Canasta de Amor", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor", description: "Exclusivo para miembros de la iglesia" },
-                      { name: "Hogar Digno", href: "/involucrate/ministerios/servicio/conexion/amor-en-accion/hogar-digno", description: "Construyendo esperanza en hogares" },
+                      { name: "Misión Dignidad", href: "/ministerios/mision-dignidad", description: "Nuestro brazo social principal" },
+                      { name: "Brigadas Médicas", href: "/ministerios/brigadas-medicas", description: "Salud y esperanza para comunidades" },
+                      { name: "Boutique de Moda Circular", href: "/ministerios/boutique", description: "Vistiendo con dignidad" },
+                      { name: "Navidad Digna", href: "/ministerios/navidad-digna", description: "Ocurre una vez al año" },
+                      { name: "Canasta de Amor", href: "/ministerios/canasta-de-amor", description: "Exclusivo para miembros de la iglesia" },
+                      { name: "Hogar Digno", href: "/ministerios/hogar-digno", description: "Construyendo esperanza en hogares" },
                     ],
                   },
                   {
                     name: "Redes de Amor (Evangelismo)",
                     subroutes: [
-                      { name: "Pescadores", href: "/involucrate/ministerios/servicio/conexion/redes-de-amor/pescadores", description: "Sembrando la Palabra" },
-                      { name: "Punto de Conexión", href: "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion", description: "Conecta personas nuevas con la comunidad" },
+                      { name: "Pescadores", href: "/ministerios/pescadores", description: "Sembrando la Palabra" },
+                      { name: "Punto de Conexión", href: "/ministerios/punto-conexion", description: "Conecta personas nuevas con la comunidad" },
                     ],
                   },
                 ],
@@ -102,32 +102,32 @@ export const menuItems = [
               {
                 name: "Crecimiento",
                 subroutes: [
-                  { name: "Academia Bíblica", href: "/involucrate/ministerios/servicio/crecimiento/academia-biblica", description: "Profundizando en la Palabra" },
-                  { name: "Decisiones", href: "/involucrate/ministerios/servicio/crecimiento/celebra", description: "Restauración y nueva vida" },
-                  { name: "Cultura Financiera", href: "/involucrate/ministerios/servicio/crecimiento/cultura-financiera", description: "Administrando con sabiduría" },
-                  { name: "Encuentros de Sanidad para hombres y mujeres", href: "/involucrate/ministerios/servicio/crecimiento/sanidad", description: "Restaurando el corazón" },
+                  { name: "Academia Bíblica", href: "/ministerios/academia-biblica", description: "Profundizando en la Palabra" },
+                  { name: "Decisiones", href: "/ministerios/decisiones", description: "Restauración y nueva vida" },
+                  { name: "Cultura Financiera", href: "/ministerios/cultura-financiera", description: "Administrando con sabiduría" },
+                  { name: "Encuentros de Sanidad para hombres y mujeres", href: "/ministerios/sanidad", description: "Restaurando el corazón" },
                 ],
               },
               {
                 name: "Compromiso",
                 subroutes: [
-                  { name: "MAT (Música, Artes y Tecnología)", href: "/involucrate/ministerios/servicio/compromiso/mat", description: "Adoración, arte y tecnología" },
+                  { name: "MAT (Música, Artes y Tecnología)", href: "/ministerios/mat", description: "Adoración, arte y tecnología" },
                   {
                     name: "MDA (Ministerios de Apoyo)",
                     subroutes: [
-                      { name: "Anfitriones", href: "/involucrate/ministerios/servicio/compromiso/mda/anfitriones", description: "La primera impresión" },
-                      { name: "Punto de Información", href: "/involucrate/ministerios/servicio/compromiso/mda/mesa-de-informacion", description: "Tu centro de ayuda" },
-                      { name: "Santa Cena", href: "/involucrate/ministerios/servicio/compromiso/mda/santa-cena", description: "Un servicio de reverencia" },
-                      { name: "Bautizos", href: "/involucrate/ministerios/servicio/compromiso/mda/bautizos", description: "Celebrando un nuevo comienzo" },
-                      { name: "Visitación y Acompañamiento", href: "/involucrate/ministerios/servicio/compromiso/mda/visitacion-y-funerales", description: "Acompañando en todo momento" },
+                      { name: "Anfitriones", href: "/ministerios/anfitriones", description: "La primera impresión" },
+                      { name: "Punto de Información", href: "/ministerios/punto-informacion", description: "Tu centro de ayuda" },
+                      { name: "Santa Cena", href: "/ministerios/santa-cena", description: "Un servicio de reverencia" },
+                      { name: "Bautizos", href: "/ministerios/bautizos", description: "Celebrando un nuevo comienzo" },
+                      { name: "Visitación y Acompañamiento", href: "/ministerios/acompanamiento", description: "Acompañando en todo momento" },
                     ],
                   },
                   {
                     name: "Oración",
                     subroutes: [
-                      { name: "Círculos de Oración", href: "/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion", description: "Intercesión comunitaria vía Zoom" },
-                      { name: "Intercesores", href: "/involucrate/ministerios/servicio/compromiso/oracion/intercesores", description: "Clamando por el Reino" },
-                      { name: "Miércoles de Oración", href: "/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion", description: "Cada miércoles a las 06h30" },
+                      { name: "Círculos de Oración", href: "/ministerios/circulos-oracion", description: "Intercesión comunitaria vía Zoom" },
+                      { name: "Intercesores", href: "/ministerios/intercesores", description: "Clamando por el Reino" },
+                      { name: "Miércoles de Oración", href: "/ministerios/miercoles-oracion", description: "Cada miércoles a las 06h30" },
                     ],
                   },
                 ],
