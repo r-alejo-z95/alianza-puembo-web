@@ -23,7 +23,7 @@ export function IntroSection({
     : description.split("\n\n");
 
   return (
-    <section className="relative py-24 md:py-32 bg-white overflow-hidden">
+    <section className="relative py-16 bg-white overflow-hidden">
       <div className={cn(contentSection, "relative z-10 max-w-7xl mx-auto")}>
         <div
           className={cn("flex flex-col gap-12 lg:gap-20 items-center", {
