@@ -145,6 +145,18 @@ export function getNowInEcuador(): Date {
 }
 
 /**
+ * Convierte un string de fecha literal YYYY-MM-DD a un objeto Date local.
+ * Útil para cálculos de fechas sin interferencia de zonas horarias.
+ */
+export function parseLiteralDate(dateStr: string | null | undefined): Date | null {
+  if (!dateStr) return null;
+  const pureDate = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+  const [year, month, day] = pureDate.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+/**
  * Formatea un string de fecha literal YYYY-MM-DD (columna DATE)
  * sin conversiones de zona horaria.
  */
@@ -152,14 +164,8 @@ export function formatLiteralDate(
   dateStr: string | null | undefined,
   formatStr: string = "d 'de' MMMM, yyyy"
 ): string {
-  if (!dateStr) return "";
-
-  const pureDate = dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
-
-  const [year, month, day] = pureDate.split("-").map(Number);
-  const localDate = new Date(year, month - 1, day);
-
-  if (isNaN(localDate.getTime())) return "";
+  const localDate = parseLiteralDate(dateStr);
+  if (!localDate) return "";
 
   return format(localDate, formatStr, { locale: es });
 }

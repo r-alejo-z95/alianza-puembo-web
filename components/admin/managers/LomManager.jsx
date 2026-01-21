@@ -8,7 +8,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import dynamic from 'next/dynamic';
-import { formatEcuadorDateForInput, getNowInEcuador, ecuadorToUTC } from '@/lib/date-utils';
+import { formatLiteralDate, getNowInEcuador, ecuadorToUTC } from '@/lib/date-utils';
 import { Loader2, BookOpen, ListFilter, PenTool } from 'lucide-react';
 
 const RichTextEditor = dynamic(
@@ -89,11 +89,10 @@ export default function LomManager() {
     const { data: { user } } = await supabase.auth.getUser();
 
     const slug = createSlug(data.title);
-    const utcPublicationDate = ecuadorToUTC(data.publication_date).toISOString();
 
     const dataToSave = {
       ...data,
-      publication_date: utcPublicationDate,
+      publication_date: data.publication_date,
       user_id: user?.id,
       slug: slug,
     };
@@ -127,7 +126,7 @@ export default function LomManager() {
     form.reset({
       title: post.title,
       content: post.content,
-      publication_date: formatEcuadorDateForInput(post.publication_date),
+      publication_date: post.publication_date,
     });
     setEditorKey((prev) => prev + 1);
     // Scroll to form

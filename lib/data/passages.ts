@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { unstable_noStore as noStore } from "next/cache";
-import { getNowInEcuador, formatEcuadorDateForInput } from "@/lib/date-utils";
+import { getTodayEcuadorDateLiteral } from "@/lib/date-utils";
 
 export async function getPassages() {
   noStore();
@@ -37,13 +37,14 @@ export async function getPassagesByWeek(weekNumber: number) {
 export async function getLatestWeekPassages() {
   noStore();
   const supabase = await createClient();
-  const today = formatEcuadorDateForInput(getNowInEcuador());
-  const endOfToday = `${today}T23:59:59-05:00`;
+  
+  // Fecha literal YYYY-MM-DD en Ecuador
+  const today = getTodayEcuadorDateLiteral();
 
   const { data: currentWeek, error: currentWeekError } = await supabase
     .from("lom_passages")
     .select("week_number")
-    .lte("week_start_date", endOfToday)
+    .lte("week_start_date", today) // 👈 DATE vs DATE (literal)
     .order("week_start_date", { ascending: false })
     .limit(1)
     .maybeSingle();

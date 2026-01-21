@@ -76,14 +76,12 @@ export default function PassageManager() {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
 
-    const utcStartDate = ecuadorToUTC(data.week_start_date).toISOString();
-
     const passagesToSave = data.passages
       .filter(p => p.passage_reference)
       .map(p => ({
         ...p,
         week_number: data.week_number,
-        week_start_date: utcStartDate,
+        week_start_date: data.week_start_date, // 👈 Literal DATE string YYYY-MM-DD
         user_id: user?.id,
       }));
 

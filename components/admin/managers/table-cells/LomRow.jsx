@@ -4,7 +4,7 @@ import { TableRow, TableCell } from '@/components/ui/table';
 import { OverflowCell } from './OverflowCell';
 import { Edit, Trash2, Calendar, BookOpen } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatInEcuador } from '@/lib/date-utils';
+import { formatLiteralDate } from '@/lib/date-utils';
 import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
 import { cn } from "@/lib/utils.ts";
 
@@ -45,7 +45,7 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
         </div>
     );
 
-    const formattedDate = formatInEcuador(post.publication_date, "d 'de' MMMM, yyyy");
+    const formattedDate = formatLiteralDate(post.publication_date, "d 'de' MMMM, yyyy");
 
     if (compact) {
         return (

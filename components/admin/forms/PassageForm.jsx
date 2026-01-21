@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useEffect } from 'react';
-import { formatEcuadorDateForInput } from '@/lib/date-utils';
 import { Loader2, Calendar, BookOpen, Save, X } from 'lucide-react';
 import { cn } from "@/lib/utils.ts";
 
@@ -36,7 +35,7 @@ export default function PassageForm({ week, onSave, onCancel, loading }) {
     if (week) {
       form.reset({
         week_number: week.week_number,
-        week_start_date: formatEcuadorDateForInput(week.week_start_date),
+        week_start_date: week.week_start_date, // 👈 Literal string YYYY-MM-DD
         passages: daysOfWeek.map(day => {
             const passage = week.passages.find(p => p.day_of_week === day);
             return { day_of_week: day, passage_reference: passage ? passage.passage_reference : '' };

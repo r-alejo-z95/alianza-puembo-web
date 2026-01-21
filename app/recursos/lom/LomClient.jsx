@@ -41,8 +41,8 @@ export function LomClient({ initialPosts = [], initialPassages = [] }) {
       );
     } else if (dateSearchTerm) {
       filtered = filtered.filter((post) => {
-        const postDate = formatEcuadorDateForInput(post.publication_date);
-        return postDate === dateSearchTerm;
+        // publication_date es literal YYYY-MM-DD
+        return post.publication_date === dateSearchTerm;
       });
     }
     return filtered;
