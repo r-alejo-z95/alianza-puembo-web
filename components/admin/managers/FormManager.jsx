@@ -137,7 +137,7 @@ export default function FormManager() {
                     <TableRow className="hover:bg-transparent border-b border-gray-100">
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Título</TableHead>
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Acceso Directo</TableHead>
-                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Datos</TableHead>
+                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Respuestas</TableHead>
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Carpeta</TableHead>
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Autor</TableHead>
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Acciones</TableHead>

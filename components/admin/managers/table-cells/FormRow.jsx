@@ -64,21 +64,6 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <a
-              href={`${window.location.origin}/formularios/${form.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/10 transition-all duration-300"
-            >
-              <LinkIcon className="w-4 h-4" />
-            </a>
-          </TooltipTrigger>
-          <TooltipContent>Ver formulario</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
             <button
               onClick={handleCopyLink}
               className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/10 transition-all duration-300"
