@@ -68,17 +68,32 @@ export function Navbar() {
                 }
                 className="relative"
               >
-                <Link
-                  href={item.href || "#"}
-                  className={cn(
-                    "px-5 py-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all duration-300 block",
-                    activeMenu === item.name
-                      ? "text-[var(--puembo-green)]"
-                      : "text-white/70 hover:text-(--puembo-green)"
-                  )}
-                >
-                  {item.name}
-                </Link>
+                {item.subroutes ? (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveMenu(activeMenu === item.name ? null : item.name);
+                    }}
+                    className={cn(
+                      "px-5 py-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all duration-300 block cursor-pointer",
+                      activeMenu === item.name
+                        ? "text-[var(--puembo-green)]"
+                        : "text-white/70 hover:text-[var(--puembo-green)]"
+                    )}
+                  >
+                    {item.name}
+                  </button>
+                ) : (
+                  <Link
+                    href={item.href || "#"}
+                    className={cn(
+                      "px-5 py-2 text-[10px] font-black uppercase tracking-[0.4em] transition-all duration-300 block",
+                      "text-white/70 hover:text-[var(--puembo-green)]"
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                )}
               </div>
             ))}
           </div>
