@@ -16,15 +16,23 @@ export default function Footer() {
         { name: "Donaciones", href: "/donaciones" },
         { name: "Noticias", href: "/noticias" },
         { name: "Eventos", href: "/eventos/proximos-eventos" },
-      ]
+      ],
     },
     {
       title: "Recursos",
       links: [
         { name: "LOM", href: "/recursos/lom" },
-        { name: "Prédicas", href: "https://www.youtube.com/@IglesiaAlianzaPuembo/playlists", external: true },
-        { name: "Galería", href: "https://iglesiaalianzapuembo.pixieset.com/", external: true },
-      ]
+        {
+          name: "Prédicas",
+          href: "https://www.youtube.com/@IglesiaAlianzaPuembo/playlists",
+          external: true,
+        },
+        {
+          name: "Galería",
+          href: "https://iglesiaalianzapuembo.pixieset.com/",
+          external: true,
+        },
+      ],
     },
     {
       title: "Comunidad",
@@ -32,15 +40,14 @@ export default function Footer() {
         { name: "Oración", href: "/oracion" },
         { name: "Grupos Pequeños", href: "/ministerios/grupos-pequenos" },
         { name: "Contacto", href: "/contacto" },
-      ]
-    }
+      ],
+    },
   ];
 
   return (
     <footer className="bg-black text-white pt-24 pb-12 border-t border-white/5 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-16 lg:gap-12 mb-24">
-          
           {/* Brand Column */}
           <div className="lg:col-span-5 space-y-8">
             <Link href="/" className="inline-block group">
@@ -53,7 +60,8 @@ export default function Footer() {
               />
             </Link>
             <p className="text-gray-400 font-light leading-relaxed max-w-sm text-lg">
-              Una familia de familias experimentando la presencia de Dios y caminando juntos en fe.
+              Una familia de familias experimentando la presencia de Dios y
+              caminando juntos en fe.
             </p>
             <div className="flex gap-5 pt-4">
               {socialLinks.map((link) => (
@@ -88,7 +96,9 @@ export default function Footer() {
                         className="text-gray-400 hover:text-white text-sm font-light transition-colors flex items-center gap-2 group"
                       >
                         {link.name}
-                        {link.external && <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                        {link.external && (
+                          <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        )}
                       </Link>
                     </li>
                   ))}
@@ -112,7 +122,10 @@ export default function Footer() {
               </div>
               <div className="flex gap-4 items-start">
                 <Mail className="w-5 h-5 text-gray-500 shrink-0" />
-                <a href="mailto:info@alianzapuembo.org" className="text-sm text-gray-400 hover:text-white transition-colors font-light">
+                <a
+                  href="mailto:info@alianzapuembo.org"
+                  className="text-sm text-gray-400 hover:text-white transition-colors font-light"
+                >
                   info@alianzapuembo.org
                 </a>
               </div>
@@ -130,23 +143,42 @@ export default function Footer() {
               height={16}
               className="opacity-20"
             />
-            <span>&copy; {new Date().getFullYear()} IGLESIA ALIANZA PUEMBO</span>
+            <span>
+              &copy; {new Date().getFullYear()} IGLESIA ALIANZA PUEMBO
+            </span>
           </div>
 
           <div className="flex gap-10 items-center">
-            {isHomePage && (
-              <Link href="/admin" className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 hover:text-[var(--puembo-green)] transition-colors">
-                Admin
-              </Link>
-            )}
-            <a
-              href="https://github.com/r-alejo-z95"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 hover:text-[var(--puembo-green)] transition-colors italic"
+            <Link
+              href="/privacidad"
+              className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 hover:text-white transition-colors"
             >
-              Hecho con amor por RZ
-            </a>
+              Política de Privacidad
+            </Link>
+            <Link
+              href="/terminos"
+              className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 hover:text-white transition-colors"
+            >
+              Términos y condiciones
+            </Link>
+            {isHomePage && (
+              <>
+                <Link
+                  href="/admin"
+                  className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 hover:text-[var(--puembo-green)] transition-colors"
+                >
+                  Admin
+                </Link>
+                <a
+                  href="https://github.com/r-alejo-z95"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600 hover:text-[var(--puembo-green)] transition-colors italic"
+                >
+                  Hecho con amor por RZ
+                </a>
+              </>
+            )}
           </div>
         </div>
       </div>
