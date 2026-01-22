@@ -6,7 +6,7 @@ import { sectionTitle, sectionText, contentSection } from "@/lib/styles";
 import { cn } from "@/lib/utils.ts";
 import { BeliefBlock } from "@/components/public/layout/pages/que-creemos/BeliefBlock";
 import { Card, CardContent } from "@/components/ui/card";
-import { Heart, TrendingUp, Map } from "lucide-react";
+import { Heart, TrendingUp, Map, Target, Compass } from "lucide-react";
 
 const beliefs = [
   {
@@ -66,7 +66,7 @@ const missionVision = [
     name: "Nuestra Misión",
     detail:
       "Ser una familia de convicciones firmes en Cristo que comparten su fe con otros.",
-    index: "01",
+    icon: Target,
   },
   {
     name: "Nuestra Visión",
@@ -77,7 +77,7 @@ const missionVision = [
       "Servir a otros con nuestros dones",
       "Proclamar el Evangelio con urgencia",
     ],
-    index: "02",
+    icon: Compass,
   },
 ];
 
@@ -93,7 +93,6 @@ const coreValues = [
       "Relevantes y pertinentes",
     ],
     icon: Heart,
-    index: "03",
   },
   {
     name: "Nuestros Medibles",
@@ -107,7 +106,6 @@ const coreValues = [
       },
     ],
     icon: TrendingUp,
-    index: "04",
   },
   {
     name: "Nuestra Estrategia",
@@ -118,7 +116,6 @@ const coreValues = [
       { text: "Agradar a Dios en Todo", sub: "Compromiso" },
     ],
     icon: Map,
-    index: "05",
   },
 ];
 
@@ -133,8 +130,8 @@ export function QueCreemosClient() {
   return (
     <div className={cn(contentSection, "bg-gray-50/50 pt-12 pb-24 space-y-20")}>
       {/* Misión y Visión Section */}
-      <section className="max-w-7xl mx-auto w-full">
-        <div className="flex items-center gap-6 mb-16 px-4">
+      <section className="max-w-7xl mx-auto w-full px-4">
+        <div className="flex items-center gap-6 mb-16">
           <h2 className="text-2xl md:text-4xl font-serif font-bold text-gray-900 whitespace-nowrap">
             Misión y Visión
           </h2>
@@ -142,59 +139,52 @@ export function QueCreemosClient() {
           <div className="h-1.5 w-12 bg-[var(--puembo-green)] rounded-full" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
           {missionVision.map((item, index) => (
             <motion.div
               key={item.name}
               {...fadeIn}
               transition={{ ...fadeIn.transition, delay: index * 0.2 }}
-              className="relative group h-full"
+              className="group relative h-full"
             >
-              <Card className="h-full border-none shadow-xl bg-white hover:shadow-2xl transition-all duration-500 overflow-hidden rounded-xl">
-                <CardContent className="p-10 relative">
-                  {/* Número decorativo */}
-                  <span className="absolute top-4 right-6 text-7xl font-black text-gray-50 select-none group-hover:text-green-50 transition-colors duration-500">
-                    {item.index}
-                  </span>
-
-                  <div className="relative z-10">
-                    <div className="h-1.5 w-10 bg-[var(--puembo-green)] mb-6 rounded-full" />
-                    <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-8 tracking-tight">
-                      {item.name}
-                    </h2>
-
-                    {Array.isArray(item.detail) ? (
-                      <ul className="space-y-4">
-                        {item.detail.map((li, i) => (
-                          <li
-                            key={i}
-                            className="flex items-center gap-4 group/item text-sm md:text-base"
-                          >
-                            <div className="h-1.5 w-1.5 rounded-full bg-[var(--puembo-green)] group-hover/item:scale-150 transition-transform shrink-0" />
-                            <span
-                              className={cn(
-                                sectionText,
-                                "text-gray-600 font-medium"
-                              )}
-                            >
-                              {li}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p
-                        className={cn(
-                          sectionText,
-                          "text-lg text-gray-600 leading-relaxed italic"
-                        )}
-                      >
-                        "{item.detail}"
-                      </p>
-                    )}
+              <div className="h-full bg-white p-10 md:p-14 rounded-[2.5rem] md:rounded-[3.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] border border-gray-50 hover:border-[var(--puembo-green)]/20 transition-all duration-700 relative overflow-hidden flex flex-col justify-between">
+                {/* Decorative background element */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-full translate-x-16 -translate-y-16 group-hover:bg-green-50 transition-colors duration-700" />
+                
+                <div className="relative z-10 space-y-8">
+                  <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-[var(--puembo-green)] group-hover:bg-[var(--puembo-green)] group-hover:text-white transition-all duration-700">
+                    <item.icon className="w-7 h-7" strokeWidth={1.5} />
                   </div>
-                </CardContent>
-              </Card>
+
+                  <h3 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight leading-tight">
+                    {item.name}
+                  </h3>
+
+                  {Array.isArray(item.detail) ? (
+                    <ul className="space-y-5">
+                      {item.detail.map((li, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center gap-4 group/item"
+                        >
+                          <div className="h-2 w-2 rounded-full bg-[var(--puembo-green)] group-hover/item:scale-150 transition-transform shrink-0" />
+                          <span className="text-gray-600 text-base md:text-lg font-light leading-relaxed">
+                            {li}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="relative">
+                      <p className="text-xl md:text-2xl text-gray-500 leading-relaxed font-light italic">
+                        &quot;{item.detail}&quot;
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-12 h-1 w-12 bg-gray-100 group-hover:w-full group-hover:bg-[var(--puembo-green)]/20 transition-all duration-700 rounded-full" />
+              </div>
             </motion.div>
           ))}
         </div>
@@ -215,9 +205,6 @@ export function QueCreemosClient() {
                   <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-[var(--puembo-green)] group-hover:bg-[var(--puembo-green)] group-hover:text-white transition-all duration-700">
                     <value.icon className="w-7 h-7" strokeWidth={1.5} />
                   </div>
-                  <span className="text-4xl font-black text-gray-50 group-hover:text-green-50 transition-colors duration-700 select-none">
-                    {value.index}
-                  </span>
                 </div>
 
                 <div className="space-y-4 grow">
