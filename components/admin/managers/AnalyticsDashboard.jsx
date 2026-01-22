@@ -584,10 +584,15 @@ export default function AnalyticsDashboard({
                                   </span>
                                 ) : typeof val === "object" &&
                                   val._type === "file" ? (
-                                  <div className="flex items-center gap-2 text-[var(--puembo-green)] font-bold truncate">
+                                  <a
+                                    href={val.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 text-[var(--puembo-green)] font-bold truncate hover:underline"
+                                  >
                                     <FileText className="w-4 h-4 shrink-0" />{" "}
                                     <span className="truncate">{val.name}</span>
-                                  </div>
+                                  </a>
                                 ) : (
                                   <p className="text-gray-700 font-light leading-relaxed italic truncate">
                                     "{String(val)}"
@@ -717,7 +722,12 @@ export default function AnalyticsDashboard({
                               No proporcionado
                             </span>
                           ) : isFile ? (
-                            <div className="flex items-center gap-5 p-6 bg-emerald-50/50 rounded-[2rem] w-fit border border-emerald-100 shadow-inner group/file transition-all max-w-full overflow-hidden">
+                            <a
+                              href={val.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-5 p-6 bg-emerald-50/50 rounded-[2rem] w-fit border border-emerald-100 shadow-inner group/file transition-all max-w-full overflow-hidden hover:bg-emerald-100/50"
+                            >
                               <div className="p-4 bg-white rounded-2xl shadow-sm group-hover/file:rotate-6 transition-transform shrink-0">
                                 <FileText className="w-6 h-6 text-[var(--puembo-green)]" />
                               </div>
@@ -729,7 +739,7 @@ export default function AnalyticsDashboard({
                                   {val.info}
                                 </span>
                               </div>
-                            </div>
+                            </a>
                           ) : Array.isArray(val) ? (
                             <div className="flex flex-wrap gap-3 pt-2">
                               {val.map((v, i) => (

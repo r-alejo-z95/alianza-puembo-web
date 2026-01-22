@@ -209,6 +209,16 @@ export default function PublicForm() {
         );
       }
 
+      // Integrar las URLs de los archivos recibidas de la Edge Function
+      if (edgeFunctionData?.fileUrls) {
+        for (const fieldLabel in edgeFunctionData.fileUrls) {
+          if (rawDataForDb[fieldLabel] && rawDataForDb[fieldLabel]._type === "file") {
+            rawDataForDb[fieldLabel].url = edgeFunctionData.fileUrls[fieldLabel];
+            rawDataForDb[fieldLabel].info = "Subido a Google Drive";
+          }
+        }
+      }
+
       await supabase.from("form_submissions").insert([
         {
           form_id: form.id,

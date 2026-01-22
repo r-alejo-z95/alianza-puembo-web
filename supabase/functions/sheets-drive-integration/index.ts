@@ -477,6 +477,8 @@ serve(async (req) => {
           Timestamp: new Date().toLocaleString("es-EC", { timeZone: "America/Guayaquil" })
         };
 
+        const fileUrls: Record<string, string> = {};
+
         for (const key in formData) {
           if (key === "Timestamp") continue;
           const value = formData[key];
@@ -491,6 +493,7 @@ serve(async (req) => {
               }
               const fileUrl = await uploadFileToDrive(accessToken, folderId, value.name, binaryData, mimeType);
               rowData[key] = fileUrl;
+              fileUrls[key] = fileUrl;
             } catch (fileError) {
               console.error(`Error uploading file ${value.name}:`, fileError);
               rowData[key] = `Error uploading file: ${value.name}`;
@@ -510,7 +513,12 @@ serve(async (req) => {
         await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
 
         return new Response(
-          JSON.stringify({ message: "Datos enviados correctamente", sheetId, folderId }),
+          JSON.stringify({ 
+            message: "Datos enviados correctamente", 
+            sheetId, 
+            folderId,
+            fileUrls 
+          }),
           { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
         );
 
