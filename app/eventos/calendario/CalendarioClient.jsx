@@ -12,7 +12,7 @@ export function CalendarioClient() {
     initial: { opacity: 0, y: 20 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true },
-    transition: { duration: 0.6 }
+    transition: { duration: 0.6 },
   };
 
   return (
@@ -35,18 +35,16 @@ export function CalendarioClient() {
                 <UserCalendar />
               </CardContent>
             </Card>
-            
+
             <p className="mt-6 text-sm text-gray-400 italic px-2">
-              * Haz clic en los eventos para ver un resumen rápido y detalles completos.
+              * Haz clic en los eventos para ver un resumen rápido y detalles
+              completos.
             </p>
           </motion.div>
 
           {/* Columna Lateral: Leyenda y Contexto */}
           <aside className="space-y-8">
-            <motion.div 
-              {...fadeIn} 
-              transition={{ delay: 0.2 }}
-            >
+            <motion.div {...fadeIn} transition={{ delay: 0.2 }}>
               <Card className="border-none shadow-xl bg-white rounded-2xl overflow-hidden">
                 <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-6">
                   <CardTitle className="text-lg font-serif font-bold text-gray-900">
@@ -57,10 +55,12 @@ export function CalendarioClient() {
                   <div className="space-y-4">
                     {Object.entries(eventColors).map(([key, value]) => (
                       <div key={key} className="flex items-center gap-3 group">
-                        <div className={cn(
-                          "w-4 h-4 rounded-full shrink-0 transition-transform group-hover:scale-125",
-                          value.bgForm
-                        )} />
+                        <div
+                          className={cn(
+                            "w-4 h-4 rounded-full shrink-0 transition-transform group-hover:scale-125",
+                            value.bgForm
+                          )}
+                        />
                         <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">
                           {value.name}
                         </span>
@@ -71,18 +71,24 @@ export function CalendarioClient() {
               </Card>
             </motion.div>
 
-            <motion.div 
-              {...fadeIn} 
+            <motion.div
+              {...fadeIn}
               transition={{ delay: 0.3 }}
               className="p-8 bg-[var(--puembo-green)] rounded-2xl shadow-xl text-white relative overflow-hidden group"
             >
               <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
-              <h3 className="text-xl font-serif font-bold mb-3 relative z-10">¿Eres nuevo?</h3>
+              <h3 className="text-xl font-serif font-bold mb-3 relative z-10">
+                ¿Eres nuevo?
+              </h3>
               <p className="text-sm text-green-50 leading-relaxed mb-4 relative z-10">
-                Todos nuestros eventos están abiertos a la comunidad. ¡Te esperamos con los brazos abiertos!
+                Todos nuestros eventos están abiertos a la comunidad. <br></br>
+                ¡Te esperamos!
               </p>
-              <a href="/conocenos/equipo" className="text-xs font-bold uppercase tracking-wider underline underline-offset-4 hover:text-white transition-colors relative z-10">
-                Conoce a nuestros líderes
+              <a
+                href="/conocenos/equipo"
+                className="text-xs font-bold uppercase tracking-wider underline underline-offset-4 hover:text-white transition-colors relative z-10"
+              >
+                Conoce a nuestro Equipo
               </a>
             </motion.div>
           </aside>

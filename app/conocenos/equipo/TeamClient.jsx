@@ -17,55 +17,55 @@ const TEAM_MEMBERS = [
     name: "Ps. Leandro Gaitán",
     detail: "Co-Pastor",
     image: "/conocenos/equipo/familia-leandro.avif",
-    bio: "El Pastor Leandro Gaitán, junto a su esposa, lidera con pasión el ministerio de Alianza Puembo, enfocándose en la enseñanza bíblica y el discipulado.",
+    bio: "El Pastor Leandro Gaitán, junto a su esposa Cris, son los encargados de abrazar a la Iglesia a través del área de Cuidado Pastoral, donde están todos nuestros niños, jóvenes y adultos.",
   },
   {
     name: "Iván Echeverría",
     detail: "Administrador",
     image: "/conocenos/equipo/familia-ivan.avif",
-    bio: "Iván es el pilar administrativo de la iglesia, asegurando que todos los recursos se gestionen eficientemente para el cumplimiento de la misión.",
+    bio: "Iván se encarga las operaciones administrativas y financieras de nuestra Iglesia, asegurando que todo funcione sin problemas para apoyar nuestra misión y visión.",
   },
   {
     name: "Anabel García",
-    detail: "Coordinadora Ministerial Puentes",
+    detail: "Coordinadora Ministerial Conexión",
     image: "/conocenos/equipo/familia-anabel.avif",
-    bio: "Anabel coordina el Ministerio Puentes, conectando a la iglesia con la comunidad a través de iniciativas de servicio y evangelismo.",
+    bio: "Anabel coordina los Ministerios de Conexión, construyendo un puente entre la Iglesia y la comunidad a través de iniciativas de servicio, ayuda social y evangelismo.",
   },
   {
     name: "Fabiola Diaz",
-    detail: "Coordinadora Ministerios de Apoyo",
+    detail: "Coordinadora Ministerios de Apoyo (MDA)",
     image: "/conocenos/equipo/familia-papo.avif",
-    bio: "Fabiola supervisa los Ministerios de Apoyo, asegurando que cada miembro de la iglesia encuentre un lugar para servir y crecer.",
+    bio: "Fabiola (Papo) es la sonrisa y el abrazo de nuestra Iglesia. Ella coordina los Ministerios de Apoyo, asegurando que cada miembro y visitante se sienta cómodo y bienvenido.",
   },
   {
     name: "Daniela Riofrío",
     detail: "Coordinadora Ministerial Jóvenes",
     image: "/conocenos/equipo/familia-dani-r.avif",
-    bio: "Daniela lidera a la nueva generación, inspirándoles a vivir una fe auténtica y equipándoles para impactar su entorno.",
+    bio: "Daniela y Cristian lideran a la nueva generación, inspirándoles a vivir una fe auténtica y equipándoles para impactar su entorno.",
   },
   {
     name: "Daniela Andrade",
     detail: "Coordinadora Ministerial Puembo Kids",
     image: "/conocenos/equipo/familia-dani-a.avif",
-    bio: "Daniela dedica su energía a enseñar a los niños los principios bíblicos de una manera divertida, creativa y relevante.",
+    bio: "Daniela, junto a su equipo, guían y enseñan a los niños los principios bíblicos de una manera divertida, creativa y relevante.",
   },
   {
     name: "Mateo Olivo",
-    detail: "Coordinador de MAT",
+    detail: "Coordinador Ministerios MAT",
     image: "/conocenos/equipo/familia-mate.jpg",
-    bio: "Mateo lidera Música, Artes y Tecnología, coordinando la adoración para guiar a la iglesia a una experiencia profunda con Dios.",
+    bio: "Mateo lidera los Ministerios de Música, Artes y Tecnología, apoyado de un gran equipo que guía a la congregación a tener un encuentro con Dios a través del arte y la cultura.",
   },
   {
     name: "Alejandro Zambrano",
-    detail: "Coordinador MAT - Tecnología",
+    detail: "Coordinador MAT Tecnología",
     image: "/conocenos/equipo/familia-alejo.jpg",
-    bio: "Alejandro supervisa Sonido, Iluminación, Transmisión y Producción, utilizando la tecnología como herramienta para el Evangelio.",
+    bio: "Alejandro coordina los Ministerios de Sonido, Multimedia, Iluminación, Transmisión y Producción, utilizando la tecnología como herramienta para el Evangelio.",
   },
   {
     name: "Andrea Quiroga",
     detail: "Coordinadora de Comunicaciones",
     image: "/conocenos/equipo/familia-andre.jpg",
-    bio: "Andrea gestiona la comunicación y diseño, asegurando que el mensaje de Alianza Puembo llegue de manera clara y creativa.",
+    bio: "Andrea gestiona la comunicación y diseño, asegurando que el mensaje de la Iglesia Alianza Puembo llegue de manera clara y creativa.",
   },
 ];
 
@@ -81,7 +81,9 @@ const MemberCard = ({ member, index, prominent = false }) => (
     <Card
       className={cn(
         "flex flex-col h-full transition-all duration-300 hover:shadow-2xl border-none bg-white overflow-hidden group rounded-xl",
-        prominent ? "max-w-2xl mx-auto ring-1 ring-black/5 shadow-xl" : "max-w-md mx-auto shadow-lg"
+        prominent
+          ? "max-w-2xl mx-auto ring-1 ring-black/5 shadow-xl"
+          : "max-w-md mx-auto shadow-lg"
       )}
     >
       <div className={cn("relative w-full aspect-[3/2] overflow-hidden")}>
@@ -128,7 +130,7 @@ export function TeamClient() {
     name: "Ps. Gio Martinez",
     detail: "Pastor Principal",
     image: "/conocenos/equipo/familia-gio.avif",
-    bio: "El Pastor Gio Martinez, junto a su esposa, lidera con pasión el ministerio de Alianza Puembo, enfocándose en la enseñanza bíblica y el discipulado. Su visión es edificar una comunidad fuerte en la fe y el servicio.",
+    bio: "El Pastor Gio Martinez, junto a su esposa Cris, lideran con pasión el ministerio de la Iglesia Alianza Puembo, guiándola a ser una familia de familias que crece con bases sólidas en la Palabra de Dios, guiados por el Espíritu Santo, y caminando hacia una Iglesia que comparte su Fe con otros.",
   };
 
   return (

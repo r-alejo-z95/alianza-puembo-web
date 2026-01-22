@@ -27,7 +27,11 @@ export function MissionVision() {
         <div className="flex flex-col md:flex-row justify-start md:items-start items-center md:justify-evenly gap-8 md:gap-4 lg:gap-0">
           {values.map((value) => (
             <div key={value.name} className="flex-1 max-w-sm">
-              <h2 className={`${sectionTitle} text-(--puembo-green) mb-4 text-center`}>{value.name}</h2>
+              <h2
+                className={`${sectionTitle} text-(--puembo-green) mb-4 text-center`}
+              >
+                {value.name}
+              </h2>
               <div className={sectionText}>{value.detail}</div>
             </div>
           ))}

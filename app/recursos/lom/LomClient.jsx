@@ -10,7 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import { PaginationControls } from "@/components/shared/PaginationControls";
-import { formatInEcuador, formatEcuadorDateForInput, formatLiteralDate } from "@/lib/date-utils";
+import {
+  formatInEcuador,
+  formatEcuadorDateForInput,
+  formatLiteralDate,
+} from "@/lib/date-utils";
 import { getWeekDateRange, getBibleLink } from "@/lib/lomUtils";
 import { BookOpen, Search, ChevronRight } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
@@ -221,7 +225,7 @@ export function LomClient({ initialPosts = [], initialPassages = [] }) {
                 mañana.
               </p>
               <a
-                href="https://chat.whatsapp.com/JFxX6eqfcg5CgnTs3W2hBR"
+                href="https://chat.whatsapp.com/IM6iQQcljea2tFxFN7Q0EC"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-10 items-center justify-center rounded-xl bg-white px-6 text-sm font-bold text-[var(--puembo-green)] shadow-lg hover:bg-green-50 transition-all relative z-10"
