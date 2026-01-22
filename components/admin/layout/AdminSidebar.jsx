@@ -118,7 +118,10 @@ export default function AdminSidebar({ user, children }) {
       {/* Sidebar Desktop (Visible desde MD) */}
       <aside className="hidden md:flex w-72 lg:w-80 bg-black text-white p-6 flex-col border-r border-white/5 relative z-50 shrink-0">
         <div className="mb-12 px-2">
-          <Link href="/admin" className="block group transition-all duration-500 hover:opacity-80">
+          <Link
+            href="/admin"
+            className="block group transition-all duration-500 hover:opacity-80"
+          >
             <Image
               src="/brand/logo-puembo-white.png"
               alt="Alianza Puembo Admin"
@@ -129,13 +132,17 @@ export default function AdminSidebar({ user, children }) {
             />
             <div className="mt-4 flex items-center gap-3">
               <div className="h-px w-8 bg-[var(--puembo-green)]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Panel de Control</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+                Panel de Control
+              </span>
             </div>
           </Link>
         </div>
 
         <nav className="flex flex-col space-y-3 grow">
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 px-4 mb-2">Administración</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 px-4 mb-2">
+            Administración
+          </p>
           {navLinks.map((link) => (
             <NavItem key={link.href} link={link} />
           ))}
@@ -149,7 +156,9 @@ export default function AdminSidebar({ user, children }) {
             <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10">
               <Home className="h-5 w-5" />
             </div>
-            <span className="text-sm font-bold tracking-wide">Sitio Público</span>
+            <span className="text-sm font-bold tracking-wide">
+              Sitio Público
+            </span>
           </Link>
 
           <div className="p-4 bg-white/5 rounded-[2rem] border border-white/5">
@@ -163,23 +172,23 @@ export default function AdminSidebar({ user, children }) {
                 <span className="text-sm font-bold truncate">
                   {user?.user_metadata?.full_name || "Administrador"}
                 </span>
-                <span className="text-[10px] text-gray-500 uppercase tracking-wider truncate italic">
+                <span className="text-[10px] text-gray-500 tracking-wider truncate italic">
                   {user?.email}
                 </span>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => router.push("/admin/preferencias")}
                 className="rounded-xl hover:bg-white/10 text-gray-400 hover:text-white text-xs gap-2"
               >
                 <Settings className="h-3.5 w-3.5" /> Ajustes
               </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={handleSignOut}
                 className="rounded-xl hover:bg-red-500/10 text-gray-400 hover:text-red-400 text-xs gap-2"
               >
@@ -198,12 +207,16 @@ export default function AdminSidebar({ user, children }) {
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           className={cn(
             "rounded-full p-2 shadow-2xl transition-all duration-500 border",
-            isSidebarOpen 
-              ? "bg-white text-black border-transparent" 
+            isSidebarOpen
+              ? "bg-white text-black border-transparent"
               : "bg-black text-white border-white/10"
           )}
         >
-          {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {isSidebarOpen ? (
+            <X className="w-6 h-6" />
+          ) : (
+            <Menu className="w-6 h-6" />
+          )}
         </Button>
       </div>
 
@@ -237,13 +250,19 @@ export default function AdminSidebar({ user, children }) {
                 </Link>
                 <div className="mt-4 flex items-center gap-3">
                   <div className="h-px w-8 bg-[var(--puembo-green)]" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Panel Admin</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+                    Panel Admin
+                  </span>
                 </div>
               </div>
-              
+
               <nav className="flex flex-col space-y-4 grow">
                 {navLinks.map((link) => (
-                  <NavItem key={link.href} link={link} onClick={() => setIsSidebarOpen(false)} />
+                  <NavItem
+                    key={link.href}
+                    link={link}
+                    onClick={() => setIsSidebarOpen(false)}
+                  />
                 ))}
               </nav>
 
@@ -251,24 +270,33 @@ export default function AdminSidebar({ user, children }) {
                 <div className="flex items-center gap-4 p-4 bg-white/5 rounded-[2rem] border border-white/5">
                   <Avatar className="h-12 w-12 border-2 border-[var(--puembo-green)]/30">
                     <AvatarFallback className="bg-[var(--puembo-green)] text-white font-black">
-                      {getInitials(user?.user_metadata?.full_name || user?.email)}
+                      {getInitials(
+                        user?.user_metadata?.full_name || user?.email
+                      )}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col truncate">
-                    <span className="text-sm font-bold truncate">{user?.user_metadata?.full_name || "Admin"}</span>
-                    <span className="text-[10px] text-gray-500 truncate">{user?.email}</span>
+                    <span className="text-sm font-bold truncate">
+                      {user?.user_metadata?.full_name || "Admin"}
+                    </span>
+                    <span className="text-[10px] text-gray-500 truncate">
+                      {user?.email}
+                    </span>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="rounded-2xl bg-white/5 text-xs font-bold py-6 gap-2 text-white"
-                    onClick={() => { router.push("/admin/preferencias"); setIsSidebarOpen(false); }}
+                    onClick={() => {
+                      router.push("/admin/preferencias");
+                      setIsSidebarOpen(false);
+                    }}
                   >
                     <Settings className="h-4 w-4" /> Perfil
                   </Button>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     className="rounded-2xl bg-red-500/10 text-red-400 text-xs font-bold py-6 gap-2"
                     onClick={handleSignOut}
                   >
