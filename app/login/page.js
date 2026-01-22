@@ -8,7 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, KeyRound, Mail, ArrowLeft, ShieldCheck } from "lucide-react";
+import {
+  Loader2,
+  KeyRound,
+  Mail,
+  ArrowLeft,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+  AlertCircle,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils.ts";
@@ -16,6 +25,7 @@ import { cn } from "@/lib/utils.ts";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -30,9 +40,19 @@ export default function LoginPage() {
     });
 
     if (error) {
-      toast.error("Error al iniciar sesión.", {
-        description: error.message,
-      });
+      if (error.message === "Invalid login credentials") {
+        toast.error(
+          "El correo o la contraseña son incorrectos. Por favor, verifica tus datos.",
+          {
+            icon: <AlertCircle className="w-4 h-4 text-red-500" />,
+          }
+        );
+      } else {
+        toast.error("Error de autenticación.", {
+          description: error.message,
+          descriptionClassName: "text-gray-600",
+        });
+      }
     } else {
       toast.success("Sesión iniciada con éxito.");
       router.push("/admin");
@@ -132,13 +152,24 @@ export default function LoginPage() {
                     <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 group-focus-within:text-[var(--puembo-green)] transition-colors" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-12 h-14 bg-gray-50/50 border-gray-100 rounded-2xl focus:bg-white focus:ring-[var(--puembo-green)]/10 transition-all text-base font-medium"
+                      className="pl-12 pr-12 h-14 bg-gray-50/50 border-gray-100 rounded-2xl focus:bg-white focus:ring-[var(--puembo-green)]/10 transition-all text-base font-medium"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-600 transition-colors p-1"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
