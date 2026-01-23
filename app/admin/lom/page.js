@@ -2,6 +2,7 @@ import LomManager from '@/components/admin/managers/LomManager';
 import PassageManager from '@/components/admin/managers/PassageManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles.ts";
+import { BookOpen, Calendar } from 'lucide-react';
 
 export const metadata = {
   title: "Gestionar LOM",
@@ -28,21 +29,27 @@ export default function LomPage() {
         </p>
       </header>
 
-      <Tabs defaultValue="lom" className="w-full space-y-12">
-        <TabsList className="inline-flex h-14 items-center justify-center rounded-full bg-gray-100/50 p-1.5 border border-gray-200 shadow-inner">
-          <TabsTrigger 
-            className="cursor-pointer rounded-full px-8 py-2.5 text-xs font-black uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-md" 
-            value="lom"
-          >
-            Devocionales
-          </TabsTrigger>
-          <TabsTrigger 
-            className="cursor-pointer rounded-full px-8 py-2.5 text-xs font-black uppercase tracking-widest transition-all data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-md" 
-            value="passages"
-          >
-            Pasajes Semanales
-          </TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="lom" className="w-full">
+        <div className="flex justify-center mb-16 md:mb-20">
+          <TabsList className="bg-gray-100/50 p-1.5 rounded-full border border-gray-200/50 backdrop-blur-sm h-auto flex-nowrap justify-center max-w-full">
+            <TabsTrigger 
+              className="rounded-full px-6 md:px-8 py-3 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all duration-500 shrink-0" 
+              value="lom"
+            >
+              <BookOpen className="w-3.5 h-3.5 md:mr-2" />
+              <span className="hidden md:inline">Devocionales Diarios</span>
+              <span className="md:hidden">Devocionales</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              className="rounded-full px-6 md:px-8 py-3 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all duration-500 shrink-0" 
+              value="passages"
+            >
+              <Calendar className="w-3.5 h-3.5 md:mr-2" />
+              <span className="hidden md:inline">Pasajes Semanales</span>
+              <span className="md:hidden">Pasajes</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="lom" className="mt-0 focus-visible:outline-none">
           <LomManager />

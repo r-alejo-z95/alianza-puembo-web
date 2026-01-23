@@ -223,11 +223,11 @@ export default function LomManager() {
                 )}
               />
 
-              <div className="flex justify-end gap-4 pt-4">
+              <div className="flex justify-end gap-3 md:gap-4 pt-4">
                 <Button 
                   type="button" 
                   variant="ghost" 
-                  className="rounded-full px-8"
+                  className="rounded-full px-4 md:px-8 text-xs md:text-sm font-bold"
                   onClick={() => { 
                     form.reset({ title: '', content: '', publication_date: '' }); 
                     setSelectedPost(null); 
@@ -240,7 +240,7 @@ export default function LomManager() {
                   type="submit" 
                   disabled={submitting} 
                   variant="green"
-                  className="rounded-full px-10 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+                  className="rounded-full px-6 md:px-10 py-5 md:py-7 text-xs md:text-sm font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
                 >
                   {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <PenTool className="w-4 h-4 mr-2" />}
                   {selectedPost ? 'Guardar Cambios' : 'Publicar Lectura'}
