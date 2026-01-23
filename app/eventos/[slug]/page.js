@@ -18,7 +18,8 @@ export async function generateMetadata({ params }) {
 
   return {
     title: event.title,
-    description: event.description || `Súmate a ${event.title} en Alianza Puembo.`,
+    description:
+      event.description || `Súmate a ${event.title} en Alianza Puembo.`,
   };
 }
 
@@ -29,7 +30,7 @@ export default async function EventPage({ params }) {
   if (!event) notFound();
 
   const now = getNowInEcuador();
-  const registrationOpen = event.registration_link && now < subDays(new Date(event.start_time), 7);
+  const registrationOpen = true;
 
   return (
     <PublicPageLayout
@@ -41,8 +42,8 @@ export default async function EventPage({ params }) {
       <div className={cn(contentSection, "bg-gray-50/50 pt-12 pb-24")}>
         <div className="max-w-4xl mx-auto w-full space-y-12">
           {/* Back Button */}
-          <Link 
-            href="/eventos/proximos-eventos" 
+          <Link
+            href="/eventos/proximos-eventos"
             className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-[var(--puembo-green)] transition-colors group"
           >
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -54,11 +55,21 @@ export default async function EventPage({ params }) {
             <div className="md:col-span-2 space-y-8">
               {event.description && (
                 <div className="space-y-6">
-                  <h2 className={cn(sectionTitle, "text-3xl md:text-4xl text-gray-900")}>
+                  <h2
+                    className={cn(
+                      sectionTitle,
+                      "text-3xl md:text-4xl text-gray-900",
+                    )}
+                  >
                     Sobre el Evento
                   </h2>
                   <div className="h-1.5 w-20 bg-[var(--puembo-green)] rounded-full" />
-                  <p className={cn(sectionText, "text-lg text-gray-700 whitespace-pre-wrap leading-relaxed")}>
+                  <p
+                    className={cn(
+                      sectionText,
+                      "text-lg text-gray-700 whitespace-pre-wrap leading-relaxed",
+                    )}
+                  >
                     {event.description}
                   </p>
                 </div>
@@ -82,8 +93,12 @@ export default async function EventPage({ params }) {
                     <Calendar className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">Fecha</p>
-                    <p className="text-gray-600">{formatInEcuador(event.start_time, "EEEE d 'de' MMMM")}</p>
+                    <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                      Fecha
+                    </p>
+                    <p className="text-gray-600">
+                      {formatInEcuador(event.start_time, "EEEE d 'de' MMMM")}
+                    </p>
                   </div>
                 </div>
 
@@ -93,8 +108,12 @@ export default async function EventPage({ params }) {
                       <Clock className="w-6 h-6" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">Hora</p>
-                      <p className="text-gray-600">{formatInEcuador(event.start_time, "HH:mm")}</p>
+                      <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                        Hora
+                      </p>
+                      <p className="text-gray-600">
+                        {formatInEcuador(event.start_time, "HH:mm")}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -105,7 +124,9 @@ export default async function EventPage({ params }) {
                       <MapPin className="w-6 h-6" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">Lugar</p>
+                      <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                        Lugar
+                      </p>
                       <p className="text-gray-600">{event.location}</p>
                     </div>
                   </div>
@@ -127,16 +148,39 @@ export default async function EventPage({ params }) {
 
                 {event.registration_link && (
                   <div className="p-6 bg-white rounded-2xl shadow-xl border border-gray-100 space-y-4">
-                    <h3 className="font-bold text-gray-900">¿Quieres participar?</h3>
+                    <h3 className="font-bold text-gray-900">
+                      ¿Quieres participar?
+                    </h3>
                     {registrationOpen ? (
-                      <a href={event.registration_link} target="_blank" rel="noopener noreferrer" className="block">
-                        <Button variant="green" className="w-full h-12 text-base font-semibold rounded-xl shadow-lg shadow-green-200">
-                          Registrarse Ahora
-                        </Button>
-                      </a>
+                      event.registration_link.startsWith("/") ? (
+                        <Link href={event.registration_link} className="block">
+                          <Button
+                            variant="green"
+                            className="w-full h-12 text-base font-semibold rounded-xl shadow-lg shadow-green-200"
+                          >
+                            Registrarse Ahora
+                          </Button>
+                        </Link>
+                      ) : (
+                        <a
+                          href={event.registration_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <Button
+                            variant="green"
+                            className="w-full h-12 text-base font-semibold rounded-xl shadow-lg shadow-green-200"
+                          >
+                            Registrarse Ahora
+                          </Button>
+                        </a>
+                      )
                     ) : (
                       <div className="p-4 bg-gray-50 rounded-xl text-center">
-                        <p className="text-sm text-gray-500 font-medium">Inscripciones cerradas</p>
+                        <p className="text-sm text-gray-500 font-medium">
+                          Inscripciones cerradas
+                        </p>
                       </div>
                     )}
                   </div>
@@ -145,19 +189,41 @@ export default async function EventPage({ params }) {
 
               {/* Mobile Registration */}
               <div className="md:hidden pt-4">
-                {event.registration_link && (
-                  registrationOpen ? (
-                    <a href={event.registration_link} target="_blank" rel="noopener noreferrer" className="block">
-                      <Button variant="green" className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg shadow-green-200">
-                        Registrarse Ahora
-                      </Button>
-                    </a>
+                {event.registration_link &&
+                  (registrationOpen ? (
+                    event.registration_link.startsWith("/") ? (
+                      <Link href={event.registration_link} className="block">
+                        <Button
+                          variant="green"
+                          className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg shadow-green-200"
+                        >
+                          Registrarse Ahora
+                        </Button>
+                      </Link>
+                    ) : (
+                      <a
+                        href={event.registration_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                      >
+                        <Button
+                          variant="green"
+                          className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg shadow-green-200"
+                        >
+                          Registrarse Ahora
+                        </Button>
+                      </a>
+                    )
                   ) : (
-                    <Button disabled variant="outline" className="w-full h-14 rounded-xl text-gray-400">
+                    <Button
+                      disabled
+                      variant="outline"
+                      className="w-full h-14 rounded-xl text-gray-400"
+                    >
                       Inscripciones Cerradas
                     </Button>
-                  )
-                )}
+                  ))}
               </div>
             </div>
           </div>

@@ -199,7 +199,7 @@ export default function EventForm({ event, onSave, onCancel }) {
     setLoadingForms(true);
     const { data, error } = await supabase
       .from("forms")
-      .select("id, title")
+      .select("id, title, slug")
       .order("title");
     if (!error) setExistingForms(data);
     setLoadingForms(false);
@@ -221,6 +221,17 @@ export default function EventForm({ event, onSave, onCancel }) {
       end_time_utc = ecuadorToUTC(data.start_date, data.end_time).toISOString();
     }
 
+    // Determinar el link final según el tipo
+    let finalRegLink = null;
+    if (data.registration_type === "external") {
+      finalRegLink = data.registration_link;
+    } else if (data.registration_type === "existing" && data.form_id) {
+      const selectedForm = existingForms.find(f => f.id === data.form_id);
+      if (selectedForm) {
+        finalRegLink = `/formularios/${selectedForm.slug}`;
+      }
+    }
+
     // Preparar flags para el handler
     const finalData = {
       ...data,
@@ -229,9 +240,8 @@ export default function EventForm({ event, onSave, onCancel }) {
       recurrence_pattern: data.is_recurring ? data.recurrence_pattern : null,
       // Si el tipo es auto, activamos el flag de creación
       create_form: data.registration_type === "auto",
-      // Limpiar campos según tipo
-      registration_link:
-        data.registration_type === "external" ? data.registration_link : null,
+      // Asignar el link calculado
+      registration_link: finalRegLink,
       form_id: data.registration_type === "existing" ? data.form_id : null,
       remove_poster: removePoster,
     };
