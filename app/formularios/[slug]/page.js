@@ -3,12 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useParams, useRouter } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -82,17 +77,24 @@ export default function PublicForm() {
 
   // Observamos todos los valores del formulario para detectar si está vacío
   const formValues = watch();
-  const isFormEmpty = !Object.values(formValues).some(value => {
+  const isFormEmpty = !Object.values(formValues).some((value) => {
     if (Array.isArray(value)) return value.length > 0;
-    if (typeof value === 'object' && value !== null) {
-      return Object.values(value).some(v => v === true || (typeof v === 'string' && v.trim() !== ""));
+    if (typeof value === "object" && value !== null) {
+      return Object.values(value).some(
+        (v) => v === true || (typeof v === "string" && v.trim() !== ""),
+      );
     }
-    return value !== undefined && value !== null && value !== "" && value !== false;
+    return (
+      value !== undefined && value !== null && value !== "" && value !== false
+    );
   });
 
-  const hasRequiredFields = form?.form_fields.some(f => f.required || f.is_required);
+  const hasRequiredFields = form?.form_fields.some(
+    (f) => f.required || f.is_required,
+  );
   const isFormDisabled = form?.enabled === false;
-  const isSubmitDisabled = sending || isFormDisabled || (hasRequiredFields ? !isValid : isFormEmpty);
+  const isSubmitDisabled =
+    sending || isFormDisabled || (hasRequiredFields ? !isValid : isFormEmpty);
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -158,7 +160,7 @@ export default function PublicForm() {
             rawDataForDb[key] = {
               _type: "file",
               name: file.name,
-              info: "Subido al Drive"
+              info: "Subido al Drive",
             };
           } else if (
             fieldType === "checkbox" &&
@@ -169,7 +171,7 @@ export default function PublicForm() {
               .filter((optionKey) => value[optionKey])
               .map((optionKey) => {
                 const option = fieldDef.options.find(
-                  (opt) => opt.value === optionKey
+                  (opt) => opt.value === optionKey,
                 );
                 return option ? option.label : optionKey;
               });
@@ -205,15 +207,19 @@ export default function PublicForm() {
         throw new Error(
           edgeFunctionError?.message ||
             edgeFunctionData?.error ||
-            "Error en la integración"
+            "Error en la integración",
         );
       }
 
       // Integrar las URLs de los archivos recibidas de la Edge Function
       if (edgeFunctionData?.fileUrls) {
         for (const fieldLabel in edgeFunctionData.fileUrls) {
-          if (rawDataForDb[fieldLabel] && rawDataForDb[fieldLabel]._type === "file") {
-            rawDataForDb[fieldLabel].url = edgeFunctionData.fileUrls[fieldLabel];
+          if (
+            rawDataForDb[fieldLabel] &&
+            rawDataForDb[fieldLabel]._type === "file"
+          ) {
+            rawDataForDb[fieldLabel].url =
+              edgeFunctionData.fileUrls[fieldLabel];
             rawDataForDb[fieldLabel].info = "Subido a Google Drive";
           }
         }
@@ -242,7 +248,7 @@ export default function PublicForm() {
     setSubmissionStatus(null);
     reset();
     setFileNames({});
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   if (loading) return <LoadingSpinner />;
@@ -278,19 +284,24 @@ export default function PublicForm() {
               <XCircle className="w-6 h-6 text-amber-600" />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-black uppercase tracking-widest">Formulario Cerrado</p>
+              <p className="text-sm font-black uppercase tracking-widest">
+                Formulario Cerrado
+              </p>
               <p className="text-sm font-light opacity-80 leading-relaxed">
-                Este formulario ya no acepta más respuestas. Por favor, contacta con la administración si crees que es un error.
+                Este formulario ya no acepta más respuestas. Por favor, contacta
+                con la administración si crees que es un error.
               </p>
             </div>
           </div>
         )}
 
         {/* Main Card */}
-        <Card className={cn(
-          "overflow-hidden border-none shadow-2xl rounded-[3rem] bg-white transition-opacity duration-500",
-          isFormDisabled && "opacity-60 grayscale-[0.5]"
-        )}>
+        <Card
+          className={cn(
+            "overflow-hidden border-none shadow-2xl rounded-[3rem] bg-white transition-opacity duration-500",
+            isFormDisabled && "opacity-60 grayscale-[0.5]",
+          )}
+        >
           {form.image_url && (
             <div className="relative w-full aspect-video md:aspect-[21/9]">
               <Image
@@ -349,6 +360,12 @@ export default function PublicForm() {
                           <span className="text-red-500 ml-1.5">*</span>
                         )}
                       </Label>
+
+                      {field.help_text && (
+                        <p className="text-sm text-gray-600 font-light leading-relaxed whitespace-pre-wrap">
+                          {field.help_text}
+                        </p>
+                      )}
 
                       {field.attachment_url && (
                         <div className="mt-4 rounded-3xl overflow-hidden border border-gray-100 bg-gray-50/50 p-3 shadow-inner">
@@ -435,7 +452,7 @@ export default function PublicForm() {
                                 placeholder={placeholder}
                                 className={cn(
                                   baseInputClass,
-                                  "min-h-[150px] py-4 resize-none"
+                                  "min-h-[150px] py-4 resize-none",
                                 )}
                                 disabled={isFormDisabled}
                                 {...registrationProps}
@@ -449,7 +466,7 @@ export default function PublicForm() {
                                 type="date"
                                 className={cn(
                                   baseInputClass,
-                                  "w-full md:w-auto px-6"
+                                  "w-full md:w-auto px-6",
                                 )}
                                 disabled={isFormDisabled}
                                 {...registrationProps}
@@ -475,10 +492,11 @@ export default function PublicForm() {
                                         htmlFor={`${fieldId}-${opt.id}`}
                                         className={cn(
                                           "flex items-center gap-3 p-5 rounded-2xl border transition-all cursor-pointer",
-                                          isFormDisabled && "cursor-not-allowed opacity-50",
+                                          isFormDisabled &&
+                                            "cursor-not-allowed opacity-50",
                                           ctrlField.value === opt.value
                                             ? "bg-white border-[var(--puembo-green)] shadow-md ring-1 ring-[var(--puembo-green)]/10"
-                                            : "bg-gray-50/50 border-gray-100 hover:bg-white"
+                                            : "bg-gray-50/50 border-gray-100 hover:bg-white",
                                         )}
                                       >
                                         <RadioGroupItem
@@ -510,10 +528,11 @@ export default function PublicForm() {
                                         htmlFor={`${fieldId}-${opt.id}`}
                                         className={cn(
                                           "flex items-center gap-3 p-5 rounded-2xl border transition-all cursor-pointer",
-                                          isFormDisabled && "cursor-not-allowed opacity-50",
+                                          isFormDisabled &&
+                                            "cursor-not-allowed opacity-50",
                                           ctrlField.value
                                             ? "bg-white border-[var(--puembo-green)] shadow-md ring-1 ring-[var(--puembo-green)]/10"
-                                            : "bg-gray-50/50 border-gray-100 hover:bg-white"
+                                            : "bg-gray-50/50 border-gray-100 hover:bg-white",
                                         )}
                                       >
                                         <Checkbox
@@ -648,7 +667,9 @@ export default function PublicForm() {
       {/* Result Modal */}
       <Dialog
         open={submissionStatus !== null}
-        onOpenChange={() => submissionStatus === "error" && setSubmissionStatus(null)}
+        onOpenChange={() =>
+          submissionStatus === "error" && setSubmissionStatus(null)
+        }
       >
         <DialogContent className="rounded-[3rem] border-none shadow-2xl p-8 md:p-12 max-w-sm mx-auto overflow-hidden [&>button]:hidden">
           <div className="flex flex-col items-center text-center space-y-8">
@@ -662,7 +683,8 @@ export default function PublicForm() {
                     ¡Recibido!
                   </DialogTitle>
                   <DialogDescription className="text-base text-gray-500 font-light leading-relaxed">
-                    Tu respuesta ha sido enviada correctamente. Gracias por completar el formulario.
+                    Tu respuesta ha sido enviada correctamente. Gracias por
+                    completar el formulario.
                   </DialogDescription>
                 </div>
                 <div className="grid grid-cols-1 gap-3 w-full">
@@ -692,7 +714,8 @@ export default function PublicForm() {
                     Algo salió mal
                   </DialogTitle>
                   <DialogDescription className="text-base text-gray-500 font-light leading-relaxed">
-                    No pudimos procesar tu respuesta en este momento. Por favor, revisa tu conexión e intenta de nuevo.
+                    No pudimos procesar tu respuesta en este momento. Por favor,
+                    revisa tu conexión e intenta de nuevo.
                   </DialogDescription>
                 </div>
                 <Button

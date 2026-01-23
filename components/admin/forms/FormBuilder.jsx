@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -96,13 +97,14 @@ const fieldSchema = z.object({
     "image",
   ]),
   label: z.string().min(1, "El label es requerido."),
+  help_text: z.string().optional().nullable(),
   options: z
     .array(
       z.object({
         id: z.string().default(() => uuidv4()),
         value: z.string(),
         label: z.string().min(1, "Label requerido."),
-      })
+      }),
     )
     .optional()
     .nullable(),
@@ -157,7 +159,7 @@ function FieldCard({
   const handleCardClick = (e) => {
     if (
       e.target.closest(
-        'input, button, textarea, select, [role="button"], [role="switch"], .tiptap'
+        'input, button, textarea, select, [role="button"], [role="switch"], .tiptap',
       )
     )
       return;
@@ -170,7 +172,7 @@ function FieldCard({
     form.setValue(
       `fields.${index}.options`,
       [...currentOptions, { id: uuidv4(), value: "", label: "" }],
-      { shouldDirty: true }
+      { shouldDirty: true },
     );
   };
 
@@ -179,7 +181,7 @@ function FieldCard({
     form.setValue(
       `fields.${index}.options`,
       currentOptions.filter((_, i) => i !== optIndex),
-      { shouldDirty: true }
+      { shouldDirty: true },
     );
   };
 
@@ -189,7 +191,7 @@ function FieldCard({
         "transition-all duration-500 rounded-[2.5rem] border-2 bg-white overflow-hidden field-card-container",
         isActive
           ? "border-[var(--puembo-green)] shadow-2xl z-10 -translate-y-1"
-          : "border-gray-100 hover:border-gray-200 shadow-sm"
+          : "border-gray-100 hover:border-gray-200 shadow-sm",
       )}
       onClick={handleCardClick}
     >
@@ -203,28 +205,51 @@ function FieldCard({
                     control={form.control}
                     name={`fields.${index}.label`}
                     render={({ field: inputField }) => (
-                      <Input
-                        placeholder="Escribe la pregunta aquí..."
-                        className="text-xl font-bold font-serif border-none px-0 h-auto focus-visible:ring-0 bg-transparent border-b-2 border-gray-100 focus:border-[var(--puembo-green)] rounded-none transition-all flex-grow"
-                        {...inputField}
-                        value={inputField.value || ""}
-                      />
+                      <div className="flex-grow space-y-2">
+                        <Input
+                          placeholder="Escribe la pregunta aquí..."
+                          className="text-xl font-bold font-serif border-none px-0 h-auto focus-visible:ring-0 bg-transparent border-b-2 border-gray-100 focus:border-[var(--puembo-green)] rounded-none transition-all w-full"
+                          {...inputField}
+                          value={inputField.value || ""}
+                        />
+                        <FormField
+                          control={form.control}
+                          name={`fields.${index}.help_text`}
+                          render={({ field: descField }) => (
+                            <Textarea
+                              placeholder="Descripción o instrucciones adicionales (opcional)..."
+                              className="text-[10px] font-light text-gray-400 border-none px-0 focus-visible:ring-0 bg-transparent transition-all w-full resize-none min-h-[40px]"
+                              {...descField}
+                              value={descField.value || ""}
+                            />
+                          )}
+                        />{" "}
+                      </div>
                     )}
                   />
 
                   {!currentField.attachment_url && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => attachmentInputRef.current?.click()}
-                      className="rounded-full border-dashed text-gray-400 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)] h-10 px-4 gap-2"
-                    >
-                      <Paperclip className="w-4 h-4" />
-                      <span className="text-xs font-bold uppercase tracking-widest">
-                        Adjuntar
-                      </span>
-                    </Button>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => attachmentInputRef.current?.click()}
+                            className="rounded-full border-dashed text-gray-400 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)] h-10 px-4 gap-2"
+                          >
+                            <Paperclip className="w-4 h-4" />
+                            <span className="text-xs font-bold uppercase tracking-widest">
+                              Adjuntar
+                            </span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          Adjunta archivos o imágenes de referencia
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   )}
                   <input
                     type="file"
@@ -269,7 +294,7 @@ function FieldCard({
                           form.setValue(`fields.${index}.attachment_type`, "");
                           form.setValue(
                             `fields.${index}.attachment_file`,
-                            null
+                            null,
                           );
                         }}
                       >
@@ -308,7 +333,7 @@ function FieldCard({
                                   .replace(/[^a-z0-9]+/g, "_");
                                 form.setValue(
                                   `fields.${index}.options.${optionIndex}.value`,
-                                  val || uuidv4()
+                                  val || uuidv4(),
                                 );
                               }}
                             />
@@ -336,7 +361,7 @@ function FieldCard({
                 )}
 
                 {["text", "textarea", "email", "number"].includes(
-                  currentField.type
+                  currentField.type,
                 ) && (
                   <FormField
                     control={form.control}
@@ -346,6 +371,7 @@ function FieldCard({
                         placeholder="Texto de ayuda (ej: Juan Pérez)"
                         className="text-sm text-gray-400 border-none border-b border-gray-100 rounded-none px-0 focus-visible:ring-0 bg-transparent mt-4"
                         {...inputField}
+                        value={inputField.value || ""}
                       />
                     )}
                   />
@@ -375,7 +401,7 @@ function FieldCard({
                               <span className="font-medium">{label}</span>
                             </div>
                           </SelectItem>
-                        )
+                        ),
                       )}
                     </SelectContent>
                   </Select>
@@ -430,7 +456,12 @@ function FieldCard({
                     <span className="text-red-500 ml-1">*</span>
                   )}
                 </p>
-                <div className="flex flex-col gap-1">
+                {currentField.help_text && (
+                  <p className="whitespace-pre-wrap text-sm text-gray-600 font-light leading-relaxed">
+                    {currentField.help_text}
+                  </p>
+                )}
+                <div className="flex flex-col gap-1 pt-2">
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)] opacity-60">
                     {FIELD_TYPES[currentField.type]?.icon}
                     <span>{FIELD_TYPES[currentField.type]?.label}</span>
@@ -533,7 +564,7 @@ function TooltipButton({ onClick, icon, label, className }) {
             size="icon"
             className={cn(
               "rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 w-12 h-12 transition-all",
-              className
+              className,
             )}
             onClick={onClick}
           >
@@ -566,12 +597,12 @@ export default function FormBuilder({
   const onInvalid = (errors) => {
     // Auto-scroll al primer error
     if (errors.title) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (errors.fields) {
       const firstErrorIndex = Object.keys(errors.fields)[0];
       const element = document.getElementById(`field-card-${firstErrorIndex}`);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
         const fieldId = fields[firstErrorIndex]?.id;
         if (fieldId) setActiveId(fieldId);
       }
@@ -586,7 +617,10 @@ export default function FormBuilder({
 
   const handleGlobalClick = (e) => {
     // Si el clic NO es dentro de una tarjeta de pregunta o el header del form, cerramos el modo edición
-    if (!e.target.closest('.field-card-container') && !e.target.closest('.form-header-card')) {
+    if (
+      !e.target.closest(".field-card-container") &&
+      !e.target.closest(".form-header-card")
+    ) {
       setActiveId(null);
     }
   };
@@ -602,7 +636,9 @@ export default function FormBuilder({
   });
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   useEffect(() => {
@@ -658,7 +694,7 @@ export default function FormBuilder({
         : undefined,
     };
     Object.keys(updated).forEach((k) =>
-      form.setValue(`fields.${index}.${k}`, updated[k])
+      form.setValue(`fields.${index}.${k}`, updated[k]),
     );
   };
 
@@ -666,15 +702,21 @@ export default function FormBuilder({
     if (over && active.id !== over.id)
       move(
         fields.findIndex((f) => f.id === active.id),
-        fields.findIndex((f) => f.id === over.id)
+        fields.findIndex((f) => f.id === over.id),
       );
     setActiveDragId(null);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-32 cursor-default" onClick={handleGlobalClick}>
+    <div
+      className="min-h-screen bg-gray-50/50 pb-32 cursor-default"
+      onClick={handleGlobalClick}
+    >
       {/* Top Controls */}
-      <div className="sticky top-[73px] z-[55] bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 md:px-8 pt-4 flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="sticky top-[73px] z-[55] bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 md:px-8 pt-4 flex items-center justify-between"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center gap-4">
           <Layout className="w-5 h-5 text-gray-400" />
           <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 hidden sm:inline-block">
@@ -696,15 +738,20 @@ export default function FormBuilder({
             className="rounded-full px-6 md:px-8 py-5 md:py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 h-10 md:h-auto"
             onClick={(e) => {
               e.stopPropagation();
-              form.handleSubmit((d) =>
-                onSave(
-                  {
-                    ...d,
-                    fields: d.fields.map((f, i) => ({ ...f, order_index: i })),
-                  },
-                  imageFile
-                )
-              , onInvalid)();
+              form.handleSubmit(
+                (d) =>
+                  onSave(
+                    {
+                      ...d,
+                      fields: d.fields.map((f, i) => ({
+                        ...f,
+                        order_index: i,
+                      })),
+                    },
+                    imageFile,
+                  ),
+                onInvalid,
+              )();
             }}
             disabled={isSaving}
           >
@@ -723,80 +770,118 @@ export default function FormBuilder({
       <div className="w-full max-w-6xl mx-auto pt-8 px-4 md:px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 relative">
         <div className="col-span-1 md:col-span-10 space-y-8 md:space-y-10 w-full max-w-full">
           <FormProvider {...form}>
-          {/* Header Card Editorial */}
-          <Card className="border-none shadow-2xl bg-white rounded-[3rem] overflow-hidden group form-header-card" onClick={(e) => e.stopPropagation()}>
-            {/* Area de Imagen (Banner) */}
-            <div className="relative h-40 md:h-56 bg-black overflow-hidden flex items-center justify-center">
+            {/* Header Card Editorial */}
+            <Card
+              className="border-none shadow-2xl bg-white rounded-[3rem] overflow-hidden group form-header-card"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Area de Imagen (Banner) */}
+              <div className="relative h-40 md:h-56 bg-black overflow-hidden flex items-center justify-center">
                 {imageFile || initialForm?.image_url ? (
-                    <img src={imageFile ? URL.createObjectURL(imageFile) : initialForm.image_url} alt="Header" className="w-full h-full object-cover opacity-50" />
+                  <img
+                    src={
+                      imageFile
+                        ? URL.createObjectURL(imageFile)
+                        : initialForm.image_url
+                    }
+                    alt="Header"
+                    className="w-full h-full object-cover opacity-50"
+                  />
                 ) : (
-                    <div className="flex flex-col items-center gap-2 text-white/30 text-center px-4">
-                        <ImageIcon className="w-10 h-10" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.5em]">Portada del Formulario</span>
-                    </div>
+                  <div className="flex flex-col items-center gap-2 text-white/30 text-center px-4">
+                    <ImageIcon className="w-10 h-10" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.5em]">
+                      Portada del Formulario
+                    </span>
+                  </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                
+
                 <div className="absolute bottom-6 right-8 flex gap-3">
-                    { (imageFile || initialForm?.image_url) && (
-                        <button 
-                            type="button" 
-                            onClick={() => {
-                                setImageFile(null);
-                                form.setValue("image_url", "");
-                                if (fileInputRef.current) fileInputRef.current.value = "";
-                            }}
-                            className="px-4 py-2 rounded-full bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center gap-2"
-                        >
-                            <Trash2 className="w-3 h-3" />
-                            Borrar
-                        </button>
-                    )}
-                    <button type="button" onClick={() => fileInputRef.current?.click()} className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all flex items-center gap-2">
-                        <ImageIcon className="w-3 h-3" />
-                        {imageFile || initialForm?.image_url ? "Cambiar" : "Subir Portada"}
+                  {(imageFile || initialForm?.image_url) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageFile(null);
+                        form.setValue("image_url", "");
+                        if (fileInputRef.current)
+                          fileInputRef.current.value = "";
+                      }}
+                      className="px-4 py-2 rounded-full bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center gap-2"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Borrar
                     </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all flex items-center gap-2"
+                  >
+                    <ImageIcon className="w-3 h-3" />
+                    {imageFile || initialForm?.image_url
+                      ? "Cambiar"
+                      : "Subir Portada"}
+                  </button>
                 </div>
-                <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={(e) => setImageFile(e.target.files[0])} />
-            </div>
-            
-            {/* Area de Texto (Limpia) */}
-            <CardContent className="p-10 md:p-16 space-y-10 bg-white">
-              <div className="space-y-8">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-px w-8 bg-[var(--puembo-green)]" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Título del Formulario</span>
-                  </div>
-                  <FormField control={form.control} name="title" render={({ field: inputField }) => (
-                    <Input 
-                        className="text-4xl md:text-5xl font-serif font-bold border-0 border-b-2 border-gray-50 px-4 py-4 h-auto focus-visible:ring-0 focus-visible:border-b-[var(--puembo-green)] focus-visible:bg-gray-50/50 transition-all rounded-t-2xl rounded-b-none bg-transparent text-gray-900 placeholder:text-gray-200 leading-tight shadow-none" 
-                        placeholder="Ej: Registro de Bautizos 2026" 
-                        {...inputField} 
-                        value={inputField.value || ""}
-                    />
-                  )} />
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-px w-8 bg-gray-100" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Descripción Narrativa</span>
-                  </div>
-                  <div className="p-8 rounded-[2rem] bg-gray-50/50 border-2 border-transparent focus-within:bg-white focus-within:border-[var(--puembo-green)]/20 focus-within:shadow-xl transition-all shadow-inner group/desc">
-                    <FormField control={form.control} name="description" render={({ field: inputField }) => (
-                      <RichTextEditor 
-                        content={inputField.value} 
-                        onChange={inputField.onChange} 
-                        placeholder="Describe el propósito de este formulario, horarios, requisitos, etc..." 
-                        className="border-none px-0 text-lg font-light text-gray-600 leading-relaxed min-h-[60px]" 
-                      />
-                    )} />
-                  </div>
-                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={(e) => setImageFile(e.target.files[0])}
+                />
               </div>
-            </CardContent>
-          </Card>
+
+              {/* Area de Texto (Limpia) */}
+              <CardContent className="p-10 md:p-16 space-y-10 bg-white">
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-px w-8 bg-[var(--puembo-green)]" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+                        Título del Formulario
+                      </span>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field: inputField }) => (
+                        <Input
+                          className="text-4xl md:text-5xl font-serif font-bold border-0 border-b-2 border-gray-50 px-4 py-4 h-auto focus-visible:ring-0 focus-visible:border-b-[var(--puembo-green)] focus-visible:bg-gray-50/50 transition-all rounded-t-2xl rounded-b-none bg-transparent text-gray-900 placeholder:text-gray-200 leading-tight shadow-none"
+                          placeholder="Ej: Registro de Bautizos 2026"
+                          {...inputField}
+                          value={inputField.value || ""}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-px w-8 bg-gray-100" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">
+                        Descripción Del Formulario
+                      </span>
+                    </div>
+                    <div className="p-8 rounded-[2rem] bg-gray-50/50 border-2 border-transparent focus-within:bg-white focus-within:border-[var(--puembo-green)]/20 focus-within:shadow-xl transition-all shadow-inner group/desc">
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field: inputField }) => (
+                          <RichTextEditor
+                            content={inputField.value}
+                            onChange={inputField.onChange}
+                            placeholder="Describe el propósito de este formulario, horarios, requisitos, etc..."
+                            className="border-none px-0 text-lg font-light text-gray-600 leading-relaxed min-h-[60px]"
+                          />
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Dnd Kit Context */}
             <DndContext
@@ -828,11 +913,11 @@ export default function FormBuilder({
                         r.onload = (e) => {
                           form.setValue(
                             `fields.${i}.attachment_url`,
-                            e.target.result
+                            e.target.result,
                           );
                           form.setValue(
                             `fields.${i}.attachment_type`,
-                            f.type.startsWith("image/") ? "image" : "file"
+                            f.type.startsWith("image/") ? "image" : "file",
                           );
                           form.setValue(`fields.${i}.attachment_file`, f);
                         };
@@ -899,7 +984,11 @@ function SortableItem({ id, index, ...props }) {
   };
   return (
     <div ref={setNodeRef} style={style} id={`field-card-${index}`}>
-      <FieldCard {...props} index={index} dragHandleProps={{ ...attributes, ...listeners }} />
+      <FieldCard
+        {...props}
+        index={index}
+        dragHandleProps={{ ...attributes, ...listeners }}
+      />
     </div>
   );
 }
