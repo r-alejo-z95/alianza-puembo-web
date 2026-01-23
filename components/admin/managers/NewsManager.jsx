@@ -195,7 +195,7 @@ export default function NewsManager() {
 
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto border-none rounded-[3rem] shadow-2xl p-0">
-          <div className="bg-black p-8 md:p-12">
+          <div className="bg-black p-6 md:p-12">
             <DialogHeader className="space-y-4">
               <div className="flex items-center gap-3">
                 <div className="h-px w-8 bg-[var(--puembo-green)]" />
@@ -203,7 +203,7 @@ export default function NewsManager() {
                   Editor de Contenido
                 </span>
               </div>
-              <DialogTitle className="text-4xl font-serif font-bold text-white leading-tight">
+              <DialogTitle className="text-3xl md:text-4xl font-serif font-bold text-white leading-tight">
                 {selectedNews?.id ? "Refinar" : "Crear"} <br />
                 <span className="text-[var(--puembo-green)] italic">
                   Historia
@@ -211,7 +211,7 @@ export default function NewsManager() {
               </DialogTitle>
             </DialogHeader>
           </div>
-          <div className="p-8 md:p-12 bg-white">
+          <div className="p-6 md:p-12 bg-white">
             <NewsForm
               newsItem={selectedNews}
               onSave={handleSave}

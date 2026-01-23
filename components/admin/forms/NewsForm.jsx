@@ -25,6 +25,7 @@ import {
   AlignLeft,
   Plus,
   Loader2,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 
@@ -37,6 +38,7 @@ const newsSchema = z.object({
 
 export default function NewsForm({ newsItem, onSave, onCancel }) {
   const [imageFile, setImageFile] = useState(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const fileInputRef = useRef(null);
 
   const form = useForm({
@@ -66,6 +68,7 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
         ...data,
         news_date: data.date || null,
         news_time: data.time || null,
+        remove_image: removeImage,
       },
       imageFile
     );
@@ -177,7 +180,7 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
             <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
               Imagen Destacada
             </FormLabel>
-            <div className="p-8 border-2 border-dashed border-gray-100 rounded-[2rem] bg-gray-50/50 flex flex-col items-center justify-center gap-4 hover:border-[var(--puembo-green)]/20 group transition-all relative">
+            <div className="p-6 md:p-8 border-2 border-dashed border-gray-100 rounded-[2rem] bg-gray-50/50 flex flex-col items-center justify-center gap-4 hover:border-[var(--puembo-green)]/20 group transition-all relative">
               <Input
                 type="file"
                 accept="image/*"
@@ -193,12 +196,11 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                           width: img.width,
                           height: img.height,
                         });
+                        setRemoveImage(false);
                       };
                       img.src = e.target.result;
                     };
                     reader.readAsDataURL(file);
-                  } else {
-                    setImageFile(null);
                   }
                 }}
                 className="hidden"
@@ -208,12 +210,16 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                 className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-[var(--puembo-green)] transition-colors cursor-pointer"
                 onClick={() => fileInputRef.current.click()}
               >
-                <Plus className="w-8 h-8" />
+                {(imageFile || (newsItem?.image_url && !removeImage)) ? (
+                  <ImageIcon className="w-8 h-8" />
+                ) : (
+                  <Plus className="w-8 h-8" />
+                )}
               </div>
               <div className="text-center space-y-3">
                 <p className="text-xs font-bold text-gray-500">
-                  {imageFile || newsItem?.image_url
-                    ? "Imagen lista"
+                  {imageFile || (newsItem?.image_url && !removeImage)
+                    ? "Reemplazar fotografía"
                     : "Cargar fotografía"}
                 </p>
 
@@ -223,11 +229,17 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                     <span className="truncate max-w-[150px]">
                       {imageFile.file.name}
                     </span>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setImageFile(null); }} className="ml-1 p-1 hover:bg-emerald-100 rounded-full">
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
-                ) : newsItem?.image_url ? (
+                ) : (newsItem?.image_url && !removeImage) ? (
                   <div className="flex items-center gap-2 px-4 py-2 bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] rounded-full text-[10px] font-black uppercase tracking-widest border border-[var(--puembo-green)]/20 shadow-sm">
                     <ImageIcon className="w-3 h-3" />
                     <span>Imagen actual guardada</span>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setRemoveImage(true); }} className="ml-1 p-1 hover:bg-[var(--puembo-green)]/20 rounded-full">
+                      <Trash2 className="w-3 h-3 text-red-500" />
+                    </button>
                   </div>
                 ) : (
                   <p className="text-[10px] text-gray-400 uppercase tracking-widest">

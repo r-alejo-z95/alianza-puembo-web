@@ -33,10 +33,12 @@ import {
   Clock,
   MapPin,
   Link as LinkIcon,
-  Database,
   Plus,
   Repeat,
   Loader2,
+  Trash2,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import {
   ecuadorToUTC,
@@ -45,6 +47,7 @@ import {
 } from "@/lib/date-utils";
 import { cn } from "@/lib/utils.ts";
 import { AnimatePresence, motion } from "framer-motion";
+import { createClient } from "@/lib/supabase/client";
 
 const eventSchema = z
   .object({
@@ -54,9 +57,9 @@ const eventSchema = z
     end_date: z.string().optional(),
     start_time: z.string().optional(),
     end_time: z.string().optional(),
+    registration_type: z.enum(["none", "auto", "existing", "external"]),
     registration_link: z.string().optional(),
-    create_form: z.boolean().optional(),
-    regenerate_form: z.boolean().optional(),
+    form_id: z.string().optional().nullable(),
     all_day: z.boolean().optional(),
     is_multi_day: z.boolean().optional(),
     is_recurring: z.boolean().optional(),
@@ -99,6 +102,20 @@ const eventSchema = z
         path: ["recurrence_pattern"],
       });
     }
+    if (data.registration_type === "external" && !data.registration_link) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El enlace externo es requerido.",
+        path: ["registration_link"],
+      });
+    }
+    if (data.registration_type === "existing" && !data.form_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Debes seleccionar un formulario existente.",
+        path: ["form_id"],
+      });
+    }
   });
 
 const formatEventData = (event) => {
@@ -138,8 +155,20 @@ const recurrenceOptions = [
 
 export default function EventForm({ event, onSave, onCancel }) {
   const [posterFile, setPosterFile] = useState(null);
+  const [removePoster, setRemovePoster] = useState(false);
+  const [existingForms, setExistingForms] = useState([]);
+  const [loadingForms, setLoadingForms] = useState(false);
+
   const fileInputRef = useRef(null);
   const eventData = formatEventData(event);
+  const supabase = createClient();
+
+  // Determinar tipo inicial de registro
+  const initialRegType = event?.form_id
+    ? "existing"
+    : event?.registration_link
+      ? "external"
+      : "none";
 
   const form = useForm({
     resolver: zodResolver(eventSchema),
@@ -150,9 +179,9 @@ export default function EventForm({ event, onSave, onCancel }) {
       end_date: eventData.end_date || "",
       start_time: eventData.start_time || "",
       end_time: eventData.end_time || "",
+      registration_type: initialRegType,
       registration_link: event?.registration_link || "",
-      create_form: false,
-      regenerate_form: false,
+      form_id: event?.form_id || null,
       all_day: event?.all_day || false,
       is_multi_day: event?.is_multi_day || false,
       is_recurring: event?.is_recurring || false,
@@ -163,27 +192,18 @@ export default function EventForm({ event, onSave, onCancel }) {
   });
 
   useEffect(() => {
-    if (event) {
-      const eventData = formatEventData(event);
-      form.reset({
-        title: event.title || "",
-        description: event.description || "",
-        start_date: eventData.start_date || "",
-        end_date: eventData.end_date || "",
-        start_time: eventData.start_time || "",
-        end_time: eventData.end_time || "",
-        registration_link: event.registration_link || "",
-        create_form: false,
-        regenerate_form: false,
-        all_day: event.all_day || false,
-        is_multi_day: event.is_multi_day || false,
-        is_recurring: event.is_recurring || false,
-        recurrence_pattern: event.recurrence_pattern || null,
-        color: event.color || "sky",
-        location: event.location || "",
-      });
-    }
-  }, [event, form]);
+    fetchForms();
+  }, []);
+
+  const fetchForms = async () => {
+    setLoadingForms(true);
+    const { data, error } = await supabase
+      .from("forms")
+      .select("id, title")
+      .order("title");
+    if (!error) setExistingForms(data);
+    setLoadingForms(false);
+  };
 
   const onSubmit = async (data) => {
     let start_time_utc, end_time_utc;
@@ -196,25 +216,36 @@ export default function EventForm({ event, onSave, onCancel }) {
     } else {
       start_time_utc = ecuadorToUTC(
         data.start_date,
-        data.start_time
+        data.start_time,
       ).toISOString();
       end_time_utc = ecuadorToUTC(data.start_date, data.end_time).toISOString();
     }
 
-    await onSave(
-      {
-        ...data,
-        start_time: start_time_utc,
-        end_time: end_time_utc,
-        recurrence_pattern: data.is_recurring ? data.recurrence_pattern : null,
-      },
-      posterFile
-    );
+    // Preparar flags para el handler
+    const finalData = {
+      ...data,
+      start_time: start_time_utc,
+      end_time: end_time_utc,
+      recurrence_pattern: data.is_recurring ? data.recurrence_pattern : null,
+      // Si el tipo es auto, activamos el flag de creación
+      create_form: data.registration_type === "auto",
+      // Limpiar campos según tipo
+      registration_link:
+        data.registration_type === "external" ? data.registration_link : null,
+      form_id: data.registration_type === "existing" ? data.form_id : null,
+      remove_poster: removePoster,
+    };
+
+    await onSave(finalData, posterFile);
   };
 
   const isMultiDay = useWatch({ control: form.control, name: "is_multi_day" });
   const allDay = useWatch({ control: form.control, name: "all_day" });
   const isRecurring = useWatch({ control: form.control, name: "is_recurring" });
+  const registrationType = useWatch({
+    control: form.control,
+    name: "registration_type",
+  });
 
   return (
     <Form {...form}>
@@ -270,38 +301,58 @@ export default function EventForm({ event, onSave, onCancel }) {
 
           {/* Tipo de Evento y Recurrencia */}
           <div className="space-y-4">
-            <div className={cn(
+            <div
+              className={cn(
                 "grid gap-6 bg-gray-50/50 p-6 rounded-[2rem] border border-gray-100 transition-all",
-                isMultiDay || allDay ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
-            )}>
-                {!allDay && (
-                    <FormField
-                    control={form.control}
-                    name="is_multi_day"
-                    render={({ field }) => (
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={(checked) => { field.onChange(checked); if(checked) form.setValue('all_day', false); }} />
-                        </FormControl>
-                        <FormLabel className="text-xs font-bold text-gray-600">Evento de varios días</FormLabel>
-                        </FormItem>
-                    )}
-                    />
-                )}
-                {!isMultiDay && (
+                isMultiDay || allDay
+                  ? "grid-cols-1"
+                  : "grid-cols-1 md:grid-cols-2",
+              )}
+            >
+              {!allDay && (
                 <FormField
-                    control={form.control}
-                    name="all_day"
-                    render={({ field }) => (
+                  control={form.control}
+                  name="is_multi_day"
+                  render={({ field }) => (
                     <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={(checked) => { field.onChange(checked); if(checked) form.setValue('is_multi_day', false); }} />
-                        </FormControl>
-                        <FormLabel className="text-xs font-bold text-gray-600">Evento de todo el día</FormLabel>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (checked) form.setValue("all_day", false);
+                          }}
+                        />
+                      </FormControl>
+                      <FormLabel className="text-xs font-bold text-gray-600">
+                        Evento de varios días
+                      </FormLabel>
                     </FormItem>
-                    )}
+                  )}
                 />
-                )}
+              )}
+              {!isMultiDay && (
+                <FormField
+                  control={form.control}
+                  name="all_day"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (checked) form.setValue("is_multi_day", false);
+                          }}
+                        />
+                      </FormControl>
+                      <FormLabel className="text-xs font-bold text-gray-600">
+                        Evento de todo el día
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+              )}
             </div>
 
             <div className="bg-[var(--puembo-green)]/5 p-6 rounded-[2rem] border border-[var(--puembo-green)]/10 space-y-6">
@@ -516,92 +567,227 @@ export default function EventForm({ event, onSave, onCancel }) {
             />
           </div>
 
-                    {/* Multimedia */}
-
-                    <div className="space-y-4">
-
-                      <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">Póster Promocional</FormLabel>
-
-                      <div className="p-8 border-2 border-dashed border-gray-100 rounded-[2rem] bg-gray-50/50 flex flex-col items-center justify-center gap-4 hover:border-[var(--puembo-green)]/20 group transition-all relative">
-
-                        <Input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={(e) => {
-
-                          const file = e.target.files[0];
-
-                          if (file) setPosterFile({ file }); else setPosterFile(null);
-
-                        }} />
-
-                        <div onClick={() => fileInputRef.current.click()} className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-[var(--puembo-green)] cursor-pointer transition-colors">
-
-                          <Plus className="w-6 h-6" />
-
-                        </div>
-
-                        
-
-                        <div className="text-center space-y-3">
-
-                          <p className="text-xs font-bold text-gray-500">
-
-                              {posterFile || event?.poster_url ? "Imagen lista" : "Seleccionar póster"}
-
-                          </p>
-
-                          
-
-                          {posterFile ? (
-
-                              <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm animate-in zoom-in-95">
-
-                                  <ImageIcon className="w-3 h-3" />
-
-                                  <span className="truncate max-w-[150px]">{posterFile.file.name}</span>
-
-                              </div>
-
-                          ) : event?.poster_url ? (
-
-                              <div className="flex items-center gap-2 px-4 py-2 bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] rounded-full text-[10px] font-black uppercase tracking-widest border border-[var(--puembo-green)]/20 shadow-sm">
-
-                                  <ImageIcon className="w-3 h-3" />
-
-                                  <span>Póster actual guardado</span>
-
-                              </div>
-
-                          ) : (
-
-                              <p className="text-[10px] text-gray-400 uppercase tracking-widest">Formatos: JPG, PNG, WEBP</p>
-
-                          )}
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-          {/* Form Automation */}
+          {/* Multimedia */}
           <div className="space-y-4">
+            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              Póster Promocional
+            </FormLabel>
+            <div className="p-6 md:p-8 border-2 border-dashed border-gray-100 rounded-[2rem] bg-gray-50/50 flex flex-col items-center justify-center gap-4 hover:border-[var(--puembo-green)]/20 group transition-all relative">
+              <Input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setPosterFile({ file });
+                    setRemovePoster(false);
+                  }
+                }}
+              />
+
+              <div
+                onClick={() => fileInputRef.current.click()}
+                className="w-14 h-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-gray-300 group-hover:text-[var(--puembo-green)] cursor-pointer transition-colors"
+              >
+                {posterFile || (event?.poster_url && !removePoster) ? (
+                  <ImageIcon className="w-6 h-6" />
+                ) : (
+                  <Plus className="w-6 h-6" />
+                )}
+              </div>
+
+              <div className="text-center space-y-3">
+                <p className="text-xs font-bold text-gray-500">
+                  {posterFile || (event?.poster_url && !removePoster)
+                    ? "Reemplazar póster"
+                    : "Seleccionar póster"}
+                </p>
+
+                {posterFile ? (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm animate-in zoom-in-95">
+                    <ImageIcon className="w-3 h-3" />
+                    <span className="truncate max-w-[150px]">
+                      {posterFile.file.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPosterFile(null);
+                      }}
+                      className="ml-1 p-1 hover:bg-emerald-100 rounded-full"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ) : event?.poster_url && !removePoster ? (
+                  <div className="flex items-center gap-2 px-4 py-2 bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] rounded-full text-[10px] font-black uppercase tracking-widest border border-[var(--puembo-green)]/20 shadow-sm">
+                    <ImageIcon className="w-3 h-3" />
+                    <span>Póster actual guardado</span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRemovePoster(true);
+                      }}
+                      className="ml-1 p-1 hover:bg-[var(--puembo-green)]/20 rounded-full"
+                    >
+                      <Trash2 className="w-3 h-3 text-red-500" />
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-gray-400 uppercase tracking-widest">
+                    Formatos: JPG, PNG, WEBP
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Registro y Formularios */}
+          <div className="space-y-6 pt-4 border-t border-gray-100">
             <FormField
               control={form.control}
-              name="create_form"
+              name="registration_type"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-6 rounded-[2rem] bg-emerald-50/50 border border-emerald-100 shadow-sm">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                                    <div className="space-y-1">
-                                      <FormLabel className="text-sm font-bold text-emerald-800 italic">¿Crear formulario de registro?</FormLabel>
-                                      <p className="text-[10px] text-emerald-600 uppercase tracking-widest">Crea Google Sheet + Carpeta Drive</p>
-                                    </div>
+                <FormItem className="space-y-4">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <FileText className="w-3.5 h-3.5" />
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest">
+                      Opciones de Registro
+                    </FormLabel>
+                  </div>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger className="h-12 rounded-xl bg-white border-gray-100 shadow-sm">
+                        <SelectValue placeholder="Selecciona tipo de registro" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="rounded-2xl border-none shadow-2xl">
+                      <SelectItem value="none">Sin registro</SelectItem>
+                      <SelectItem value="auto">
+                        Crear nuevo formulario automático
+                      </SelectItem>
+                      <SelectItem value="existing">
+                        Vincular formulario existente
+                      </SelectItem>
+                      <SelectItem value="external">
+                        Enlace a formulario externo
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
+
+            <AnimatePresence mode="wait">
+              {registrationType === "auto" && (
+                <motion.div
+                  key="auto"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="p-6 rounded-[2rem] bg-emerald-50/50 border border-emerald-100 shadow-sm flex items-center gap-4"
+                >
+                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                    <Plus className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-emerald-800 italic">
+                      Se generará un formulario automáticamente
+                    </p>
+                    <p className="text-[10px] text-emerald-600 uppercase tracking-widest">
+                      Crea Google Sheet + Carpeta Drive
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+              {registrationType === "existing" && (
+                <motion.div
+                  key="existing"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="form_id"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                          Seleccionar Formulario
+                        </FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value || ""}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="h-12 rounded-xl bg-white border-gray-100 shadow-sm">
+                              <SelectValue
+                                placeholder={
+                                  loadingForms
+                                    ? "Cargando..."
+                                    : "Selecciona un formulario"
+                                }
+                              />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="rounded-2xl border-none shadow-2xl max-h-[200px]">
+                            {existingForms.map((f) => (
+                              <SelectItem key={f.id} value={f.id}>
+                                {f.title}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
+              )}
+
+              {registrationType === "external" && (
+                <motion.div
+                  key="external"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="registration_link"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                          URL del Formulario Externo
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              placeholder="https://forms.google.com/..."
+                              className="h-12 pl-10 rounded-xl bg-white border-gray-100 shadow-sm"
+                              {...field}
+                            />
+                            <ExternalLink className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
 
