@@ -233,10 +233,15 @@ export default function AnalyticsDashboard({
               </span>
             </h1>
             <div className="flex flex-wrap items-center gap-3 text-gray-400 font-light text-lg">
-              <span>Resultados de:</span>
-              <span className="font-medium text-gray-600 border-b-2 border-[var(--puembo-green)]/20">
-                {form.title}
-              </span>
+              <span>Resultados del formulario:</span>
+              <Link
+                href={`/formularios/${form.slug}`}
+                target="_blank"
+              >
+                <span className="font-medium text-gray-600 border-b-2 border-[var(--puembo-green)]/20 hover:text-[var(--puembo-green)] transition-colors">
+                  {form.title}
+                </span>
+              </Link>
             </div>
           </div>
         </div>
