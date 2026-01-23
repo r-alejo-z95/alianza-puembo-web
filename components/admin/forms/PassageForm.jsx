@@ -105,15 +105,15 @@ export default function PassageForm({ week, onSave, onCancel, loading }) {
                 <BookOpen className="w-4 h-4 text-[var(--puembo-green)]" />
                 <h3 className="text-xs font-black uppercase tracking-widest text-gray-900">Lecturas Diarias</h3>
             </div>
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-6">
                 {fields.map((field, index) => (
                 <FormField
                     key={field.id}
                     control={form.control}
                     name={`passages.${index}.passage_reference`}
                     render={({ field }) => (
-                    <FormItem className="flex flex-col sm:flex-row sm:items-center gap-4 space-y-0">
-                        <FormLabel className="sm:w-24 text-[10px] font-black uppercase tracking-widest text-gray-400">{daysOfWeek[index]}</FormLabel>
+                    <FormItem className="flex flex-col gap-2 space-y-0">
+                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)]">{daysOfWeek[index]}</FormLabel>
                         <FormControl>
                         <Input 
                             placeholder={`Referencia bíblica para el ${daysOfWeek[index].toLowerCase()}`} 

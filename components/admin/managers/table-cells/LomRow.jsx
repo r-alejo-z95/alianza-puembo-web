@@ -16,20 +16,18 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
                 variant="ghost" 
                 size="icon" 
                 onClick={() => onEdit(post)}
-                className="rounded-xl flex-1 lg:flex-none text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)] transition-all duration-300 gap-2 px-4 lg:px-2"
+                className="rounded-xl flex-1 lg:flex-none text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)] transition-all duration-300"
             >
                 <Edit className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Editar</span>
             </Button>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
                     <Button 
                         variant="ghost" 
                         size="icon"
-                        className="rounded-xl flex-1 lg:flex-none text-red-500 lg:text-black hover:bg-red-50 lg:hover:text-red-500 transition-all duration-300 gap-2 px-4 lg:px-2"
+                        className="rounded-xl flex-1 lg:flex-none text-red-500 lg:text-black hover:bg-red-50 lg:hover:text-red-500 transition-all duration-300"
                     >
                         <Trash2 className="w-4 h-4" />
-                        <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Eliminar</span>
                     </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">

@@ -176,11 +176,11 @@ export default function PassageManager() {
                     </AccordionTrigger>
                     <AccordionContent className="pb-8 pt-2">
                       <div className="bg-gray-50/50 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-end gap-8 border border-gray-100/50">
-                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4 w-full">
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6 w-full">
                           {week.passages.map(passage => (
-                            <li key={passage.id} className="flex items-center gap-4 group">
-                              <span className="text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)] w-20">{passage.day_of_week}</span>
-                              <span className="text-base font-bold text-gray-700 group-hover:text-black transition-colors">{passage.passage_reference}</span>
+                            <li key={passage.id} className="flex flex-col gap-1 group">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)]">{passage.day_of_week}</span>
+                              <span className="text-base font-bold text-gray-700 group-hover:text-black transition-colors whitespace-normal break-words">{passage.passage_reference}</span>
                             </li>
                           ))}
                         </ul>
@@ -189,20 +189,18 @@ export default function PassageManager() {
                             variant="outline" 
                             size="sm" 
                             onClick={() => { setSelectedWeek(week); setIsFormOpen(true); }}
-                            className="rounded-xl flex-1 md:flex-none border-gray-200 text-[var(--puembo-green)] md:text-black hover:bg-[var(--puembo-green)]/10 md:hover:text-[var(--puembo-green)] transition-all duration-300 gap-2 px-4 md:px-3"
+                            className="rounded-xl flex-1 md:flex-none border-gray-200 text-[var(--puembo-green)] md:text-black hover:bg-[var(--puembo-green)]/10 md:hover:text-[var(--puembo-green)] transition-all duration-300"
                           >
                             <Edit className="w-4 h-4" />
-                            <span className="text-[10px] font-black uppercase tracking-widest md:hidden">Editar</span>
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                className="rounded-xl flex-1 md:flex-none text-red-500 md:text-black hover:bg-red-50 md:hover:text-red-500 transition-all duration-300 gap-2 px-4 md:px-3"
+                                className="rounded-xl flex-1 md:flex-none text-red-500 md:text-black hover:bg-red-50 md:hover:text-red-500 transition-all duration-300"
                               >
                                 <Trash2 className="w-4 h-4" />
-                                <span className="text-[10px] font-black uppercase tracking-widest md:hidden">Eliminar</span>
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
