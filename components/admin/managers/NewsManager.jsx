@@ -109,7 +109,7 @@ export default function NewsManager() {
             </div>
           ) : (
             <div id="news-table">
-              {/* Large screens */}
+              {/* Desktop screens */}
               <div className="hidden lg:block overflow-x-auto">
                 <Table className="w-full">
                   <TableHeader className="bg-gray-50/50">
@@ -122,9 +122,6 @@ export default function NewsManager() {
                       </TableHead>
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">
                         Fecha y Hora
-                      </TableHead>
-                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">
-                        Multimedia
                       </TableHead>
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">
                         Autor
@@ -159,7 +156,7 @@ export default function NewsManager() {
                 </Table>
               </div>
 
-              {/* Small screens */}
+              {/* Mobile screens */}
               <div className="lg:hidden p-6 space-y-6">
                 {currentNews.map((item) => {
                   const globalIndex = news.findIndex(n => n.id === item.id);

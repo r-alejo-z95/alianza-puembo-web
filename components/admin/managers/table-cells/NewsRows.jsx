@@ -13,7 +13,7 @@ import {
 import { TableRow, TableCell } from "@/components/ui/table";
 import { OverflowCell } from "./OverflowCell";
 import { toast } from "sonner";
-import { Edit, Trash2, Link as LinkIcon, Copy, Calendar, Clock } from "lucide-react";
+import { Edit, Trash2, Link as LinkIcon, Copy, Calendar, Clock, Eye } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatLiteralDate } from "@/lib/date-utils";
 import { AuthorAvatar } from "@/components/shared/AuthorAvatar";
@@ -27,51 +27,13 @@ const formatNewsTime = (timeStr) => {
 };
 
 export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact }) {
-  const posterActions = newsItem.image_url ? (
-    <div className="flex items-center justify-center gap-2">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <a
-              href={newsItem.image_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/10 transition-all duration-300"
-            >
-              <LinkIcon className="w-4 h-4" />
-            </a>
-          </TooltipTrigger>
-          <TooltipContent>Ver multimedia</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(newsItem.image_url);
-                toast.success("URL copiada.");
-              }}
-              className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/10 transition-all duration-300"
-            >
-              <Copy className="w-4 h-4" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Copiar enlace</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  ) : (
-    <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Sin Imagen</span>
-  );
-
   const actions = (
     <div className="flex items-center justify-end gap-2">
       <Button
         variant="ghost"
         size="icon"
         onClick={onEdit}
-        className="rounded-xl hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)] transition-all duration-300"
+        className="rounded-xl text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)] transition-all duration-300"
       >
         <Edit className="w-4 h-4" />
       </Button>
@@ -80,7 +42,7 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact }) {
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-xl hover:bg-red-50 hover:text-red-500 transition-all duration-300"
+            className="rounded-xl text-red-500 lg:text-black hover:bg-red-50 lg:hover:text-red-500 transition-all duration-300"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
@@ -141,8 +103,7 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact }) {
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-          <div className="flex gap-2">{posterActions}</div>
+        <div className="flex items-center justify-end pt-4 border-t border-gray-50">
           <div className="flex gap-2">{actions}</div>
         </div>
       </div>
@@ -162,8 +123,8 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact }) {
           </OverflowCell>
         </div>
       </TableCell>
-      <TableCell className="px-8 py-6 w-1/3">
-        <div className="max-w-[300px]">
+      <TableCell className="px-8 py-6 w-[20%]">
+        <div className="max-w-[200px]">
           <OverflowCell className="text-sm text-gray-500 font-light italic">
             {newsItem.description || "-"}
           </OverflowCell>
@@ -179,8 +140,7 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact }) {
           </div>
         </div>
       </TableCell>
-      <TableCell className="px-8 py-6 text-center">{posterActions}</TableCell>
-      <TableCell className="px-8 py-6">
+      <TableCell className="px-8 py-6 text-center">
         <div className="flex justify-center">
           <AuthorAvatar profile={newsItem.profiles} className="border-2 border-white shadow-sm" />
         </div>

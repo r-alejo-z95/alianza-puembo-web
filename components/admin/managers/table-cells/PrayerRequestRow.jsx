@@ -32,16 +32,17 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
   const publicHref = isApprovedAndPublic ? `/oracion#${request.id}` : undefined;
 
   const actions = (
-    <div className="flex items-center justify-end gap-2">
+    <div className="flex items-center justify-end gap-2 w-full lg:w-auto">
       {request.is_public ? (
         <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
           <DialogTrigger asChild>
             <Button 
                 variant="ghost" 
                 size="icon" 
-                className="rounded-xl hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)] transition-all duration-300"
+                className="rounded-xl flex-1 lg:flex-none text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)] transition-all duration-300 gap-2 px-4 lg:px-2"
             >
               <Edit className="w-4 h-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Moderar</span>
             </Button>
           </DialogTrigger>
           <DialogContent className="rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
@@ -61,8 +62,9 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
           </DialogContent>
         </Dialog>
       ) : (
-        <Button disabled variant="ghost" size="icon" className="opacity-20 rounded-xl">
+        <Button disabled variant="ghost" size="icon" className="opacity-20 rounded-xl flex-1 lg:flex-none px-4 lg:px-2">
           <ShieldCheck className="w-4 h-4" />
+          <span className="text-[10px] font-black uppercase tracking-widest lg:hidden italic">Interna</span>
         </Button>
       )}
       <AlertDialog>
@@ -70,9 +72,10 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
           <Button 
             variant="ghost" 
             size="icon"
-            className="rounded-xl hover:bg-red-50 hover:text-red-500 transition-all duration-300"
+            className="rounded-xl flex-1 lg:flex-none text-red-500 lg:text-black hover:bg-red-50 lg:hover:text-red-500 transition-all duration-300 gap-2 px-4 lg:px-2"
           >
             <Trash2 className="w-4 h-4" />
+            <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Eliminar</span>
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
@@ -132,7 +135,7 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
         </div>
 
         <div className="flex items-center justify-end pt-4 border-t border-gray-50 mt-2">
-            {actions}
+            <div className="w-full">{actions}</div>
         </div>
       </div>
     );

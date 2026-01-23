@@ -12,42 +12,6 @@ import { cn } from '@/lib/utils.ts';
 import Link from 'next/link';
 
 export function EventRow({ event, onEdit, onDelete, compact }) {
-    const posterActions = event.poster_url ? (
-        <div className="flex items-center justify-center gap-2">
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <a 
-                            href={event.poster_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/10 transition-all duration-300"
-                        >
-                            <LinkIcon className="w-4 h-4" />
-                        </a>
-                    </TooltipTrigger>
-                    <TooltipContent>Ver póster</TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <button
-                            onClick={() => {
-                                navigator.clipboard.writeText(event.poster_url);
-                                toast.success('URL del póster copiado.');
-                            }}
-                            className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/10 transition-all duration-300"
-                        >
-                            <Copy className="w-4 h-4" />
-                        </button>
-                    </TooltipTrigger>
-                    <TooltipContent>Copiar enlace</TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-        </div>
-    ) : <span className="text-[10px] font-black uppercase tracking-widest text-gray-200">Sin Póster</span>;
-
     const registrationActions = event.registration_link ? (
         <div className="flex items-center justify-center gap-2">
             <TooltipProvider>
@@ -57,12 +21,13 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                             href={event.registration_link} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className="p-2 rounded-xl bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] hover:bg-[var(--puembo-green)] hover:text-white transition-all duration-300"
+                            className="flex items-center gap-2 px-4 py-2 lg:p-2 rounded-xl bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] lg:text-black lg:hover:bg-[var(--puembo-green)] lg:hover:text-white transition-all duration-300"
                         >
                             <ExternalLink className="w-4 h-4" />
+                            <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Formulario de Registro</span>
                         </a>
                     </TooltipTrigger>
-                    <TooltipContent>Link de Registro</TooltipContent>
+                    <TooltipContent>Formulario de Registro</TooltipContent>
                 </Tooltip>
             </TooltipProvider>
         </div>
@@ -74,7 +39,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                 variant="ghost" 
                 size="icon" 
                 onClick={onEdit}
-                className="rounded-xl hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)] transition-all duration-300"
+                className="rounded-xl text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)] transition-all duration-300"
             >
                 <Edit className="w-4 h-4" />
             </Button>
@@ -83,7 +48,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                     <Button 
                         variant="ghost" 
                         size="icon"
-                        className="rounded-xl hover:bg-red-50 hover:text-red-500 transition-all duration-300"
+                        className="rounded-xl text-red-500 lg:text-black hover:bg-red-50 lg:hover:text-red-500 transition-all duration-300"
                     >
                         <Trash2 className="w-4 h-4" />
                     </Button>
@@ -160,7 +125,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                 </div>
 
                 <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                    <div className="flex gap-2">{posterActions} {registrationActions}</div>
+                    <div className="flex gap-2">{registrationActions}</div>
                     <div className="flex gap-2">{actions}</div>
                 </div>
             </div>
@@ -191,8 +156,8 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                     </div>
                 </div>
             </TableCell>
-            <TableCell className="px-8 py-6 w-1/4">
-                <div className="max-w-[200px]">
+            <TableCell className="px-8 py-6 w-[20%]">
+                <div className="max-w-[150px]">
                     <OverflowCell className="text-xs text-gray-500 font-light italic">{event.description || "-"}</OverflowCell>
                 </div>
             </TableCell>
@@ -208,7 +173,6 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                     )}
                 </div>
             </TableCell>
-            <TableCell className="px-8 py-6 text-center">{posterActions}</TableCell>
             <TableCell className="px-8 py-6 text-center">{registrationActions}</TableCell>
             <TableCell className="px-8 py-6">
                 <div className="flex justify-center">

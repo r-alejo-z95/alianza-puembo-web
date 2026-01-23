@@ -11,23 +11,25 @@ import Link from 'next/link';
 
 export function LomRow({ post, onEdit, onDelete, compact }) {
     const actions = (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-2 w-full lg:w-auto">
             <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={() => onEdit(post)}
-                className="rounded-xl hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)] transition-all duration-300"
+                className="rounded-xl flex-1 lg:flex-none text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)] transition-all duration-300 gap-2 px-4 lg:px-2"
             >
                 <Edit className="w-4 h-4" />
+                <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Editar</span>
             </Button>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
                     <Button 
                         variant="ghost" 
                         size="icon"
-                        className="rounded-xl hover:bg-red-50 hover:text-red-500 transition-all duration-300"
+                        className="rounded-xl flex-1 lg:flex-none text-red-500 lg:text-black hover:bg-red-50 lg:hover:text-red-500 transition-all duration-300 gap-2 px-4 lg:px-2"
                     >
                         <Trash2 className="w-4 h-4" />
+                        <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Eliminar</span>
                     </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
@@ -69,8 +71,8 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
                     <Calendar className="w-3 h-3" /> {formattedDate}
                 </div>
 
-                <div className="flex items-center justify-end pt-4 border-t border-gray-50">
-                    <div className="flex gap-2">{actions}</div>
+                <div className="flex items-center justify-end pt-4 border-t border-gray-50 mt-2">
+                    <div className="flex gap-2 w-full">{actions}</div>
                 </div>
             </div>
         );

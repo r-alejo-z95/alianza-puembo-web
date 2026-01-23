@@ -184,23 +184,25 @@ export default function PassageManager() {
                             </li>
                           ))}
                         </ul>
-                        <div className="flex gap-3 shrink-0">
+                        <div className="flex gap-3 shrink-0 w-full md:w-auto">
                           <Button 
                             variant="outline" 
                             size="sm" 
                             onClick={() => { setSelectedWeek(week); setIsFormOpen(true); }}
-                            className="rounded-xl border-gray-200"
+                            className="rounded-xl flex-1 md:flex-none border-gray-200 text-[var(--puembo-green)] md:text-black hover:bg-[var(--puembo-green)]/10 md:hover:text-[var(--puembo-green)] transition-all duration-300 gap-2 px-4 md:px-3"
                           >
-                            <Edit className="w-4 h-4 mr-2" /> Editar
+                            <Edit className="w-4 h-4" />
+                            <span className="text-[10px] font-black uppercase tracking-widest md:hidden">Editar</span>
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                className="rounded-xl text-red-400 hover:text-red-500 hover:bg-red-50"
+                                className="rounded-xl flex-1 md:flex-none text-red-500 md:text-black hover:bg-red-50 md:hover:text-red-500 transition-all duration-300 gap-2 px-4 md:px-3"
                               >
                                 <Trash2 className="w-4 h-4" />
+                                <span className="text-[10px] font-black uppercase tracking-widest md:hidden">Eliminar</span>
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">

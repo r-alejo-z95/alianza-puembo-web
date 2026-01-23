@@ -101,7 +101,7 @@ export default function EventManager() {
                         </div>
                     ) : (
                         <div id='event-table'>
-                            {/* Large screens */}
+                            {/* Desktop screens */}
                             <div className="hidden lg:block overflow-x-auto">
                                 <Table className="w-full">
                                     <TableHeader className="bg-gray-50/50">
@@ -109,7 +109,6 @@ export default function EventManager() {
                                             <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Título</TableHead>
                                             <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Detalles</TableHead>
                                             <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Fecha y Hora</TableHead>
-                                            <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Póster</TableHead>
                                             <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Registro</TableHead>
                                             <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Autor</TableHead>
                                             <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Acciones</TableHead>
@@ -129,7 +128,7 @@ export default function EventManager() {
                                 </Table>
                             </div>
 
-                            {/* Small screens */}
+                            {/* Mobile screens */}
                             <div className="lg:hidden p-6 space-y-6">
                                 {currentEvents.map((event) => (
                                     <EventRow

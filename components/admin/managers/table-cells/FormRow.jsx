@@ -15,11 +15,8 @@ import { OverflowCell } from "./OverflowCell";
 import {
   Edit,
   Trash2,
-  Copy,
-  Link as LinkIcon,
   FolderOpen,
   Calendar,
-  Database,
   FileSpreadsheet,
   BarChart3,
 } from "lucide-react";
@@ -62,50 +59,6 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
     setIsUpdating(false);
   };
 
-  const handleCopyLink = () => {
-    const url = `${window.location.origin}/formularios/${form.slug}`;
-    navigator.clipboard.writeText(url).then(() => {
-      toast.success("Enlace copiado.");
-    });
-  };
-
-  const handleCopySheetLink = () => {
-    if (form.google_sheet_url) {
-      navigator.clipboard.writeText(form.google_sheet_url).then(() => {
-        toast.success("URL de la hoja copiada.");
-      });
-    }
-  };
-
-  const handleCopyFolderLink = () => {
-    if (form.google_drive_folder_id) {
-      const folderUrl = `https://drive.google.com/drive/folders/${form.google_drive_folder_id}`;
-      navigator.clipboard.writeText(folderUrl).then(() => {
-        toast.success("URL de la carpeta copiada.");
-      });
-    }
-  };
-
-  const formLinkActions = form.slug ? (
-    <div className="flex items-center justify-center gap-2">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={handleCopyLink}
-              className="p-2 rounded-xl bg-gray-50 text-gray-400 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/10 transition-all duration-300"
-            >
-              <Copy className="w-4 h-4" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Copiar enlace</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  ) : (
-    "-"
-  );
-
   const sheetLinkActions = form.google_sheet_url ? (
     <div className="flex items-center justify-center gap-2">
       <TooltipProvider>
@@ -115,9 +68,10 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
               href={form.google_sheet_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-all duration-300 shadow-sm shadow-emerald-500/10"
+              className="flex items-center gap-2 px-4 py-2 lg:p-2 rounded-xl bg-emerald-50 text-emerald-600 lg:text-black lg:hover:bg-emerald-500 lg:hover:text-white transition-all duration-300 shadow-sm shadow-emerald-500/10"
             >
               <FileSpreadsheet className="w-4 h-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Ver Hoja</span>
             </a>
           </TooltipTrigger>
           <TooltipContent>Abrir Hoja de Cálculo</TooltipContent>
@@ -139,9 +93,10 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
               href={`https://drive.google.com/drive/folders/${form.google_drive_folder_id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-500 hover:text-white transition-all duration-300 shadow-sm shadow-blue-500/10"
+              className="flex items-center gap-2 px-4 py-2 lg:p-2 rounded-xl bg-blue-50 text-blue-600 lg:text-black lg:hover:bg-blue-500 lg:hover:text-white transition-all duration-300 shadow-sm shadow-blue-500/10"
             >
               <FolderOpen className="w-4 h-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Ver Carpeta</span>
             </a>
           </TooltipTrigger>
           <TooltipContent>Abrir Carpeta Drive</TooltipContent>
@@ -155,34 +110,18 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
   );
 
   const actions = (
-    <div className="flex items-center justify-end gap-2">
-      <div className="flex items-center gap-2 mr-4 bg-gray-50/50 px-3 py-1.5 rounded-full border border-gray-100">
-        <span
-          className={cn(
-            "text-[9px] font-black uppercase tracking-widest",
-            isEnabled ? "text-emerald-600" : "text-gray-400"
-          )}
-        >
-          {isEnabled ? "Activo" : "Cerrado"}
-        </span>
-        <Switch
-          checked={isEnabled}
-          onCheckedChange={handleToggleEnabled}
-          disabled={isUpdating}
-          className="scale-75 cursor-pointer"
-        />
-      </div>
-
+    <div className="flex items-center justify-end lg:justify-center gap-2 w-full lg:w-auto">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Link href={`/admin/formularios/analiticas/${form.slug}`}>
+            <Link href={`/admin/formularios/analiticas/${form.slug}`} className="flex-1 lg:flex-none">
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all duration-300"
+                className="rounded-xl w-full text-blue-600 lg:text-black hover:bg-blue-50 lg:hover:text-blue-600 transition-all duration-300 gap-2 px-4 lg:px-2"
               >
                 <BarChart3 className="w-4 h-4" />
+                <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Ver Analíticas</span>
               </Button>
             </Link>
           </TooltipTrigger>
@@ -194,7 +133,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
         variant="ghost"
         size="icon"
         onClick={() => onEdit(form)}
-        className="rounded-xl hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)] transition-all duration-300"
+        className="rounded-xl flex-1 lg:flex-none text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)] transition-all duration-300"
       >
         <Edit className="w-4 h-4" />
       </Button>
@@ -203,7 +142,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-xl hover:bg-red-50 hover:text-red-500 transition-all duration-300"
+            className="rounded-xl flex-1 lg:flex-none text-red-500 lg:text-black hover:bg-red-50 lg:hover:text-red-500 transition-all duration-300"
           >
             <Trash2 className="w-4 h-4" />
           </Button>
@@ -258,17 +197,25 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
           />
         </div>
 
-        <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-3 h-3" /> {formattedDate}
-          </div>
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400">
+                <div className="flex items-center gap-2">
+                    <Calendar className="w-3 h-3" /> {formattedDate}
+                </div>
+            </div>
+            <div className="flex items-center gap-2 bg-gray-50/50 px-2 py-1 rounded-full border border-gray-100">
+                <span className={cn("text-[8px] font-black uppercase tracking-widest", isEnabled ? "text-emerald-600" : "text-gray-400")}>
+                    {isEnabled ? "Activo" : "Cerrado"}
+                </span>
+                <Switch checked={isEnabled} onCheckedChange={handleToggleEnabled} disabled={isUpdating} className="scale-50" />
+            </div>
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-          <div className="flex gap-2">
-            {formLinkActions} {sheetLinkActions} {folderLinkActions}
+        <div className="flex flex-col gap-3 pt-4 border-t border-gray-50">
+          <div className="flex flex-wrap gap-2">
+            {sheetLinkActions} {folderLinkActions}
           </div>
-          <div className="flex gap-2">{actions}</div>
+          <div className="flex justify-end w-full">{actions}</div>
         </div>
       </div>
     );
@@ -287,7 +234,14 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
           </OverflowCell>
         </div>
       </TableCell>
-      <TableCell className="px-8 py-6 text-center">{formLinkActions}</TableCell>
+      <TableCell className="px-8 py-6 text-center">
+        <div className="flex flex-col items-center gap-1">
+            <Switch checked={isEnabled} onCheckedChange={handleToggleEnabled} disabled={isUpdating} className="scale-75 cursor-pointer" />
+            <span className={cn("text-[8px] font-black uppercase tracking-widest", isEnabled ? "text-emerald-600" : "text-gray-400")}>
+                {isEnabled ? "Activo" : "Deshabilitado"}
+            </span>
+        </div>
+      </TableCell>
       <TableCell className="px-8 py-6 text-center">
         {sheetLinkActions}
       </TableCell>
@@ -302,7 +256,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
           />
         </div>
       </TableCell>
-      <TableCell className="px-8 py-6">{actions}</TableCell>
+      <TableCell className="px-8 py-6 text-center">{actions}</TableCell>
     </TableRow>
   );
 }
