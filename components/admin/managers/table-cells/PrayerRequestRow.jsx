@@ -114,7 +114,7 @@ export function PrayerRequestRow({ request, onDelete, onStatusChange, compact })
             <OverflowCell 
               href={publicHref}
               linkText="Ver en muro"
-              className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-3"
+              className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words"
             >
               {request.request_text}
             </OverflowCell>

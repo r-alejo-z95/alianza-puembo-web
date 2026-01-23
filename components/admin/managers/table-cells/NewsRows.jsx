@@ -80,7 +80,7 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact }) {
             <OverflowCell 
               href={publicHref}
               linkText="Ver noticia"
-              className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2"
+              className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words"
             >
               {newsItem.title}
             </OverflowCell>

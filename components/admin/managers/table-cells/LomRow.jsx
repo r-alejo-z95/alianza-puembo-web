@@ -59,7 +59,7 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
                         <OverflowCell 
                             href={`/recursos/lom/${post.slug}`}
                             linkText="Ver devocional"
-                            className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2"
+                            className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words"
                         >
                             {post.title}
                         </OverflowCell>

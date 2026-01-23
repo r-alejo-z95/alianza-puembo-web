@@ -97,7 +97,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                                             <OverflowCell 
                                                 href={`/eventos/${event.slug}`}
                                                 linkText="Ver evento"
-                                                className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2"
+                                                className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words"
                                             >
                                                 {event.title}
                                             </OverflowCell>

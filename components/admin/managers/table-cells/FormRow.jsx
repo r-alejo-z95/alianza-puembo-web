@@ -186,7 +186,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
             <OverflowCell
               href={`/formularios/${form.slug}`}
               linkText="Ver formulario"
-              className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors line-clamp-2"
+              className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words"
             >
               {form.title}
             </OverflowCell>
