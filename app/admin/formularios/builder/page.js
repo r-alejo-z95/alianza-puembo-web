@@ -33,10 +33,8 @@ function BuilderContent() {
     if (formSlug || formId) {
       const fetchForm = async () => {
         const supabase = createClient();
-        let query = supabase
-          .from("forms")
-          .select("*, form_fields(*)");
-        
+        let query = supabase.from("forms").select("*, form_fields(*)");
+
         if (formId) {
           query = query.eq("id", formId);
         } else {
@@ -52,7 +50,7 @@ function BuilderContent() {
         } else {
           if (data.form_fields) {
             data.form_fields.sort(
-              (a, b) => (a.order_index ?? 0) - (b.order_index ?? 0)
+              (a, b) => (a.order_index ?? 0) - (b.order_index ?? 0),
             );
           }
           setForm(data);
@@ -74,9 +72,9 @@ function BuilderContent() {
     // Priorizar el ID del estado 'form' que se cargó al inicio
     const currentFormId = form?.id;
     let imageUrl = form?.image_url || null;
-    
+
     // Solo generar slug si el título cambió o si es nuevo
-    const slug = (form && form.title === title) ? form.slug : slugify(title);
+    const slug = form && form.title === title ? form.slug : slugify(title);
 
     try {
       if (imageFile) {
@@ -116,9 +114,12 @@ function BuilderContent() {
             }
           }
           const { attachment_file, id, ...fieldData } = field;
-          
+
           // Preservar el ID original si es un UUID válido de la base de datos
-          const isRealUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+          const isRealUuid =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+              id,
+            );
 
           return {
             ...(isRealUuid ? { id } : {}),
@@ -126,7 +127,7 @@ function BuilderContent() {
             attachment_url: attachmentUrl,
             form_id: currentFormId,
           };
-        })
+        }),
       );
 
       if (currentFormId) {
@@ -135,7 +136,7 @@ function BuilderContent() {
           .from("forms")
           .update({ title, description, image_url: imageUrl, slug })
           .eq("id", currentFormId);
-        
+
         if (formError) throw formError;
 
         // ESTRATEGIA: Obtener IDs actuales para saber cuáles borrar
@@ -143,11 +144,12 @@ function BuilderContent() {
           .from("form_fields")
           .select("id")
           .eq("form_id", currentFormId);
-        
-        const currentIds = processedFields.map(f => f.id).filter(Boolean);
-        const idsToDelete = existingFields
-          ?.map(f => f.id)
-          .filter(id => !currentIds.includes(id)) || [];
+
+        const currentIds = processedFields.map((f) => f.id).filter(Boolean);
+        const idsToDelete =
+          existingFields
+            ?.map((f) => f.id)
+            .filter((id) => !currentIds.includes(id)) || [];
 
         if (idsToDelete.length > 0) {
           await supabase.from("form_fields").delete().in("id", idsToDelete);
@@ -156,8 +158,10 @@ function BuilderContent() {
         // Upsert de los campos (actualiza los que tienen ID, inserta los nuevos)
         const { error: fieldsError } = await supabase
           .from("form_fields")
-          .upsert(processedFields.map(f => ({ ...f, form_id: currentFormId })));
-        
+          .upsert(
+            processedFields.map((f) => ({ ...f, form_id: currentFormId })),
+          );
+
         if (fieldsError) throw fieldsError;
       } else {
         // INSERCIÓN NUEVA
@@ -174,18 +178,18 @@ function BuilderContent() {
           ])
           .select()
           .single();
-        
+
         if (formError || !newForm) throw formError;
-        
+
         const newId = newForm.id;
         toast.info("Iniciando integración con Google...");
         await initializeGoogleIntegration(
           newId,
           newForm.title,
           newForm.slug,
-          fields
+          fields,
         );
-        
+
         const fieldsToInsert = processedFields.map((field) => ({
           ...field,
           form_id: newId,
@@ -194,7 +198,7 @@ function BuilderContent() {
         const { error: fieldsError } = await supabase
           .from("form_fields")
           .insert(fieldsToInsert);
-          
+
         if (fieldsError) throw fieldsError;
       }
 
@@ -202,7 +206,9 @@ function BuilderContent() {
       router.push("/admin/formularios");
     } catch (error) {
       console.error("Save Error:", error);
-      toast.error("Error al guardar: " + (error.message || "Error desconocido"));
+      toast.error(
+        "Error al guardar: " + (error.message || "Error desconocido"),
+      );
       setSaving(false);
     }
   };
@@ -220,7 +226,7 @@ function BuilderContent() {
 
   return (
     <div className="min-h-screen bg-gray-50/50 flex flex-col gap-4">
-      <header className="bg-black text-white p-6 md:px-12 flex items-center justify-between top-0 z-[60] border-b border-white/10">
+      <header className="bg-black text-white p-6 md:px-12 flex items-center justify-between top-0 z-[60] border-b rounded-2xl border-white/10">
         <div className="flex items-center gap-6">
           <Button
             variant="ghost"
@@ -237,7 +243,7 @@ function BuilderContent() {
                 Constructor
               </span>
             </div>
-            <h1 className="text-xl font-serif font-bold truncate max-w-xs md:max-w-md">
+            <h1 className="text-xl font-serif font-bold wrap-break-word whitespace-normal max-w-xs md:max-w-md">
               {form?.title || "Nuevo Formulario"}
             </h1>
           </div>

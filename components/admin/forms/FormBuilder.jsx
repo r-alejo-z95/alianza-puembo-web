@@ -68,7 +68,8 @@ import {
   DndContext,
   closestCenter,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragOverlay,
@@ -146,9 +147,9 @@ function FieldCard({
   onRemove,
   onUpdateFieldType,
   onUploadAttachment,
-  dragHandleProps,
 }) {
   const attachmentInputRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const currentField = useWatch({
     control: form.control,
@@ -157,14 +158,21 @@ function FieldCard({
   });
 
   const handleCardClick = (e) => {
+    // No hacer nada si estamos arrastrando
+    if (isDragging) return;
+
     if (
       e.target.closest(
-        'input, button, textarea, select, [role="button"], [role="switch"], .tiptap',
+        'input, button, textarea, select, [role="button"], [role="switch"], .tiptap, .drag-handle',
       )
     )
       return;
     e.stopPropagation();
-    if (activeId !== field.id) setActiveId(field.id);
+    if (activeId === field.id) {
+      setActiveId(null);
+    } else {
+      setActiveId(field.id);
+    }
   };
 
   const addOption = () => {
@@ -438,12 +446,6 @@ function FieldCard({
                   />
                 </div>
               </div>
-              <div
-                className="cursor-move p-2 rounded-xl bg-gray-50 text-gray-300 hover:text-gray-600 transition-colors"
-                {...dragHandleProps}
-              >
-                <GripVertical className="w-5 h-5" />
-              </div>
             </div>
           </div>
         ) : (
@@ -515,12 +517,6 @@ function FieldCard({
                   </div>
                 )}
               </div>
-            </div>
-            <div
-              className=" group-hover:opacity-100 transition-opacity cursor-move p-2"
-              {...dragHandleProps}
-            >
-              <GripVertical className="w-5 h-5 text-gray-600" />
             </div>
           </div>
         )}
@@ -635,7 +631,15 @@ export default function FormBuilder({
     name: "fields",
   });
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(MouseSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 10,
+        tolerance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
@@ -709,33 +713,34 @@ export default function FormBuilder({
 
   return (
     <div
-      className="min-h-screen bg-gray-50/50 pb-32 cursor-default"
+      className="min-h-screen bg-gray-50/50 pb-0 cursor-default"
       onClick={handleGlobalClick}
     >
       {/* Top Controls */}
       <div
-        className="sticky top-18 z-[55] bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 md:px-8 pt-4 flex items-center justify-between"
+        className="sticky top-18 z-[55] bg-white/80 backdrop-blur-md border-gray-300 shadow-sm px-4 py-4 rounded-2xl md:px-8 flex items-center justify-between"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-4">
-          <Layout className="w-5 h-5 text-gray-400" />
+          <Layout className="hidden md:inline w-5 h-5 text-gray-400" />
           <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 hidden sm:inline-block">
             Editor de Estructura
           </span>
         </div>
         <div className="flex gap-2 md:gap-3">
           <Button
-            variant="ghost"
-            className="rounded-full px-4 md:px-6 text-gray-400 font-bold h-10 md:h-auto"
+            variant="destructive"
+            size="sm"
+            className="rounded-full bg-red-500 hover:bg-red-600"
             onClick={onCancel}
             disabled={isSaving}
           >
             <X className="w-4 h-4 md:mr-2" />
-            <span className="hidden md:inline">Cerrar</span>
+            <span className="">Cancelar</span>
           </Button>
           <Button
             variant="green"
-            className="rounded-full px-6 md:px-8 py-5 md:py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 h-10 md:h-auto"
+            className="rounded-full"
             onClick={(e) => {
               e.stopPropagation();
               form.handleSubmit(
@@ -760,20 +765,34 @@ export default function FormBuilder({
             ) : (
               <Save className="w-4 h-4 md:mr-2" />
             )}
-            <span className="hidden md:inline">
+            <span className="">
               {isSaving ? "Guardando..." : "Guardar Diseño"}
             </span>
           </Button>
         </div>
       </div>
 
-      <div className="w-full max-w-6xl mx-auto pt-8 px-4 md:px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 relative">
+      <div className="w-full mx-auto pt-8 md:px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 relative">
         <div className="col-span-1 md:col-span-10 space-y-8 md:space-y-10 w-full max-w-full">
           <FormProvider {...form}>
             {/* Header Card Editorial */}
             <Card
-              className="border-none shadow-2xl bg-white rounded-[3rem] overflow-hidden group form-header-card"
-              onClick={(e) => e.stopPropagation()}
+              className="border-none shadow-2xl bg-white overflow-hidden group form-header-card"
+              onClick={(e) => {
+                if (
+                  e.target.closest(
+                    'input, button, textarea, select, [role="button"], [role="switch"], .tiptap',
+                  )
+                ) {
+                  return;
+                }
+                e.stopPropagation();
+                // Solo permitimos cerrar si ya está activo.
+                // La activación se maneja específicamente en el Título y Descripción.
+                if (activeId === "header") {
+                  setActiveId(null);
+                }
+              }}
             >
               {/* Area de Imagen (Banner) */}
               <div className="relative h-40 md:h-56 bg-black overflow-hidden flex items-center justify-center">
@@ -785,7 +804,7 @@ export default function FormBuilder({
                         : initialForm.image_url
                     }
                     alt="Header"
-                    className="w-full h-full object-cover opacity-50"
+                    className="fill w-full h-full object-cover object-center"
                   />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-white/30 text-center px-4">
@@ -795,7 +814,7 @@ export default function FormBuilder({
                     </span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
 
                 <div className="absolute bottom-6 right-8 flex gap-3">
                   {(imageFile || initialForm?.image_url) && (
@@ -846,14 +865,42 @@ export default function FormBuilder({
                     <FormField
                       control={form.control}
                       name="title"
-                      render={({ field: inputField }) => (
-                        <Input
-                          className="text-4xl md:text-5xl font-serif font-bold border-0 border-b-2 border-gray-50 px-4 py-4 h-auto focus-visible:ring-0 focus-visible:border-b-[var(--puembo-green)] focus-visible:bg-gray-50/50 transition-all rounded-t-2xl rounded-b-none bg-transparent text-gray-900 placeholder:text-gray-200 leading-tight shadow-none"
-                          placeholder="Ej: Registro de Bautizos 2026"
-                          {...inputField}
-                          value={inputField.value || ""}
-                        />
-                      )}
+                      render={({ field: inputField }) =>
+                        activeId === "header" ? (
+                          <Input
+                            autoFocus
+                            className="wrap-break-word whitespace-normal text-2xl md:text-4xl font-serif font-bold border-0 border-b-2 border-[var(--puembo-green)] px-4 py-4 h-auto focus-visible:ring-0 focus-visible:bg-gray-50/50 transition-all rounded-t-2xl rounded-b-none bg-transparent text-gray-900 placeholder:text-gray-200 leading-tight shadow-none"
+                            placeholder="Título"
+                            {...inputField}
+                            value={inputField.value || ""}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                setActiveId(null);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className="relative group/title">
+                            <h1
+                              className="text-2xl md:text-4xl font-serif font-bold px-4 py-4 text-gray-900 cursor-text bg-gray-50/20 md:bg-transparent hover:bg-gray-50/80 rounded-2xl transition-all border-2 border-dashed border-gray-100 md:border-transparent md:hover:border-dashed md:hover:border-gray-200"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveId("header");
+                              }}
+                            >
+                              {inputField.value || (
+                                <span className="text-gray-300">Título</span>
+                              )}
+                            </h1>
+                            <div className="absolute top-1/2 -right-2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover/title:opacity-100 transition-all">
+                              <div className="bg-white shadow-sm border border-gray-100 rounded-full p-2">
+                                <Type className="w-3 h-3 text-gray-400" />
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      }
                     />
                   </div>
 
@@ -864,17 +911,45 @@ export default function FormBuilder({
                         Descripción Del Formulario
                       </span>
                     </div>
-                    <div className="p-8 rounded-[2rem] bg-gray-50/50 border-2 border-transparent focus-within:bg-white focus-within:border-[var(--puembo-green)]/20 focus-within:shadow-xl transition-all shadow-inner group/desc">
+                    <div
+                      className={cn(
+                        "transition-all duration-500",
+                        activeId === "header"
+                          ? "p-1.5 md:p-8 rounded-[2rem] bg-gray-50/50 border-1 border-[var(--puembo-green)]/50 shadow-xl"
+                          : "group/desc relative",
+                      )}
+                    >
                       <FormField
                         control={form.control}
                         name="description"
-                        render={({ field: inputField }) => (
-                          <RichTextEditor
-                            content={inputField.value}
-                            onChange={inputField.onChange}
-                            placeholder="Describe el propósito de este formulario, horarios, requisitos, etc..."
-                          />
-                        )}
+                        render={({ field: inputField }) =>
+                          activeId === "header" ? (
+                            <RichTextEditor
+                              content={inputField.value}
+                              onChange={inputField.onChange}
+                              className="prose cursor-auto"
+                              placeholder="Describe el propósito de este formulario, horarios, requisitos, etc..."
+                            />
+                          ) : (
+                            <div className="relative">
+                              <div
+                                className="prose max-w-none cursor-text min-h-[60px] p-6 rounded-2xl transition-all border-2 border-dashed border-gray-50 md:border-transparent md:hover:border-dashed md:hover:border-gray-200 bg-gray-50/20 md:bg-transparent hover:bg-gray-50/50 text-gray-600 font-light leading-relaxed"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActiveId("header");
+                                }}
+                                dangerouslySetInnerHTML={{
+                                  __html:
+                                    inputField.value ||
+                                    '<p class="text-gray-300 italic">Haz clic para añadir una descripción detallada, instrucciones o requisitos...</p>',
+                                }}
+                              />
+                              <div className="absolute top-4 right-4 opacity-100 md:opacity-0 md:group-hover/desc:opacity-100 transition-all">
+                                <AlignLeft className="w-4 h-4 text-gray-300" />
+                              </div>
+                            </div>
+                          )
+                        }
                       />
                     </div>
                   </div>
@@ -886,9 +961,18 @@ export default function FormBuilder({
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
-              onDragStart={(e) => setActiveDragId(e.active.id)}
-              onDragEnd={handleDragEnd}
-              onDragCancel={() => setActiveDragId(null)}
+              onDragStart={(e) => {
+                setActiveDragId(e.active.id);
+                document.body.style.overflow = "hidden";
+              }}
+              onDragEnd={(e) => {
+                handleDragEnd(e);
+                document.body.style.overflow = "";
+              }}
+              onDragCancel={() => {
+                setActiveDragId(null);
+                document.body.style.overflow = "";
+              }}
             >
               <SortableContext
                 items={fields.map((f) => f.id)}
@@ -982,12 +1066,21 @@ function SortableItem({ id, index, ...props }) {
     opacity: isDragging ? 0 : 1,
   };
   return (
-    <div ref={setNodeRef} style={style} id={`field-card-${index}`}>
-      <FieldCard
-        {...props}
-        index={index}
-        dragHandleProps={{ ...attributes, ...listeners }}
-      />
+    <div
+      ref={setNodeRef}
+      style={style}
+      id={`field-card-${index}`}
+      className="relative"
+    >
+      <FieldCard {...props} index={index} />
+      {/* Drag handle flotante independiente */}
+      <div
+        className="absolute top-4 right-4 z-50 cursor-move p-3 rounded-xl bg-white shadow-lg border border-gray-200 hover:border-[var(--puembo-green)] hover:shadow-xl transition-all select-none drag-handle touch-none"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="w-5 h-5 text-gray-400 hover:text-[var(--puembo-green)]" />
+      </div>
     </div>
   );
 }

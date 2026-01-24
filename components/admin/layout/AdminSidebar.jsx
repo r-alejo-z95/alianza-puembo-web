@@ -200,8 +200,8 @@ export default function AdminSidebar({ user, children }) {
       <AdminBottomNav />
 
       <main className="flex-1 h-screen overflow-y-auto relative bg-gray-50/50 pb-24 md:pb-0">
-        <div className="absolute inset-0 bg-grid-black/[0.02] -z-10 pointer-events-none" />
-        <div className="max-w-7xl mx-auto py-12 px-6 md:py-16 lg:px-12">
+        <div className="absolute inset-0 bg-grid-black/[0.5] -z-10 pointer-events-none" />
+        <div className="max-w-7xl mx-auto py-6 px-6 md:py-16 lg:px-12">
           {children}
         </div>
       </main>
