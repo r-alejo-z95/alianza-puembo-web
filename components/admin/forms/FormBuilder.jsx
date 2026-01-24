@@ -1075,11 +1075,11 @@ function SortableItem({ id, index, ...props }) {
       <FieldCard {...props} index={index} />
       {/* Drag handle flotante independiente */}
       <div
-        className="absolute top-4 right-4 z-50 cursor-move p-3 rounded-xl bg-white shadow-lg border border-gray-200 hover:border-[var(--puembo-green)] hover:shadow-xl transition-all select-none drag-handle touch-none"
+        className="absolute top-4 right-4 z-50 cursor-move p-3 rounded-xl bg-white select-none drag-handle touch-none"
         {...attributes}
         {...listeners}
       >
-        <GripVertical className="w-5 h-5 text-gray-400 hover:text-[var(--puembo-green)]" />
+        <GripVertical className="w-5 h-5 hover:text-gray-600 text-gray-400 hover:text-[var(--puembo-green)]" />
       </div>
     </div>
   );
