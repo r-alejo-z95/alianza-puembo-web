@@ -191,7 +191,7 @@ function FieldCard({
         "transition-all duration-500 rounded-[2.5rem] border-2 bg-white overflow-hidden field-card-container",
         isActive
           ? "border-[var(--puembo-green)] shadow-2xl z-10 -translate-y-1"
-          : "border-gray-100 hover:border-gray-200 shadow-sm",
+          : "border-gray-100 hover:border-gray-200 shadow-sm select-none",
       )}
       onClick={handleCardClick}
     >
@@ -517,10 +517,10 @@ function FieldCard({
               </div>
             </div>
             <div
-              className="opacity-0 group-hover:opacity-100 transition-opacity cursor-move p-2"
+              className=" group-hover:opacity-100 transition-opacity cursor-move p-2"
               {...dragHandleProps}
             >
-              <GripVertical className="w-5 h-5 text-gray-300" />
+              <GripVertical className="w-5 h-5 text-gray-600" />
             </div>
           </div>
         )}
@@ -714,7 +714,7 @@ export default function FormBuilder({
     >
       {/* Top Controls */}
       <div
-        className="sticky top-[73px] z-[55] bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 md:px-8 pt-4 flex items-center justify-between"
+        className="sticky top-18 z-[55] bg-white/80 backdrop-blur-md border-b border-gray-100 px-4 md:px-8 pt-4 flex items-center justify-between"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-4">
@@ -873,7 +873,6 @@ export default function FormBuilder({
                             content={inputField.value}
                             onChange={inputField.onChange}
                             placeholder="Describe el propósito de este formulario, horarios, requisitos, etc..."
-                            className="border-none px-0 text-lg font-light text-gray-600 leading-relaxed min-h-[60px]"
                           />
                         )}
                       />
@@ -930,12 +929,12 @@ export default function FormBuilder({
               </SortableContext>
               <DragOverlay>
                 {activeDragId ? (
-                  <div className="opacity-90 rotate-1 scale-[1.02] shadow-2xl">
+                  <div className="opacity-90 rotate-2 scale-[1.05]">
                     <FieldCard
                       field={fields.find((f) => f.id === activeDragId)}
                       index={fields.findIndex((f) => f.id === activeDragId)}
                       form={form}
-                      isActive={true}
+                      isActive={activeId === activeDragId}
                       activeId={activeId}
                       setActiveId={setActiveId}
                     />
