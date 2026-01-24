@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * AdminEditorPanel
- * Un contenedor híbrido que muestra un Side Panel (Sheet) en Desktop 
+ * Un contenedor híbrido que muestra un Side Panel (Sheet) en Desktop
  * y un Bottom Sheet (Drawer) en Móvil.
  */
 export function AdminEditorPanel({
@@ -38,8 +38,11 @@ export function AdminEditorPanel({
   if (isLg) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent 
-          className={cn("sm:max-w-2xl w-full p-0 flex flex-col border-none shadow-2xl overflow-hidden", className)}
+        <SheetContent
+          className={cn(
+            "sm:max-w-2xl w-full p-0 flex flex-col border-none shadow-2xl overflow-hidden",
+            className,
+          )}
           side="right"
         >
           <div className={cn("bg-black p-8 md:p-12 shrink-0", headerClassName)}>
@@ -71,7 +74,9 @@ export function AdminEditorPanel({
   // Mobile View: Drawer (Bottom Sheet)
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className={cn("max-h-[96vh] flex flex-col", className)}>
+      <DrawerContent
+        className={cn("max-h-[96vh] flex flex-col z-401", className)}
+      >
         <div className={cn("bg-black p-6 shrink-0", headerClassName)}>
           <DrawerHeader className="space-y-2 text-left p-0">
             <div className="flex items-center gap-3">

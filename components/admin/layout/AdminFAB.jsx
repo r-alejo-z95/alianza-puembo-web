@@ -21,7 +21,7 @@ export function AdminFAB({
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        className="fixed bottom-22 right-6 z-40 lg:hidden"
+        className="fixed bottom-22 right-6 z-400 lg:hidden"
       >
         <Button
           onClick={onClick}

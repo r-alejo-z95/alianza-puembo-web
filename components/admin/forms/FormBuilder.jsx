@@ -62,6 +62,8 @@ import { v4 as uuidv4 } from "uuid";
 import RichTextEditor from "./RichTextEditor";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
+import { AdminFAB } from "@/components/admin/layout/AdminFAB";
 
 // Dnd Kit
 import {
@@ -588,6 +590,7 @@ export default function FormBuilder({
   const [imageFile, setImageFile] = useState(null);
   const [activeId, setActiveId] = useState(null);
   const [activeDragId, setActiveDragId] = useState(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const fileInputRef = useRef(null);
 
   const onInvalid = (errors) => {
@@ -636,7 +639,7 @@ export default function FormBuilder({
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 10,
+        delay: 100,
         tolerance: 5,
       },
     }),
@@ -672,6 +675,7 @@ export default function FormBuilder({
 
   const addField = (type) => {
     const id = uuidv4();
+    const newIndex = fields.length;
     append({
       id,
       type,
@@ -680,9 +684,18 @@ export default function FormBuilder({
         ? [{ value: "", label: "", id: uuidv4() }]
         : undefined,
       required: false,
-      order_index: fields.length,
+      order_index: newIndex,
     });
     setActiveId(id);
+    setIsEditorOpen(false);
+
+    // Auto-scroll a la nueva pregunta (especialmente útil en móvil)
+    setTimeout(() => {
+      const element = document.getElementById(`field-card-${newIndex}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
   };
 
   const updateFieldType = (index, type) => {
@@ -1050,6 +1063,33 @@ export default function FormBuilder({
           </div>
         </div>
       </div>
+
+      {/* FAB + Editor Panel for Mobile */}
+      <AdminFAB onClick={() => setIsEditorOpen(true)} label="Añadir" icon={Plus} />
+
+      <AdminEditorPanel
+        open={isEditorOpen}
+        onOpenChange={setIsEditorOpen}
+        title="Añadir Pregunta"
+        description="Selecciona el tipo de respuesta que necesitas para tu formulario."
+      >
+        <div className="grid grid-cols-2 gap-4 pb-8">
+          {Object.entries(FIELD_TYPES).map(([type, info]) => (
+            <button
+              key={type}
+              onClick={() => addField(type)}
+              className="flex flex-col items-center justify-center gap-4 p-6 rounded-[2rem] bg-gray-50 border-2 border-transparent active:bg-[var(--puembo-green)]/10 active:border-[var(--puembo-green)] transition-all group text-center"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-[var(--puembo-green)] group-active:scale-110 transition-transform">
+                {info.icon}
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                {info.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </AdminEditorPanel>
     </div>
   );
 }
