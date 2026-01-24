@@ -50,27 +50,27 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
 
     if (compact) {
         return (
-            <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4 relative group">
-                <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                        <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Devocional</span>
+            <div className="bg-white rounded-[1.5rem] p-4 shadow-sm border border-gray-100 space-y-3 relative group">
+                <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-1 min-w-0">
+                        <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Devocional</span>
                         <OverflowCell 
                             href={`/recursos/lom/${post.slug}`}
                             linkText="Ver devocional"
-                            className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words"
+                            className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words leading-tight"
                         >
                             {post.title}
                         </OverflowCell>
                     </div>
-                    <AuthorAvatar profile={post.profiles} className="h-10 w-10 border-2 border-white shadow-md" />
+                    <AuthorAvatar profile={post.profiles} className="h-8 w-8 border-2 border-white shadow-sm shrink-0" />
                 </div>
                 
-                <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
-                    <Calendar className="w-3 h-3" /> {formattedDate}
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400">
+                    <Calendar className="w-3 h-3 text-[var(--puembo-green)]/50" /> {formattedDate}
                 </div>
 
-                <div className="flex items-center justify-end pt-4 border-t border-gray-50 mt-2">
-                    <div className="flex gap-2 w-full">{actions}</div>
+                <div className="flex items-center justify-end pt-3 border-t border-gray-50">
+                    <div className="flex gap-1 w-full">{actions}</div>
                 </div>
             </div>
         );

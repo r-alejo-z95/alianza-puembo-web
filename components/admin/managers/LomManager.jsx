@@ -30,6 +30,7 @@ import { LomRow } from './table-cells/LomRow';
 import { useScreenSize } from '@/lib/hooks/useScreenSize';
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { cn } from "@/lib/utils.ts";
+import { AdminFAB } from "../layout/AdminFAB";
 
 const lomSchema = z.object({
   title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),
@@ -155,7 +156,7 @@ export default function LomManager() {
   return (
     <div className="space-y-16">
       {/* Editorial Form Card */}
-      <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+      <Card id="editorial-form" className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
         <div className="bg-black p-8 md:p-12">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-px w-8 bg-[var(--puembo-green)]" />

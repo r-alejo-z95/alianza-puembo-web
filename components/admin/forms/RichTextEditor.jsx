@@ -9,9 +9,10 @@ import TextAlign from '@tiptap/extension-text-align';
 import CodeBlock from '@tiptap/extension-code-block';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
-import { Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, ListOrdered, Quote, Minus, AlignLeft, AlignCenter, AlignRight, AlignJustify, CodeSquare } from 'lucide-react';
+import { Bold, Italic, Underline as UnderlineIcon, Strikethrough, List, ListOrdered, Quote, Minus, AlignLeft, AlignCenter, AlignRight, AlignJustify, CodeSquare, Link as LinkIcon } from 'lucide-react';
+import { cn } from "@/lib/utils";
 
-const RichTextEditor = ({ content, onChange }) => {
+const RichTextEditor = ({ content, onChange, className }) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -19,6 +20,12 @@ const RichTextEditor = ({ content, onChange }) => {
         code: false,
       }),
       Underline,
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-[var(--puembo-green)] underline cursor-pointer',
+        },
+      }),
       TextAlign.configure({
         types: ['paragraph'],
       }),
@@ -32,7 +39,7 @@ const RichTextEditor = ({ content, onChange }) => {
     
     editorProps: {
       attributes: {
-        class: 'dark:prose-invert max-w-none focus:outline-none p-4 border rounded-md min-h-[200px]',
+        class: 'dark:prose-invert max-w-none focus:outline-none p-4 min-h-[250px] leading-relaxed',
       },
     },
   });
@@ -44,22 +51,21 @@ const RichTextEditor = ({ content, onChange }) => {
   }, [content, editor]);
 
   // Manejar la inserción de enlaces
-  const setLink = () => {
-    const previousUrl = editor.getAttributes('link').href;
-    const url = window.prompt('URL', previousUrl);
-
-    // cancelled
-    if (url === null) {
+  const toggleLink = () => {
+    if (editor.isActive('link')) {
+      editor.chain().focus().unsetLink().run();
       return;
     }
 
-    // empty
+    const previousUrl = editor.getAttributes('link').href;
+    const url = window.prompt('URL del enlace:', previousUrl);
+
+    if (url === null) return;
     if (url === '') {
       editor.chain().focus().unsetLink().run();
       return;
     }
 
-    // update link
     editor.chain().focus().setLink({ href: url }).run();
   };
 
@@ -68,100 +74,120 @@ const RichTextEditor = ({ content, onChange }) => {
   }
 
   return (
-    <div className="border rounded-md">
-      <div className="flex flex-wrap gap-1 p-2 border-b">
-        <Toggle
-          pressed={editor.isActive('bold')}
-          onPressedChange={() => editor.chain().focus().toggleBold().run()}
-          aria-label="Toggle bold"
-        >
-          <Bold className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive('italic')}
-          onPressedChange={() => editor.chain().focus().toggleItalic().run()}
-          aria-label="Toggle italic"
-        >
-          <Italic className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive('underline')}
-          onPressedChange={() => editor.chain().focus().toggleUnderline().run()}
-          aria-label="Toggle underline"
-        >
-          <UnderlineIcon className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive('strike')}
-          onPressedChange={() => editor.chain().focus().toggleStrike().run()}
-          aria-label="Toggle strikethrough"
-        >
-          <Strikethrough className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive('codeBlock')}
-          onPressedChange={() => editor.chain().focus().toggleCodeBlock().run()}
-          aria-label="Toggle code block"
-        >
-          <CodeSquare className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive('bulletList')}
-          onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
-          aria-label="Toggle bullet list"
-        >
-          <List className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive('orderedList')}
-          onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
-          aria-label="Toggle ordered list"
-        >
-          <ListOrdered className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive('blockquote')}
-          onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
-          aria-label="Toggle blockquote"
-        >
-          <Quote className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          onPressedChange={() => editor.chain().focus().setHorizontalRule().run()}
-          aria-label="Insert horizontal rule"
-        >
-          <Minus className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive({ textAlign: 'left' })}
-          onPressedChange={() => editor.chain().focus().setTextAlign('left').run()}
-          aria-label="Align left"
-        >
-          <AlignLeft className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive({ textAlign: 'center' })}
-          onPressedChange={() => editor.chain().focus().setTextAlign('center').run()}
-          aria-label="Align center"
-        >
-          <AlignCenter className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive({ textAlign: 'right' })}
-          onPressedChange={() => editor.chain().focus().setTextAlign('right').run()}
-          aria-label="Align right"
-        >
-          <AlignRight className="h-4 w-4" />
-        </Toggle>
-        <Toggle
-          pressed={editor.isActive({ textAlign: 'justify' })}
-          onPressedChange={() => editor.chain().focus().setTextAlign('justify').run()}
-          aria-label="Align justify"
-        >
-          <AlignJustify className="h-4 w-4" />
-        </Toggle>
+    <div className={cn("border rounded-2xl overflow-hidden bg-white shadow-sm flex flex-col", className)}>
+      {/* Sticky & Scrollable Toolbar */}
+      <div className="sticky top-0 z-10 flex items-center gap-0.5 p-1.5 border-b bg-gray-50/80 backdrop-blur-md overflow-x-auto no-scrollbar scroll-smooth">
+        <div className="flex items-center gap-0.5 pr-2 border-r border-gray-200">
+            <Toggle
+            size="sm"
+            pressed={editor.isActive('bold')}
+            onPressedChange={() => editor.chain().focus().toggleBold().run()}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <Bold className="h-3.5 w-3.5" />
+            </Toggle>
+            <Toggle
+            size="sm"
+            pressed={editor.isActive('italic')}
+            onPressedChange={() => editor.chain().focus().toggleItalic().run()}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <Italic className="h-3.5 w-3.5" />
+            </Toggle>
+            <Toggle
+            size="sm"
+            pressed={editor.isActive('underline')}
+            onPressedChange={() => editor.chain().focus().toggleUnderline().run()}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <UnderlineIcon className="h-3.5 w-3.5" />
+            </Toggle>
+            <Toggle
+            size="sm"
+            pressed={editor.isActive('strike')}
+            onPressedChange={() => editor.chain().focus().toggleStrike().run()}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <Strikethrough className="h-3.5 w-3.5" />
+            </Toggle>
+        </div>
+
+        <div className="flex items-center gap-0.5 px-2 border-r border-gray-200">
+            <Toggle
+            size="sm"
+            pressed={editor.isActive('link')}
+            onPressedChange={toggleLink}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <LinkIcon className="h-3.5 w-3.5" />
+            </Toggle>
+            <Toggle
+            size="sm"
+            pressed={editor.isActive('codeBlock')}
+            onPressedChange={() => editor.chain().focus().toggleCodeBlock().run()}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <CodeSquare className="h-3.5 w-3.5" />
+            </Toggle>
+        </div>
+
+        <div className="flex items-center gap-0.5 px-2 border-r border-gray-200">
+            <Toggle
+            size="sm"
+            pressed={editor.isActive('bulletList')}
+            onPressedChange={() => editor.chain().focus().toggleBulletList().run()}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <List className="h-3.5 w-3.5" />
+            </Toggle>
+            <Toggle
+            size="sm"
+            pressed={editor.isActive('orderedList')}
+            onPressedChange={() => editor.chain().focus().toggleOrderedList().run()}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <ListOrdered className="h-3.5 w-3.5" />
+            </Toggle>
+            <Toggle
+            size="sm"
+            pressed={editor.isActive('blockquote')}
+            onPressedChange={() => editor.chain().focus().toggleBlockquote().run()}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <Quote className="h-3.5 w-3.5" />
+            </Toggle>
+        </div>
+
+        <div className="flex items-center gap-0.5 pl-2">
+            <Toggle
+            size="sm"
+            pressed={editor.isActive({ textAlign: 'left' })}
+            onPressedChange={() => editor.chain().focus().setTextAlign('left').run()}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <AlignLeft className="h-3.5 w-3.5" />
+            </Toggle>
+            <Toggle
+            size="sm"
+            pressed={editor.isActive({ textAlign: 'center' })}
+            onPressedChange={() => editor.chain().focus().setTextAlign('center').run()}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <AlignCenter className="h-3.5 w-3.5" />
+            </Toggle>
+            <Toggle
+            size="sm"
+            pressed={editor.isActive({ textAlign: 'right' })}
+            onPressedChange={() => editor.chain().focus().setTextAlign('right').run()}
+            className="h-8 w-8 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+            <AlignRight className="h-3.5 w-3.5" />
+            </Toggle>
+        </div>
       </div>
-      <EditorContent editor={editor} />
+      <div className="flex-grow bg-white">
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 };

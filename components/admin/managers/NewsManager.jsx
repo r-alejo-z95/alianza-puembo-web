@@ -18,6 +18,7 @@ import { useAdminNewsContext } from "@/components/providers/NewsProvider";
 import { Loader2, Plus, ListFilter, Newspaper } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { AdminEditorPanel } from "../layout/AdminEditorPanel";
+import { AdminFAB } from "../layout/AdminFAB";
 
 export default function NewsManager() {
   const { news, loading, saveNews, deleteNews } = useAdminNewsContext();
@@ -74,7 +75,7 @@ export default function NewsManager() {
           </div>
           <Button
             variant="green"
-            className="rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+            className="hidden lg:flex rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
             onClick={() => {
               setSelectedNews(null);
               setIsFormOpen(true);
@@ -206,6 +207,14 @@ export default function NewsManager() {
           />
         </div>
       </AdminEditorPanel>
+
+      <AdminFAB 
+        onClick={() => {
+          setSelectedNews(null);
+          setIsFormOpen(true);
+        }} 
+        label="Nueva Noticia"
+      />
     </div>
   );
 }

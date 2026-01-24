@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { useAdminEventsContext } from "@/components/providers/EventsProvider";
 import { Loader2, Plus, ListFilter, CalendarCheck } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
+import { AdminFAB } from "../layout/AdminFAB";
 
 export default function EventManager() {
   const { events, loading, isCreatingForm, saveEvent, deleteEvent } =
@@ -84,7 +85,7 @@ export default function EventManager() {
           </div>
           <Button
             variant="green"
-            className="rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+            className="hidden lg:flex rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
             onClick={() => {
               setSelectedEvent(null);
               setIsFormOpen(true);
@@ -217,6 +218,14 @@ export default function EventManager() {
           </div>
         </div>
       </AdminEditorPanel>
+
+      <AdminFAB
+        onClick={() => {
+          setSelectedEvent(null);
+          setIsFormOpen(true);
+        }}
+        label="Nuevo Evento"
+      />
     </div>
   );
 }

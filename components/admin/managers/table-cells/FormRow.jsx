@@ -177,33 +177,31 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
 
   if (compact) {
     return (
-      <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4 relative group">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <span className="text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-widest">
+      <div className="bg-white rounded-[1.5rem] p-4 shadow-sm border border-gray-100 space-y-3 relative group">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1 min-w-0">
+            <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest">
               Formulario
             </span>
             <OverflowCell
               href={`/formularios/${form.slug}`}
               linkText="Ver formulario"
-              className="text-xl font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words"
+              className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words leading-tight"
             >
               {form.title}
             </OverflowCell>
           </div>
           <AuthorAvatar
             profile={form.profiles}
-            className="h-10 w-10 border-2 border-white shadow-md"
+            className="h-8 w-8 border-2 border-white shadow-sm shrink-0"
           />
         </div>
 
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4 text-[10px] font-bold text-gray-400">
-                <div className="flex items-center gap-2">
-                    <Calendar className="w-3 h-3" /> {formattedDate}
-                </div>
+        <div className="flex items-center justify-between border-t border-gray-50 pt-2">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
+                <Calendar className="w-3 h-3 text-[var(--puembo-green)]/50" /> {formattedDate}
             </div>
-            <div className="flex items-center gap-2 bg-gray-50/50 px-2 py-1 rounded-full border border-gray-100">
+            <div className="flex items-center gap-2 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
                 <span className={cn("text-[8px] font-black uppercase tracking-widest", isEnabled ? "text-emerald-600" : "text-gray-400")}>
                     {isEnabled ? "Activo" : "Cerrado"}
                 </span>
@@ -211,7 +209,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
             </div>
         </div>
 
-        <div className="flex flex-col gap-3 pt-4 border-t border-gray-50">
+        <div className="flex flex-col gap-2 pt-2 border-t border-gray-50">
           <div className="flex flex-wrap gap-2">
             {sheetLinkActions} {folderLinkActions}
           </div>

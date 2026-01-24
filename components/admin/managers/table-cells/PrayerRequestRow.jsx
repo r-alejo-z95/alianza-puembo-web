@@ -159,49 +159,43 @@ export function PrayerRequestRow({
 
   if (compact) {
     return (
-      <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-gray-100 space-y-4 relative group">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
+      <div className="bg-white rounded-[1.5rem] p-4 shadow-sm border border-gray-100 space-y-3 relative group">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1 min-w-0">
             <div className="flex items-center gap-2">
-              {request.is_public ? (
-                <Eye className="w-3 h-3 text-emerald-500" />
-              ) : (
-                <EyeOff className="w-3 h-3 text-blue-500" />
-              )}
-              <span
-                className={cn(
-                  "text-[10px] font-black uppercase tracking-widest",
-                  request.is_public ? "text-emerald-600" : "text-blue-600",
-                )}
-              >
-                {request.is_public ? "Pública" : "Privada"}
-              </span>
+                {request.is_public ? <Eye className="w-3 h-3 text-emerald-500" /> : <EyeOff className="w-3 h-3 text-blue-500" />}
+                <span className={cn(
+                    "text-[9px] font-black uppercase tracking-widest",
+                    request.is_public ? "text-emerald-600" : "text-blue-600"
+                )}>
+                    {request.is_public ? "Pública" : "Privada"}
+                </span>
             </div>
-            <OverflowCell
+            <OverflowCell 
               href={publicHref}
               linkText="Ver en muro"
-              className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words"
+              className="text-base font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words leading-tight"
             >
               {request.request_text}
             </OverflowCell>
           </div>
         </div>
-
-        <div className="flex flex-col gap-2 pt-2 border-t border-gray-50 mt-4">
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
-            <User className="w-3.5 h-3.5 text-gray-400" />
-            {request.is_anonymous ? "Anónimo" : request.name || "N/A"}
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
-              <Calendar className="w-3 h-3" /> {formattedDate}
+        
+        <div className="flex flex-col gap-1 pt-2 border-t border-gray-50">
+            <div className="flex items-center gap-2 text-[11px] font-bold text-gray-700">
+                <User className="w-3 h-3 text-gray-400" />
+                {request.is_anonymous ? "Anónimo" : (request.name || "N/A")}
             </div>
-            {request.is_public && statusBadge(request.status)}
-          </div>
+            <div className="flex items-center gap-4">
+                <div className="flex items-center gap-1.5 text-[9px] font-bold text-gray-400">
+                    <Calendar className="w-2.5 h-2.5" /> {formattedDate}
+                </div>
+                {request.is_public && statusBadge(request.status)}
+            </div>
         </div>
 
-        <div className="flex items-center justify-end pt-4 border-t border-gray-50 mt-2">
-          <div className="w-full">{actions}</div>
+        <div className="flex items-center justify-end pt-3 border-t border-gray-50">
+            <div className="w-full">{actions}</div>
         </div>
       </div>
     );

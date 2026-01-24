@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader,
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
 import { AdminEditorPanel } from "../layout/AdminEditorPanel";
+import { AdminFAB } from "../layout/AdminFAB";
 
 const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
@@ -127,7 +128,7 @@ export default function PassageManager() {
           </div>
           <Button
             variant="green"
-            className="rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+            className="hidden lg:flex rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
             onClick={() => {
               setSelectedWeek(null);
               setIsFormOpen(true);
@@ -146,7 +147,7 @@ export default function PassageManager() {
             </div>
           ) : weeks.length === 0 ? (
             <div className="py-20 text-center space-y-4">
-              <BookOpen className="w-12 h-12 text-gray-100 mx-auto" />
+              < BookOpen className="w-12 h-12 text-gray-100 mx-auto" />
               <p className="text-gray-400 font-light italic">No hay pasajes programados todavía.</p>
             </div>
           ) : (
@@ -156,24 +157,24 @@ export default function PassageManager() {
                   <AccordionItem 
                     value={`week-${week.week_number}`} 
                     key={week.week_number}
-                    className="border border-gray-100 rounded-[2rem] px-6 px-8 transition-all hover:border-[var(--puembo-green)]/20"
+                    className="border border-gray-100 rounded-[2rem] px-6 lg:px-8 transition-all hover:border-[var(--puembo-green)]/20"
                   >
                     <AccordionTrigger className="hover:no-underline py-6">
-                      <div className="flex items-center gap-6 text-left">
-                        <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 group-data-[state=open]:bg-[var(--puembo-green)] group-data-[state=open]:text-white transition-colors">
-                          <Calendar className="w-6 h-6" />
+                      <div className="flex items-center gap-4 lg:gap-6 text-left">
+                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 group-data-[state=open]:bg-[var(--puembo-green)] group-data-[state=open]:text-white transition-colors">
+                          <Calendar className="w-5 h-5 lg:w-6 lg:h-6" />
                         </div>
                         <div className="space-y-1">
                           <p className="text-xl font-serif font-bold text-gray-900">Semana {week.week_number}</p>
                           <div className="flex items-center gap-2">
                             <AuthorAvatar profile={week.profiles} className="h-4 w-4" />
-                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Programado por {week.profiles?.full_name?.split(' ')[0] || 'Admin'}</span>
+                            <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-gray-400">Programado por {week.profiles?.full_name?.split(' ')[0] || 'Admin'}</span>
                           </div>
                         </div>
                       </div>
                     </AccordionTrigger>
-                    <AccordionContent className="pb-8 pt-2">
-                      <div className="bg-gray-50/50 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-end gap-8 border border-gray-100/50">
+                    <AccordionContent className="pb-8 pt-2 px-2 lg:px-0">
+                      <div className="bg-gray-50/50 rounded-3xl p-6 lg:p-8 flex flex-col md:flex-row justify-between items-end gap-8 border border-gray-100/50">
                         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6 w-full">
                           {week.passages.map(passage => (
                             <li key={passage.id} className="flex flex-col gap-1 group">
@@ -247,7 +248,7 @@ export default function PassageManager() {
         }
       >
         <div className="md:p-12">
-          <PassageForm
+          < PassageForm
             week={selectedWeek}
             onSave={handleSave}
             onCancel={() => setIsFormOpen(false)}
@@ -255,6 +256,14 @@ export default function PassageManager() {
           />
         </div>
       </AdminEditorPanel>
+
+      <AdminFAB 
+        onClick={() => {
+          setSelectedWeek(null);
+          setIsFormOpen(true);
+        }} 
+        label="Programar Semana"
+      />
     </div>
   );
 }
