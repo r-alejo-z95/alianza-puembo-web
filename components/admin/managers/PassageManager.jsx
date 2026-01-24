@@ -4,16 +4,14 @@ import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { toast } from 'sonner';
 import PassageForm from '@/components/admin/forms/PassageForm';
-import { Edit, Trash2, Loader2, Plus, Calendar, BookOpen, User } from 'lucide-react';
+import { Edit, Trash2, Loader2, Plus, Calendar, BookOpen } from 'lucide-react';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { PaginationControls } from "@/components/shared/PaginationControls";
-import { ecuadorToUTC } from '@/lib/date-utils';
 import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
-import { cn } from "@/lib/utils.ts";
+import { AdminEditorPanel } from "../layout/AdminEditorPanel";
 
 const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
@@ -81,7 +79,7 @@ export default function PassageManager() {
       .map(p => ({
         ...p,
         week_number: data.week_number,
-        week_start_date: data.week_start_date, // 👈 Literal DATE string YYYY-MM-DD
+        week_start_date: data.week_start_date, 
         user_id: user?.id,
       }));
 
@@ -238,30 +236,25 @@ export default function PassageManager() {
         </CardContent>
       </Card>
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto border-none rounded-[3rem] shadow-2xl p-0">
-          <div className="bg-black p-8 md:p-12">
-            <DialogHeader className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-px w-8 bg-[var(--puembo-green)]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Configuración</span>
-              </div>
-              <DialogTitle className="text-4xl font-serif font-bold text-white leading-tight">
-                Lecturas de <br />
-                <span className="text-[var(--puembo-green)] italic">la Semana</span>
-              </DialogTitle>
-            </DialogHeader>
-          </div>
-          <div className="p-8 md:p-12 bg-white">
-            <PassageForm
-              week={selectedWeek}
-              onSave={handleSave}
-              onCancel={() => setIsFormOpen(false)}
-              loading={loading}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AdminEditorPanel
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={
+          <>
+            Lecturas de <br />
+            <span className="text-[var(--puembo-green)] italic">la Semana</span>
+          </>
+        }
+      >
+        <div className="md:p-12">
+          <PassageForm
+            week={selectedWeek}
+            onSave={handleSave}
+            onCancel={() => setIsFormOpen(false)}
+            loading={loading}
+          />
+        </div>
+      </AdminEditorPanel>
     </div>
   );
 }

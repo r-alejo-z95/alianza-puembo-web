@@ -235,6 +235,7 @@ export function MonthView({
                                       }
                                       event={event}
                                       view="month"
+                                      isAdmin={isAdmin}
                                       isFirstDay={isFirstDay}
                                       isLastDay={isLastDay} />
                                   );

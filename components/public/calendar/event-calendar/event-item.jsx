@@ -69,7 +69,11 @@ function EventWrapper({
           )}
           data-dragging={isDragging || undefined}
           data-past-event={isEventInPast || undefined}
-          onClick={onClick}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onClick?.(e);
+          }}
           onMouseDown={onMouseDown}
           onTouchStart={onTouchStart}
           {...dndListeners}

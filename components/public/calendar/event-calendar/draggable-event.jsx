@@ -113,6 +113,7 @@ export function DraggableEvent({
         onTouchStart={handleTouchStart}
         dndListeners={listeners}
         dndAttributes={attributes}
+        isAdmin={isAdmin}
         aria-hidden={ariaHidden} />
     </div>
   );

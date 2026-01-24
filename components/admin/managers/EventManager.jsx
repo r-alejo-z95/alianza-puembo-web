@@ -11,12 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
 import EventForm from "@/components/admin/forms/EventForm";
 import { EventRow } from "./table-cells/EventRows";
 import { PaginationControls } from "@/components/shared/PaginationControls";
@@ -192,41 +187,36 @@ export default function EventManager() {
         </CardContent>
       </Card>
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto border-none rounded-[3rem] shadow-2xl p-0">
-          <div className="bg-black p-6 md:p-12">
-            <DialogHeader className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-px w-8 bg-[var(--puembo-green)]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
-                  Editor de Eventos
-                </span>
-              </div>
-              <DialogTitle className="text-3xl md:text-4xl font-serif font-bold text-white leading-tight">
-                {selectedEvent?.id ? "Ajustar" : "Programar"} <br />
-                <span className="text-[var(--puembo-green)] italic">
-                  Actividad
-                </span>
-              </DialogTitle>
-            </DialogHeader>
-          </div>
-          <div className="p-6 md:p-12 bg-white relative">
-            {isCreatingForm && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col gap-4 justify-center items-center">
-                <Loader2 className="h-12 w-12 animate-spin text-[var(--puembo-green)]" />
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
-                  Sincronizando Formulario
-                </p>
-              </div>
-            )}
+      <AdminEditorPanel
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={
+          <>
+            {selectedEvent?.id ? "Ajustar" : "Programar"} <br />
+            <span className="text-[var(--puembo-green)] italic">Actividad</span>
+          </>
+        }
+      >
+        <div className="relative">
+          {isCreatingForm && (
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col gap-4 justify-center items-center">
+              <Loader2 className="h-12 w-12 animate-spin text-[var(--puembo-green)]" />
+
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
+                Sincronizando Formulario
+              </p>
+            </div>
+          )}
+
+          <div className="md:p-12">
             <EventForm
               event={selectedEvent}
               onSave={handleSave}
               onCancel={() => setIsFormOpen(false)}
             />
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </AdminEditorPanel>
     </div>
   );
 }

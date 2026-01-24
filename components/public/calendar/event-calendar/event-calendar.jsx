@@ -45,6 +45,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import EventForm from '@/components/admin/forms/EventForm';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from "lucide-react";
+import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
 
 export function IntegratedEventCalendar({
   className,
@@ -345,26 +346,35 @@ export function IntegratedEventCalendar({
       </Card>
 
       {isAdmin && (
-        <Dialog open={isEventFormOpen} onOpenChange={setIsEventFormOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{selectedEvent?.id ? 'Editar Evento' : 'Crear Nuevo Evento'}</DialogTitle>
-            </DialogHeader>
+        <AdminEditorPanel
+          open={isEventFormOpen}
+          onOpenChange={setIsEventFormOpen}
+          title={
+            <>
+              {selectedEvent?.id ? "Ajustar" : "Programar"} <br />
+              <span className="text-[var(--puembo-green)] italic">Actividad</span>
+            </>
+          }
+        >
+          <div className="relative">
             {isCreatingForm && (
-              <div className="flex flex-col gap-4 justify-center items-center h-full">
-                <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)]" />
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col gap-4 justify-center items-center">
+                <Loader2 className="h-12 w-12 animate-spin text-[var(--puembo-green)]" />
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">Sincronizando Formulario</p>
               </div>
             )}
-            <EventForm
-              event={selectedEvent}
-              onSave={handleEventSave}
-              onCancel={() => {
-                setIsEventFormOpen(false);
-                setSelectedEvent(null);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+            <div className="md:p-12">
+              <EventForm
+                event={selectedEvent}
+                onSave={handleEventSave}
+                onCancel={() => {
+                  setIsEventFormOpen(false);
+                  setSelectedEvent(null);
+                }}
+              />
+            </div>
+          </div>
+        </AdminEditorPanel>
       )}
     </>
   );

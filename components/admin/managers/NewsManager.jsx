@@ -11,18 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import NewsForm from "@/components/admin/forms/NewsForm";
 import { NewsRow } from "./table-cells/NewsRows";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { useAdminNewsContext } from "@/components/providers/NewsProvider";
 import { Loader2, Plus, ListFilter, Newspaper } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
+import { AdminEditorPanel } from "../layout/AdminEditorPanel";
 
 export default function NewsManager() {
   const { news, loading, saveNews, deleteNews } = useAdminNewsContext();
@@ -55,7 +50,7 @@ export default function NewsManager() {
 
   const totalPages = useMemo(
     () => Math.ceil(news.length / itemsPerPage),
-    [news.length, itemsPerPage]
+    [news.length, itemsPerPage],
   );
 
   const currentNews = useMemo(() => {
@@ -193,33 +188,24 @@ export default function NewsManager() {
         </CardContent>
       </Card>
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="max-w-2xl max-h-[95vh] overflow-y-auto border-none rounded-[3rem] shadow-2xl p-0">
-          <div className="bg-black p-6 md:p-12">
-            <DialogHeader className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="h-px w-8 bg-[var(--puembo-green)]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
-                  Editor de Contenido
-                </span>
-              </div>
-              <DialogTitle className="text-3xl md:text-4xl font-serif font-bold text-white leading-tight">
-                {selectedNews?.id ? "Refinar" : "Crear"} <br />
-                <span className="text-[var(--puembo-green)] italic">
-                  Historia
-                </span>
-              </DialogTitle>
-            </DialogHeader>
-          </div>
-          <div className="p-6 md:p-12 bg-white">
-            <NewsForm
-              newsItem={selectedNews}
-              onSave={handleSave}
-              onCancel={() => setIsFormOpen(false)}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AdminEditorPanel
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        title={
+          <>
+            {selectedNews?.id ? "Refinar" : "Crear"} <br />
+            <span className="text-[var(--puembo-green)] italic">Historia</span>
+          </>
+        }
+      >
+        <div className="md:p-12">
+          <NewsForm
+            newsItem={selectedNews}
+            onSave={handleSave}
+            onCancel={() => setIsFormOpen(false)}
+          />
+        </div>
+      </AdminEditorPanel>
     </div>
   );
 }
