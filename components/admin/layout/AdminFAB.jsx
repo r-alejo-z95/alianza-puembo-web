@@ -6,28 +6,38 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
 /**
- * AdminFAB (Floating Action Button)
+ * AdminFAB (Floating Action Button) - Versión "Premium Pill"
  * Solo visible en móviles (< lg).
  */
-export function AdminFAB({ onClick, label = "Nuevo", icon: Icon = Plus, className }) {
+export function AdminFAB({
+  onClick,
+  label = "NUEVO",
+  icon: Icon = Plus,
+  className,
+}) {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ scale: 0, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0, opacity: 0, y: 20 }}
-        className="fixed bottom-8 right-6 z-40 lg:hidden"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 100, opacity: 0 }}
+        className="fixed bottom-22 right-6 z-40 lg:hidden"
       >
         <Button
           onClick={onClick}
-          size="icon"
           className={cn(
-            "h-16 w-16 rounded-full bg-[var(--puembo-green)] text-white shadow-2xl shadow-[var(--puembo-green)]/40 hover:bg-[var(--puembo-green)]/90 active:scale-95 transition-all duration-300 border-4 border-white",
-            className
+            "h-12 w-auto px-6 rounded-full bg-black text-white shadow-2xl shadow-black/40 active:scale-95 transition-all duration-500 border border-[var(--puembo-green)]/30 flex items-center gap-3 backdrop-blur-md",
+            className,
           )}
         >
-          <Icon className="h-8 w-8" />
-          <span className="sr-only">{label}</span>
+          <Icon
+            size={18}
+            className="text-[var(--puembo-green)]"
+            strokeWidth={3}
+          />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">
+            {label}
+          </span>
         </Button>
       </motion.div>
     </AnimatePresence>
