@@ -10,6 +10,7 @@ import { PrayerRequestRow } from './table-cells/PrayerRequestRow';
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { Loader2, ListFilter, HandHelping } from 'lucide-react';
 import { cn } from "@/lib/utils.ts";
+import { ManagerSkeleton } from "../layout/AdminSkeletons";
 
 export default function PrayerRequestManager() {
   const [requests, setRequests] = useState([]);
@@ -90,10 +91,7 @@ export default function PrayerRequestManager() {
         
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-32 space-y-4">
-              <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)] opacity-20" />
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Cargando Peticiones</p>
-            </div>
+            <ManagerSkeleton rows={itemsPerPage} columns={6} />
           ) : requests.length === 0 ? (
             <div className="py-32 text-center space-y-4">
               <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">

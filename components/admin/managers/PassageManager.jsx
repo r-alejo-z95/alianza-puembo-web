@@ -13,6 +13,7 @@ import { PaginationControls } from "@/components/shared/PaginationControls";
 import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
 import { AdminEditorPanel } from "../layout/AdminEditorPanel";
 import { AdminFAB } from "../layout/AdminFAB";
+import { ManagerSkeleton } from "../layout/AdminSkeletons";
 
 const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
@@ -141,10 +142,7 @@ export default function PassageManager() {
         
         <CardContent className="p-8 md:p-12">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 space-y-4">
-              <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)] opacity-20" />
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Cargando Lecturas</p>
-            </div>
+            <ManagerSkeleton rows={itemsPerPage} columns={3} />
           ) : weeks.length === 0 ? (
             <div className="py-20 text-center space-y-4">
               < BookOpen className="w-12 h-12 text-gray-100 mx-auto" />

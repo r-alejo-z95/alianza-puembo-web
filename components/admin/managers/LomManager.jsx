@@ -30,7 +30,7 @@ import { LomRow } from './table-cells/LomRow';
 import { useScreenSize } from '@/lib/hooks/useScreenSize';
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { cn } from "@/lib/utils.ts";
-import { AdminFAB } from "../layout/AdminFAB";
+import { ManagerSkeleton } from "../layout/AdminSkeletons";
 
 const lomSchema = z.object({
   title: z.string().min(3, 'El título debe tener al menos 3 caracteres.'),
@@ -266,14 +266,11 @@ export default function LomManager() {
         
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-32 space-y-4">
-              <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)] opacity-20" />
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Cargando Archivo</p>
-            </div>
+            <ManagerSkeleton rows={itemsPerPage} columns={4} />
           ) : posts.length === 0 ? (
             <div className="py-32 text-center space-y-4">
               <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
-                <BookOpen className="w-8 h-8 text-gray-200" />
+                < BookOpen className="w-8 h-8 text-gray-200" />
               </div>
               <p className="text-gray-400 font-light italic">No hay devocionales publicados todavía.</p>
             </div>

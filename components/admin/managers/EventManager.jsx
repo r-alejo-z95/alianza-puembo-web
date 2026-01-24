@@ -20,6 +20,7 @@ import { useAdminEventsContext } from "@/components/providers/EventsProvider";
 import { Loader2, Plus, ListFilter, CalendarCheck } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { AdminFAB } from "../layout/AdminFAB";
+import { ManagerSkeleton } from "../layout/AdminSkeletons";
 
 export default function EventManager() {
   const { events, loading, isCreatingForm, saveEvent, deleteEvent } =
@@ -98,12 +99,7 @@ export default function EventManager() {
 
         <CardContent className="p-0">
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-32 space-y-4">
-              <Loader2 className="h-10 w-10 animate-spin text-[var(--puembo-green)] opacity-20" />
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">
-                Cargando Agenda
-              </p>
-            </div>
+            <ManagerSkeleton rows={itemsPerPage} columns={6} />
           ) : events.length === 0 ? (
             <div className="py-32 text-center space-y-4">
               <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
