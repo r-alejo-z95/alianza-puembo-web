@@ -964,14 +964,17 @@ export default function FormBuilder({
               onDragStart={(e) => {
                 setActiveDragId(e.active.id);
                 document.body.style.overflow = "hidden";
+                document.body.style.cursor = "grabbing";
               }}
               onDragEnd={(e) => {
                 handleDragEnd(e);
                 document.body.style.overflow = "";
+                document.body.style.cursor = "";
               }}
               onDragCancel={() => {
                 setActiveDragId(null);
                 document.body.style.overflow = "";
+                document.body.style.cursor = "";
               }}
             >
               <SortableContext
@@ -1013,7 +1016,7 @@ export default function FormBuilder({
               </SortableContext>
               <DragOverlay>
                 {activeDragId ? (
-                  <div className="opacity-90 rotate-2 scale-[1.05]">
+                  <div className="opacity-90 rotate-2 scale-[1.05] cursor-grabbing">
                     <FieldCard
                       field={fields.find((f) => f.id === activeDragId)}
                       index={fields.findIndex((f) => f.id === activeDragId)}
@@ -1075,7 +1078,7 @@ function SortableItem({ id, index, ...props }) {
       <FieldCard {...props} index={index} />
       {/* Drag handle flotante independiente */}
       <div
-        className="absolute top-4 right-4 z-50 cursor-move p-3 rounded-xl bg-white select-none drag-handle touch-none"
+        className="absolute top-4 right-4 z-50 cursor-grab active:cursor-grabbing p-3 rounded-xl bg-white select-none drag-handle touch-none"
         {...attributes}
         {...listeners}
       >
