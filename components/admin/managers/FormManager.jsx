@@ -64,7 +64,7 @@ export default function FormManager() {
   }, [searchParams]);
 
   const handleEdit = (form) => {
-    router.push(`/admin/formularios/builder?id=${form.id}`);
+    router.push(`/admin/formularios/builder?slug=${form.slug}`);
   };
 
   const handleDelete = async (formId) => {

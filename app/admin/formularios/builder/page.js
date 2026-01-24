@@ -24,19 +24,26 @@ function BuilderContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const formSlug = searchParams.get("slug");
+  const formId = searchParams.get("id");
   const [form, setForm] = useState(null);
-  const [loading, setLoading] = useState(!!formSlug);
+  const [loading, setLoading] = useState(!!(formSlug || formId));
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (formSlug) {
+    if (formSlug || formId) {
       const fetchForm = async () => {
         const supabase = createClient();
-        const { data, error } = await supabase
+        let query = supabase
           .from("forms")
-          .select("*, form_fields(*)")
-          .eq("slug", formSlug)
-          .single();
+          .select("*, form_fields(*)");
+        
+        if (formId) {
+          query = query.eq("id", formId);
+        } else {
+          query = query.eq("slug", formSlug);
+        }
+
+        const { data, error } = await query.single();
 
         if (error) {
           console.error("Error fetching form:", error);
@@ -54,7 +61,7 @@ function BuilderContent() {
       };
       fetchForm();
     }
-  }, [formSlug, router]);
+  }, [formSlug, formId, router]);
 
   const handleSave = async (formData, imageFile) => {
     setSaving(true);
