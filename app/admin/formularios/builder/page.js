@@ -81,7 +81,7 @@ function BuilderContent() {
       if (imageFile) {
         // Si hay una nueva imagen, borramos la anterior si existía
         if (form && form.image_url) {
-          const oldFileName = form.image_url.split("/").pop();
+          const oldFileName = decodeURIComponent(form.image_url.split("/").pop());
           await supabase.storage.from("form-images").remove([oldFileName]);
         }
         const fileName = `${Date.now()}_header_${imageFile.name}`;
@@ -101,7 +101,7 @@ function BuilderContent() {
       } else if (formImageUrl === "") {
         // Si el usuario borró la imagen en el UI (image_url es "")
         if (form && form.image_url) {
-          const oldFileName = form.image_url.split("/").pop();
+          const oldFileName = decodeURIComponent(form.image_url.split("/").pop());
           await supabase.storage.from("form-images").remove([oldFileName]);
         }
         imageUrl = null;
@@ -117,7 +117,7 @@ function BuilderContent() {
           if (field.attachment_file) {
             // REPLAZO O NUEVO ADJUNTO: Si ya tenía uno diferente, lo borramos
             if (oldAttachmentUrl && oldAttachmentUrl !== field.attachment_url) {
-              const oldFileName = oldAttachmentUrl.split("/").pop();
+              const oldFileName = decodeURIComponent(oldAttachmentUrl.split("/").pop());
               await supabase.storage.from("form-images").remove([oldFileName]);
             }
 
@@ -133,7 +133,7 @@ function BuilderContent() {
             }
           } else if (field.attachment_url === "" && oldAttachmentUrl) {
             // BORRADO EXPLÍCITO DE ADJUNTO
-            const oldFileName = oldAttachmentUrl.split("/").pop();
+            const oldFileName = decodeURIComponent(oldAttachmentUrl.split("/").pop());
             await supabase.storage.from("form-images").remove([oldFileName]);
             attachmentUrl = null;
           }
@@ -179,7 +179,7 @@ function BuilderContent() {
           // Borrar archivos físicos del Storage antes de borrar filas
           const filesToRemove = fieldsToDelete
             .filter(f => f.attachment_url)
-            .map(f => f.attachment_url.split("/").pop());
+            .map(f => decodeURIComponent(f.attachment_url.split("/").pop()));
           
           if (filesToRemove.length > 0) {
             await supabase.storage.from("form-images").remove(filesToRemove);
