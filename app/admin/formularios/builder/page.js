@@ -64,20 +64,22 @@ function BuilderContent() {
   const handleSave = async (formData, imageFile) => {
     setSaving(true);
     const supabase = createClient();
-    const { title, description, fields } = formData;
+    const { title, description, fields, image_url: formImageUrl } = formData;
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     // Priorizar el ID del estado 'form' que se cargó al inicio
     const currentFormId = form?.id;
-    let imageUrl = form?.image_url || null;
+    let imageUrl = formImageUrl || form?.image_url || null;
 
     // Solo generar slug si el título cambió o si es nuevo
     const slug = form && form.title === title ? form.slug : slugify(title);
 
     try {
+      // 1. Manejo de Imagen de Cabecera (Subida / Borrado)
       if (imageFile) {
+        // Si hay una nueva imagen, borramos la anterior si existía
         if (form && form.image_url) {
           const oldFileName = form.image_url.split("/").pop();
           await supabase.storage.from("form-images").remove([oldFileName]);
@@ -96,11 +98,20 @@ function BuilderContent() {
           .from("form-images")
           .getPublicUrl(uploadData.path);
         imageUrl = urlData.publicUrl;
+      } else if (formImageUrl === "") {
+        // Si el usuario borró la imagen en el UI (image_url es "")
+        if (form && form.image_url) {
+          const oldFileName = form.image_url.split("/").pop();
+          await supabase.storage.from("form-images").remove([oldFileName]);
+        }
+        imageUrl = null;
       }
 
+      // 2. Procesar Campos y sus Adjuntos
       const processedFields = await Promise.all(
         fields.map(async (field) => {
           let attachmentUrl = field.attachment_url;
+          
           if (field.attachment_file) {
             const file = field.attachment_file;
             const fileName = `${Date.now()}_field_${field.id}_${file.name}`;
@@ -113,6 +124,7 @@ function BuilderContent() {
               attachmentUrl = urlData.publicUrl;
             }
           }
+          
           const { attachment_file, id, ...fieldData } = field;
 
           // Preservar el ID original si es un UUID válido de la base de datos
@@ -139,19 +151,28 @@ function BuilderContent() {
 
         if (formError) throw formError;
 
-        // ESTRATEGIA: Obtener IDs actuales para saber cuáles borrar
+        // ESTRATEGIA DE LIMPIEZA DE CAMPOS ELIMINADOS
         const { data: existingFields } = await supabase
           .from("form_fields")
-          .select("id")
+          .select("id, attachment_url")
           .eq("form_id", currentFormId);
 
         const currentIds = processedFields.map((f) => f.id).filter(Boolean);
-        const idsToDelete =
-          existingFields
-            ?.map((f) => f.id)
-            .filter((id) => !currentIds.includes(id)) || [];
+        
+        // Campos que van a ser borrados
+        const fieldsToDelete = existingFields?.filter((f) => !currentIds.includes(f.id)) || [];
 
-        if (idsToDelete.length > 0) {
+        if (fieldsToDelete.length > 0) {
+          // Borrar archivos físicos del Storage antes de borrar filas
+          const filesToRemove = fieldsToDelete
+            .filter(f => f.attachment_url)
+            .map(f => f.attachment_url.split("/").pop());
+          
+          if (filesToRemove.length > 0) {
+            await supabase.storage.from("form-images").remove(filesToRemove);
+          }
+
+          const idsToDelete = fieldsToDelete.map(f => f.id);
           await supabase.from("form_fields").delete().in("id", idsToDelete);
         }
 

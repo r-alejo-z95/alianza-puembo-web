@@ -198,27 +198,27 @@ function FieldCard({
   return (
     <Card
       className={cn(
-        "transition-all duration-500 rounded-[2.5rem] border-2 bg-white overflow-hidden field-card-container",
+        "transition-all duration-500 border-2 bg-white overflow-hidden field-card-container",
         isActive
-          ? "border-[var(--puembo-green)] shadow-2xl z-10 -translate-y-1"
-          : "border-gray-100 hover:border-gray-200 shadow-sm select-none",
+          ? "border-[var(--puembo-green)] shadow-2xl z-10 -translate-y-1 rounded-[2rem] md:rounded-[2.5rem]"
+          : "border-gray-100 hover:border-gray-200 shadow-sm select-none rounded-[1.5rem] md:rounded-[2.5rem]",
       )}
       onClick={handleCardClick}
     >
-      <CardContent className="p-8 md:p-10">
+      <CardContent className="p-6 md:p-10">
         {isActive ? (
-          <div className="space-y-8">
-            <div className="flex flex-col lg:flex-row gap-8">
+          <div className="space-y-6 md:space-y-8">
+            <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
               <div className="flex-grow space-y-6">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
                   <FormField
                     control={form.control}
                     name={`fields.${index}.label`}
                     render={({ field: inputField }) => (
-                      <div className="flex-grow space-y-2">
+                      <div className="flex-grow space-y-2 w-full">
                         <Input
                           placeholder="Escribe la pregunta aquí..."
-                          className="text-xl font-bold font-serif border-none px-0 h-auto focus-visible:ring-0 bg-transparent border-b-2 border-gray-100 focus:border-[var(--puembo-green)] rounded-none transition-all w-full"
+                          className="text-lg md:text-xl font-bold font-serif border-none px-0 h-auto focus-visible:ring-0 bg-transparent border-b-2 border-gray-100 focus:border-[var(--puembo-green)] rounded-none transition-all w-full"
                           {...inputField}
                           value={inputField.value || ""}
                         />
@@ -247,7 +247,7 @@ function FieldCard({
                             variant="outline"
                             size="sm"
                             onClick={() => attachmentInputRef.current?.click()}
-                            className="rounded-full border-dashed text-gray-400 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)] h-10 px-4 gap-2"
+                            className="rounded-full border-dashed text-gray-400 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)] h-10 px-4 gap-2 w-full sm:w-auto"
                           >
                             <Paperclip className="w-4 h-4" />
                             <span className="text-xs font-bold uppercase tracking-widest">
@@ -273,17 +273,17 @@ function FieldCard({
                 </div>
 
                 {currentField.attachment_url && (
-                  <div className="relative group w-fit rounded-[2rem] overflow-hidden bg-gray-50 border border-gray-100 p-2">
+                  <div className="relative group w-fit rounded-[1.5rem] md:rounded-[2rem] overflow-hidden bg-gray-50 border border-gray-100 p-2">
                     {currentField.attachment_type === "image" ? (
                       <img
                         src={currentField.attachment_url}
                         alt="Ref"
-                        className="max-h-64 rounded-[1.5rem] object-contain"
+                        className="max-h-48 md:max-h-64 rounded-[1.2rem] md:rounded-[1.5rem] object-contain"
                       />
                     ) : (
-                      <div className="flex items-center gap-4 p-6">
-                        <div className="w-12 h-12 rounded-2xl bg-[var(--puembo-green)]/10 flex items-center justify-center text-[var(--puembo-green)]">
-                          <FileUp className="w-6 h-6" />
+                      <div className="flex items-center gap-4 p-4 md:p-6">
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-[var(--puembo-green)]/10 flex items-center justify-center text-[var(--puembo-green)]">
+                          <FileUp className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
                         <div>
                           <p className="text-sm font-bold text-gray-700">
@@ -293,12 +293,12 @@ function FieldCard({
                         </div>
                       </div>
                     )}
-                    <div className="absolute top-4 right-4 flex gap-2">
+                    <div className="absolute top-3 right-3 md:top-4 md:right-4 flex gap-2">
                       <Button
                         type="button"
                         variant="destructive"
                         size="icon"
-                        className="h-8 w-8 rounded-full shadow-lg"
+                        className="h-7 w-7 md:h-8 md:w-8 rounded-full shadow-lg"
                         onClick={() => {
                           form.setValue(`fields.${index}.attachment_url`, "");
                           form.setValue(`fields.${index}.attachment_type`, "");
@@ -308,7 +308,7 @@ function FieldCard({
                           );
                         }}
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-3 h-3 md:w-4 md:h-4" />
                       </Button>
                     </div>
                   </div>
@@ -316,7 +316,7 @@ function FieldCard({
 
                 {(currentField.type === "radio" ||
                   currentField.type === "checkbox") && (
-                  <div className="space-y-4 pl-4 border-l-2 border-gray-50 mt-6">
+                  <div className="space-y-3 pl-4 border-l-2 border-gray-50 mt-4 md:mt-6">
                     {currentField.options?.map((option, optionIndex) => (
                       <div
                         key={option.id}
@@ -333,7 +333,7 @@ function FieldCard({
                           render={({ field: optionField }) => (
                             <Input
                               placeholder={`Opción ${optionIndex + 1}`}
-                              className="flex-grow h-10 border-none bg-gray-50/50 rounded-xl focus:bg-white transition-all px-4"
+                              className="flex-grow h-9 md:h-10 border-none bg-gray-50/50 rounded-xl focus:bg-white transition-all px-4 text-sm"
                               {...optionField}
                               value={optionField.value || ""}
                               onChange={(e) => {
@@ -362,7 +362,7 @@ function FieldCard({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="text-[var(--puembo-green)] hover:bg-green-50 rounded-full font-bold uppercase text-[10px] tracking-widest mt-2"
+                      className="text-[var(--puembo-green)] hover:bg-green-50 rounded-full font-bold uppercase text-[9px] md:text-[10px] tracking-widest mt-2"
                       onClick={addOption}
                     >
                       <Plus className="w-3 h-3 mr-2" /> Añadir opción
@@ -379,7 +379,7 @@ function FieldCard({
                     render={({ field: inputField }) => (
                       <Input
                         placeholder="Texto de ayuda (ej: Juan Pérez)"
-                        className="text-sm text-gray-400 border-none border-b border-gray-100 rounded-none px-0 focus-visible:ring-0 bg-transparent mt-4"
+                        className="text-xs md:text-sm text-gray-400 border-none border-b border-gray-100 rounded-none px-0 focus-visible:ring-0 bg-transparent mt-4"
                         {...inputField}
                         value={inputField.value || ""}
                       />
@@ -390,14 +390,14 @@ function FieldCard({
 
               <div className="w-full lg:w-64 space-y-4">
                 <div className="space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
+                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
                     Tipo de Respuesta
                   </span>
                   <Select
                     value={currentField.type}
                     onValueChange={(v) => onUpdateFieldType(index, v)}
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-gray-50 shadow-sm">
+                    <SelectTrigger className="h-10 md:h-12 rounded-xl border-gray-100 bg-gray-50 shadow-sm text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl border-none shadow-2xl">
@@ -408,7 +408,9 @@ function FieldCard({
                               <div className="text-[var(--puembo-green)]">
                                 {icon}
                               </div>
-                              <span className="font-medium">{label}</span>
+                              <span className="font-medium text-sm">
+                                {label}
+                              </span>
                             </div>
                           </SelectItem>
                         ),
@@ -419,21 +421,21 @@ function FieldCard({
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-8 border-t border-gray-50 mt-4">
-              <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 md:pt-8 border-t border-gray-50 mt-4">
+              <div className="flex items-center justify-between w-full sm:w-auto gap-6">
                 <button
                   type="button"
                   className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors group"
                   onClick={() => onRemove(index)}
                 >
                   <Trash2 className="w-4 h-4" />
-                  <span className="text-[10px] font-black uppercase tracking-widest">
+                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">
                     Eliminar
                   </span>
                 </button>
-                <div className="h-4 w-px bg-gray-100" />
+                <div className="h-4 w-px bg-gray-100 hidden sm:block" />
                 <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-400">
                     Obligatorio
                   </span>
                   <FormField
@@ -443,6 +445,7 @@ function FieldCard({
                       <Switch
                         checked={itemField.value}
                         onCheckedChange={itemField.onChange}
+                        className="scale-75 md:scale-100"
                       />
                     )}
                   />
@@ -451,71 +454,87 @@ function FieldCard({
             </div>
           </div>
         ) : (
-          <div className="group flex items-start justify-between">
-            <div className="space-y-4 flex-grow">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-3 flex-grow min-w-0">
               <div className="space-y-1">
-                <p className="text-xl font-serif font-bold text-gray-900">
-                  {currentField.label || "Pregunta sin título"}
+                <p className="text-lg md:text-xl font-serif font-bold text-gray-900 truncate">
                   {currentField.required && (
-                    <span className="text-red-500 ml-1">*</span>
+                    <span className="text-red-500 mr-1">*</span>
                   )}
+                  {currentField.label || "Pregunta sin título"}
                 </p>
                 {currentField.help_text && (
-                  <p className="whitespace-pre-wrap text-sm text-gray-600 font-light leading-relaxed">
+                  <p className="whitespace-pre-wrap text-xs text-gray-500 font-light leading-relaxed line-clamp-2">
                     {currentField.help_text}
                   </p>
                 )}
-                <div className="flex flex-col gap-1 pt-2">
-                  <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)] opacity-60">
-                    {FIELD_TYPES[currentField.type]?.icon}
-                    <span>{FIELD_TYPES[currentField.type]?.label}</span>
-                  </div>
-                  {currentField.placeholder && (
-                    <p className="text-[10px] text-gray-400 italic">
-                      Placeholder: "{currentField.placeholder}"
-                    </p>
-                  )}
-                </div>
               </div>
 
-              {currentField.attachment_url && (
-                <div className="mt-4">
-                  {currentField.attachment_type === "image" ? (
-                    <img
-                      src={currentField.attachment_url}
-                      alt="Ref"
-                      className="max-h-48 rounded-2xl border border-gray-100"
-                    />
-                  ) : (
-                    <div className="flex items-center gap-2 text-xs text-blue-600 bg-blue-50 px-4 py-2 rounded-full w-fit font-bold">
-                      <Paperclip className="w-3 h-3" /> Ver adjunto
+              {/* Contenido Visual Compacto (Miniaturas y Opciones) */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-1">
+                <div className="space-y-3 flex-grow min-w-0">
+                  {/* Vista previa de opciones (Radio/Checkbox) */}
+                  {(currentField.type === "radio" ||
+                    currentField.type === "checkbox") &&
+                    currentField.options?.length > 0 && (
+                      <div className="flex flex-wrap gap-x-4 gap-y-2">
+                        {currentField.options.map((opt, i) => (
+                          <div
+                            key={opt.id || i}
+                            className="flex items-center gap-2 opacity-50"
+                          >
+                            {currentField.type === "radio" ? (
+                              <CircleDot className="w-3 h-3 text-gray-400" />
+                            ) : (
+                              <CheckSquare className="w-3 h-3 text-gray-400" />
+                            )}
+                            <span className="text-[11px] font-medium text-gray-600 truncate max-w-[150px]">
+                              {opt.label || `Opción ${i + 1}`}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                  {/* Vista previa de Placeholder / Input Estilo */}
+                  {["text", "textarea", "email", "number", "date"].includes(
+                    currentField.type,
+                  ) && (
+                    <div className="flex items-center gap-2">
+                      <div className="h-px w-8 bg-gray-100 shrink-0" />
+                      <p className="text-[11px] text-gray-300 italic truncate italic">
+                        {currentField.placeholder ||
+                          `Respuesta de tipo ${FIELD_TYPES[currentField.type]?.label.toLowerCase()}...`}
+                      </p>
                     </div>
                   )}
-                </div>
-              )}
 
-              <div className="pt-2">
-                {["text", "email", "number"].includes(currentField.type) && (
-                  <div className="h-1 w-24 bg-gray-100 rounded-full" />
-                )}
-                {currentField.type === "textarea" && (
-                  <div className="h-1 w-48 bg-gray-100 rounded-full" />
-                )}
-                {(currentField.type === "radio" ||
-                  currentField.type === "checkbox") && (
-                  <div className="space-y-2 mt-4 border-l-2 border-gray-50 pl-4">
-                    {currentField.options?.map((option, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        {currentField.type === "radio" ? (
-                          <CircleDot className="w-3 h-3 text-gray-300" />
-                        ) : (
-                          <CheckSquare className="w-3 h-3 text-gray-300" />
-                        )}
-                        <span className="text-sm text-gray-500 font-light">
-                          {option.label || `Opción ${i + 1}`}
-                        </span>
+                  {/* Metadatos (Tipo de pregunta) */}
+                  <div className="flex items-center gap-3 pt-1">
+                    <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)] opacity-40 bg-[var(--puembo-green)]/5 px-2 py-1 rounded-md">
+                      {FIELD_TYPES[currentField.type]?.icon}
+                      <span>{FIELD_TYPES[currentField.type]?.label}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Miniatura de Adjunto */}
+                {currentField.attachment_url && (
+                  <div className="shrink-0">
+                    {currentField.attachment_type === "image" ? (
+                      <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border border-gray-100 shadow-sm ring-4 ring-gray-50/50">
+                        <img
+                          src={currentField.attachment_url}
+                          alt="Ref"
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                    ))}
+                    ) : (
+                      <div className="flex items-center gap-2 text-[10px] text-blue-600 bg-blue-50/50 border border-blue-100/50 px-3 py-2 rounded-xl font-bold">
+                        <FileUp className="w-3.5 h-3.5" />
+                        <span>PDF/DOC</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

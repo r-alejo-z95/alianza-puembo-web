@@ -75,9 +75,11 @@ export function AdminEditorPanel({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent
-        className={cn("max-h-[96vh] flex flex-col z-401", className)}
+        className={cn("max-h-[96vh] flex flex-col z-401 bg-black", className)}
       >
-        <div className={cn("bg-black p-6 shrink-0", headerClassName)}>
+        <div
+          className={cn("rounded-3xl bg-black p-6 shrink-0", headerClassName)}
+        >
           <DrawerHeader className="space-y-2 text-left p-0">
             <div className="flex items-center gap-3">
               <div className="h-px w-8 bg-[var(--puembo-green)]" />

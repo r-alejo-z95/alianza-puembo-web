@@ -370,19 +370,24 @@ export default function PublicForm() {
                       {field.attachment_url && (
                         <div className="mt-4 rounded-3xl overflow-hidden border border-gray-100 bg-gray-50/50 p-3 shadow-inner">
                           {field.attachment_type === "image" ? (
-                            <Image
-                              src={field.attachment_url}
-                              alt="Referencia"
-                              width={800}
-                              height={500}
-                              className="rounded-2xl w-full h-auto object-contain max-h-[400px]"
-                            />
+                            <div className="relative w-full aspect-video rounded-2xl overflow-hidden">
+                              <Image
+                                src={field.attachment_url}
+                                alt="Referencia"
+                                fill
+                                className="object-contain bg-white"
+                              />
+                            </div>
                           ) : (
                             <a
                               href={field.attachment_url}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-4 p-5 bg-white border border-gray-100 rounded-2xl hover:border-[var(--puembo-green)] hover:shadow-lg transition-all group/file"
+                              onClick={(e) => {
+                                // Forzar apertura si el href es válido
+                                if (!field.attachment_url) e.preventDefault();
+                              }}
                             >
                               <div className="p-3 bg-gray-50 rounded-xl group-hover/file:bg-[var(--puembo-green)]/10 transition-colors">
                                 <FileText className="w-6 h-6 text-gray-400 group-hover/file:text-[var(--puembo-green)]" />
