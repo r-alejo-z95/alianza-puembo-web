@@ -111,8 +111,16 @@ function BuilderContent() {
       const processedFields = await Promise.all(
         fields.map(async (field) => {
           let attachmentUrl = field.attachment_url;
+          const existingField = form?.form_fields?.find(f => f.id === field.id);
+          const oldAttachmentUrl = existingField?.attachment_url;
           
           if (field.attachment_file) {
+            // REPLAZO O NUEVO ADJUNTO: Si ya tenía uno diferente, lo borramos
+            if (oldAttachmentUrl && oldAttachmentUrl !== field.attachment_url) {
+              const oldFileName = oldAttachmentUrl.split("/").pop();
+              await supabase.storage.from("form-images").remove([oldFileName]);
+            }
+
             const file = field.attachment_file;
             const fileName = `${Date.now()}_field_${field.id}_${file.name}`;
             const { data: uploadData, error: uploadError } =
@@ -123,6 +131,11 @@ function BuilderContent() {
                 .getPublicUrl(uploadData.path);
               attachmentUrl = urlData.publicUrl;
             }
+          } else if (field.attachment_url === "" && oldAttachmentUrl) {
+            // BORRADO EXPLÍCITO DE ADJUNTO
+            const oldFileName = oldAttachmentUrl.split("/").pop();
+            await supabase.storage.from("form-images").remove([oldFileName]);
+            attachmentUrl = null;
           }
           
           const { attachment_file, id, ...fieldData } = field;

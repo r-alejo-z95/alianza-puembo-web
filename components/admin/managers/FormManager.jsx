@@ -69,14 +69,51 @@ export default function FormManager() {
   };
 
   const handleDelete = async (formId) => {
-    const { error } = await supabase.from("forms").delete().eq("id", formId);
+    try {
+      // 1. Obtener el formulario y sus campos para identificar archivos a borrar
+      const { data: formToDelete, error: fetchError } = await supabase
+        .from("forms")
+        .select("image_url, form_fields(attachment_url)")
+        .eq("id", formId)
+        .single();
 
-    if (error) {
-      toast.error("Error al eliminar el formulario.");
-      console.error(error);
-    } else {
-      toast.success("Formulario eliminado.");
+      if (fetchError) throw fetchError;
+
+      const filesToDelete = [];
+
+      // Añadir imagen de cabecera si existe
+      if (formToDelete.image_url) {
+        filesToDelete.push(formToDelete.image_url.split("/").pop());
+      }
+
+      // Añadir adjuntos de campos si existen
+      if (formToDelete.form_fields) {
+        formToDelete.form_fields.forEach((field) => {
+          if (field.attachment_url) {
+            filesToDelete.push(field.attachment_url.split("/").pop());
+          }
+        });
+      }
+
+      // 2. Borrar archivos del Storage
+      if (filesToDelete.length > 0) {
+        await supabase.storage.from("form-images").remove(filesToDelete);
+      }
+
+      // 3. Borrar el registro de la DB (los campos se borrarán por CASCADE si está configurado, 
+      // pero el registro del formulario es lo principal)
+      const { error: deleteError } = await supabase
+        .from("forms")
+        .delete()
+        .eq("id", formId);
+
+      if (deleteError) throw deleteError;
+
+      toast.success("Formulario y archivos eliminados.");
       fetchForms();
+    } catch (error) {
+      console.error("Error deleting form:", error);
+      toast.error("Error al eliminar el formulario y sus archivos.");
     }
   };
 
