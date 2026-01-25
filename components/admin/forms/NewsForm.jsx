@@ -40,7 +40,6 @@ const newsSchema = z.object({
 export default function NewsForm({ newsItem, onSave, onCancel }) {
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [isPreviewLoading, setPreviewLoading] = useState(false);
   const [removeImage, setRemoveImage] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -86,8 +85,6 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    setPreviewLoading(true);
-
     if (previewUrl && previewUrl.startsWith("blob:")) {
       URL.revokeObjectURL(previewUrl);
     }
@@ -102,8 +99,6 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
         height: img.height,
       });
       setRemoveImage(false);
-      // Pequeño delay para que el loader sea visible y la transición suave
-      setTimeout(() => setPreviewLoading(false), 400);
     };
     img.src = objectUrl;
   };
@@ -240,12 +235,6 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                 className="relative w-full aspect-video rounded-[1.5rem] overflow-hidden bg-white shadow-inner border border-gray-100 group/preview cursor-pointer"
                 onClick={() => fileInputRef.current.click()}
               >
-                {isPreviewLoading && (
-                  <div className="absolute inset-0 z-20 bg-white/80 backdrop-blur-sm flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-[var(--puembo-green)]" />
-                  </div>
-                )}
-
                 {previewUrl || (newsItem?.image_url && !removeImage) ? (
                   <>
                     <img
@@ -253,7 +242,6 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                       alt="Preview"
                       className={cn(
                         "w-full h-full object-cover transition-all duration-500 group-hover/preview:scale-105",
-                        isPreviewLoading && "blur-sm grayscale",
                       )}
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 md:group-hover/preview:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
