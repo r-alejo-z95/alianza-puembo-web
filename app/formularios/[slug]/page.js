@@ -47,7 +47,7 @@ const LoadingSpinner = () => (
 );
 
 const SendingSpinner = () => (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
     <div className="flex flex-col gap-6 justify-center items-center bg-white p-12 rounded-[3rem] shadow-2xl">
       <Loader2 className="h-16 w-16 animate-spin text-[var(--puembo-green)]" />
       <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--puembo-green)]">
@@ -74,9 +74,18 @@ export default function PublicForm() {
   const [sending, setSending] = useState(false);
   const [fileNames, setFileNames] = useState({});
   const [submissionStatus, setSubmissionStatus] = useState(null); // 'success' | 'error' | null
+  const [lastStatus, setLastStatus] = useState(null); // Para mantener el contenido durante la animación de cierre
   const [captchaToken, setCaptchaToken] = useState(null);
+  const [captchaKey, setCaptchaKey] = useState(0); // Para forzar el reinicio del captcha
   const { slug } = useParams();
   const router = useRouter();
+
+  // Sincronizar lastStatus con submissionStatus cuando no es null
+  useEffect(() => {
+    if (submissionStatus !== null) {
+      setLastStatus(submissionStatus);
+    }
+  }, [submissionStatus]);
 
   // Observamos todos los valores del formulario para detectar si está vacío
   const formValues = watch();
@@ -146,6 +155,8 @@ export default function PublicForm() {
       const { isValid: isCaptchaValid } = await verifyCaptcha(captchaToken);
       if (!isCaptchaValid) {
         toast.error("La verificación de seguridad falló. Por favor, inténtalo de nuevo.");
+        setCaptchaKey(prev => prev + 1); // Reiniciar widget si falló
+        setCaptchaToken(null);
         setSending(false);
         return;
       }
@@ -243,7 +254,7 @@ export default function PublicForm() {
         }
       }
 
-      await supabase.from("form_submissions").insert([
+      const { error: insertError } = await supabase.from("form_submissions").insert([
         {
           form_id: form.id,
           data: rawDataForDb,
@@ -252,22 +263,36 @@ export default function PublicForm() {
         },
       ]);
 
+      if (insertError) throw insertError;
+
+      // Éxito confirmado
       setSubmissionStatus("success");
-      reset();
-      setFileNames({});
-      setCaptchaToken(null);
+      
+      // Limpiezas silenciosas (si fallan no interrumpen el éxito)
+      try {
+        reset();
+        setFileNames({});
+        setCaptchaToken(null);
+        setCaptchaKey(prev => prev + 1); // Forzar nuevo captcha para el siguiente envío
+      } catch (cleanupError) {
+        console.warn("Error durante la limpieza del formulario:", cleanupError);
+      }
     } catch (error) {
       console.error("Error during submission:", error);
       setSubmissionStatus("error");
     }
-    setSending(false);
+    
+    // Retrasar el cierre del spinner para evitar el flash entre overlays
+    setTimeout(() => setSending(false), 100);
   };
 
   const handleResetForm = () => {
     setSubmissionStatus(null);
+    // Realizamos la limpieza aquí también por seguridad
     reset();
     setFileNames({});
     setCaptchaToken(null);
+    setCaptchaKey(prev => prev + 1); // Forzar nuevo captcha
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -643,6 +668,7 @@ export default function PublicForm() {
               })}
 
               <TurnstileCaptcha 
+                key={captchaKey}
                 onVerify={setCaptchaToken} 
                 className="flex justify-center"
               />
@@ -703,7 +729,7 @@ export default function PublicForm() {
       >
         <DialogContent className="rounded-[3rem] border-none shadow-2xl p-8 md:p-12 max-w-sm mx-auto overflow-hidden [&>button]:hidden">
           <div className="flex flex-col items-center text-center space-y-8">
-            {submissionStatus === "success" ? (
+            {lastStatus === "success" && (
               <>
                 <div className="w-24 h-24 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 animate-in zoom-in duration-500">
                   <CheckCircle2 className="w-12 h-12" />
@@ -734,7 +760,9 @@ export default function PublicForm() {
                   </Button>
                 </div>
               </>
-            ) : (
+            )}
+            
+            {lastStatus === "error" && (
               <>
                 <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center text-red-500 animate-in zoom-in duration-500">
                   <XCircle className="w-12 h-12" />
