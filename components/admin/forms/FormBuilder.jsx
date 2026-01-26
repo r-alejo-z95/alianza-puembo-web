@@ -1,11 +1,12 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import {
   useForm,
   useFieldArray,
   useWatch,
   FormProvider,
+  useFormContext,
 } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -13,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Form,
   FormControl,
   FormField,
   FormItem,
@@ -61,7 +61,6 @@ import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import RichTextEditor from "./RichTextEditor";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
 import { AdminFAB } from "@/components/admin/layout/AdminFAB";
 
@@ -77,7 +76,6 @@ import {
   DragOverlay,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
@@ -140,283 +138,153 @@ const FIELD_TYPES = {
 
 // --- Subcomponents ---
 
-function FieldCard({
-  field,
+const FieldCard = memo(function FieldCard({
+  field: initialField,
   index,
-  form,
   isActive,
   activeId,
   setActiveId,
   onRemove,
   onUpdateFieldType,
   onUploadAttachment,
+  isDragging = false,
 }) {
+  const { control, getValues, setValue } = useFormContext();
   const attachmentInputRef = useRef(null);
-  const [isDragging, setIsDragging] = useState(false);
 
-  const currentField = useWatch({
-    control: form.control,
+  // Observamos los datos vivos de este campo
+  const liveData = useWatch({
+    control,
     name: `fields.${index}`,
-    defaultValue: field,
+    defaultValue: initialField,
   });
 
-  const handleCardClick = (e) => {
-    // No hacer nada si estamos arrastrando
-    if (isDragging) return;
+  // El Snapshot es lo que evita el flash.
+  // Lo inicializamos con el initialField (que en el overlay será la versión viva enviada por el padre)
+  const [snapshot, setSnapshot] = useState(initialField);
 
-    if (
-      e.target.closest(
-        'input, button, textarea, select, [role="button"], [role="switch"], .tiptap, .drag-handle',
-      )
-    )
-      return;
-    e.stopPropagation();
-    if (activeId === field.id) {
-      setActiveId(null);
-    } else {
-      setActiveId(field.id);
+  useEffect(() => {
+    // Solo tomamos fotos cuando NO estamos arrastrando.
+    if (!isDragging && liveData) {
+      setSnapshot(liveData);
     }
+  }, [liveData, isDragging]);
+
+  // Durante el arrastre usamos la foto congelada. Si no, usamos los datos vivos.
+  const currentField = isDragging ? snapshot : (liveData || snapshot);
+
+  const handleCardClick = (e) => {
+    if (isDragging) return;
+    if (e.target.closest('input, button, textarea, select, [role="button"], [role="switch"], .tiptap, .drag-handle')) return;
+    e.stopPropagation();
+    setActiveId(activeId === initialField.id ? null : initialField.id);
   };
 
   const addOption = () => {
-    const currentOptions = form.getValues(`fields.${index}.options`) || [];
-    form.setValue(
-      `fields.${index}.options`,
-      [...currentOptions, { id: uuidv4(), value: "", label: "" }],
-      { shouldDirty: true },
-    );
+    const currentOptions = getValues(`fields.${index}.options`) || [];
+    setValue(`fields.${index}.options`, [...currentOptions, { id: uuidv4(), value: "", label: "" }], { shouldDirty: true });
   };
 
   const removeOption = (optIndex) => {
-    const currentOptions = form.getValues(`fields.${index}.options`) || [];
-    form.setValue(
-      `fields.${index}.options`,
-      currentOptions.filter((_, i) => i !== optIndex),
-      { shouldDirty: true },
-    );
+    const currentOptions = getValues(`fields.${index}.options`) || [];
+    setValue(`fields.${index}.options`, currentOptions.filter((_, i) => i !== optIndex), { shouldDirty: true });
   };
 
   return (
-    <Card
-      className={cn(
-        "transition-all duration-500 border-2 bg-white overflow-hidden field-card-container",
-        isActive
-          ? "border-[var(--puembo-green)] shadow-2xl z-10 -translate-y-1 rounded-[2rem] md:rounded-[2.5rem]"
-          : "border-gray-100 hover:border-gray-200 shadow-sm select-none rounded-[1.5rem] md:rounded-[2.5rem]",
-      )}
-      onClick={handleCardClick}
-    >
+    <Card className={cn(
+      "transition-all duration-500 border-2 bg-white overflow-hidden field-card-container",
+      isActive ? "border-[var(--puembo-green)] shadow-2xl z-10 -translate-y-1 rounded-[2rem] md:rounded-[2.5rem]" 
+               : "border-gray-100 hover:border-gray-200 shadow-sm select-none rounded-[1.5rem] md:rounded-[2.5rem]",
+      isDragging && "opacity-50 pointer-events-none scale-[0.98]"
+    )} onClick={handleCardClick}>
       <CardContent className="p-6 md:p-10">
         {isActive ? (
           <div className="space-y-6 md:space-y-8">
             <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
               <div className="flex-grow space-y-6">
                 <div className="flex flex-col sm:flex-row items-start gap-4">
-                  <FormField
-                    control={form.control}
-                    name={`fields.${index}.label`}
-                    render={({ field: inputField }) => (
-                      <div className="flex-grow space-y-2 w-full">
-                        <Input
-                          placeholder="Escribe la pregunta aquí..."
-                          className="text-lg md:text-xl font-bold font-serif border-none px-0 h-auto focus-visible:ring-0 bg-transparent border-b-2 border-gray-100 focus:border-[var(--puembo-green)] rounded-none transition-all w-full"
-                          {...inputField}
-                          value={inputField.value || ""}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`fields.${index}.help_text`}
-                          render={({ field: descField }) => (
-                            <Textarea
-                              placeholder="Descripción o instrucciones adicionales (opcional)..."
-                              className="text-[10px] font-light text-gray-400 border-none px-0 focus-visible:ring-0 bg-transparent transition-all w-full resize-none min-h-[40px]"
-                              {...descField}
-                              value={descField.value || ""}
-                            />
-                          )}
-                        />{" "}
-                      </div>
-                    )}
-                  />
-
+                  <FormField control={control} name={`fields.${index}.label`} render={({ field: inputField }) => (
+                    <div className="flex-grow space-y-2 w-full">
+                      <Input placeholder="Escribe la pregunta aquí..." className="text-lg md:text-xl font-bold font-serif border-none px-0 h-auto focus-visible:ring-0 bg-transparent border-b-2 border-gray-100 focus:border-[var(--puembo-green)] rounded-none transition-all w-full" {...inputField} value={inputField.value || ""} />
+                      <FormField control={control} name={`fields.${index}.help_text`} render={({ field: descField }) => (
+                        <Textarea placeholder="Descripción o instrucciones adicionales (opcional)..." className="text-[10px] font-light text-gray-400 border-none px-0 focus-visible:ring-0 bg-transparent transition-all w-full resize-none min-h-[40px]" {...descField} value={descField.value || ""} />
+                      )} />
+                    </div>
+                  )} />
                   {!currentField.attachment_url && (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => attachmentInputRef.current?.click()}
-                            className="rounded-full border-dashed text-gray-400 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)] h-10 px-4 gap-2 w-full sm:w-auto"
-                          >
+                          <Button type="button" variant="outline" size="sm" onClick={() => attachmentInputRef.current?.click()} className="rounded-full border-dashed text-gray-400 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)] h-10 px-4 gap-2 w-full sm:w-auto">
                             <Paperclip className="w-4 h-4" />
-                            <span className="text-xs font-bold uppercase tracking-widest">
-                              Adjuntar
-                            </span>
+                            <span className="text-xs font-bold uppercase tracking-widest">Adjuntar</span>
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent side="top">
-                          Adjunta archivos o imágenes de referencia
-                        </TooltipContent>
+                        <TooltipContent side="top">Adjunta archivos o imágenes de referencia</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   )}
-                  <input
-                    type="file"
-                    ref={attachmentInputRef}
-                    className="hidden"
-                    accept="image/*,application/pdf"
-                    onChange={(e) =>
-                      onUploadAttachment(index, e.target.files[0])
-                    }
-                  />
+                  <input type="file" ref={attachmentInputRef} className="hidden" accept="image/*,application/pdf" onChange={(e) => onUploadAttachment(index, e.target.files[0])} />
                 </div>
 
                 {currentField.attachment_url && (
                   <div className="relative group w-fit rounded-[1.5rem] md:rounded-[2rem] overflow-hidden bg-gray-50 border border-gray-100 p-2">
                     {currentField.attachment_type === "image" ? (
-                      <img
-                        src={currentField.attachment_url}
-                        alt="Ref"
-                        className="max-h-48 md:max-h-64 rounded-[1.2rem] md:rounded-[1.5rem] object-contain"
-                      />
+                      <img src={currentField.attachment_url} alt="Ref" className="max-h-48 md:max-h-64 rounded-[1.2rem] md:rounded-[1.5rem] object-contain" />
                     ) : (
                       <div className="flex items-center gap-4 p-4 md:p-6">
-                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-[var(--puembo-green)]/10 flex items-center justify-center text-[var(--puembo-green)]">
-                          <FileUp className="w-5 h-5 md:w-6 md:h-6" />
-                        </div>
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-[var(--puembo-green)]/10 flex items-center justify-center text-[var(--puembo-green)]"><FileUp className="w-5 h-5 md:w-6 md:h-6" /></div>
                         <div>
-                          <p className="text-sm font-bold text-gray-700">
-                            Documento de referencia
-                          </p>
+                          <p className="text-sm font-bold text-gray-700">Documento de referencia</p>
                           <p className="text-xs text-gray-400">PDF / DOC</p>
                         </div>
                       </div>
                     )}
                     <div className="absolute top-3 right-3 md:top-4 md:right-4 flex gap-2">
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="h-7 w-7 md:h-8 md:w-8 rounded-full shadow-lg"
-                        onClick={() => {
-                          form.setValue(`fields.${index}.attachment_url`, "", { shouldDirty: true });
-                          form.setValue(`fields.${index}.attachment_type`, "", { shouldDirty: true });
-                          form.setValue(
-                            `fields.${index}.attachment_file`,
-                            null,
-                            { shouldDirty: true }
-                          );
-                        }}
-                      >
-                        <X className="w-3 h-3 md:w-4 md:h-4" />
-                      </Button>
+                      <Button type="button" variant="destructive" size="icon" className="h-7 w-7 md:h-8 md:w-8 rounded-full shadow-lg" onClick={() => {
+                        setValue(`fields.${index}.attachment_url`, "", { shouldDirty: true });
+                        setValue(`fields.${index}.attachment_type`, "", { shouldDirty: true });
+                        setValue(`fields.${index}.attachment_file`, null, { shouldDirty: true });
+                      }}><X className="w-3 h-3 md:w-4 md:h-4" /></Button>
                     </div>
                   </div>
                 )}
 
-                {(currentField.type === "radio" ||
-                  currentField.type === "checkbox") && (
+                {(currentField.type === "radio" || currentField.type === "checkbox") && (
                   <div className="space-y-3 pl-4 border-l-2 border-gray-50 mt-4 md:mt-6">
                     {currentField.options?.map((option, optionIndex) => (
-                      <div
-                        key={option.id}
-                        className="flex items-center gap-3 group"
-                      >
-                        {currentField.type === "radio" ? (
-                          <CircleDot className="w-4 h-4 text-gray-300" />
-                        ) : (
-                          <CheckSquare className="w-4 h-4 text-gray-300" />
-                        )}
-                        <FormField
-                          control={form.control}
-                          name={`fields.${index}.options.${optionIndex}.label`}
-                          render={({ field: optionField }) => (
-                            <Input
-                              placeholder={`Opción ${optionIndex + 1}`}
-                              className="flex-grow h-9 md:h-10 border-none bg-gray-50/50 rounded-xl focus:bg-white transition-all px-4 text-sm"
-                              {...optionField}
-                              value={optionField.value || ""}
-                              onChange={(e) => {
-                                optionField.onChange(e);
-                                const val = e.target.value
-                                  .toLowerCase()
-                                  .replace(/[^a-z0-9]+/g, "_");
-                                form.setValue(
-                                  `fields.${index}.options.${optionIndex}.value`,
-                                  val || uuidv4(),
-                                );
-                              }}
-                            />
-                          )}
-                        />
-                        <button
-                          type="button"
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-300 hover:text-red-400"
-                          onClick={() => removeOption(optionIndex)}
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                      <div key={option.id} className="flex items-center gap-3 group">
+                        {currentField.type === "radio" ? <CircleDot className="w-4 h-4 text-gray-300" /> : <CheckSquare className="w-4 h-4 text-gray-300" />}
+                        <FormField control={control} name={`fields.${index}.options.${optionIndex}.label`} render={({ field: optionField }) => (
+                          <Input placeholder={`Opción ${optionIndex + 1}`} className="flex-grow h-9 md:h-10 border-none bg-gray-50/50 rounded-xl focus:bg-white transition-all px-4 text-sm" {...optionField} value={optionField.value || ""} onChange={(e) => {
+                            optionField.onChange(e);
+                            const val = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+                            setValue(`fields.${index}.options.${optionIndex}.value`, val || uuidv4());
+                          }} />
+                        )} />
+                        <button type="button" className="opacity-0 group-hover:opacity-100 transition-opacity p-2 text-gray-300 hover:text-red-400" onClick={() => removeOption(optionIndex)}><X className="w-4 h-4" /></button>
                       </div>
                     ))}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="text-[var(--puembo-green)] hover:bg-green-50 rounded-full font-bold uppercase text-[9px] md:text-[10px] tracking-widest mt-2"
-                      onClick={addOption}
-                    >
-                      <Plus className="w-3 h-3 mr-2" /> Añadir opción
-                    </Button>
+                    <Button type="button" variant="ghost" size="sm" className="text-[var(--puembo-green)] hover:bg-green-50 rounded-full font-bold uppercase text-[9px] md:text-[10px] tracking-widest mt-2" onClick={addOption}><Plus className="w-3 h-3 mr-2" /> Añadir opción</Button>
                   </div>
                 )}
 
-                {["text", "textarea", "email", "number"].includes(
-                  currentField.type,
-                ) && (
-                  <FormField
-                    control={form.control}
-                    name={`fields.${index}.placeholder`}
-                    render={({ field: inputField }) => (
-                      <Input
-                        placeholder="Texto de ayuda (ej: Juan Pérez)"
-                        className="text-xs md:text-sm text-gray-400 border-none border-b border-gray-100 rounded-none px-0 focus-visible:ring-0 bg-transparent mt-4"
-                        {...inputField}
-                        value={inputField.value || ""}
-                      />
-                    )}
-                  />
+                {["text", "textarea", "email", "number"].includes(currentField.type) && (
+                  <FormField control={control} name={`fields.${index}.placeholder`} render={({ field: inputField }) => (
+                    <Input placeholder="Texto de ayuda (ej: Juan Pérez)" className="text-xs md:text-sm text-gray-400 border-none border-b border-gray-100 rounded-none px-0 focus-visible:ring-0 bg-transparent mt-4" {...inputField} value={inputField.value || ""} />
+                  )} />
                 )}
               </div>
 
               <div className="w-full lg:w-64 space-y-4">
                 <div className="space-y-2">
-                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">
-                    Tipo de Respuesta
-                  </span>
-                  <Select
-                    value={currentField.type}
-                    onValueChange={(v) => onUpdateFieldType(index, v)}
-                  >
-                    <SelectTrigger className="h-10 md:h-12 rounded-xl border-gray-100 bg-gray-50 shadow-sm text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
+                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Tipo de Respuesta</span>
+                  <Select value={currentField.type} onValueChange={(v) => onUpdateFieldType(index, v)}>
+                    <SelectTrigger className="h-10 md:h-12 rounded-xl border-gray-100 bg-gray-50 shadow-sm text-sm"><SelectValue /></SelectTrigger>
                     <SelectContent className="rounded-2xl border-none shadow-2xl">
-                      {Object.entries(FIELD_TYPES).map(
-                        ([key, { label, icon }]) => (
-                          <SelectItem key={key} value={key}>
-                            <div className="flex items-center gap-3">
-                              <div className="text-[var(--puembo-green)]">
-                                {icon}
-                              </div>
-                              <span className="font-medium text-sm">
-                                {label}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ),
-                      )}
+                      {Object.entries(FIELD_TYPES).map(([key, { label, icon }]) => (
+                        <SelectItem key={key} value={key}><div className="flex items-center gap-3"><div className="text-[var(--puembo-green)]">{icon}</div><span className="font-medium text-sm">{label}</span></div></SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -425,32 +293,15 @@ function FieldCard({
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 md:pt-8 border-t border-gray-50 mt-4">
               <div className="flex items-center justify-between w-full sm:w-auto gap-6">
-                <button
-                  type="button"
-                  className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors group"
-                  onClick={() => onRemove(index)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">
-                    Eliminar
-                  </span>
+                <button type="button" className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors group" onClick={() => onRemove(index)}>
+                  <Trash2 className="w-4 h-4" /><span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Eliminar</span>
                 </button>
                 <div className="h-4 w-px bg-gray-100 hidden sm:block" />
                 <div className="flex items-center gap-3">
-                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-400">
-                    Obligatorio
-                  </span>
-                  <FormField
-                    control={form.control}
-                    name={`fields.${index}.required`}
-                    render={({ field: itemField }) => (
-                      <Switch
-                        checked={itemField.value}
-                        onCheckedChange={itemField.onChange}
-                        className="scale-75 md:scale-100"
-                      />
-                    )}
-                  />
+                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-400">Obligatorio</span>
+                  <FormField control={control} name={`fields.${index}.required`} render={({ field: itemField }) => (
+                    <Switch checked={itemField.value} onCheckedChange={itemField.onChange} className="scale-75 md:scale-100" />
+                  )} />
                 </div>
               </div>
             </div>
@@ -459,83 +310,39 @@ function FieldCard({
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-3 flex-grow min-w-0">
               <div className="space-y-1">
-                <p className="text-lg md:text-xl font-serif font-bold text-gray-900 truncate">
-                  {currentField.required && (
-                    <span className="text-red-500 mr-1">*</span>
-                  )}
-                  {currentField.label || "Pregunta sin título"}
-                </p>
-                {currentField.help_text && (
-                  <p className="whitespace-pre-wrap text-xs text-gray-500 font-light leading-relaxed line-clamp-2">
-                    {currentField.help_text}
-                  </p>
-                )}
+                <p className="text-lg md:text-xl font-serif font-bold text-gray-900 truncate">{currentField.required && <span className="text-red-500 mr-1">*</span>}{currentField.label || "Pregunta sin título"}</p>
+                {currentField.help_text && <p className="whitespace-pre-wrap text-xs text-gray-500 font-light leading-relaxed line-clamp-2">{currentField.help_text}</p>}
               </div>
-
-              {/* Contenido Visual Compacto (Miniaturas y Opciones) */}
               <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-1">
                 <div className="space-y-3 flex-grow min-w-0">
-                  {/* Vista previa de opciones (Radio/Checkbox) */}
-                  {(currentField.type === "radio" ||
-                    currentField.type === "checkbox") &&
-                    currentField.options?.length > 0 && (
-                      <div className="flex flex-wrap gap-x-4 gap-y-2">
-                        {currentField.options.map((opt, i) => (
-                          <div
-                            key={opt.id || i}
-                            className="flex items-center gap-2 opacity-50"
-                          >
-                            {currentField.type === "radio" ? (
-                              <CircleDot className="w-3 h-3 text-gray-400" />
-                            ) : (
-                              <CheckSquare className="w-3 h-3 text-gray-400" />
-                            )}
-                            <span className="text-[11px] font-medium text-gray-600 truncate max-w-[150px]">
-                              {opt.label || `Opción ${i + 1}`}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                  {/* Vista previa de Placeholder / Input Estilo */}
-                  {["text", "textarea", "email", "number", "date"].includes(
-                    currentField.type,
-                  ) && (
-                    <div className="flex items-center gap-2">
-                      <div className="h-px w-8 bg-gray-100 shrink-0" />
-                      <p className="text-[11px] text-gray-300 italic truncate italic">
-                        {currentField.placeholder ||
-                          `Respuesta de tipo ${FIELD_TYPES[currentField.type]?.label.toLowerCase()}...`}
-                      </p>
+                  {(currentField.type === "radio" || currentField.type === "checkbox") && currentField.options?.length > 0 && (
+                    <div className="flex flex-wrap gap-x-4 gap-y-2">
+                      {currentField.options.map((opt, i) => (
+                        <div key={opt.id || i} className="flex items-center gap-2 opacity-50">
+                          {currentField.type === "radio" ? <CircleDot className="w-3 h-3 text-gray-400" /> : <CheckSquare className="w-3 h-3 text-gray-400" />}
+                          <span className="text-[11px] font-medium text-gray-600 truncate max-w-[150px]">{opt.label || `Opción ${i + 1}`}</span>
+                        </div>
+                      ))}
                     </div>
                   )}
-
-                  {/* Metadatos (Tipo de pregunta) */}
+                  {["text", "textarea", "email", "number", "date"].includes(currentField.type) && (
+                    <div className="flex items-center gap-2">
+                      <div className="h-px w-8 bg-gray-100 shrink-0" />
+                      <p className="text-[11px] text-gray-300 italic truncate italic">{currentField.placeholder || `Respuesta de tipo ${FIELD_TYPES[currentField.type]?.label.toLowerCase()}...`}</p>
+                    </div>
+                  )}
                   <div className="flex items-center gap-3 pt-1">
                     <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)] opacity-40 bg-[var(--puembo-green)]/5 px-2 py-1 rounded-md">
-                      {FIELD_TYPES[currentField.type]?.icon}
-                      <span>{FIELD_TYPES[currentField.type]?.label}</span>
+                      {FIELD_TYPES[currentField.type]?.icon}<span>{FIELD_TYPES[currentField.type]?.label}</span>
                     </div>
                   </div>
                 </div>
-
-                {/* Miniatura de Adjunto */}
                 {currentField.attachment_url && (
                   <div className="shrink-0">
                     {currentField.attachment_type === "image" ? (
-                      <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border border-gray-100 shadow-sm ring-4 ring-gray-50/50">
-                        <img
-                          src={currentField.attachment_url}
-                          alt="Ref"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+                      <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border border-gray-100 shadow-sm ring-4 ring-gray-50/50"><img src={currentField.attachment_url} alt="Ref" className="w-full h-full object-cover" /></div>
                     ) : (
-                      <div className="flex items-center gap-2 text-[10px] text-blue-600 bg-blue-50/50 border border-blue-100/50 px-3 py-2 rounded-xl font-bold">
-                        <FileUp className="w-3.5 h-3.5" />
-                        <span>PDF/DOC</span>
-                      </div>
+                      <div className="flex items-center gap-2 text-[10px] text-blue-600 bg-blue-50/50 border border-blue-100/50 px-3 py-2 rounded-xl font-bold"><FileUp className="w-3.5 h-3.5" /><span>PDF/DOC</span></div>
                     )}
                   </div>
                 )}
@@ -546,27 +353,16 @@ function FieldCard({
       </CardContent>
     </Card>
   );
-}
+});
 
-function ToolsSidebar({ onAddField }) {
+function SortableItem({ id, index, ...props }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0 : 1 };
   return (
-    <div className="sticky top-28 flex flex-col gap-2 bg-black p-3 rounded-[2rem] shadow-2xl w-fit h-fit border border-white/10">
-      <div className="flex flex-col gap-2 items-center">
-        <TooltipButton
-          onClick={() => onAddField("text")}
-          icon={<Plus className="w-6 h-6" />}
-          label="Nueva Pregunta"
-          className="bg-[var(--puembo-green)] text-white hover:bg-[var(--puembo-green)]/90 hover:scale-110 transition-all mb-2"
-        />
-        <div className="w-8 h-px bg-white/10 my-1" />
-        {Object.entries(FIELD_TYPES).map(([type, info]) => (
-          <TooltipButton
-            key={type}
-            onClick={() => onAddField(type)}
-            icon={info.icon}
-            label={info.label}
-          />
-        ))}
+    <div ref={setNodeRef} style={style} id={`field-card-${index}`} className="relative">
+      <FieldCard {...props} index={index} isDragging={isDragging} />
+      <div className="absolute top-4 right-4 z-50 cursor-grab active:cursor-grabbing p-3 rounded-xl bg-white select-none drag-handle touch-none" {...attributes} {...listeners}>
+        <GripVertical className="w-5 h-5 hover:text-gray-600 text-gray-400 hover:text-[var(--puembo-green)]" />
       </div>
     </div>
   );
@@ -577,27 +373,25 @@ function TooltipButton({ onClick, icon, label, className }) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 w-12 h-12 transition-all",
-              className,
-            )}
-            onClick={onClick}
-          >
-            {icon}
-          </Button>
+          <Button type="button" variant="ghost" size="icon" className={cn("rounded-2xl text-gray-400 hover:text-white hover:bg-white/10 w-12 h-12 transition-all", className)} onClick={onClick}>{icon}</Button>
         </TooltipTrigger>
-        <TooltipContent
-          side="left"
-          className="bg-white text-black font-bold text-[10px] uppercase tracking-widest border-none shadow-xl px-4 py-2 rounded-full"
-        >
-          {label}
-        </TooltipContent>
+        <TooltipContent side="left" className="bg-white text-black font-bold text-[10px] uppercase tracking-widest border-none shadow-xl px-4 py-2 rounded-full">{label}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  );
+}
+
+function ToolsSidebar({ onAddField }) {
+  return (
+    <div className="sticky top-28 flex flex-col gap-2 bg-black p-3 rounded-[2rem] shadow-2xl w-fit h-fit border border-white/10">
+      <div className="flex flex-col gap-2 items-center">
+        <TooltipButton onClick={() => onAddField("text")} icon={<Plus className="w-6 h-6" />} label="Nueva Pregunta" className="bg-[var(--puembo-green)] text-white hover:bg-[var(--puembo-green)]/90 hover:scale-110 transition-all mb-2" />
+        <div className="w-8 h-px bg-white/10 my-1" />
+        {Object.entries(FIELD_TYPES).map(([type, info]) => (
+          <TooltipButton key={type} onClick={() => onAddField(type)} icon={info.icon} label={info.label} />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -615,19 +409,21 @@ export default function FormBuilder({
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Limpiar URLs de objeto para evitar fugas de memoria
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: { title: "", description: "", image_url: "", fields: [] },
+  });
+
+  // Motor de reactividad global
+  const watchedFields = useWatch({ control: form.control, name: "fields" });
+
   useEffect(() => {
     return () => {
-      if (headerPreview?.startsWith("blob:")) {
-        URL.revokeObjectURL(headerPreview);
-      }
-      // También deberíamos limpiar los de los campos, pero es más complejo.
-      // Al menos limpiamos el principal.
+      if (headerPreview?.startsWith("blob:")) URL.revokeObjectURL(headerPreview);
     };
   }, [headerPreview]);
 
   const onInvalid = (errors) => {
-    // Auto-scroll al primer error
     if (errors.title) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else if (errors.fields) {
@@ -639,46 +435,18 @@ export default function FormBuilder({
         if (fieldId) setActiveId(fieldId);
       }
     }
-
-    if (Object.keys(errors).length > 0) {
-      toast.error("Hay errores en el formulario. Revisa los campos marcados.");
-    } else {
-      toast.error("Error de validación inesperado.");
-    }
+    toast.error("Hay errores en el formulario. Revisa los campos marcados.");
   };
 
   const handleGlobalClick = (e) => {
-    // Si el clic NO es dentro de una tarjeta de pregunta o el header del form, cerramos el modo edición
-    if (
-      !e.target.closest(".field-card-container") &&
-      !e.target.closest(".form-header-card")
-    ) {
-      setActiveId(null);
-    }
+    if (!e.target.closest(".field-card-container") && !e.target.closest(".form-header-card")) setActiveId(null);
   };
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: { title: "", description: "", image_url: "", fields: [] },
-  });
-
-  const { fields, append, move, remove } = useFieldArray({
-    control: form.control,
-    name: "fields",
-  });
+  const { fields, append, move, remove } = useFieldArray({ control: form.control, name: "fields" });
   const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: { distance: 8 },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 100,
-        tolerance: 5,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 100, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   useEffect(() => {
@@ -691,37 +459,19 @@ export default function FormBuilder({
           required: f.required ?? f.is_required,
           order_index: f.order_index ?? f.order,
           options: (f.options || []).map((o) => ({
-            ...o,
-            id: o.id || uuidv4(),
-            value: o.value || o.label.toLowerCase().replace(/[^a-z0-9]+/g, ""),
+            ...o, id: o.id || uuidv4(), value: o.value || o.label.toLowerCase().replace(/[^a-z0-9]+/g, ""),
           })),
         }))
         .sort((a, b) => a.order_index - b.order_index);
-      form.reset({
-        title: initialForm.title || "",
-        description: initialForm.description || "",
-        image_url: initialForm.image_url || "",
-        fields: prepared,
-      });
-      if (initialForm.image_url) {
-        setHeaderPreview(initialForm.image_url);
-      }
+      form.reset({ title: initialForm.title || "", description: initialForm.description || "", image_url: initialForm.image_url || "", fields: prepared });
+      if (initialForm.image_url) setHeaderPreview(initialForm.image_url);
     }
   }, [initialForm, form]);
 
   const addField = (type) => {
     const id = uuidv4();
     const newIndex = fields.length;
-    append({
-      id,
-      type,
-      label: "",
-      options: ["radio", "checkbox"].includes(type)
-        ? [{ value: "", label: "", id: uuidv4() }]
-        : undefined,
-      required: false,
-      order_index: newIndex,
-    });
+    append({ id, type, label: "", options: ["radio", "checkbox"].includes(type) ? [{ value: "", label: "", id: uuidv4() }] : undefined, required: false, order_index: newIndex });
     setActiveId(id);
     setIsEditorOpen(false);
 
@@ -736,99 +486,34 @@ export default function FormBuilder({
 
   const updateFieldType = (index, type) => {
     const data = form.getValues(`fields.${index}`);
-    const needsOptions = ["radio", "checkbox"].includes(type);
-    const updated = {
-      ...data,
-      type,
-      options: needsOptions
-        ? data.options?.length
-          ? data.options
-          : [{ value: "", label: "", id: uuidv4() }]
-        : undefined,
-    };
-    Object.keys(updated).forEach((k) =>
-      form.setValue(`fields.${index}.${k}`, updated[k]),
-    );
+    const updated = { ...data, type, options: ["radio", "checkbox"].includes(type) ? (data.options?.length ? data.options : [{ value: "", label: "", id: uuidv4() }]) : undefined };
+    Object.keys(updated).forEach((k) => form.setValue(`fields.${index}.${k}`, updated[k]));
   };
 
   const handleDragEnd = ({ active, over }) => {
-    if (over && active.id !== over.id)
-      move(
-        fields.findIndex((f) => f.id === active.id),
-        fields.findIndex((f) => f.id === over.id),
-      );
+    if (over && active.id !== over.id) move(fields.findIndex((f) => f.id === active.id), fields.findIndex((f) => f.id === over.id));
     setActiveDragId(null);
   };
 
   const handleHeaderFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    if (headerPreview?.startsWith("blob:")) {
-      URL.revokeObjectURL(headerPreview);
-    }
-
+    if (headerPreview?.startsWith("blob:")) URL.revokeObjectURL(headerPreview);
     setHeaderFile(file);
     setHeaderPreview(URL.createObjectURL(file));
   };
 
   return (
-    <div
-      className="min-h-screen bg-gray-50/50 pb-0 cursor-default"
-      onClick={handleGlobalClick}
-    >
-      {/* Top Controls */}
-      <div
-        className="sticky top-18 z-[55] bg-white/80 backdrop-blur-md border-gray-300 shadow-sm px-4 py-4 rounded-2xl md:px-8 flex items-center justify-between"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="min-h-screen bg-gray-50/50 pb-0 cursor-default" onClick={handleGlobalClick}>
+      <div className="sticky top-18 z-[55] bg-white/80 backdrop-blur-md border-gray-300 shadow-sm px-4 py-4 rounded-2xl md:px-8 flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-4">
           <Layout className="hidden md:inline w-5 h-5 text-gray-400" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 hidden sm:inline-block">
-            Editor de Estructura
-          </span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 hidden sm:inline-block">Editor de Estructura</span>
         </div>
         <div className="flex gap-2 md:gap-3">
-          <Button
-            variant="destructive"
-            size="sm"
-            className="rounded-full bg-red-500 hover:bg-red-600"
-            onClick={onCancel}
-            disabled={isSaving}
-          >
-            <X className="w-4 h-4 md:mr-2" />
-            <span className="">Cancelar</span>
-          </Button>
-          <Button
-            variant="green"
-            className="rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              form.handleSubmit(
-                (d) =>
-                  onSave(
-                    {
-                      ...d,
-                      fields: d.fields.map((f, i) => ({
-                        ...f,
-                        order_index: i,
-                      })),
-                    },
-                    headerFile,
-                  ),
-                onInvalid,
-              )();
-            }}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <Loader2 className="h-4 w-4 animate-spin md:mr-2" />
-            ) : (
-              <Save className="w-4 h-4 md:mr-2" />
-            )}
-            <span className="">
-              {isSaving ? "Guardando..." : "Guardar Diseño"}
-            </span>
+          <Button variant="destructive" size="sm" className="rounded-full bg-red-500 hover:bg-red-600" onClick={onCancel} disabled={isSaving}><X className="w-4 h-4 md:mr-2" /><span>Cancelar</span></Button>
+          <Button variant="green" className="rounded-full" onClick={(e) => { e.stopPropagation(); form.handleSubmit((d) => onSave({ ...d, fields: d.fields.map((f, i) => ({ ...f, order_index: i })) }, headerFile), onInvalid)(); }} disabled={isSaving}>
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin md:mr-2" /> : <Save className="w-4 h-4 md:mr-2" />}<span>{isSaving ? "Guardando..." : "Guardar Diseño"}</span>
           </Button>
         </div>
       </div>
@@ -836,220 +521,66 @@ export default function FormBuilder({
       <div className="w-full mx-auto pt-8 md:px-6 lg:px-12 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 relative">
         <div className="col-span-1 md:col-span-10 space-y-8 md:space-y-10 w-full max-w-full">
           <FormProvider {...form}>
-            {/* Header Card Editorial */}
-            <Card
-              className="border-none shadow-2xl bg-white overflow-hidden group form-header-card"
-              onClick={(e) => {
-                if (
-                  e.target.closest(
-                    'input, button, textarea, select, [role="button"], [role="switch"], .tiptap',
-                  )
-                ) {
-                  return;
-                }
-                e.stopPropagation();
-                // Solo permitimos cerrar si ya está activo.
-                // La activación se maneja específicamente en el Título y Descripción.
-                if (activeId === "header") {
-                  setActiveId(null);
-                }
-              }}
-            >
-              {/* Area de Imagen (Banner) */}
-              <div
-                className="relative h-48 md:h-72 bg-gray-50 overflow-hidden flex items-center justify-center group/header cursor-pointer border-b border-gray-100"
-                onClick={() => !headerPreview && fileInputRef.current?.click()}
-              >
+            <Card className="border-none shadow-2xl bg-white overflow-hidden group form-header-card" onClick={(e) => {
+              if (e.target.closest('input, button, textarea, select, [role="button"], [role="switch"], .tiptap')) return;
+              e.stopPropagation();
+              if (activeId === "header") setActiveId(null);
+            }}>
+              <div className="relative h-48 md:h-72 bg-gray-50 overflow-hidden flex items-center justify-center group/header cursor-pointer border-b border-gray-100" onClick={() => !headerPreview && fileInputRef.current?.click()}>
                 {headerPreview ? (
                   <>
-                    <img
-                      src={headerPreview}
-                      alt="Header"
-                      className="w-full h-full object-cover object-center transition-transform duration-700 group-hover/header:scale-105"
-                    />
+                    <img src={headerPreview} alt="Header" className="w-full h-full object-cover object-center transition-transform duration-700 group-hover/header:scale-105" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/header:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4">
                       <div className="flex gap-3">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          className="rounded-full bg-white/90 hover:bg-white text-black font-bold uppercase text-[10px] tracking-widest px-6"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            fileInputRef.current?.click();
-                          }}
-                        >
-                          <ImageIcon className="w-3 h-3 mr-2" />
-                          Cambiar
-                        </Button>
-                                                <Button
-                                                  type="button"
-                                                  variant="destructive"
-                                                  size="sm"
-                                                  className="rounded-full bg-red-500/90 hover:bg-red-500 font-bold uppercase text-[10px] tracking-widest px-6"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setHeaderFile(null);
-                                                    setHeaderPreview(null);
-                                                    form.setValue("image_url", "", { shouldDirty: true });
-                                                    if (fileInputRef.current) fileInputRef.current.value = "";
-                                                  }}
-                                                >
-                          <Trash2 className="w-3 h-3 mr-2" />
-                          Borrar
-                        </Button>
+                        <Button type="button" variant="secondary" size="sm" className="rounded-full bg-white/90 hover:bg-white text-black font-bold uppercase text-[10px] tracking-widest px-6" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}><ImageIcon className="w-3 h-3 mr-2" /> Cambiar</Button>
+                        <Button type="button" variant="destructive" size="sm" className="rounded-full bg-red-500/90 hover:bg-red-500 font-bold uppercase text-[10px] tracking-widest px-6" onClick={(e) => { e.stopPropagation(); setHeaderFile(null); setHeaderPreview(null); form.setValue("image_url", "", { shouldDirty: true }); if (fileInputRef.current) fileInputRef.current.value = ""; }}><Trash2 className="w-3 h-3 mr-2" /> Borrar</Button>
                       </div>
                     </div>
                   </>
                 ) : (
                   <div className="flex flex-col items-center gap-4 text-gray-300 group-hover/header:text-[var(--puembo-green)] transition-colors duration-500">
-                    <div className="w-16 h-16 rounded-3xl bg-white shadow-sm flex items-center justify-center border border-gray-100">
-                      <Plus className="w-8 h-8" />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em]">
-                      Subir Portada del Formulario
-                    </span>
+                    <div className="w-16 h-16 rounded-3xl bg-white shadow-sm flex items-center justify-center border border-gray-100"><Plus className="w-8 h-8" /></div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em]">Subir Portada del Formulario</span>
                   </div>
                 )}
-
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  ref={fileInputRef}
-                  onChange={handleHeaderFileChange}
-                />
+                <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleHeaderFileChange} />
               </div>
-
-              {/* Area de Texto (Limpia) */}
               <CardContent className="p-10 md:p-16 space-y-10 bg-white">
                 <div className="space-y-8">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-px w-8 bg-[var(--puembo-green)]" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
-                        Título del Formulario
-                      </span>
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name="title"
-                      render={({ field: inputField }) =>
+                    <div className="flex items-center gap-3"><div className="h-px w-8 bg-[var(--puembo-green)]" /><span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Título del Formulario</span></div>
+                    <FormField control={form.control} name="title" render={({ field: inputField }) => 
+                      activeId === "header" ? (
+                        <Input autoFocus className="wrap-break-word whitespace-normal text-2xl md:text-4xl font-serif font-bold border-0 border-b-2 border-[var(--puembo-green)] px-4 py-4 h-auto focus-visible:ring-0 focus-visible:bg-gray-50/50 transition-all rounded-t-2xl rounded-b-none bg-transparent text-gray-900 placeholder:text-gray-200 leading-tight shadow-none" placeholder="Título" {...inputField} value={inputField.value || ""} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); setActiveId(null); } }} />
+                      ) : (
+                        <div className="relative group/title">
+                          <h1 className="text-2xl md:text-4xl font-serif font-bold px-4 py-4 text-gray-900 cursor-text bg-gray-50/20 md:bg-transparent hover:bg-gray-50/80 rounded-2xl transition-all border-2 border-dashed border-gray-100 md:border-transparent md:hover:border-dashed md:hover:border-gray-200" onClick={(e) => { e.stopPropagation(); setActiveId("header"); }}>{inputField.value || <span className="text-gray-300">Título</span>}</h1>
+                          <div className="absolute top-1/2 -right-2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover/title:opacity-100 transition-all"><div className="bg-white shadow-sm border border-gray-100 rounded-full p-2"><Type className="w-3 h-3 text-gray-400" /></div></div>
+                        </div>
+                      )
+                    } />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3"><div className="h-px w-8 bg-gray-100" /><span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Descripción Del Formulario</span></div>
+                    <div className={cn("transition-all duration-500", activeId === "header" ? "p-1.5 md:p-8 rounded-[2rem] bg-gray-50/50 border-1 border-[var(--puembo-green)]/50 shadow-xl" : "group/desc relative")}>
+                      <FormField control={form.control} name="description" render={({ field: inputField }) => 
                         activeId === "header" ? (
-                          <Input
-                            autoFocus
-                            className="wrap-break-word whitespace-normal text-2xl md:text-4xl font-serif font-bold border-0 border-b-2 border-[var(--puembo-green)] px-4 py-4 h-auto focus-visible:ring-0 focus-visible:bg-gray-50/50 transition-all rounded-t-2xl rounded-b-none bg-transparent text-gray-900 placeholder:text-gray-200 leading-tight shadow-none"
-                            placeholder="Título"
-                            {...inputField}
-                            value={inputField.value || ""}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                setActiveId(null);
-                              }
-                            }}
-                          />
+                          <RichTextEditor content={inputField.value} onChange={inputField.onChange} className="prose cursor-auto" placeholder="Describe el propósito de este formulario, horarios, requisitos, etc..." />
                         ) : (
-                          <div className="relative group/title">
-                            <h1
-                              className="text-2xl md:text-4xl font-serif font-bold px-4 py-4 text-gray-900 cursor-text bg-gray-50/20 md:bg-transparent hover:bg-gray-50/80 rounded-2xl transition-all border-2 border-dashed border-gray-100 md:border-transparent md:hover:border-dashed md:hover:border-gray-200"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setActiveId("header");
-                              }}
-                            >
-                              {inputField.value || (
-                                <span className="text-gray-300">Título</span>
-                              )}
-                            </h1>
-                            <div className="absolute top-1/2 -right-2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover/title:opacity-100 transition-all">
-                              <div className="bg-white shadow-sm border border-gray-100 rounded-full p-2">
-                                <Type className="w-3 h-3 text-gray-400" />
-                              </div>
-                            </div>
+                          <div className="relative">
+                            <div className="prose max-w-none cursor-text min-h-[60px] p-6 rounded-2xl transition-all border-2 border-dashed border-gray-50 md:border-transparent md:hover:border-dashed md:hover:border-gray-200 bg-gray-50/20 md:bg-transparent hover:bg-gray-50/50 text-gray-600 font-light leading-relaxed" onClick={(e) => { e.stopPropagation(); setActiveId("header"); }} dangerouslySetInnerHTML={{ __html: inputField.value || '<p class="text-gray-300 italic">Haz clic para añadir una descripción detallada, instrucciones o requisitos...</p>' }} />
+                            <div className="absolute top-4 right-4 opacity-100 md:opacity-0 md:group-hover/desc:opacity-100 transition-all"><AlignLeft className="w-4 h-4 text-gray-300" /></div>
                           </div>
                         )
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-px w-8 bg-gray-100" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">
-                        Descripción Del Formulario
-                      </span>
-                    </div>
-                    <div
-                      className={cn(
-                        "transition-all duration-500",
-                        activeId === "header"
-                          ? "p-1.5 md:p-8 rounded-[2rem] bg-gray-50/50 border-1 border-[var(--puembo-green)]/50 shadow-xl"
-                          : "group/desc relative",
-                      )}
-                    >
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field: inputField }) =>
-                          activeId === "header" ? (
-                            <RichTextEditor
-                              content={inputField.value}
-                              onChange={inputField.onChange}
-                              className="prose cursor-auto"
-                              placeholder="Describe el propósito de este formulario, horarios, requisitos, etc..."
-                            />
-                          ) : (
-                            <div className="relative">
-                              <div
-                                className="prose max-w-none cursor-text min-h-[60px] p-6 rounded-2xl transition-all border-2 border-dashed border-gray-50 md:border-transparent md:hover:border-dashed md:hover:border-gray-200 bg-gray-50/20 md:bg-transparent hover:bg-gray-50/50 text-gray-600 font-light leading-relaxed"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveId("header");
-                                }}
-                                dangerouslySetInnerHTML={{
-                                  __html:
-                                    inputField.value ||
-                                    '<p class="text-gray-300 italic">Haz clic para añadir una descripción detallada, instrucciones o requisitos...</p>',
-                                }}
-                              />
-                              <div className="absolute top-4 right-4 opacity-100 md:opacity-0 md:group-hover/desc:opacity-100 transition-all">
-                                <AlignLeft className="w-4 h-4 text-gray-300" />
-                              </div>
-                            </div>
-                          )
-                        }
-                      />
+                      } />
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Dnd Kit Context */}
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragStart={(e) => {
-                setActiveDragId(e.active.id);
-                document.body.style.overflow = "hidden";
-                document.body.style.cursor = "grabbing";
-              }}
-              onDragEnd={(e) => {
-                handleDragEnd(e);
-                document.body.style.overflow = "";
-                document.body.style.cursor = "";
-              }}
-              onDragCancel={() => {
-                setActiveDragId(null);
-                document.body.style.overflow = "";
-                document.body.style.cursor = "";
-              }}
-            >
-              <SortableContext
-                items={fields.map((f) => f.id)}
-                strategy={verticalListSortingStrategy}
-              >
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(e) => { setActiveDragId(e.active.id); document.body.style.overflow = "hidden"; document.body.style.cursor = "grabbing"; }} onDragEnd={(e) => { handleDragEnd(e); document.body.style.overflow = ""; document.body.style.cursor = ""; }} onDragCancel={() => { setActiveDragId(null); document.body.style.overflow = ""; document.body.style.cursor = ""; }}>
+              <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-6 pb-20 questions-container">
                   {fields.map((field, index) => (
                     <SortableItem
@@ -1057,7 +588,6 @@ export default function FormBuilder({
                       id={field.id}
                       index={index}
                       field={field}
-                      form={form}
                       isActive={activeId === field.id}
                       activeId={activeId}
                       setActiveId={setActiveId}
@@ -1067,16 +597,10 @@ export default function FormBuilder({
                         if (!f) return;
                         const isImage = f.type.startsWith("image/");
                         const blobUrl = URL.createObjectURL(f);
-                        
                         form.setValue(`fields.${i}.attachment_url`, blobUrl, { shouldDirty: true });
-                        form.setValue(
-                          `fields.${i}.attachment_type`,
-                          isImage ? "image" : "file",
-                          { shouldDirty: true }
-                        );
+                        form.setValue(`fields.${i}.attachment_type`, isImage ? "image" : "file", { shouldDirty: true });
                         form.setValue(`fields.${i}.attachment_file`, f, { shouldDirty: true });
                       }}
-                      isDraggingAny={!!activeDragId}
                     />
                   ))}
                 </div>
@@ -1085,12 +609,13 @@ export default function FormBuilder({
                 {activeDragId ? (
                   <div className="opacity-90 rotate-2 scale-[1.05] cursor-grabbing">
                     <FieldCard
-                      field={fields.find((f) => f.id === activeDragId)}
+                      // SOLUCIÓN: Pasamos el objeto VIVO del padre como 'field' inicial para que el snapshot del overlay sea actual
+                      field={watchedFields?.find(f => f.id === activeDragId) || fields.find(f => f.id === activeDragId)}
                       index={fields.findIndex((f) => f.id === activeDragId)}
-                      form={form}
                       isActive={activeId === activeDragId}
                       activeId={activeId}
                       setActiveId={setActiveId}
+                      isDragging={true}
                     />
                   </div>
                 ) : null}
@@ -1100,88 +625,24 @@ export default function FormBuilder({
 
           {fields.length === 0 && (
             <div className="py-32 text-center bg-white rounded-[2rem] md:rounded-[3rem] border-2 border-dashed border-gray-100 p-12 space-y-4">
-              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-200">
-                <Settings className="w-10 h-10" />
-              </div>
-              <p className="text-gray-400 font-light italic">
-                El lienzo está en blanco. Utiliza las herramientas para empezar
-                a construir.
-              </p>
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto text-gray-200"><Settings className="w-10 h-10" /></div>
+              <p className="text-gray-400 font-light italic">El lienzo está en blanco. Utiliza las herramientas para empezar a construir.</p>
             </div>
           )}
         </div>
-
-        <div className="hidden md:block md:col-span-2">
-          <div className="sticky top-42">
-            <ToolsSidebar onAddField={addField} />
-          </div>
-        </div>
+        <div className="hidden md:block md:col-span-2"><div className="sticky top-42"><ToolsSidebar onAddField={addField} /></div></div>
       </div>
-
-      {/* FAB + Editor Panel for Mobile */}
-      <AdminFAB
-        onClick={() => setIsEditorOpen(true)}
-        label="Añadir"
-        icon={Plus}
-      />
-
-      <AdminEditorPanel
-        open={isEditorOpen}
-        onOpenChange={setIsEditorOpen}
-        title="Añadir Pregunta"
-        description="Selecciona el tipo de respuesta que necesitas para tu formulario."
-      >
+      <AdminFAB onClick={() => setIsEditorOpen(true)} label="Añadir" icon={Plus} />
+      <AdminEditorPanel open={isEditorOpen} onOpenChange={setIsEditorOpen} title="Añadir Pregunta" description="Selecciona el tipo de respuesta que necesitas para tu formulario.">
         <div className="grid grid-cols-2 gap-4 pb-8">
           {Object.entries(FIELD_TYPES).map(([type, info]) => (
-            <button
-              key={type}
-              onClick={() => addField(type)}
-              className="flex flex-col items-center justify-center gap-4 p-6 rounded-[2rem] bg-gray-50 border-2 border-transparent active:bg-[var(--puembo-green)]/10 active:border-[var(--puembo-green)] transition-all group text-center"
-            >
-              <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-[var(--puembo-green)] group-active:scale-110 transition-transform">
-                {info.icon}
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-                {info.label}
-              </span>
+            <button key={type} onClick={() => addField(type)} className="flex flex-col items-center justify-center gap-4 p-6 rounded-[2rem] bg-gray-50 border-2 border-transparent active:bg-[var(--puembo-green)]/10 active:border-[var(--puembo-green)] transition-all group text-center">
+              <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center text-[var(--puembo-green)] group-active:scale-110 transition-transform">{info.icon}</div>
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{info.label}</span>
             </button>
           ))}
         </div>
       </AdminEditorPanel>
-    </div>
-  );
-}
-
-function SortableItem({ id, index, ...props }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id });
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0 : 1,
-  };
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      id={`field-card-${index}`}
-      className="relative"
-    >
-      <FieldCard {...props} index={index} />
-      {/* Drag handle flotante independiente */}
-      <div
-        className="absolute top-4 right-4 z-50 cursor-grab active:cursor-grabbing p-3 rounded-xl bg-white select-none drag-handle touch-none"
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="w-5 h-5 hover:text-gray-600 text-gray-400 hover:text-[var(--puembo-green)]" />
-      </div>
     </div>
   );
 }
