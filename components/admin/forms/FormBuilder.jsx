@@ -153,25 +153,11 @@ const FieldCard = memo(function FieldCard({
   const attachmentInputRef = useRef(null);
 
   // Observamos los datos vivos de este campo
-  const liveData = useWatch({
+  const currentField = useWatch({
     control,
     name: `fields.${index}`,
     defaultValue: initialField,
-  });
-
-  // El Snapshot es lo que evita el flash.
-  // Lo inicializamos con el initialField (que en el overlay será la versión viva enviada por el padre)
-  const [snapshot, setSnapshot] = useState(initialField);
-
-  useEffect(() => {
-    // Solo tomamos fotos cuando NO estamos arrastrando.
-    if (!isDragging && liveData) {
-      setSnapshot(liveData);
-    }
-  }, [liveData, isDragging]);
-
-  // Durante el arrastre usamos la foto congelada. Si no, usamos los datos vivos.
-  const currentField = isDragging ? snapshot : (liveData || snapshot);
+  }) || initialField;
 
   const handleCardClick = (e) => {
     if (isDragging) return;
@@ -408,6 +394,7 @@ export default function FormBuilder({
   const [activeDragId, setActiveDragId] = useState(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const fileInputRef = useRef(null);
+  const preDragActiveIdRef = useRef(null);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -490,9 +477,29 @@ export default function FormBuilder({
     Object.keys(updated).forEach((k) => form.setValue(`fields.${index}.${k}`, updated[k]));
   };
 
+  const handleDragStart = ({ active }) => {
+    setActiveDragId(active.id);
+    preDragActiveIdRef.current = activeId;
+    setActiveId(null);
+    document.body.style.overflow = "hidden";
+    document.body.style.cursor = "grabbing";
+  };
+
   const handleDragEnd = ({ active, over }) => {
-    if (over && active.id !== over.id) move(fields.findIndex((f) => f.id === active.id), fields.findIndex((f) => f.id === over.id));
+    if (over && active.id !== over.id) {
+      move(fields.findIndex((f) => f.id === active.id), fields.findIndex((f) => f.id === over.id));
+    }
     setActiveDragId(null);
+    setActiveId(preDragActiveIdRef.current);
+    document.body.style.overflow = "";
+    document.body.style.cursor = "";
+  };
+
+  const handleDragCancel = () => {
+    setActiveDragId(null);
+    setActiveId(preDragActiveIdRef.current);
+    document.body.style.overflow = "";
+    document.body.style.cursor = "";
   };
 
   const handleHeaderFileChange = (e) => {
@@ -579,7 +586,7 @@ export default function FormBuilder({
               </CardContent>
             </Card>
 
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(e) => { setActiveDragId(e.active.id); document.body.style.overflow = "hidden"; document.body.style.cursor = "grabbing"; }} onDragEnd={(e) => { handleDragEnd(e); document.body.style.overflow = ""; document.body.style.cursor = ""; }} onDragCancel={() => { setActiveDragId(null); document.body.style.overflow = ""; document.body.style.cursor = ""; }}>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
               <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-6 pb-20 questions-container">
                   {fields.map((field, index) => (
@@ -609,12 +616,11 @@ export default function FormBuilder({
                 {activeDragId ? (
                   <div className="opacity-90 rotate-2 scale-[1.05] cursor-grabbing">
                     <FieldCard
-                      // SOLUCIÓN: Pasamos el objeto VIVO del padre como 'field' inicial para que el snapshot del overlay sea actual
                       field={watchedFields?.find(f => f.id === activeDragId) || fields.find(f => f.id === activeDragId)}
                       index={fields.findIndex((f) => f.id === activeDragId)}
-                      isActive={activeId === activeDragId}
-                      activeId={activeId}
-                      setActiveId={setActiveId}
+                      isActive={false} // Siempre colapsada en el overlay
+                      activeId={null}
+                      setActiveId={() => {}}
                       isDragging={true}
                     />
                   </div>
