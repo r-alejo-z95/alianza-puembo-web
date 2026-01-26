@@ -68,7 +68,11 @@ function expandRecurringEvent(event: Event, monthsAhead: number = 6): Event[] {
  */
 export async function getEventsForCalendar(): Promise<(Event & { page?: number })[]> {
   const supabase = await createClient();
-  const { data: rawEvents, error } = await supabase.from('events').select('*').order('start_time', { ascending: true });
+  const { data: rawEvents, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('is_archived', false)
+    .order('start_time', { ascending: true });
 
   if (error) return [];
 
@@ -97,7 +101,11 @@ export async function getEventsForCalendar(): Promise<(Event & { page?: number }
  */
 export async function getUpcomingEvents(page: number = 1, eventsPerPage: number = 4): Promise<{ paginatedEvents: Event[], totalPages: number, hasNextPage: boolean }> {
   const supabase = await createClient();
-  const { data: rawEvents, error } = await supabase.from('events').select('*').order('start_time', { ascending: true });
+  const { data: rawEvents, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('is_archived', false)
+    .order('start_time', { ascending: true });
 
   if (error) return { paginatedEvents: [], totalPages: 0, hasNextPage: false };
 
@@ -128,7 +136,12 @@ export async function getUpcomingEvents(page: number = 1, eventsPerPage: number 
 export async function getEventBySlug(slug: string): Promise<Event | null> {
   noStore();
   const supabase = await createClient();
-  const { data, error } = await supabase.from('events').select('*').eq('slug', slug).maybeSingle();
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('slug', slug)
+    .eq('is_archived', false)
+    .maybeSingle();
   if (error) return null;
   return data;
 }

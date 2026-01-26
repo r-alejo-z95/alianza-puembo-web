@@ -49,14 +49,14 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact }) {
         </AlertDialogTrigger>
         <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
           <AlertDialogHeader className="space-y-4">
-            <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Deseas archivar esta historia?</AlertDialogTitle>
+            <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Mover a la papelera?</AlertDialogTitle>
             <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
-              Esta acción eliminará la noticia de la vista pública permanentemente.
+              Esta noticia dejará de ser visible al público, pero podrás restaurarla desde la papelera de reciclaje si lo necesitas.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="pt-6">
             <AlertDialogCancel className="rounded-full border-gray-100">Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={onDelete} className="rounded-full bg-red-500 hover:bg-red-600">Eliminar permanentemente</AlertDialogAction>
+            <AlertDialogAction onClick={onDelete} className="rounded-full bg-red-500 hover:bg-red-600">Mover a papelera</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

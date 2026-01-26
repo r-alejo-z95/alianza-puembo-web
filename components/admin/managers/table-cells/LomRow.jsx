@@ -32,14 +32,22 @@ export function LomRow({ post, onEdit, onDelete, compact }) {
                 </AlertDialogTrigger>
                 <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
                     <AlertDialogHeader className="space-y-4">
-                        <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Deseas eliminar este devocional?</AlertDialogTitle>
+                        <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Mover a la papelera?</AlertDialogTitle>
                         <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
-                            Esta acción eliminará el devocional permanentemente. Asegúrate de haber guardado una copia si la necesitas.
+                            Esta lectura dejará de ser visible para el público, pero podrás restaurarla desde la papelera de reciclaje si lo necesitas.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="pt-6">
                         <AlertDialogCancel className="rounded-full border-gray-100">Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => onDelete(post.id)} className="rounded-full bg-red-500 hover:bg-red-600">Confirmar eliminación</AlertDialogAction>
+                        <AlertDialogAction 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                onDelete(post.id);
+                            }} 
+                            className="rounded-full bg-red-500 hover:bg-red-600"
+                        >
+                            Mover a papelera
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

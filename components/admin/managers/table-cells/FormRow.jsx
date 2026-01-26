@@ -137,39 +137,38 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
       >
         <Edit className="w-4 h-4" />
       </Button>
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-xl flex-1 lg:flex-none text-red-500 lg:text-black hover:bg-red-50 lg:hover:text-red-500 transition-all duration-300"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
-          <AlertDialogHeader className="space-y-4">
-            <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">
-              ¿Eliminar este formulario?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
-              Esta acción eliminará el formulario y todos sus datos de nuestros
-              registros permanentemente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="pt-6">
-            <AlertDialogCancel className="rounded-full border-gray-100">
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => onDelete(form.id)}
-              className="rounded-full bg-red-500 hover:bg-red-600"
-            >
-              Eliminar permanentemente
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="rounded-xl flex-1 lg:flex-none text-red-500 lg:text-black hover:bg-red-50 lg:hover:text-red-500 transition-all duration-300"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+                <AlertDialogHeader className="space-y-4">
+                  <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">
+                    ¿Mover a la papelera?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
+                    Este formulario dejará de estar disponible para el público, pero podrás restaurarlo desde la papelera de reciclaje si lo necesitas.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter className="pt-6">
+                  <AlertDialogCancel className="rounded-full border-gray-100">
+                    Cancelar
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onDelete(form.id)}
+                    className="rounded-full bg-red-500 hover:bg-red-600"
+                  >
+                    Mover a papelera
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
     </div>
   );
 

@@ -55,14 +55,14 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                 </AlertDialogTrigger>
                 <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
                     <AlertDialogHeader className="space-y-4">
-                        <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Deseas cancelar este evento?</AlertDialogTitle>
+                        <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Mover a la papelera?</AlertDialogTitle>
                         <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
-                            Esta acción eliminará el evento de la agenda pública permanentemente.
+                            Este evento dejará de ser visible al público, pero podrás restaurarlo desde la papelera de reciclaje si lo necesitas.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="pt-6">
-                        <AlertDialogCancel className="rounded-full border-gray-100">Cerrar</AlertDialogCancel>
-                        <AlertDialogAction onClick={onDelete} className="rounded-full bg-red-500 hover:bg-red-600">Confirmar eliminación</AlertDialogAction>
+                        <AlertDialogCancel className="rounded-full border-gray-100">Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={onDelete} className="rounded-full bg-red-500 hover:bg-red-600">Mover a papelera</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

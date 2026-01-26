@@ -8,6 +8,7 @@ export async function getPassages() {
   const { data, error } = await supabase
     .from("lom_passages")
     .select("*")
+    .eq("is_archived", false)
     .order("week_number", { ascending: false })
     .order("day_of_week", { ascending: true });
 
@@ -24,6 +25,7 @@ export async function getPassagesByWeek(weekNumber: number) {
   const { data, error } = await supabase
     .from("lom_passages")
     .select("*")
+    .eq("is_archived", false)
     .eq("week_number", weekNumber)
     .order("day_of_week", { ascending: true });
 
@@ -44,6 +46,7 @@ export async function getLatestWeekPassages() {
   const { data: currentWeek, error: currentWeekError } = await supabase
     .from("lom_passages")
     .select("week_number")
+    .eq("is_archived", false)
     .lte("week_start_date", today) // 👈 DATE vs DATE (literal)
     .order("week_start_date", { ascending: false })
     .limit(1)
@@ -60,6 +63,7 @@ export async function getLatestWeekPassages() {
     const { data: latestWeek } = await supabase
       .from("lom_passages")
       .select("week_number")
+      .eq("is_archived", false)
       .order("week_number", { ascending: false })
       .limit(1)
       .maybeSingle();

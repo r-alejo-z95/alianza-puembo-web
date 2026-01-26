@@ -8,8 +8,10 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import dynamic from 'next/dynamic';
-import { formatLiteralDate, getNowInEcuador, ecuadorToUTC } from '@/lib/date-utils';
-import { Loader2, BookOpen, ListFilter, PenTool } from 'lucide-react';
+import { formatLiteralDate } from '@/lib/date-utils';
+import { Loader2, BookOpen, ListFilter, PenTool, Trash2 } from 'lucide-react';
+import { useLom } from '@/lib/hooks/useLom';
+import RecycleBin from './RecycleBin';
 
 const RichTextEditor = dynamic(
   () => import('@/components/admin/forms/RichTextEditor'),
@@ -27,9 +29,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { LomRow } from './table-cells/LomRow';
-import { useScreenSize } from '@/lib/hooks/useScreenSize';
 import { PaginationControls } from "@/components/shared/PaginationControls";
-import { cn } from "@/lib/utils.ts";
 import { ManagerSkeleton } from "../layout/AdminSkeletons";
 
 const lomSchema = z.object({
@@ -39,8 +39,19 @@ const lomSchema = z.object({
 });
 
 export default function LomManager() {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    items: posts,
+    archivedItems: archivedPosts,
+    loading,
+    loadingArchived,
+    archiveItem,
+    restoreItem,
+    permanentlyDeleteItem,
+    fetchArchivedItems,
+    refetchItems
+  } = useLom({ type: 'posts' });
+
+  const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -58,25 +69,12 @@ export default function LomManager() {
     },
   });
 
-  const fetchPosts = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('lom_posts')
-      .select('*, profiles(full_name, email)')
-      .order('publication_date', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching LOM posts:', error);
-      toast.error('Error al cargar los devocionales.');
-    } else {
-      setPosts(data);
-    }
-    setLoading(false);
-  };
-
+  // Cargar archivados al abrir papelera
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    if (isRecycleBinOpen) {
+      fetchArchivedItems();
+    }
+  }, [isRecycleBinOpen, fetchArchivedItems]);
 
   const createSlug = (title) => {
     return title
@@ -87,39 +85,38 @@ export default function LomManager() {
 
   const onSubmit = async (data) => {
     setSubmitting(true);
-    const { data: { user } } = await supabase.auth.getUser();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const slug = createSlug(data.title);
 
-    const slug = createSlug(data.title);
+      const dataToSave = {
+        ...data,
+        publication_date: data.publication_date,
+        user_id: user?.id,
+        slug: slug,
+        is_archived: false
+      };
 
-    const dataToSave = {
-      ...data,
-      publication_date: data.publication_date,
-      user_id: user?.id,
-      slug: slug,
-    };
-
-    if (selectedPost) {
-      const { error } = await supabase.from('lom_posts').update(dataToSave).eq('id', selectedPost.id);
-      if (error) {
-        console.error('Error updating LOM post:', error);
-        toast.error('Error al actualizar el devocional.');
-      } else {
+      if (selectedPost) {
+        const { error } = await supabase.from('lom_posts').update(dataToSave).eq('id', selectedPost.id);
+        if (error) throw error;
         toast.success('Devocional actualizado con éxito.');
-      }
-    } else {
-      const { error } = await supabase.from('lom_posts').insert([dataToSave]);
-      if (error) {
-        console.error('Error creating LOM post:', error);
-        toast.error('Error al crear el devocional.');
       } else {
+        const { error } = await supabase.from('lom_posts').insert([dataToSave]);
+        if (error) throw error;
         toast.success('Devocional creado con éxito.');
       }
+      
+      setSelectedPost(null);
+      form.reset({ title: '', content: '', publication_date: '' });
+      setEditorKey((prev) => prev + 1);
+      refetchItems();
+    } catch (error) {
+      console.error('Error saving LOM post:', error);
+      toast.error('Error al guardar el devocional.');
+    } finally {
+      setSubmitting(false);
     }
-    setSelectedPost(null);
-    form.reset({ title: '', content: '', publication_date: '' });
-    setEditorKey((prev) => prev + 1);
-    setSubmitting(false);
-    fetchPosts();
   };
 
   const handleEdit = (post) => {
@@ -130,20 +127,17 @@ export default function LomManager() {
       publication_date: post.publication_date,
     });
     setEditorKey((prev) => prev + 1);
-    // Scroll to form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (postId) => {
-    setLoading(true);
-    const { error } = await supabase.from('lom_posts').delete().eq('id', postId);
-    if (error) {
-      console.error('Error deleting LOM post:', error);
-      toast.error('Error al eliminar el devocional.');
-    } else {
-      toast.success('Devocional eliminado con éxito.');
+    const success = await archiveItem(postId);
+    if (success) {
+      const newTotalPages = Math.ceil((posts.length - 1) / itemsPerPage);
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(1);
+      }
     }
-    fetchPosts();
   };
 
   const totalPages = useMemo(() => Math.ceil(posts.length / itemsPerPage), [posts.length, itemsPerPage]);
@@ -252,7 +246,6 @@ export default function LomManager() {
         </CardContent>
       </Card>
 
-      {/* History Table Card */}
       <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
         <CardHeader className="p-8 md:p-12 border-b border-gray-50 bg-gray-50/30 flex flex-row items-center justify-between">
           <div className="space-y-1">
@@ -262,6 +255,14 @@ export default function LomManager() {
             </div>
             <CardTitle className="text-3xl font-serif font-bold text-gray-900">Lecturas Publicadas</CardTitle>
           </div>
+          <Button
+            variant="outline"
+            className="rounded-full px-6 py-6 font-bold border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all"
+            onClick={() => setIsRecycleBinOpen(true)}
+          >
+            <Trash2 className="w-5 h-5 lg:mr-2" />
+            <span className="hidden lg:inline">Papelera</span>
+          </Button>
         </CardHeader>
         
         <CardContent className="p-0">
@@ -326,6 +327,16 @@ export default function LomManager() {
           )}
         </CardContent>
       </Card>
+
+      <RecycleBin 
+        open={isRecycleBinOpen}
+        onOpenChange={setIsRecycleBinOpen}
+        type="lom-posts" 
+        items={archivedPosts}
+        onRestore={restoreItem}
+        onDelete={permanentlyDeleteItem}
+        loading={loadingArchived}
+      />
     </div>
   );
 }

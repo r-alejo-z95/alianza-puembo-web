@@ -20,6 +20,7 @@ export async function getPublicPrayerRequests(): Promise<PrayerRequest[]> {
     .select('*')
     .eq('is_public', true)
     .eq('status', 'approved')
+    .eq('is_archived', false)
     .order('created_at', { ascending: false });
 
   if (error) {

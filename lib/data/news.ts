@@ -32,6 +32,7 @@ export async function getNews(
   const { data: news, error } = await supabase
     .from("news")
     .select("*")
+    .eq("is_archived", false)
     .order("news_date", { ascending: true, nullsFirst: true })
     .order("news_time", { ascending: true, nullsFirst: true });
 

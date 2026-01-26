@@ -12,103 +12,64 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { FolderOpen, Plus, Loader2, FileSpreadsheet } from "lucide-react";
+import { FolderOpen, Plus, Loader2, FileSpreadsheet, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { FormRow } from "./table-cells/FormRow";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdminFAB } from "../layout/AdminFAB";
 import { ManagerSkeleton } from "../layout/AdminSkeletons";
+import { useForms } from "@/lib/hooks/useForms";
+import RecycleBin from "./RecycleBin";
 
 export default function FormManager() {
-  const [forms, setForms] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    forms,
+    archivedForms,
+    loading,
+    loadingArchived,
+    archiveForm,
+    restoreForm,
+    permanentlyDeleteForm,
+    fetchArchivedForms,
+    refetchForms
+  } = useForms();
+
+  const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   const { isLg } = useScreenSize();
   const itemsPerPage = isLg ? 10 : 5;
 
-  const supabase = createClient();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const fetchForms = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("forms")
-      .select("*, profiles(full_name, email)")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching forms:", error);
-      toast.error("Error al cargar los formularios.");
-    } else {
-      setForms(data);
+  // Cargar archivados al abrir papelera
+  useEffect(() => {
+    if (isRecycleBinOpen) {
+      fetchArchivedForms();
     }
-    setLoading(false);
-  };
+  }, [isRecycleBinOpen, fetchArchivedForms]);
 
   useEffect(() => {
-    fetchForms();
-
     // Check if we need to show a success message from the builder
     if (searchParams.get("success")) {
       toast.success(searchParams.get("message") || "Operación exitosa");
-      // Clean URL
       router.replace("/admin/formularios");
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const handleEdit = (form) => {
     router.push(`/admin/formularios/builder?slug=${form.slug}`);
   };
 
   const handleDelete = async (formId) => {
-    try {
-      // 1. Obtener el formulario y sus campos para identificar archivos a borrar
-      const { data: formToDelete, error: fetchError } = await supabase
-        .from("forms")
-        .select("image_url, form_fields(attachment_url)")
-        .eq("id", formId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      const filesToDelete = [];
-
-      // Añadir imagen de cabecera si existe
-      if (formToDelete.image_url) {
-        filesToDelete.push(formToDelete.image_url.split("/").pop());
+    const success = await archiveForm(formId);
+    if (success) {
+      const newTotalPages = Math.ceil((forms.length - 1) / itemsPerPage);
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(1);
       }
-
-      // Añadir adjuntos de campos si existen
-      if (formToDelete.form_fields) {
-        formToDelete.form_fields.forEach((field) => {
-          if (field.attachment_url) {
-            filesToDelete.push(field.attachment_url.split("/").pop());
-          }
-        });
-      }
-
-      // 2. Borrar archivos del Storage
-      if (filesToDelete.length > 0) {
-        await supabase.storage.from("forms").remove(filesToDelete);
-      }
-
-      // 3. Borrar el registro de la DB (los campos se borrarán por CASCADE si está configurado,
-      // pero el registro del formulario es lo principal)
-      const { error: deleteError } = await supabase
-        .from("forms")
-        .delete()
-        .eq("id", formId);
-
-      if (deleteError) throw deleteError;
-
-      toast.success("Formulario y archivos eliminados.");
-      fetchForms();
-    } catch (error) {
-      console.error("Error deleting form:", error);
-      toast.error("Error al eliminar el formulario y sus archivos.");
     }
   };
 
@@ -135,14 +96,24 @@ export default function FormManager() {
               Gestión de Formularios
             </CardTitle>
           </div>
-          <Button
-            variant="green"
-            className="hidden lg:flex rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
-            onClick={() => router.push("/admin/formularios/builder")}
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Crear Formulario
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="rounded-full px-6 py-6 font-bold border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all"
+              onClick={() => setIsRecycleBinOpen(true)}
+            >
+              <Trash2 className="w-5 h-5 lg:mr-2" />
+              <span className="hidden lg:inline">Papelera</span>
+            </Button>
+            <Button
+              variant="green"
+              className="hidden lg:flex rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+              onClick={() => router.push("/admin/formularios/builder")}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Crear Formulario
+            </Button>
+          </div>
         </CardHeader>
 
         <CardContent className="p-0">
@@ -223,6 +194,16 @@ export default function FormManager() {
           )}
         </CardContent>
       </Card>
+
+      <RecycleBin 
+        open={isRecycleBinOpen}
+        onOpenChange={setIsRecycleBinOpen}
+        type="forms"
+        items={archivedForms}
+        onRestore={restoreForm}
+        onDelete={permanentlyDeleteForm}
+        loading={loadingArchived}
+      />
 
       <AdminFAB
         onClick={() => router.push("/admin/formularios/builder")}

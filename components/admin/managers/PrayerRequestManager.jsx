@@ -1,71 +1,56 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { useScreenSize } from '@/lib/hooks/useScreenSize';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { PrayerRequestRow } from './table-cells/PrayerRequestRow';
 import { PaginationControls } from "@/components/shared/PaginationControls";
-import { Loader2, ListFilter, HandHelping } from 'lucide-react';
+import { Loader2, ListFilter, HandHelping, Trash2 } from 'lucide-react';
 import { cn } from "@/lib/utils.ts";
 import { ManagerSkeleton } from "../layout/AdminSkeletons";
+import { usePrayerRequests } from '@/lib/hooks/usePrayerRequests';
+import RecycleBin from './RecycleBin';
 
 export default function PrayerRequestManager() {
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    requests,
+    archivedRequests,
+    loading,
+    loadingArchived,
+    updateStatus,
+    archiveRequest,
+    restoreRequest,
+    permanentlyDeleteRequest,
+    fetchArchivedRequests
+  } = usePrayerRequests();
+
+  const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   const { isLg } = useScreenSize();
   const itemsPerPage = isLg ? 10 : 5;
 
-  const supabase = createClient();
-
-  const fetchRequests = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('prayer_requests')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching prayer requests:', error);
-      toast.error('Error al cargar las peticiones.');
-    } else {
-      setRequests(data);
-    }
-    setLoading(false);
-  };
-
+  // Cargar archivados cuando se abre la papelera
   useEffect(() => {
-    fetchRequests();
-  }, []);
+    if (isRecycleBinOpen) {
+      fetchArchivedRequests();
+    }
+  }, [isRecycleBinOpen, fetchArchivedRequests]);
 
   const handleStatusChange = async (id, newStatus) => {
-    setLoading(true);
-    const { error } = await supabase
-      .from('prayer_requests')
-      .update({ status: newStatus })
-      .eq('id', id);
-
-    if (error) {
-      console.error(`Error updating status for request ${id}:`, error);
-      toast.error('Error al actualizar el estado.');
-    } else {
-      toast.success(`Petición ${newStatus === 'approved' ? 'aprobada' : 'rechazada'} con éxito.`);
-      fetchRequests();
-    }
+    await updateStatus(id, newStatus);
   };
 
   const handleDelete = async (requestId) => {
-    const { error } = await supabase.from('prayer_requests').delete().eq('id', requestId);
-    if (error) {
-      console.error('Error deleting prayer request:', error);
-      toast.error('Error al eliminar la petición.');
-    } else {
-      toast.success('Petición eliminada.');
-      fetchRequests();
+    const success = await archiveRequest(requestId);
+    if (success) {
+      const newTotalPages = Math.ceil((requests.length - 1) / itemsPerPage);
+      if (currentPage > newTotalPages && newTotalPages > 0) {
+        setCurrentPage(1);
+      }
     }
   };
 
@@ -79,7 +64,7 @@ export default function PrayerRequestManager() {
   return (
     <div className="space-y-8">
       <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
-        <CardHeader className="p-8 md:p-12 border-b border-gray-50 bg-gray-50/30 flex flex-row items-center justify-between">
+        <CardHeader className="p-8 md:p-12 border-b border-gray-50 bg-gray-50/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
               <ListFilter className="w-3 h-3" />
@@ -87,6 +72,14 @@ export default function PrayerRequestManager() {
             </div>
             <CardTitle className="text-3xl font-serif font-bold text-gray-900">Peticiones Recibidas</CardTitle>
           </div>
+          <Button
+            variant="outline"
+            className="rounded-full px-6 py-6 font-bold border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all"
+            onClick={() => setIsRecycleBinOpen(true)}
+          >
+            <Trash2 className="w-5 h-5 lg:mr-2" />
+            <span className="hidden lg:inline">Papelera</span>
+          </Button>
         </CardHeader>
         
         <CardContent className="p-0">
@@ -153,6 +146,16 @@ export default function PrayerRequestManager() {
           )}
         </CardContent>
       </Card>
+
+      <RecycleBin 
+        open={isRecycleBinOpen}
+        onOpenChange={setIsRecycleBinOpen}
+        type="prayer"
+        items={archivedRequests}
+        onRestore={restoreRequest}
+        onDelete={permanentlyDeleteRequest}
+        loading={loadingArchived}
+      />
     </div>
   );
 }

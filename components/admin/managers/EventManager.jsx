@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useScreenSize } from "@/lib/hooks/useScreenSize";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,16 +17,28 @@ import { EventRow } from "./table-cells/EventRows";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { useRouter } from "next/navigation";
 import { useAdminEventsContext } from "@/components/providers/EventsProvider";
-import { Loader2, Plus, ListFilter, CalendarCheck } from "lucide-react";
+import { Loader2, Plus, ListFilter, CalendarCheck, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { AdminFAB } from "../layout/AdminFAB";
 import { ManagerSkeleton } from "../layout/AdminSkeletons";
+import RecycleBin from "./RecycleBin";
 
 export default function EventManager() {
-  const { events, loading, isCreatingForm, saveEvent, deleteEvent } =
-    useAdminEventsContext();
+  const { 
+    events, 
+    archivedEvents,
+    loading, 
+    loadingArchived,
+    isCreatingForm, 
+    saveEvent, 
+    archiveEvent,
+    restoreEvent,
+    permanentlyDeleteEvent,
+    fetchArchivedEvents
+  } = useAdminEventsContext();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -34,6 +46,13 @@ export default function EventManager() {
   const itemsPerPage = isLg ? 10 : 5;
 
   const router = useRouter();
+
+  // Cargar archivados cuando se abre la papelera
+  useEffect(() => {
+    if (isRecycleBinOpen) {
+      fetchArchivedEvents();
+    }
+  }, [isRecycleBinOpen, fetchArchivedEvents]);
 
   const handleSave = async (eventData, posterFile) => {
     const result = await saveEvent(eventData, posterFile, selectedEvent);
@@ -52,7 +71,7 @@ export default function EventManager() {
   };
 
   const handleDelete = async (eventId) => {
-    const success = await deleteEvent(eventId);
+    const success = await archiveEvent(eventId);
     if (success) {
       const newTotalPages = Math.ceil((events.length - 1) / itemsPerPage);
       if (currentPage > newTotalPages && newTotalPages > 0) {
@@ -84,17 +103,27 @@ export default function EventManager() {
               Listado de Eventos
             </CardTitle>
           </div>
-          <Button
-            variant="green"
-            className="hidden lg:flex rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
-            onClick={() => {
-              setSelectedEvent(null);
-              setIsFormOpen(true);
-            }}
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Añadir Evento
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="rounded-full px-6 py-6 font-bold border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all"
+              onClick={() => setIsRecycleBinOpen(true)}
+            >
+              <Trash2 className="w-5 h-5 lg:mr-2" />
+              <span className="hidden lg:inline">Papelera</span>
+            </Button>
+            <Button
+              variant="green"
+              className="hidden lg:flex rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+              onClick={() => {
+                setSelectedEvent(null);
+                setIsFormOpen(true);
+              }}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Añadir Evento
+            </Button>
+          </div>
         </CardHeader>
 
         <CardContent className="p-0">
@@ -214,6 +243,17 @@ export default function EventManager() {
           </div>
         </div>
       </AdminEditorPanel>
+
+      {/* Recycle Bin Dialog */}
+      <RecycleBin 
+        open={isRecycleBinOpen}
+        onOpenChange={setIsRecycleBinOpen}
+        type="events"
+        items={archivedEvents}
+        onRestore={restoreEvent}
+        onDelete={permanentlyDeleteEvent}
+        loading={loadingArchived}
+      />
 
       <AdminFAB
         onClick={() => {

@@ -14,12 +14,25 @@ import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
 import { AdminEditorPanel } from "../layout/AdminEditorPanel";
 import { AdminFAB } from "../layout/AdminFAB";
 import { ManagerSkeleton } from "../layout/AdminSkeletons";
+import { useLom } from '@/lib/hooks/useLom';
+import RecycleBin from './RecycleBin';
 
 const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
 export default function PassageManager() {
-  const [weeks, setWeeks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    items: passages,
+    archivedItems: archivedPassages,
+    loading,
+    loadingArchived,
+    archiveItem,
+    restoreItem,
+    permanentlyDeleteItem,
+    fetchArchivedItems,
+    refetchItems
+  } = useLom({ type: 'passages' });
+
+  const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -27,43 +40,36 @@ export default function PassageManager() {
   const itemsPerPage = 5;
   const supabase = createClient();
 
-  const fetchPassages = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('lom_passages')
-      .select('*, profiles(full_name, email)')
-      .order('week_number', { ascending: false })
+  // Agrupar pasajes por semana para la visualización
+  const weeks = useMemo(() => {
+    if (!passages) return [];
+    
+    const sortedData = [...passages].sort((a, b) => {
+      return daysOfWeek.indexOf(a.day_of_week) - daysOfWeek.indexOf(b.day_of_week);
+    });
 
-    if (error) {
-      console.error('Error fetching passages:', error);
-      toast.error('Error al cargar los pasajes.');
-    } else {
-      const sortedData = data.sort((a, b) => {
-        return daysOfWeek.indexOf(a.day_of_week) - daysOfWeek.indexOf(b.day_of_week);
-      });
+    return sortedData.reduce((acc, passage) => {
+      const week = acc.find(w => w.week_number === passage.week_number);
+      if (week) {
+        week.passages.push(passage);
+      } else {
+        acc.push({ 
+          week_number: passage.week_number, 
+          week_start_date: passage.week_start_date, 
+          passages: [passage],
+          profiles: passage.profiles
+        });
+      }
+      return acc;
+    }, []).sort((a, b) => b.week_number - a.week_number);
+  }, [passages]);
 
-      const groupedByWeek = sortedData.reduce((acc, passage) => {
-        const week = acc.find(w => w.week_number === passage.week_number);
-        if (week) {
-          week.passages.push(passage);
-        } else {
-          acc.push({ 
-            week_number: passage.week_number, 
-            week_start_date: passage.week_start_date, 
-            passages: [passage],
-            profiles: passage.profiles
-          });
-        }
-        return acc;
-      }, []);
-      setWeeks(groupedByWeek);
-    }
-    setLoading(false);
-  };
-
+  // Cargar archivados al abrir papelera
   useEffect(() => {
-    fetchPassages();
-  }, []);
+    if (isRecycleBinOpen) {
+      fetchArchivedItems();
+    }
+  }, [isRecycleBinOpen, fetchArchivedItems]);
 
   const totalPages = useMemo(() => Math.ceil(weeks.length / itemsPerPage), [weeks.length, itemsPerPage]);
   const currentWeeks = useMemo(() => {
@@ -73,7 +79,6 @@ export default function PassageManager() {
   }, [weeks, currentPage, itemsPerPage]);
 
   const handleSave = async (data) => {
-    setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
 
     const passagesToSave = data.passages
@@ -83,17 +88,18 @@ export default function PassageManager() {
         week_number: data.week_number,
         week_start_date: data.week_start_date, 
         user_id: user?.id,
+        is_archived: false
       }));
 
     if (selectedWeek) {
+      // Para editar, primero borramos los pasajes anteriores de esa semana
+      // (En este caso particular, es más seguro borrar y re-insertar la semana)
       await supabase.from('lom_passages').delete().eq('week_number', selectedWeek.week_number);
     }
 
     if (passagesToSave.length > 0) {
       const { error } = await supabase.from('lom_passages').insert(passagesToSave);
-
       if (error) {
-        console.error('Error saving passages:', error);
         toast.error('Error al guardar los pasajes.');
       } else {
         toast.success('Pasajes guardados con éxito.');
@@ -101,19 +107,20 @@ export default function PassageManager() {
     }
 
     setIsFormOpen(false);
-    fetchPassages();
+    refetchItems();
   };
 
   const handleDeleteWeek = async (week_number) => {
-    setLoading(true);
-    const { error } = await supabase.from('lom_passages').delete().eq('week_number', week_number);
-    if (error) {
-      console.error('Error deleting week:', error);
-      toast.error('Error al eliminar la semana.');
-    } else {
-      toast.success('Semana eliminada con éxito.');
+    // Para la papelera, archivamos todos los pasajes de esa semana
+    const weekPassages = passages.filter(p => p.week_number === week_number);
+    const promises = weekPassages.map(p => archiveItem(p.id));
+    
+    await Promise.all(promises);
+    
+    const newTotalPages = Math.ceil((weeks.length - 1) / itemsPerPage);
+    if (currentPage > newTotalPages && newTotalPages > 0) {
+      setCurrentPage(1);
     }
-    fetchPassages();
   };
 
   return (
@@ -127,17 +134,27 @@ export default function PassageManager() {
             </div>
             <CardTitle className="text-3xl font-serif font-bold text-gray-900">Pasajes Semanales</CardTitle>
           </div>
-          <Button
-            variant="green"
-            className="hidden lg:flex rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
-            onClick={() => {
-              setSelectedWeek(null);
-              setIsFormOpen(true);
-            }}
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Programar Semana
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="rounded-full px-6 py-6 font-bold border-gray-200 hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all"
+              onClick={() => setIsRecycleBinOpen(true)}
+            >
+              <Trash2 className="w-5 h-5 lg:mr-2" />
+              <span className="hidden lg:inline">Papelera</span>
+            </Button>
+            <Button
+              variant="green"
+              className="hidden lg:flex rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+              onClick={() => {
+                setSelectedWeek(null);
+                setIsFormOpen(true);
+              }}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Programar Semana
+            </Button>
+          </div>
         </CardHeader>
         
         <CardContent className="p-8 md:p-12">
@@ -202,14 +219,14 @@ export default function PassageManager() {
                             </AlertDialogTrigger>
                             <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
                               <AlertDialogHeader className="space-y-4">
-                                <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Eliminar esta semana?</AlertDialogTitle>
+                                <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Mover esta semana a la papelera?</AlertDialogTitle>
                                 <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
-                                  Esta acción borrará todos los pasajes asociados a la semana {week.week_number}.
+                                  Todos los pasajes de la semana {week.week_number} dejarán de ser visibles, pero podrás restaurarlos desde la papelera si lo necesitas.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter className="pt-6">
                                 <AlertDialogCancel className="rounded-full border-gray-100">Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteWeek(week.week_number)} className="rounded-full bg-red-500 hover:bg-red-600">Eliminar todo</AlertDialogAction>
+                                <AlertDialogAction onClick={() => handleDeleteWeek(week.week_number)} className="rounded-full bg-red-500 hover:bg-red-600">Mover a papelera</AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
@@ -254,6 +271,16 @@ export default function PassageManager() {
           />
         </div>
       </AdminEditorPanel>
+
+      <RecycleBin 
+        open={isRecycleBinOpen}
+        onOpenChange={setIsRecycleBinOpen}
+        type="lom-passages"
+        items={archivedPassages}
+        onRestore={restoreItem}
+        onDelete={permanentlyDeleteItem}
+        loading={loadingArchived}
+      />
 
       <AdminFAB 
         onClick={() => {

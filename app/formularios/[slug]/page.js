@@ -118,6 +118,7 @@ export default function PublicForm() {
         .from("forms")
         .select("*, form_fields(*)")
         .eq("slug", slug)
+        .eq("is_archived", false)
         .single();
 
       if (error) {

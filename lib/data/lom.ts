@@ -15,6 +15,7 @@ export async function getLomPosts() {
   const { data, error } = await supabase
     .from("lom_posts")
     .select("*")
+    .eq("is_archived", false)
     .lte("publication_date", today) // 👈 DATE vs DATE (correcto)
     .order("publication_date", { ascending: false });
 
@@ -38,6 +39,7 @@ export async function getLatestLomPost(): Promise<{ slug: string } | null> {
   const { data, error } = await supabase
     .from("lom_posts")
     .select("slug")
+    .eq("is_archived", false)
     .lte("publication_date", today)
     .order("publication_date", { ascending: false })
     .limit(1)
@@ -62,6 +64,7 @@ export async function getLomPostBySlug(slug: string): Promise<any | null> {
     .from("lom_posts")
     .select("*")
     .eq("slug", slug)
+    .eq("is_archived", false)
     .single();
 
   if (error) {
@@ -86,6 +89,7 @@ export async function getLomNavigationPosts(currentPostDate: string): Promise<{
   const { data: prevPost } = await supabase
     .from("lom_posts")
     .select("slug, publication_date")
+    .eq("is_archived", false)
     .lt("publication_date", currentPostDate)
     .order("publication_date", { ascending: false })
     .limit(1)
@@ -94,6 +98,7 @@ export async function getLomNavigationPosts(currentPostDate: string): Promise<{
   const { data: nextPost } = await supabase
     .from("lom_posts")
     .select("slug, publication_date")
+    .eq("is_archived", false)
     .gt("publication_date", currentPostDate)
     .order("publication_date", { ascending: true })
     .limit(1)
