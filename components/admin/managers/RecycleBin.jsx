@@ -137,6 +137,8 @@ export default function RecycleBin({
                         <div className="min-w-0 flex-1">
                           <p className="font-bold text-gray-900 truncate whitespace-normal">
                             {item.title ||
+                              item.passage_reference ||
+                              (item.week_number ? `Semana ${item.week_number}` : null) ||
                               item.request_text?.substring(0, 50) ||
                               "Sin título"}
                           </p>
