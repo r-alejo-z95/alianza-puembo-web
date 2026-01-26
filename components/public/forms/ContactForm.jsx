@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { submitContactForm } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import TurnstileCaptcha from '@/components/shared/TurnstileCaptcha';
 
 const initialState = {
   errors: {},
@@ -17,14 +18,14 @@ const initialState = {
   message: '',
 };
 
-function SubmitButton() {
+function SubmitButton({ disabled }) {
   const { pending } = useFormStatus();
   return (
     <Button 
       variant="green" 
       type="submit" 
-      disabled={pending} 
-      aria-disabled={pending} 
+      disabled={pending || disabled} 
+      aria-disabled={pending || disabled} 
       className="w-full h-12 text-base font-bold rounded-xl shadow-lg shadow-green-100 hover:shadow-green-200 transition-all active:scale-[0.98]"
     >
       {pending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Enviar Mensaje'}
@@ -34,6 +35,7 @@ function SubmitButton() {
 
 export default function ContactForm() {
   const [state, formAction] = useActionState(submitContactForm, initialState);
+  const [captchaToken, setCaptchaToken] = useState(null);
 
   return (
     <div className="w-full max-w-2xl mx-auto py-2">
@@ -48,6 +50,8 @@ export default function ContactForm() {
         </motion.div>
       ) : (
         <form action={formAction} className="space-y-6">
+          <input type="hidden" name="turnstile_token" value={captchaToken || ''} />
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="name" className="text-sm font-bold text-gray-700 uppercase tracking-widest ml-1">Nombre</Label>
@@ -100,16 +104,26 @@ export default function ContactForm() {
               <p className="text-xs text-red-500 font-medium ml-1">{state.errors.message[0]}</p>
             )}
           </div>
+
+          <TurnstileCaptcha 
+            onVerify={setCaptchaToken} 
+            className="flex justify-center md:justify-start"
+          />
+          {state.errors?.captcha && (
+            <p className="text-xs text-red-500 font-medium ml-1">{state.errors.captcha[0]}</p>
+          )}
+
           <div className="space-y-6 pt-4">
             <div className="bg-gray-50/80 p-4 rounded-xl border border-gray-100">
                 <p className="text-[10px] text-gray-500 leading-relaxed text-center">
                     Al enviar este formulario, usted autoriza a la Iglesia Alianza Puembo el tratamiento de sus datos personales para fines de contacto y gestión eclesial, conforme a la Ley Orgánica de Protección de Datos Personales de Ecuador.
                 </p>
             </div>
-            <SubmitButton />
+            <SubmitButton disabled={!captchaToken} />
           </div>
         </form>
       )}
     </div>
   );
 }
+

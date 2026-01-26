@@ -34,6 +34,8 @@ import {
 import Image from "next/image";
 import { getNowInEcuador, formatInEcuador } from "@/lib/date-utils";
 import { cn } from "@/lib/utils.ts";
+import TurnstileCaptcha from "@/components/shared/TurnstileCaptcha";
+import { verifyCaptcha } from "@/lib/actions";
 
 const LoadingSpinner = () => (
   <div className="flex flex-col gap-6 justify-center items-center h-screen animate-in fade-in duration-500">
@@ -72,6 +74,7 @@ export default function PublicForm() {
   const [sending, setSending] = useState(false);
   const [fileNames, setFileNames] = useState({});
   const [submissionStatus, setSubmissionStatus] = useState(null); // 'success' | 'error' | null
+  const [captchaToken, setCaptchaToken] = useState(null);
   const { slug } = useParams();
   const router = useRouter();
 
@@ -94,7 +97,7 @@ export default function PublicForm() {
   );
   const isFormDisabled = form?.enabled === false;
   const isSubmitDisabled =
-    sending || isFormDisabled || (hasRequiredFields ? !isValid : isFormEmpty);
+    sending || isFormDisabled || (hasRequiredFields ? !isValid : isFormEmpty) || !captchaToken;
 
   useEffect(() => {
     const fetchForm = async () => {
@@ -130,9 +133,24 @@ export default function PublicForm() {
       toast.error("Este formulario ya no acepta más respuestas.");
       return;
     }
+
+    if (!captchaToken) {
+      toast.error("Por favor, completa la verificación de seguridad.");
+      return;
+    }
+
     setSending(true);
-    const supabase = createClient();
+
     try {
+      // Verificar CAPTCHA primero
+      const { isValid: isCaptchaValid } = await verifyCaptcha(captchaToken);
+      if (!isCaptchaValid) {
+        toast.error("La verificación de seguridad falló. Por favor, inténtalo de nuevo.");
+        setSending(false);
+        return;
+      }
+
+      const supabase = createClient();
       const processedData = {};
       const rawDataForDb = {};
 
@@ -237,6 +255,7 @@ export default function PublicForm() {
       setSubmissionStatus("success");
       reset();
       setFileNames({});
+      setCaptchaToken(null);
     } catch (error) {
       console.error("Error during submission:", error);
       setSubmissionStatus("error");
@@ -248,6 +267,7 @@ export default function PublicForm() {
     setSubmissionStatus(null);
     reset();
     setFileNames({});
+    setCaptchaToken(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -621,6 +641,11 @@ export default function PublicForm() {
                   </div>
                 );
               })}
+
+              <TurnstileCaptcha 
+                onVerify={setCaptchaToken} 
+                className="flex justify-center"
+              />
 
               <div className="pt-12 border-t border-gray-100 space-y-8">
                 <div className="bg-gray-50/80 p-6 rounded-2xl border border-gray-100">

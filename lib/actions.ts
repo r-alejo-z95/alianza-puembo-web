@@ -11,6 +11,41 @@ import { loginSchema } from "@/lib/schemas";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+/**
+ * Verifica un token de Cloudflare Turnstile.
+ */
+async function verifyTurnstileToken(token: string | null) {
+  if (!token) return false;
+
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  if (!secretKey) {
+    console.warn(
+      "TURNSTILE_SECRET_KEY no configurada. Saltando validación en desarrollo.",
+    );
+    return true;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("secret", secretKey);
+    formData.append("response", token);
+
+    const result = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        body: formData,
+        method: "POST",
+      },
+    );
+
+    const outcome = await result.json();
+    return outcome.success;
+  } catch (error) {
+    console.error("Error verificando Turnstile:", error);
+    return false;
+  }
+}
+
 // Contact Form Action
 const contactSchema = z.object({
   name: z
@@ -31,6 +66,7 @@ type ContactFormState = {
     email?: string[];
     phone?: string[];
     message?: string[];
+    captcha?: string[];
   };
   success?: boolean;
   message?: string;
@@ -38,8 +74,21 @@ type ContactFormState = {
 
 export async function submitContactForm(
   prevState: ContactFormState,
-  formData: FormData
+  formData: FormData,
 ): Promise<ContactFormState> {
+  const turnstileToken = formData.get("turnstile_token") as string;
+  const isCaptchaValid = await verifyTurnstileToken(turnstileToken);
+
+  if (!isCaptchaValid) {
+    return {
+      errors: {
+        captcha: [
+          "La verificación de seguridad falló. Por favor, inténtalo de nuevo.",
+        ],
+      },
+    };
+  }
+
   const validatedFields = contactSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),
@@ -113,7 +162,7 @@ export async function login(formData: FormData) {
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(
-    parsed.data as LoginInput
+    parsed.data as LoginInput,
   );
 
   if (error) {
@@ -127,6 +176,16 @@ export async function login(formData: FormData) {
 
 // Prayer Request Action
 export async function addPrayerRequest(formData: FormData) {
+  const turnstileToken = formData.get("turnstile_token") as string;
+  const isCaptchaValid = await verifyTurnstileToken(turnstileToken);
+
+  if (!isCaptchaValid) {
+    return {
+      error:
+        "La verificación de seguridad falló. Por favor, inténtalo de nuevo.",
+    };
+  }
+
   const name = formData.get("name") as string;
   const request_text = formData.get("request_text") as string;
   const is_public = formData.get("is_public") === "true";
@@ -155,6 +214,14 @@ export async function addPrayerRequest(formData: FormData) {
   revalidatePath("/oracion");
 
   return { data };
+}
+
+/**
+ * Acción simple para verificar CAPTCHA desde componentes de cliente
+ */
+export async function verifyCaptcha(token: string) {
+  const isValid = await verifyTurnstileToken(token);
+  return { isValid };
 }
 
 // Helper to slugify text
@@ -236,7 +303,7 @@ export async function createFormAndSheet(formTitle: string) {
 // Regenerate Form and Sheet Action (Using slug instead of form_id)
 export async function regenerateFormAndSheet(
   formSlug: string,
-  newFormTitle: string
+  newFormTitle: string,
 ) {
   const supabase = await createClient();
   const {
@@ -328,7 +395,7 @@ export async function initializeGoogleIntegration(
   formId: string,
   formTitle: string,
   formSlug: string,
-  formFields?: any[]
+  formFields?: any[],
 ) {
   const supabase = await createClient();
 
@@ -351,14 +418,14 @@ export async function initializeGoogleIntegration(
     if (fetchError) {
       console.error(
         "Error checking existing form for Google integration:",
-        fetchError
+        fetchError,
       );
       return { error: "Error al verificar el estado del formulario." };
     }
 
     if (existingForm?.google_sheet_id) {
       console.log(
-        "Form already has a Google Sheet ID. Skipping initialization."
+        "Form already has a Google Sheet ID. Skipping initialization.",
       );
       return { success: true, alreadyInitialized: true };
     }
@@ -383,11 +450,12 @@ export async function initializeGoogleIntegration(
 
     if (!response.ok) {
       console.error("Error calling edge function:", result);
-      
+
       // If it's a timeout or a known error but the creation might have happened
       return {
-        error: result.error || "La conexión con Google tardó más de lo esperado.",
-        details: result.details
+        error:
+          result.error || "La conexión con Google tardó más de lo esperado.",
+        details: result.details,
       };
     }
 
