@@ -20,6 +20,13 @@ function slugify(text) {
     .replace(/-+$/, "");
 }
 
+/**
+ * Sanitiza el nombre de un archivo para evitar problemas en Storage y URLs.
+ */
+function sanitizeFileName(name) {
+  return name.replace(/[^a-z0-9.]/gi, "_").toLowerCase();
+}
+
 function BuilderContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -69,78 +76,111 @@ function BuilderContent() {
       data: { user },
     } = await supabase.auth.getUser();
 
-    // Priorizar el ID del estado 'form' que se cargó al inicio
-    const currentFormId = form?.id;
+    let currentFormId = form?.id;
     let imageUrl = formImageUrl || form?.image_url || null;
-
-    // Solo generar slug si el título cambió o si es nuevo
     const slug = form && form.title === title ? form.slug : slugify(title);
 
     try {
-      // 1. Manejo de Imagen de Cabecera (Subida / Borrado)
-      if (imageFile) {
-        // Si hay una nueva imagen, borramos la anterior si existía
-        if (form && form.image_url) {
-          const oldFileName = decodeURIComponent(form.image_url.split("/").pop());
-          await supabase.storage.from("form-images").remove([oldFileName]);
-        }
-        const fileName = `${Date.now()}_header_${imageFile.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("form-images")
-          .upload(fileName, imageFile);
+      // 0. Si es un formulario nuevo, lo creamos primero para tener el ID para la portada
+      if (!currentFormId) {
+        const { data: newForm, error: formError } = await supabase
+          .from("forms")
+          .insert([
+            {
+              title,
+              description,
+              user_id: user?.id,
+              slug,
+            },
+          ])
+          .select()
+          .single();
 
-        if (uploadError) {
-          toast.error("Error al subir la imagen de cabecera.");
-          setSaving(false);
-          return;
+        if (formError || !newForm) throw formError;
+        currentFormId = newForm.id;
+      }
+
+      // 1. Manejo de Imagen de Cabecera (Carpeta: header/[formId]/nombre)
+      if (imageFile) {
+        // Limpiar carpeta anterior
+        if (form?.image_url && form.image_url.includes("/api/storage/")) {
+          const parts = form.image_url.split("/");
+          const oldFileName = parts[parts.length - 1];
+          await supabase.storage
+            .from("forms")
+            .remove([`header/${currentFormId}/${oldFileName}`]);
         }
-        const { data: urlData } = supabase.storage
-          .from("form-images")
-          .getPublicUrl(uploadData.path);
-        imageUrl = urlData.publicUrl;
+
+        const fileName = sanitizeFileName(imageFile.name);
+        const supaPath = `header/${currentFormId}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from("forms")
+          .upload(supaPath, imageFile, { upsert: true });
+
+        if (uploadError)
+          throw new Error("Error al subir portada: " + uploadError.message);
+
+        imageUrl = `/api/storage/forms/${supaPath}`;
       } else if (formImageUrl === "") {
-        // Si el usuario borró la imagen en el UI (image_url es "")
-        if (form && form.image_url) {
-          const oldFileName = decodeURIComponent(form.image_url.split("/").pop());
-          await supabase.storage.from("form-images").remove([oldFileName]);
+        if (form?.image_url && form.image_url.includes("/api/storage/")) {
+          const parts = form.image_url.split("/");
+          const oldFileName = parts[parts.length - 1];
+          await supabase.storage
+            .from("forms")
+            .remove([`header/${currentFormId}/${oldFileName}`]);
         }
         imageUrl = null;
       }
 
-      // 2. Procesar Campos y sus Adjuntos
+      // 2. Procesar Campos y sus Adjuntos (Carpeta: fields/[fieldId]/nombre)
       const processedFields = await Promise.all(
         fields.map(async (field) => {
           let attachmentUrl = field.attachment_url;
-          const existingField = form?.form_fields?.find(f => f.id === field.id);
+          const existingField = form?.form_fields?.find(
+            (f) => f.id === field.id,
+          );
           const oldAttachmentUrl = existingField?.attachment_url;
-          
+
           if (field.attachment_file) {
-            // REPLAZO O NUEVO ADJUNTO: Si ya tenía uno diferente, lo borramos
-            if (oldAttachmentUrl && oldAttachmentUrl !== field.attachment_url) {
-              const oldFileName = decodeURIComponent(oldAttachmentUrl.split("/").pop());
-              await supabase.storage.from("form-images").remove([oldFileName]);
+            // Limpiar anterior
+            if (
+              oldAttachmentUrl &&
+              oldAttachmentUrl.includes("/api/storage/")
+            ) {
+              const parts = oldAttachmentUrl.split("/");
+              const oldFileName = parts[parts.length - 1];
+              await supabase.storage
+                .from("forms")
+                .remove([`fields/${field.id}/${oldFileName}`]);
             }
 
             const file = field.attachment_file;
-            const fileName = `${Date.now()}_field_${field.id}_${file.name}`;
-            const { data: uploadData, error: uploadError } =
-              await supabase.storage.from("form-images").upload(fileName, file);
-            if (!uploadError) {
-              const { data: urlData } = supabase.storage
-                .from("form-images")
-                .getPublicUrl(uploadData.path);
-              attachmentUrl = urlData.publicUrl;
-            }
+            const fileName = sanitizeFileName(file.name);
+            const supaPath = `fields/${field.id}/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from("forms")
+              .upload(supaPath, file, { upsert: true });
+
+            if (uploadError)
+              throw new Error(
+                `Error en campo "${field.label}": ${uploadError.message}`,
+              );
+
+            attachmentUrl = `/api/storage/forms/${supaPath}`;
           } else if (field.attachment_url === "" && oldAttachmentUrl) {
-            // BORRADO EXPLÍCITO DE ADJUNTO
-            const oldFileName = decodeURIComponent(oldAttachmentUrl.split("/").pop());
-            await supabase.storage.from("form-images").remove([oldFileName]);
+            if (oldAttachmentUrl.includes("/api/storage/")) {
+              const parts = oldAttachmentUrl.split("/");
+              const oldFileName = parts[parts.length - 1];
+              await supabase.storage
+                .from("forms")
+                .remove([`fields/${field.id}/${oldFileName}`]);
+            }
             attachmentUrl = null;
           }
-          
-          const { attachment_file, id, ...fieldData } = field;
 
-          // Preservar el ID original si es un UUID válido de la base de datos
+          const { attachment_file, id, ...fieldData } = field;
           const isRealUuid =
             /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
               id,
@@ -155,94 +195,55 @@ function BuilderContent() {
         }),
       );
 
-      if (currentFormId) {
-        // ACTUALIZACIÓN
-        const { error: formError } = await supabase
-          .from("forms")
-          .update({ title, description, image_url: imageUrl, slug })
-          .eq("id", currentFormId);
+      // 3. ACTUALIZACIÓN FINAL
+      const { error: finalFormError } = await supabase
+        .from("forms")
+        .update({ title, description, image_url: imageUrl, slug })
+        .eq("id", currentFormId);
 
-        if (formError) throw formError;
+      if (finalFormError) throw finalFormError;
 
-        // ESTRATEGIA DE LIMPIEZA DE CAMPOS ELIMINADOS
-        const { data: existingFields } = await supabase
-          .from("form_fields")
-          .select("id, attachment_url")
-          .eq("form_id", currentFormId);
+      // ESTRATEGIA DE LIMPIEZA DE CAMPOS ELIMINADOS
+      const { data: existingFields } = await supabase
+        .from("form_fields")
+        .select("id, attachment_url")
+        .eq("form_id", currentFormId);
 
-        const currentIds = processedFields.map((f) => f.id).filter(Boolean);
-        
-        // Campos que van a ser borrados
-        const fieldsToDelete = existingFields?.filter((f) => !currentIds.includes(f.id)) || [];
+      const currentIds = processedFields.map((f) => f.id).filter(Boolean);
+      const fieldsToDelete =
+        existingFields?.filter((f) => !currentIds.includes(f.id)) || [];
 
-        if (fieldsToDelete.length > 0) {
-          // Borrar archivos físicos del Storage antes de borrar filas
-          const filesToRemove = fieldsToDelete
-            .filter(f => f.attachment_url)
-            .map(f => decodeURIComponent(f.attachment_url.split("/").pop()));
-          
-          if (filesToRemove.length > 0) {
-            await supabase.storage.from("form-images").remove(filesToRemove);
+      if (fieldsToDelete.length > 0) {
+        for (const f of fieldsToDelete) {
+          if (f.attachment_url && f.attachment_url.includes("/api/storage/")) {
+            const parts = f.attachment_url.split("/");
+            const oldFileName = parts[parts.length - 1];
+            await supabase.storage
+              .from("forms")
+              .remove([`fields/${f.id}/${oldFileName}`]);
           }
-
-          const idsToDelete = fieldsToDelete.map(f => f.id);
-          await supabase.from("form_fields").delete().in("id", idsToDelete);
         }
+        const idsToDelete = fieldsToDelete.map((f) => f.id);
+        await supabase.from("form_fields").delete().in("id", idsToDelete);
+      }
 
-        // Upsert de los campos (actualiza los que tienen ID, inserta los nuevos)
-        const { error: fieldsError } = await supabase
-          .from("form_fields")
-          .upsert(
-            processedFields.map((f) => ({ ...f, form_id: currentFormId })),
-          );
+      const { error: fieldsError } = await supabase
+        .from("form_fields")
+        .upsert(processedFields);
 
-        if (fieldsError) throw fieldsError;
-      } else {
-        // INSERCIÓN NUEVA
-        const { data: newForm, error: formError } = await supabase
-          .from("forms")
-          .insert([
-            {
-              title,
-              description,
-              image_url: imageUrl,
-              user_id: user?.id,
-              slug,
-            },
-          ])
-          .select()
-          .single();
+      if (fieldsError) throw fieldsError;
 
-        if (formError || !newForm) throw formError;
-
-        const newId = newForm.id;
+      // Si era nuevo, inicializar integración Google
+      if (!form) {
         toast.info("Iniciando integración con Google...");
-        await initializeGoogleIntegration(
-          newId,
-          newForm.title,
-          newForm.slug,
-          fields,
-        );
-
-        const fieldsToInsert = processedFields.map((field) => ({
-          ...field,
-          form_id: newId,
-        }));
-
-        const { error: fieldsError } = await supabase
-          .from("form_fields")
-          .insert(fieldsToInsert);
-
-        if (fieldsError) throw fieldsError;
+        await initializeGoogleIntegration(currentFormId, title, slug, fields);
       }
 
       toast.success("Formulario guardado con éxito.");
       router.push("/admin/formularios");
     } catch (error) {
       console.error("Save Error:", error);
-      toast.error(
-        "Error al guardar: " + (error.message || "Error desconocido"),
-      );
+      toast.error(error.message || "Error desconocido al guardar");
       setSaving(false);
     }
   };

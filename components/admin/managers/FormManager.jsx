@@ -12,12 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  FolderOpen,
-  Plus,
-  Loader2,
-  FileSpreadsheet,
-} from "lucide-react";
+import { FolderOpen, Plus, Loader2, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import { FormRow } from "./table-cells/FormRow";
 import { PaginationControls } from "@/components/shared/PaginationControls";
@@ -55,12 +50,12 @@ export default function FormManager() {
 
   useEffect(() => {
     fetchForms();
-    
+
     // Check if we need to show a success message from the builder
-    if (searchParams.get('success')) {
-        toast.success(searchParams.get('message') || 'Operación exitosa');
-        // Clean URL
-        router.replace('/admin/formularios');
+    if (searchParams.get("success")) {
+      toast.success(searchParams.get("message") || "Operación exitosa");
+      // Clean URL
+      router.replace("/admin/formularios");
     }
   }, [searchParams]);
 
@@ -97,10 +92,10 @@ export default function FormManager() {
 
       // 2. Borrar archivos del Storage
       if (filesToDelete.length > 0) {
-        await supabase.storage.from("form-images").remove(filesToDelete);
+        await supabase.storage.from("forms").remove(filesToDelete);
       }
 
-      // 3. Borrar el registro de la DB (los campos se borrarán por CASCADE si está configurado, 
+      // 3. Borrar el registro de la DB (los campos se borrarán por CASCADE si está configurado,
       // pero el registro del formulario es lo principal)
       const { error: deleteError } = await supabase
         .from("forms")
@@ -143,7 +138,7 @@ export default function FormManager() {
           <Button
             variant="green"
             className="hidden lg:flex rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
-            onClick={() => router.push('/admin/formularios/builder')}
+            onClick={() => router.push("/admin/formularios/builder")}
           >
             <Plus className="w-5 h-5 mr-2" />
             Crear Formulario
@@ -230,7 +225,7 @@ export default function FormManager() {
       </Card>
 
       <AdminFAB
-        onClick={() => router.push('/admin/formularios/builder')}
+        onClick={() => router.push("/admin/formularios/builder")}
         label="Crear Formulario"
       />
     </div>

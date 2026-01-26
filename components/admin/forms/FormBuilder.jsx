@@ -116,6 +116,7 @@ const fieldSchema = z.object({
   placeholder: z.string().optional().nullable(),
   attachment_url: z.string().optional().nullable(),
   attachment_type: z.string().optional().nullable(),
+  attachment_file: z.any().optional().nullable(),
 });
 
 const formSchema = z.object({
@@ -300,11 +301,12 @@ function FieldCard({
                         size="icon"
                         className="h-7 w-7 md:h-8 md:w-8 rounded-full shadow-lg"
                         onClick={() => {
-                          form.setValue(`fields.${index}.attachment_url`, "");
-                          form.setValue(`fields.${index}.attachment_type`, "");
+                          form.setValue(`fields.${index}.attachment_url`, "", { shouldDirty: true });
+                          form.setValue(`fields.${index}.attachment_type`, "", { shouldDirty: true });
                           form.setValue(
                             `fields.${index}.attachment_file`,
                             null,
+                            { shouldDirty: true }
                           );
                         }}
                       >
@@ -606,11 +608,23 @@ export default function FormBuilder({
   onCancel,
   isSaving,
 }) {
-  const [imageFile, setImageFile] = useState(null);
+  const [headerPreview, setHeaderPreview] = useState(null);
+  const [headerFile, setHeaderFile] = useState(null);
   const [activeId, setActiveId] = useState(null);
   const [activeDragId, setActiveDragId] = useState(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Limpiar URLs de objeto para evitar fugas de memoria
+  useEffect(() => {
+    return () => {
+      if (headerPreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(headerPreview);
+      }
+      // También deberíamos limpiar los de los campos, pero es más complejo.
+      // Al menos limpiamos el principal.
+    };
+  }, [headerPreview]);
 
   const onInvalid = (errors) => {
     // Auto-scroll al primer error
@@ -689,6 +703,9 @@ export default function FormBuilder({
         image_url: initialForm.image_url || "",
         fields: prepared,
       });
+      if (initialForm.image_url) {
+        setHeaderPreview(initialForm.image_url);
+      }
     }
   }, [initialForm, form]);
 
@@ -743,6 +760,18 @@ export default function FormBuilder({
     setActiveDragId(null);
   };
 
+  const handleHeaderFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (headerPreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(headerPreview);
+    }
+
+    setHeaderFile(file);
+    setHeaderPreview(URL.createObjectURL(file));
+  };
+
   return (
     <div
       className="min-h-screen bg-gray-50/50 pb-0 cursor-default"
@@ -785,7 +814,7 @@ export default function FormBuilder({
                         order_index: i,
                       })),
                     },
-                    imageFile,
+                    headerFile,
                   ),
                 onInvalid,
               )();
@@ -827,60 +856,68 @@ export default function FormBuilder({
               }}
             >
               {/* Area de Imagen (Banner) */}
-              <div className="relative h-40 md:h-56 bg-black overflow-hidden flex items-center justify-center">
-                {imageFile || initialForm?.image_url ? (
-                  <img
-                    src={
-                      imageFile
-                        ? URL.createObjectURL(imageFile)
-                        : initialForm.image_url
-                    }
-                    alt="Header"
-                    className="fill w-full h-full object-cover object-center"
-                  />
+              <div
+                className="relative h-48 md:h-72 bg-gray-50 overflow-hidden flex items-center justify-center group/header cursor-pointer border-b border-gray-100"
+                onClick={() => !headerPreview && fileInputRef.current?.click()}
+              >
+                {headerPreview ? (
+                  <>
+                    <img
+                      src={headerPreview}
+                      alt="Header"
+                      className="w-full h-full object-cover object-center transition-transform duration-700 group-hover/header:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/header:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4">
+                      <div className="flex gap-3">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          className="rounded-full bg-white/90 hover:bg-white text-black font-bold uppercase text-[10px] tracking-widest px-6"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            fileInputRef.current?.click();
+                          }}
+                        >
+                          <ImageIcon className="w-3 h-3 mr-2" />
+                          Cambiar
+                        </Button>
+                                                <Button
+                                                  type="button"
+                                                  variant="destructive"
+                                                  size="sm"
+                                                  className="rounded-full bg-red-500/90 hover:bg-red-500 font-bold uppercase text-[10px] tracking-widest px-6"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setHeaderFile(null);
+                                                    setHeaderPreview(null);
+                                                    form.setValue("image_url", "", { shouldDirty: true });
+                                                    if (fileInputRef.current) fileInputRef.current.value = "";
+                                                  }}
+                                                >
+                          <Trash2 className="w-3 h-3 mr-2" />
+                          Borrar
+                        </Button>
+                      </div>
+                    </div>
+                  </>
                 ) : (
-                  <div className="flex flex-col items-center gap-2 text-white/30 text-center px-4">
-                    <ImageIcon className="w-10 h-10" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.5em]">
-                      Portada del Formulario
+                  <div className="flex flex-col items-center gap-4 text-gray-300 group-hover/header:text-[var(--puembo-green)] transition-colors duration-500">
+                    <div className="w-16 h-16 rounded-3xl bg-white shadow-sm flex items-center justify-center border border-gray-100">
+                      <Plus className="w-8 h-8" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em]">
+                      Subir Portada del Formulario
                     </span>
                   </div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
 
-                <div className="absolute bottom-6 right-8 flex gap-3">
-                  {(imageFile || initialForm?.image_url) && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setImageFile(null);
-                        form.setValue("image_url", "");
-                        if (fileInputRef.current)
-                          fileInputRef.current.value = "";
-                      }}
-                      className="px-4 py-2 rounded-full bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-400 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all flex items-center gap-2"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      Borrar
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all flex items-center gap-2"
-                  >
-                    <ImageIcon className="w-3 h-3" />
-                    {imageFile || initialForm?.image_url
-                      ? "Cambiar"
-                      : "Subir Portada"}
-                  </button>
-                </div>
                 <input
                   type="file"
                   accept="image/*"
                   className="hidden"
                   ref={fileInputRef}
-                  onChange={(e) => setImageFile(e.target.files[0])}
+                  onChange={handleHeaderFileChange}
                 />
               </div>
 
@@ -1027,19 +1064,17 @@ export default function FormBuilder({
                       onRemove={() => remove(index)}
                       onUpdateFieldType={updateFieldType}
                       onUploadAttachment={(i, f) => {
-                        const r = new FileReader();
-                        r.onload = (e) => {
-                          form.setValue(
-                            `fields.${i}.attachment_url`,
-                            e.target.result,
-                          );
-                          form.setValue(
-                            `fields.${i}.attachment_type`,
-                            f.type.startsWith("image/") ? "image" : "file",
-                          );
-                          form.setValue(`fields.${i}.attachment_file`, f);
-                        };
-                        r.readAsDataURL(f);
+                        if (!f) return;
+                        const isImage = f.type.startsWith("image/");
+                        const blobUrl = URL.createObjectURL(f);
+                        
+                        form.setValue(`fields.${i}.attachment_url`, blobUrl, { shouldDirty: true });
+                        form.setValue(
+                          `fields.${i}.attachment_type`,
+                          isImage ? "image" : "file",
+                          { shouldDirty: true }
+                        );
+                        form.setValue(`fields.${i}.attachment_file`, f, { shouldDirty: true });
                       }}
                       isDraggingAny={!!activeDragId}
                     />
@@ -1084,7 +1119,11 @@ export default function FormBuilder({
       </div>
 
       {/* FAB + Editor Panel for Mobile */}
-      <AdminFAB onClick={() => setIsEditorOpen(true)} label="Añadir" icon={Plus} />
+      <AdminFAB
+        onClick={() => setIsEditorOpen(true)}
+        label="Añadir"
+        icon={Plus}
+      />
 
       <AdminEditorPanel
         open={isEditorOpen}
