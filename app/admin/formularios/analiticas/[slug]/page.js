@@ -2,6 +2,22 @@ import { createClient } from "@/lib/supabase/server";
 import AnalyticsDashboard from "@/components/admin/managers/AnalyticsDashboard";
 import { notFound } from "next/navigation";
 
+export async function generateMetadata({ params }) {
+  const { slug } = await params;
+  const supabase = await createClient();
+  const { data: form } = await supabase
+    .from("forms")
+    .select("title")
+    .eq("slug", slug)
+    .single();
+
+  if (!form) return { title: "Analíticas" };
+
+  return {
+    title: `Analíticas: ${form.title}`,
+  };
+}
+
 export default async function FormAnalyticsPage({ params }) {
   const { slug } = await params;
   const supabase = await createClient();
