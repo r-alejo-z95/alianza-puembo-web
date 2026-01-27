@@ -140,7 +140,7 @@ const formatEventData = (event) => {
       start_date: formatEcuadorDateForInput(event.start_time),
       end_date: "",
       start_time: formatEcuadorTimeForInput(event.start_time),
-      end_time: formatEcuadorTimeForInput(event.end_time),
+      end_time: event.end_time ? formatEcuadorTimeForInput(event.end_time) : "",
     };
   }
 };
@@ -247,7 +247,9 @@ export default function EventForm({ event, onSave, onCancel }) {
     let start_time_utc, end_time_utc;
     if (data.is_multi_day) {
       start_time_utc = ecuadorToUTC(data.start_date, "00:00").toISOString();
-      end_time_utc = ecuadorToUTC(data.end_date, "23:59").toISOString();
+      end_time_utc = data.end_date 
+        ? ecuadorToUTC(data.end_date, "23:59").toISOString()
+        : ecuadorToUTC(data.start_date, "23:59").toISOString();
     } else if (data.all_day) {
       start_time_utc = ecuadorToUTC(data.start_date, "00:00").toISOString();
       end_time_utc = ecuadorToUTC(data.start_date, "23:59").toISOString();
@@ -256,7 +258,11 @@ export default function EventForm({ event, onSave, onCancel }) {
         data.start_date,
         data.start_time,
       ).toISOString();
-      end_time_utc = ecuadorToUTC(data.start_date, data.end_time).toISOString();
+      
+      // La hora de fin ahora es opcional
+      end_time_utc = data.end_time 
+        ? ecuadorToUTC(data.start_date, data.end_time).toISOString()
+        : null;
     }
 
     // Determinar el link final según el tipo

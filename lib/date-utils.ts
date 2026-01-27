@@ -238,7 +238,7 @@ export function formatEventDateRange(
  */
 export function formatEventTimeRange(
   start: string | Date,
-  end?: string | Date,
+  end?: string | Date | null,
   allDay?: boolean,
   isMultiDay?: boolean
 ): string {
@@ -246,9 +246,12 @@ export function formatEventTimeRange(
   if (allDay) return "Todo el día";
 
   const startTime = formatInEcuador(start, "HH:mm");
-  const endTime = end ? formatInEcuador(end, "HH:mm") : "";
+  
+  // Si no hay hora de fin, o es inválida, solo retornamos la de inicio
+  if (!end) return startTime;
+  
+  const endTime = formatInEcuador(end, "HH:mm");
+  if (!endTime || endTime === startTime) return startTime;
 
-  return endTime && endTime !== startTime
-    ? `${startTime} - ${endTime}`
-    : startTime;
+  return `${startTime} - ${endTime}`;
 }
