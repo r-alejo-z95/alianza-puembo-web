@@ -322,6 +322,7 @@ export async function regenerateFormAndSheet(
       .from("forms")
       .select("id, slug, title, google_sheet_id")
       .eq("slug", formSlug)
+      .eq("is_archived", false)
       .single();
 
     console.log("Found form by slug:", oldForm);

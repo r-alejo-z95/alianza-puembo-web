@@ -9,6 +9,7 @@ export async function generateMetadata({ params }) {
     .from("forms")
     .select("title")
     .eq("slug", slug)
+    .eq("is_archived", false)
     .single();
 
   if (!form) return { title: "Analíticas" };
@@ -27,6 +28,7 @@ export default async function FormAnalyticsPage({ params }) {
     .from("forms")
     .select("*, form_fields(*)")
     .eq("slug", slug)
+    .eq("is_archived", false)
     .single();
 
   if (formError || !form) {

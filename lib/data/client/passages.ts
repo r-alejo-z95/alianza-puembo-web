@@ -10,6 +10,7 @@ export async function getThisWeekPassages() {
   const { data: currentWeeks, error: currentWeekError } = await supabase
     .from("lom_passages")
     .select("week_number")
+    .eq('is_archived', false)
     .lte("week_start_date", endOfToday)
     .order("week_start_date", { ascending: false })
     .limit(1);
@@ -27,6 +28,7 @@ export async function getThisWeekPassages() {
     const { data: latestWeeks, error: latestWeekError } = await supabase
       .from("lom_passages")
       .select("week_number")
+      .eq('is_archived', false)
       .order("week_number", { ascending: false })
       .limit(1);
 
@@ -39,6 +41,7 @@ export async function getThisWeekPassages() {
   const { data, error } = await supabase
     .from("lom_passages")
     .select("*")
+    .eq('is_archived', false)
     .eq("week_number", targetWeekNumber)
     .order("day_of_week", { ascending: true });
 

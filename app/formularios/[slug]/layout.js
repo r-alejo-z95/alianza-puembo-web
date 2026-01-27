@@ -7,6 +7,7 @@ export async function generateMetadata({ params }) {
     .from('forms')
     .select('title, description')
     .eq('slug', slug)
+    .eq('is_archived', false)
     .single();
 
   if (error || !data) {

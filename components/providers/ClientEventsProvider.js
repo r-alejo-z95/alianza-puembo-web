@@ -19,6 +19,7 @@ export function ClientEventsProvider({ children, initialEvents = [] }) {
         const { data, error } = await supabase
             .from('events')
             .select('*')
+            .eq('is_archived', false)
             .order('start_time', { ascending: true });
 
         if (error) {

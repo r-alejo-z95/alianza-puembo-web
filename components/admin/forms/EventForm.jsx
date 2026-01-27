@@ -219,6 +219,7 @@ export default function EventForm({ event, onSave, onCancel }) {
     const { data, error } = await supabase
       .from("forms")
       .select("id, title, slug")
+      .eq("is_archived", false)
       .order("title");
     if (!error) setExistingForms(data);
     setLoadingForms(false);

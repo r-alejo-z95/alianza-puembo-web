@@ -5,6 +5,7 @@ export async function getLomPosts() {
   const { data, error } = await supabase
     .from('lom_posts')
     .select('*')
+    .eq('is_archived', false) // 👈 Filtro añadido
     .order('publication_date', { ascending: false });
 
   if (error) {

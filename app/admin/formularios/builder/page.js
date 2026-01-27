@@ -40,7 +40,10 @@ function BuilderContent() {
     if (formSlug || formId) {
       const fetchForm = async () => {
         const supabase = createClient();
-        let query = supabase.from("forms").select("*, form_fields(*)");
+        let query = supabase
+          .from("forms")
+          .select("*, form_fields(*)")
+          .eq("is_archived", false);
 
         if (formId) {
           query = query.eq("id", formId);
