@@ -17,30 +17,48 @@ import { EventRow } from "./table-cells/EventRows";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { useRouter } from "next/navigation";
 import { useAdminEventsContext } from "@/components/providers/EventsProvider";
-import { Loader2, Plus, ListFilter, CalendarCheck, Trash2 } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  ListFilter,
+  CalendarCheck,
+  Trash2,
+  CheckCircle2,
+  ArrowRight,
+  ExternalLink,
+} from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { AdminFAB } from "../layout/AdminFAB";
 import { ManagerSkeleton } from "../layout/AdminSkeletons";
 import RecycleBin from "./RecycleBin";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function EventManager() {
-  const { 
-    events, 
+  const {
+    events,
     archivedEvents,
-    loading, 
+    loading,
     loadingArchived,
-    isCreatingForm, 
-    saveEvent, 
+    isCreatingForm,
+    saveEvent,
     archiveEvent,
     restoreEvent,
     permanentlyDeleteEvent,
-    fetchArchivedEvents
+    fetchArchivedEvents,
   } = useAdminEventsContext();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [successData, setSuccessData] = useState(null);
 
   const { isLg } = useScreenSize();
   const itemsPerPage = isLg ? 10 : 5;
@@ -61,11 +79,15 @@ export default function EventManager() {
       setIsFormOpen(false);
       setSelectedEvent(null);
 
+      // Si se creó o regeneró un formulario, mostramos el modal de éxito
       if (
-        result.formId &&
+        result.formSlug &&
         (eventData.create_form || eventData.regenerate_form)
       ) {
-        router.push(`/admin/formularios?editFormId=${result.formId}`);
+        setSuccessData({
+          formSlug: result.formSlug,
+          eventTitle: eventData.title,
+        });
       }
     }
   };
@@ -224,13 +246,20 @@ export default function EventManager() {
         }
       >
         <div className="relative">
+          {/* Loader Fijo y mejorado */}
           {isCreatingForm && (
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col gap-4 justify-center items-center">
-              <Loader2 className="h-12 w-12 animate-spin text-[var(--puembo-green)]" />
-
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
-                Sincronizando Formulario
-              </p>
+            <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-md flex items-center justify-center animate-in fade-in duration-300">
+              <div className="flex flex-col gap-6 justify-center items-center bg-white p-12 rounded-[3rem] shadow-2xl scale-90 md:scale-100">
+                <Loader2 className="h-16 w-16 animate-spin text-[var(--puembo-green)]" />
+                <div className="space-y-2 text-center">
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--puembo-green)]">
+                    Creando Evento + Formulario de Registro
+                  </p>
+                  <p className="text-[10px] text-gray-400 font-medium">
+                    Creando Hoja de Cálculo y Carpeta Drive...
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -244,8 +273,48 @@ export default function EventManager() {
         </div>
       </AdminEditorPanel>
 
+      {/* Success Modal - Mejor UX post-creación */}
+      <Dialog open={!!successData} onOpenChange={() => setSuccessData(null)}>
+        <DialogContent className="max-w-md rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden">
+          <div className="bg-[var(--puembo-green)] p-8 text-white flex flex-col items-center gap-4">
+            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+              <CheckCircle2 className="w-8 h-8 text-white" />
+            </div>
+            <DialogTitle className="text-2xl font-serif font-bold text-center">
+              ¡Evento y Registro Listos!
+            </DialogTitle>
+          </div>
+
+          <div className="p-8 space-y-6">
+            <DialogDescription className="text-center text-gray-600 text-base leading-relaxed">
+              El evento <span className="font-bold text-gray-900 italic">"{successData?.eventTitle}"</span> se ha programado correctamente y el formulario de registro automático ha sido vinculado.
+            </DialogDescription>
+
+            <div className="grid grid-cols-1 gap-3">
+              <Button
+                variant="green"
+                className="rounded-full py-7 font-bold shadow-lg shadow-green-200 gap-2"
+                onClick={() => {
+                  router.push(`/admin/formularios/builder?slug=${successData.formSlug}`);
+                  setSuccessData(null);
+                }}
+              >
+                Personalizar Formulario <ArrowRight className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                className="rounded-full py-7 font-bold text-gray-400 hover:text-gray-600"
+                onClick={() => setSuccessData(null)}
+              >
+                Permanecer en Eventos
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Recycle Bin Dialog */}
-      <RecycleBin 
+      <RecycleBin
         open={isRecycleBinOpen}
         onOpenChange={setIsRecycleBinOpen}
         type="events"

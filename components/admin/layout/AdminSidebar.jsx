@@ -113,7 +113,7 @@ export default function AdminSidebar({ user, children }) {
   return (
     <div className="flex h-screen w-full bg-gray-50/50 overflow-hidden font-sans text-gray-900 relative">
       {/* Sidebar Desktop (Visible desde MD) */}
-      <aside className="hidden md:flex w-72 lg:w-80 bg-black text-white p-6 flex-col border-r border-white/5 relative z-50 shrink-0">
+      <aside className="hidden md:flex w-72 lg:w-80 bg-black text-white p-6 flex-col border-r border-white/5 relative z-50 shrink-0 h-screen sticky top-0">
         <div className="mb-12 px-2">
           <Link
             href="/admin"

@@ -293,7 +293,7 @@ export async function createFormAndSheet(formTitle: string) {
 
     revalidatePath("/admin/formularios");
 
-    return { success: true, formId, formUrl: `/formularios/${formSlug}` };
+    return { success: true, formId, formSlug, formUrl: `/formularios/${formSlug}` };
   } catch (error) {
     console.error("Unexpected error in createFormAndSheet:", error);
     return { error: "Ocurrió un error inesperado." };
