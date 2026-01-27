@@ -1,13 +1,25 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { toast } from 'sonner';
 import PassageForm from '@/components/admin/forms/PassageForm';
-import { Edit, Trash2, Loader2, Plus, Calendar, BookOpen } from 'lucide-react';
+import { 
+  Edit, 
+  Trash2, 
+  Loader2, 
+  Plus, 
+  Calendar, 
+  BookOpen, 
+  Search, 
+  X, 
+  CheckCircle2, 
+  SortAsc, 
+  SortDesc 
+} from 'lucide-react';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
@@ -16,6 +28,11 @@ import { AdminFAB } from "../layout/AdminFAB";
 import { ManagerSkeleton } from "../layout/AdminSkeletons";
 import { useLom } from '@/lib/hooks/useLom';
 import RecycleBin from './RecycleBin';
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
+
+import { motion, AnimatePresence } from "framer-motion";
 
 const daysOfWeek = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 
@@ -26,8 +43,12 @@ export default function PassageManager() {
     loading,
     loadingArchived,
     archiveItem,
+    archiveManyItems,
     restoreItem,
+    restoreManyItems,
     permanentlyDeleteItem,
+    permanentlyDeleteManyItems,
+    emptyRecycleBin,
     fetchArchivedItems,
     refetchItems
   } = useLom({ type: 'passages' });
@@ -37,32 +58,18 @@ export default function PassageManager() {
   const [selectedWeek, setSelectedWeek] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // UX States
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortDirection, setSortDirection] = useState("desc"); 
+  const [selectedIds, setSelectedIds] = useState([]);
+
   const itemsPerPage = 5;
   const supabase = createClient();
 
-  // Agrupar pasajes por semana para la visualización
-  const weeks = useMemo(() => {
-    if (!passages) return [];
-    
-    const sortedData = [...passages].sort((a, b) => {
-      return daysOfWeek.indexOf(a.day_of_week) - daysOfWeek.indexOf(b.day_of_week);
-    });
-
-    return sortedData.reduce((acc, passage) => {
-      const week = acc.find(w => w.week_number === passage.week_number);
-      if (week) {
-        week.passages.push(passage);
-      } else {
-        acc.push({ 
-          week_number: passage.week_number, 
-          week_start_date: passage.week_start_date, 
-          passages: [passage],
-          profiles: passage.profiles
-        });
-      }
-      return acc;
-    }, []).sort((a, b) => b.week_number - a.week_number);
-  }, [passages]);
+  // Reset pagination on search
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // Cargar archivados al abrir papelera
   useEffect(() => {
@@ -71,16 +78,51 @@ export default function PassageManager() {
     }
   }, [isRecycleBinOpen, fetchArchivedItems]);
 
-  const totalPages = useMemo(() => Math.ceil(weeks.length / itemsPerPage), [weeks.length, itemsPerPage]);
+  const allWeeks = useMemo(() => {
+    if (!passages) return [];
+    
+    let filtered = passages;
+    if (searchTerm) {
+      filtered = passages.filter(p => 
+        p.passage_reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.week_number.toString().includes(searchTerm)
+      );
+    }
+
+    const sortedData = [...filtered].sort((a, b) => {
+      return daysOfWeek.indexOf(a.day_of_week) - daysOfWeek.indexOf(b.day_of_week);
+    });
+
+    const grouped = sortedData.reduce((acc, passage) => {
+      const week = acc.find(w => w.week_number === passage.week_number);
+      if (week) {
+        week.passages.push(passage);
+      } else {
+        acc.push({ 
+          week_number: passage.week_number, 
+          week_start_date: passage.week_start_date, 
+          passages: [passage],
+          profiles: passage.profiles,
+          id: `week-${passage.week_number}`
+        });
+      }
+      return acc;
+    }, []);
+
+    return grouped.sort((a, b) => 
+      sortDirection === "desc" ? b.week_number - a.week_number : a.week_number - b.week_number
+    );
+  }, [passages, searchTerm, sortDirection]);
+
+  const totalPages = Math.ceil(allWeeks.length / itemsPerPage);
   const currentWeeks = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return weeks.slice(startIndex, endIndex);
-  }, [weeks, currentPage, itemsPerPage]);
+    return allWeeks.slice(startIndex, endIndex);
+  }, [allWeeks, currentPage, itemsPerPage]);
 
   const handleSave = async (data) => {
     const { data: { user } } = await supabase.auth.getUser();
-
     const passagesToSave = data.passages
       .filter(p => p.passage_reference)
       .map(p => ({
@@ -92,18 +134,13 @@ export default function PassageManager() {
       }));
 
     if (selectedWeek) {
-      // Para editar, primero borramos los pasajes anteriores de esa semana
-      // (En este caso particular, es más seguro borrar y re-insertar la semana)
       await supabase.from('lom_passages').delete().eq('week_number', selectedWeek.week_number);
     }
 
     if (passagesToSave.length > 0) {
       const { error } = await supabase.from('lom_passages').insert(passagesToSave);
-      if (error) {
-        toast.error('Error al guardar los pasajes.');
-      } else {
-        toast.success('Pasajes guardados con éxito.');
-      }
+      if (error) toast.error('Error al guardar.');
+      else toast.success('Semana programada con éxito.');
     }
 
     setIsFormOpen(false);
@@ -111,16 +148,29 @@ export default function PassageManager() {
   };
 
   const handleDeleteWeek = async (week_number) => {
-    // Para la papelera, archivamos todos los pasajes de esa semana
     const weekPassages = passages.filter(p => p.week_number === week_number);
-    const promises = weekPassages.map(p => archiveItem(p.id));
-    
-    await Promise.all(promises);
-    
-    const newTotalPages = Math.ceil((weeks.length - 1) / itemsPerPage);
-    if (currentPage > newTotalPages && newTotalPages > 0) {
-      setCurrentPage(1);
+    const ids = weekPassages.map(p => p.id);
+    await archiveManyItems(ids);
+  };
+
+  const handleBulkArchive = async () => {
+    const passageIds = passages
+      .filter(p => selectedIds.includes(`week-${p.week_number}`))
+      .map(p => p.id);
+    const success = await archiveManyItems(passageIds);
+    if (success) setSelectedIds([]);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === currentWeeks.length && currentWeeks.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(currentWeeks.map(w => w.id));
     }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
   return (
@@ -156,95 +206,152 @@ export default function PassageManager() {
             </Button>
           </div>
         </CardHeader>
+
+        <div className="px-8 py-6 border-b border-gray-50 bg-white/50 backdrop-blur-sm sticky top-0 z-20">
+          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+            <div className="relative w-full lg:max-w-md group">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-colors" />
+              <Input 
+                placeholder="Buscar por pasaje o semana..."
+                className="pl-14 h-14 rounded-full bg-gray-50 border-gray-100 focus:bg-white transition-all text-sm font-medium focus:ring-4 focus:ring-[var(--puembo-green)]/10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && <button onClick={() => setSearchTerm("")} className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-full transition-colors"><X className="w-3 h-3 text-gray-400" /></button>}
+            </div>
+            
+            <div className="flex items-center gap-3 w-full lg:w-auto">
+              <div className="flex items-center bg-gray-50 p-1.5 rounded-full border border-gray-100">
+                <Button 
+                  variant="green"
+                  onClick={() => setSortDirection(prev => prev === "asc" ? "desc" : "asc")}
+                  className="rounded-full h-11 px-6 font-bold text-[10px] uppercase tracking-[0.2em] gap-2 shadow-lg"
+                >
+                  {sortDirection === "asc" ? <SortAsc className="w-3.5 h-3.5" /> : <SortDesc className="w-3.5 h-3.5" />}
+                  Semana
+                </Button>
+              </div>
+              
+              <div className="flex items-center gap-3 ml-2">
+                <Checkbox 
+                  checked={selectedIds.length === currentWeeks.length && currentWeeks.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                  className="rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)] scale-110"
+                />
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Seleccionar Todo</span>
+              </div>
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {selectedIds.length > 0 && (
+              <motion.div initial={{ opacity: 0, y: 20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.95 }} transition={{ type: "spring", stiffness: 300, damping: 25 }} className="mt-6 p-4 bg-gray-900 rounded-full flex items-center justify-between shadow-2xl ring-4 ring-black/5 z-30">
+                <div className="flex items-center gap-5 pl-4 text-white">
+                  <div className="w-12 h-12 bg-[var(--puembo-green)] rounded-full flex items-center justify-center text-white shadow-lg shadow-green-500/20 animate-pulse"><CheckCircle2 className="w-6 h-6" /></div>
+                  <div className="flex flex-col text-left">
+                    <span className="font-bold text-sm text-white">{selectedIds.length} semanas seleccionadas</span>
+                    <span className="text-[9px] text-gray-500 font-black uppercase tracking-[0.3em]">Gestión masiva</span>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button variant="ghost" className="text-gray-400 hover:text-white hover:bg-white/5 rounded-full font-bold text-[10px] uppercase tracking-widest h-12 px-8" onClick={() => setSelectedIds([])}>Cancelar</Button>
+                  <Button className="bg-red-500 hover:bg-red-600 text-white rounded-full font-bold text-[10px] uppercase tracking-widest px-10 h-12 gap-3 shadow-xl transition-all" onClick={handleBulkArchive}><Trash2 className="w-4 h-4" /> Archivar</Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
         
         <CardContent className="p-8 md:p-12">
           {loading ? (
-            <ManagerSkeleton rows={itemsPerPage} columns={3} />
-          ) : weeks.length === 0 ? (
+            <ManagerSkeleton rows={itemsPerPage} columns={1} />
+          ) : allWeeks.length === 0 ? (
             <div className="py-20 text-center space-y-4">
-              < BookOpen className="w-12 h-12 text-gray-100 mx-auto" />
-              <p className="text-gray-400 font-light italic">No hay pasajes programados todavía.</p>
+              <BookOpen className="w-12 h-12 text-gray-100 mx-auto" />
+              <p className="text-gray-400 font-light italic text-lg font-serif">No se encontraron pasajes.</p>
             </div>
           ) : (
             <div className="space-y-6">
               <Accordion type="single" collapsible className="w-full space-y-4">
                 {currentWeeks.map(week => (
-                  <AccordionItem 
-                    value={`week-${week.week_number}`} 
-                    key={week.week_number}
-                    className="border border-gray-100 rounded-[2rem] px-6 lg:px-8 transition-all hover:border-[var(--puembo-green)]/20"
-                  >
-                    <AccordionTrigger className="hover:no-underline py-6">
-                      <div className="flex items-center gap-4 lg:gap-6 text-left">
-                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400 group-data-[state=open]:bg-[var(--puembo-green)] group-data-[state=open]:text-white transition-colors">
-                          <Calendar className="w-5 h-5 lg:w-6 lg:h-6" />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-xl font-serif font-bold text-gray-900">Semana {week.week_number}</p>
-                          <div className="flex items-center gap-2">
-                            <AuthorAvatar profile={week.profiles} className="h-4 w-4" />
-                            <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-gray-400">Programado por {week.profiles?.full_name?.split(' ')[0] || 'Admin'}</span>
+                  <div key={week.week_number} className="flex items-start gap-4">
+                    <Checkbox 
+                      checked={selectedIds.includes(week.id)}
+                      onCheckedChange={() => toggleSelect(week.id)}
+                      className="mt-8 rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)] scale-110"
+                    />
+                    <AccordionItem 
+                      value={week.id} 
+                      className={cn(
+                        "flex-1 border rounded-[2.5rem] px-6 lg:px-10 transition-all duration-300",
+                        selectedIds.includes(week.id) ? "border-green-200 bg-green-50/20 shadow-inner" : "border-gray-100 bg-white hover:border-[var(--puembo-green)]/20"
+                      )}
+                    >
+                      <AccordionTrigger className="hover:no-underline py-8">
+                        <div className="flex items-center gap-4 lg:gap-8 text-left">
+                          <div className={cn(
+                            "w-12 h-12 lg:w-14 lg:h-14 rounded-2xl flex items-center justify-center transition-all duration-500",
+                            selectedIds.includes(week.id) ? "bg-[var(--puembo-green)] text-white shadow-lg" : "bg-gray-50 text-gray-400"
+                          )}>
+                            <Calendar className="w-6 h-6 lg:w-7 lg:h-7" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <p className="text-2xl font-serif font-bold text-gray-900 leading-none">Semana {week.week_number}</p>
+                            <div className="flex items-center gap-3">
+                              <AuthorAvatar profile={week.profiles} className="h-5 w-5 border-white shadow-sm" />
+                              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 italic">Programado por {week.profiles?.full_name?.split(' ')[0] || 'Admin'}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="pb-8 pt-2 px-2 lg:px-0">
-                      <div className="bg-gray-50/50 rounded-3xl p-6 lg:p-8 flex flex-col md:flex-row justify-between items-end gap-8 border border-gray-100/50">
-                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6 w-full">
-                          {week.passages.map(passage => (
-                            <li key={passage.id} className="flex flex-col gap-1 group">
-                              <span className="text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)]">{passage.day_of_week}</span>
-                              <span className="text-base font-bold text-gray-700 group-hover:text-black transition-colors whitespace-normal break-words">{passage.passage_reference}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <div className="flex gap-3 shrink-0 w-full md:w-auto">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => { setSelectedWeek(week); setIsFormOpen(true); }}
-                            className="rounded-xl flex-1 md:flex-none border-gray-200 text-[var(--puembo-green)] md:text-black hover:bg-[var(--puembo-green)]/10 md:hover:text-[var(--puembo-green)] transition-all duration-300"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                className="rounded-xl flex-1 md:flex-none text-red-500 md:text-black hover:bg-red-50 md:hover:text-red-500 transition-all duration-300"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
-                              <AlertDialogHeader className="space-y-4">
-                                <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">¿Mover esta semana a la papelera?</AlertDialogTitle>
-                                <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
-                                  Todos los pasajes de la semana {week.week_number} dejarán de ser visibles, pero podrás restaurarlos desde la papelera si lo necesitas.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter className="pt-6">
-                                <AlertDialogCancel className="rounded-full border-gray-100">Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDeleteWeek(week.week_number)} className="rounded-full bg-red-500 hover:bg-red-600">Mover a papelera</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-10 pt-2">
+                        <div className="bg-gray-50/50 rounded-[2rem] p-8 lg:p-10 flex flex-col md:flex-row justify-between items-end gap-10 border border-gray-100/50">
+                          <div className="w-full">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="h-px w-8 bg-[var(--puembo-green)]" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">Lecturas Diarias</span>
+                            </div>
+                            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-8">
+                              {week.passages.map(passage => (
+                                <li key={passage.id} className="flex flex-col gap-1.5 group">
+                                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">{passage.day_of_week}</span>
+                                  <span className="text-lg font-serif font-bold text-gray-800 group-hover:text-[var(--puembo-green)] transition-colors">{passage.passage_reference}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                          <div className="flex gap-3 shrink-0 w-full md:w-auto">
+                            <Button variant="outline" onClick={() => { setSelectedWeek(week); setIsFormOpen(true); }} className="rounded-full h-12 px-8 flex-1 md:flex-none border-gray-200 font-bold text-[10px] uppercase tracking-widest hover:bg-[var(--puembo-green)] hover:text-white transition-all">
+                              <Edit className="w-4 h-4 mr-2" /> Editar
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" className="rounded-full h-12 w-12 p-0 text-red-500 hover:bg-red-50 transition-all">
+                                  <Trash2 className="w-5 h-5" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl p-10 text-center">
+                                <AlertDialogHeader className="space-y-4">
+                                  <AlertDialogTitle className="text-3xl font-serif font-bold text-gray-900 text-center">¿Mover a la papelera?</AlertDialogTitle>
+                                  <AlertDialogDescription className="text-gray-500 text-base leading-relaxed text-center">Todos los pasajes de la <span className="font-bold text-gray-900">semana {week.week_number}</span> dejarán de ser visibles. Podrás restaurarlos luego.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter className="pt-8 grid grid-cols-1 gap-3">
+                                  <AlertDialogAction onClick={() => handleDeleteWeek(week.week_number)} className="rounded-full h-14 bg-red-500 hover:bg-red-600 font-bold text-xs uppercase tracking-widest shadow-xl">Confirmar</AlertDialogAction>
+                                  <AlertDialogCancel className="rounded-full h-14 border-none text-gray-400 font-bold text-xs uppercase tracking-widest">Cancelar</AlertDialogCancel>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
                         </div>
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </div>
                 ))}
               </Accordion>
               
               {totalPages > 1 && (
-                <div className="pt-8 border-t border-gray-50">
-                  <PaginationControls
-                    hasNextPage={currentPage < totalPages}
-                    totalPages={totalPages}
-                    currentPage={currentPage}
-                    setCurrentPage={setCurrentPage}
-                  />
+                <div className="pt-12 border-t border-gray-50">
+                  <PaginationControls hasNextPage={currentPage < totalPages} totalPages={totalPages} currentPage={currentPage} setCurrentPage={setCurrentPage} />
                 </div>
               )}
             </div>
@@ -252,43 +359,15 @@ export default function PassageManager() {
         </CardContent>
       </Card>
 
-      <AdminEditorPanel
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        title={
-          <>
-            Lecturas de <br />
-            <span className="text-[var(--puembo-green)] italic">la Semana</span>
-          </>
-        }
-      >
-        <div className="md:p-12">
-          < PassageForm
-            week={selectedWeek}
-            onSave={handleSave}
-            onCancel={() => setIsFormOpen(false)}
-            loading={loading}
-          />
+      <AdminEditorPanel open={isFormOpen} onOpenChange={setIsFormOpen} title={<>Lecturas de <br /><span className="text-[var(--puembo-green)] italic">la Semana</span></>}>
+        <div className="md:p-12 bg-white">
+          < PassageForm week={selectedWeek} onSave={handleSave} onCancel={() => setIsFormOpen(false)} loading={loading} />
         </div>
       </AdminEditorPanel>
 
-      <RecycleBin 
-        open={isRecycleBinOpen}
-        onOpenChange={setIsRecycleBinOpen}
-        type="lom-passages"
-        items={archivedPassages}
-        onRestore={restoreItem}
-        onDelete={permanentlyDeleteItem}
-        loading={loadingArchived}
-      />
+      <RecycleBin open={isRecycleBinOpen} onOpenChange={setIsRecycleBinOpen} type="lom-passages" items={archivedPassages} onRestore={restoreItem} onDelete={permanentlyDeleteItem} onBulkRestore={restoreManyItems} onBulkDelete={permanentlyDeleteManyItems} onEmptyTrash={emptyRecycleBin} loading={loadingArchived} />
 
-      <AdminFAB 
-        onClick={() => {
-          setSelectedWeek(null);
-          setIsFormOpen(true);
-        }} 
-        label="Programar Semana"
-      />
+      <AdminFAB onClick={() => { setSelectedWeek(null); setIsFormOpen(true); }} label="Programar Semana" />
     </div>
   );
 }

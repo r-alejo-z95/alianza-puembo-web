@@ -34,12 +34,15 @@ import { formatInEcuador } from "@/lib/date-utils";
 import { cn } from "@/lib/utils.ts";
 import Link from "next/link";
 import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function PrayerRequestRow({
   request,
   onDelete,
   onStatusChange,
   compact,
+  isSelected,
+  onSelect,
 }) {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
 
@@ -158,29 +161,39 @@ export function PrayerRequestRow({
 
   if (compact) {
     return (
-      <div className="bg-white rounded-[1.5rem] p-4 shadow-sm border border-gray-100 space-y-3 relative group">
+      <div className={cn(
+        "bg-white rounded-[1.5rem] p-4 shadow-sm border transition-all duration-200 space-y-3 relative group",
+        isSelected ? "border-green-200 bg-green-50/30" : "border-gray-100"
+      )}>
         <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1 min-w-0">
-            <div className="flex items-center gap-2">
-                {request.is_public ? <Eye className="w-3 h-3 text-emerald-500" /> : <EyeOff className="w-3 h-3 text-blue-500" />}
-                <span className={cn(
-                    "text-[9px] font-black uppercase tracking-widest",
-                    request.is_public ? "text-emerald-600" : "text-blue-600"
-                )}>
-                    {request.is_public ? "Pública" : "Privada"}
-                </span>
+          <div className="flex items-start gap-3 min-w-0">
+            <Checkbox 
+                checked={isSelected}
+                onCheckedChange={onSelect}
+                className="mt-1 rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+            />
+            <div className="space-y-1 min-w-0">
+                <div className="flex items-center gap-2">
+                    {request.is_public ? <Eye className="w-3 h-3 text-emerald-500" /> : <EyeOff className="w-3 h-3 text-blue-500" />}
+                    <span className={cn(
+                        "text-[9px] font-black uppercase tracking-widest",
+                        request.is_public ? "text-emerald-600" : "text-blue-600"
+                    )}>
+                        {request.is_public ? "Pública" : "Privada"}
+                    </span>
+                </div>
+                <OverflowCell 
+                href={publicHref}
+                linkText="Ver en muro"
+                className="text-base font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words leading-tight"
+                >
+                {request.request_text}
+                </OverflowCell>
             </div>
-            <OverflowCell 
-              href={publicHref}
-              linkText="Ver en muro"
-              className="text-base font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words leading-tight"
-            >
-              {request.request_text}
-            </OverflowCell>
           </div>
         </div>
         
-        <div className="flex flex-col gap-1 pt-2 border-t border-gray-50">
+        <div className="flex flex-col gap-1 pt-2 border-t border-gray-50 pl-9">
             <div className="flex items-center gap-2 text-[11px] font-bold text-gray-700">
                 <User className="w-3 h-3 text-gray-400" />
                 {request.is_anonymous ? "Anónimo" : (request.name || "N/A")}
@@ -193,7 +206,7 @@ export function PrayerRequestRow({
             </div>
         </div>
 
-        <div className="flex items-center justify-end pt-3 border-t border-gray-50">
+        <div className="flex items-center justify-end pt-3 border-t border-gray-50 pl-9">
             <div className="w-full">{actions}</div>
         </div>
       </div>
@@ -201,8 +214,18 @@ export function PrayerRequestRow({
   }
 
   return (
-    <TableRow className="group hover:bg-gray-50/50 transition-colors border-b border-gray-50">
-      <TableCell className="px-8 py-6 w-1/3">
+    <TableRow className={cn(
+        "group hover:bg-gray-50/50 transition-colors border-b border-gray-50",
+        isSelected && "bg-green-50/30 hover:bg-green-50/40"
+    )}>
+      <TableCell className="px-6 py-6 w-[40px]">
+        <Checkbox 
+            checked={isSelected}
+            onCheckedChange={onSelect}
+            className="rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+        />
+      </TableCell>
+      <TableCell className="px-4 py-6 w-1/3">
         <div className="max-w-[350px]">
           <OverflowCell
             href={publicHref}

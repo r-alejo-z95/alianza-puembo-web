@@ -34,8 +34,9 @@ import Link from "next/link";
 import { Switch } from "@/components/ui/switch";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 
-export function FormRow({ form, onEdit, onDelete, compact }) {
+export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect }) {
   const [isEnabled, setEnabled] = useState(form.enabled ?? true);
   const [isUpdating, setIsUpdating] = useState(false);
   const supabase = createClient();
@@ -176,19 +177,29 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
 
   if (compact) {
     return (
-      <div className="bg-white rounded-[1.5rem] p-4 shadow-sm border border-gray-100 space-y-3 relative group">
+      <div className={cn(
+        "bg-white rounded-[1.5rem] p-4 shadow-sm border transition-all duration-200 space-y-3 relative group",
+        isSelected ? "border-green-200 bg-green-50/30" : "border-gray-100"
+      )}>
         <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1 min-w-0">
-            <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest">
-              Formulario
-            </span>
-            <OverflowCell
-              href={`/formularios/${form.slug}`}
-              linkText="Ver formulario"
-              className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words leading-tight"
-            >
-              {form.title}
-            </OverflowCell>
+          <div className="flex items-start gap-3 min-w-0">
+            <Checkbox 
+                checked={isSelected}
+                onCheckedChange={onSelect}
+                className="mt-1 rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+            />
+            <div className="space-y-1 min-w-0">
+                <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest">
+                Formulario
+                </span>
+                <OverflowCell
+                href={`/formularios/${form.slug}`}
+                linkText="Ver formulario"
+                className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words leading-tight"
+                >
+                {form.title}
+                </OverflowCell>
+            </div>
           </div>
           <AuthorAvatar
             profile={form.profiles}
@@ -196,7 +207,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
           />
         </div>
 
-        <div className="flex items-center justify-between border-t border-gray-50 pt-2">
+        <div className="flex items-center justify-between border-t border-gray-50 pt-2 pl-9">
             <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400">
                 <Calendar className="w-3 h-3 text-[var(--puembo-green)]/50" /> {formattedDate}
             </div>
@@ -208,7 +219,7 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
             </div>
         </div>
 
-        <div className="flex flex-col gap-2 pt-2 border-t border-gray-50">
+        <div className="flex flex-col gap-2 pt-2 border-t border-gray-50 pl-9">
           <div className="flex flex-wrap gap-2">
             {sheetLinkActions} {folderLinkActions}
           </div>
@@ -219,8 +230,18 @@ export function FormRow({ form, onEdit, onDelete, compact }) {
   }
 
   return (
-    <TableRow className="group hover:bg-gray-50/50 transition-colors border-b border-gray-50">
-      <TableCell className="px-8 py-6 w-1/3">
+    <TableRow className={cn(
+        "group hover:bg-gray-50/50 transition-colors border-b border-gray-50",
+        isSelected && "bg-green-50/30 hover:bg-green-50/40"
+    )}>
+      <TableCell className="px-6 py-6 w-[40px]">
+        <Checkbox 
+            checked={isSelected}
+            onCheckedChange={onSelect}
+            className="rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+        />
+      </TableCell>
+      <TableCell className="px-4 py-6 w-1/3">
         <div className="max-w-[250px]">
           <OverflowCell
             href={`/formularios/${form.slug}`}

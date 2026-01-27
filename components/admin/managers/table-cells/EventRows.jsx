@@ -10,8 +10,9 @@ import { formatEventDateRange, formatEventTimeRange } from '@/lib/date-utils';
 import { AuthorAvatar } from '@/components/shared/AuthorAvatar';
 import { cn } from '@/lib/utils.ts';
 import Link from 'next/link';
+import { Checkbox } from '@/components/ui/checkbox';
 
-export function EventRow({ event, onEdit, onDelete, compact }) {
+export function EventRow({ event, onEdit, onDelete, compact, isSelected, onSelect }) {
     const registrationActions = event.registration_link ? (
         <div className="flex items-center justify-center gap-2">
             <TooltipProvider>
@@ -81,31 +82,41 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
 
     if (compact) {
         return (
-            <div className="bg-white rounded-[1.5rem] p-4 shadow-sm border border-gray-100 space-y-3 relative group">
+            <div className={cn(
+                "bg-white rounded-[1.5rem] p-4 shadow-sm border transition-all duration-200 space-y-3 relative group",
+                isSelected ? "border-green-200 bg-green-50/30" : "border-gray-100"
+            )}>
                 <div className="flex items-start justify-between gap-4">
-                    <div className="space-y-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                            {event.color && <div className={`w-2 h-2 rounded-full ${getEventColorClasses(event.color)}`} />}
-                            <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest truncate">Actividad</span>
-                            {event.is_recurring && (
-                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[7px] font-black uppercase tracking-tighter border border-amber-100 shrink-0">
-                                    <Repeat className="w-2 h-2" />
-                                    {recurrenceLabel[event.recurrence_pattern] || "Recurrente"}
-                                </div>
-                            )}
+                    <div className="flex items-start gap-3 min-w-0">
+                        <Checkbox 
+                            checked={isSelected}
+                            onCheckedChange={onSelect}
+                            className="mt-1 rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+                        />
+                        <div className="space-y-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                                {event.color && <div className={`w-2 h-2 rounded-full ${getEventColorClasses(event.color)}`} />}
+                                <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest truncate">Actividad</span>
+                                {event.is_recurring && (
+                                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[7px] font-black uppercase tracking-tighter border border-amber-100 shrink-0">
+                                        <Repeat className="w-2 h-2" />
+                                        {recurrenceLabel[event.recurrence_pattern] || "Recurrente"}
+                                    </div>
+                                )}
+                            </div>
+                            <OverflowCell 
+                                href={`/eventos/${event.slug}`}
+                                linkText="Ver evento"
+                                className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words leading-tight"
+                            >
+                                {event.title}
+                            </OverflowCell>
                         </div>
-                        <OverflowCell 
-                            href={`/eventos/${event.slug}`}
-                            linkText="Ver evento"
-                            className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words leading-tight"
-                        >
-                            {event.title}
-                        </OverflowCell>
                     </div>
                     <AuthorAvatar profile={event.profiles} className="h-8 w-8 border-2 border-white shadow-sm shrink-0" />
                 </div>
                 
-                <div className="flex flex-wrap gap-x-4 gap-y-2">
+                <div className="flex flex-wrap gap-x-4 gap-y-2 pl-9">
                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400">
                         <Calendar className="w-3 h-3 text-[var(--puembo-green)]/50" /> {formattedDate}
                     </div>
@@ -116,7 +127,7 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
                     )}
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                <div className="flex items-center justify-between pt-3 border-t border-gray-50 pl-9">
                     <div className="flex gap-2">{registrationActions}</div>
                     <div className="flex gap-1">{actions}</div>
                 </div>
@@ -125,8 +136,18 @@ export function EventRow({ event, onEdit, onDelete, compact }) {
     }
 
     return (
-        <TableRow className="group hover:bg-gray-50/50 transition-colors border-b border-gray-50">
-            <TableCell className="px-8 py-6 w-1/4">
+        <TableRow className={cn(
+            "group hover:bg-gray-50/50 transition-colors border-b border-gray-50",
+            isSelected && "bg-green-50/30 hover:bg-green-50/40"
+        )}>
+            <TableCell className="px-6 py-6 w-[40px]">
+                <Checkbox 
+                    checked={isSelected}
+                    onCheckedChange={onSelect}
+                    className="rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+                />
+            </TableCell>
+            <TableCell className="px-4 py-6 w-1/4">
                 <div className="max-w-[180px] flex items-center gap-3">
                     {event.color && <div className={`w-2 h-2 rounded-full shrink-0 ${getEventColorClasses(event.color)}`} />}
                     <div className="flex-grow min-w-0">
