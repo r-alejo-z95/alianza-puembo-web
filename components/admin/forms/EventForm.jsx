@@ -441,9 +441,129 @@ export default function EventForm({ event, onSave, onCancel }) {
             </div>
           </div>
 
-          {/* Configuración de Fecha, Registro, etc... (Resto del formulario igual) */}
-          {/* [HE ACORTADO ESTA PARTE EN EL WRITE PARA ENFOCARME EN LOS CAMBIOS SOLICITADOS, 
-              PERO VOY A ESCRIBIR EL ARCHIVO COMPLETO PARA EVITAR ERRORES] */}
+          {/* Tipo de Evento y Recurrencia */}
+          <div className="space-y-4">
+            <div
+              className={cn(
+                "grid gap-6 bg-gray-50/50 p-6 rounded-[2rem] border border-gray-100 transition-all",
+                isMultiDay || allDay
+                  ? "grid-cols-1"
+                  : "grid-cols-1 md:grid-cols-2",
+              )}
+            >
+              {!allDay && (
+                <FormField
+                  control={form.control}
+                  name="is_multi_day"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (checked) form.setValue("all_day", false);
+                          }}
+                        />
+                      </FormControl>
+                      <FormLabel className="text-xs font-bold text-gray-600">
+                        Evento de varios días
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+              )}
+              {!isMultiDay && (
+                <FormField
+                  control={form.control}
+                  name="all_day"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={(checked) => {
+                            field.onChange(checked);
+                            if (checked) form.setValue("is_multi_day", false);
+                          }}
+                        />
+                      </FormControl>
+                      <FormLabel className="text-xs font-bold text-gray-600">
+                        Evento de todo el día
+                      </FormLabel>
+                    </FormItem>
+                  )}
+                />
+              )}
+            </div>
+
+            <div className="bg-[var(--puembo-green)]/5 p-6 rounded-[2rem] border border-[var(--puembo-green)]/10 space-y-6">
+              <FormField
+                control={form.control}
+                name="is_recurring"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between space-y-0">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                        <Repeat className="w-4 h-4 text-[var(--puembo-green)]" />
+                        Evento Recurrente
+                      </FormLabel>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-widest">
+                        ¿Se repite automáticamente?
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <AnimatePresence>
+                {isRecurring && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="pt-4 border-t border-[var(--puembo-green)]/10"
+                  >
+                    <FormField
+                      control={form.control}
+                      name="recurrence_pattern"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                            Frecuencia de repetición
+                          </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-12 rounded-xl border-gray-100 bg-white">
+                                <SelectValue placeholder="Selecciona frecuencia" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="rounded-2xl border-none shadow-2xl">
+                              {recurrenceOptions.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
 
           {/* Tiempos */}
           <div className="space-y-6">
