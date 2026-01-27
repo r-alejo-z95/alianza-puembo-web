@@ -55,7 +55,12 @@ export default function LoginPage() {
       }
     } else {
       toast.success("Sesión iniciada con éxito.");
-      router.push("/admin");
+      // Forzar un refresh del router para asegurar que el middleware reconozca la cookie en prod
+      router.refresh();
+      // Pequeño delay para permitir que el estado se sincronice antes del push
+      setTimeout(() => {
+        router.push("/admin");
+      }, 100);
     }
     setLoading(false);
   };
