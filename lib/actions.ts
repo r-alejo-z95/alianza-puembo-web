@@ -107,7 +107,7 @@ export async function submitContactForm(
   try {
     await resend.emails.send({
       from: "Formulario de Contacto – Alianza Puembo <contactform@alianzapuembo.org>",
-      to: "agarcia@alianzapuembo.org",
+      to: "info@alianzapuembo.org",
       replyTo: email,
       subject: `${name} ha enviado un mensaje desde el formulario de contacto – Alianza Puembo Web`,
       html: `
@@ -293,7 +293,12 @@ export async function createFormAndSheet(formTitle: string) {
 
     revalidatePath("/admin/formularios");
 
-    return { success: true, formId, formSlug, formUrl: `/formularios/${formSlug}` };
+    return {
+      success: true,
+      formId,
+      formSlug,
+      formUrl: `/formularios/${formSlug}`,
+    };
   } catch (error) {
     console.error("Unexpected error in createFormAndSheet:", error);
     return { error: "Ocurrió un error inesperado." };
