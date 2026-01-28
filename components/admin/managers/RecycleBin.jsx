@@ -58,31 +58,45 @@ export default function RecycleBin({
 
   const getIcon = () => {
     switch (type) {
-      case "events": return <Calendar className="w-5 h-5" />;
-      case "news": return <Newspaper className="w-5 h-5" />;
-      case "forms": return <FileText className="w-5 h-5" />;
-      case "prayer": return <MessageSquare className="w-5 h-5" />;
-      case "lom-posts": return <BookOpen className="w-5 h-5" />;
-      case "lom-passages": return <Calendar className="w-5 h-5" />;
-      default: return <Trash2 className="w-5 h-5" />;
+      case "events":
+        return <Calendar className="w-5 h-5" />;
+      case "news":
+        return <Newspaper className="w-5 h-5" />;
+      case "forms":
+        return <FileText className="w-5 h-5" />;
+      case "prayer":
+        return <MessageSquare className="w-5 h-5" />;
+      case "lom-posts":
+        return <BookOpen className="w-5 h-5" />;
+      case "lom-passages":
+        return <Calendar className="w-5 h-5" />;
+      default:
+        return <Trash2 className="w-5 h-5" />;
     }
   };
 
   const getTypeName = () => {
     switch (type) {
-      case "events": return "Eventos";
-      case "news": return "Noticias";
-      case "forms": return "Formularios";
-      case "prayer": return "Peticiones";
-      case "lom-posts": return "Devocionales";
-      case "lom-passages": return "Semanas LOM";
-      default: return "Elementos";
+      case "events":
+        return "Eventos";
+      case "news":
+        return "Noticias";
+      case "forms":
+        return "Formularios";
+      case "prayer":
+        return "Peticiones";
+      case "lom-posts":
+        return "Devocionales";
+      case "lom-passages":
+        return "Semanas LOM";
+      default:
+        return "Elementos";
     }
   };
 
   const toggleSelect = (id) => {
     setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
     );
   };
 
@@ -147,7 +161,9 @@ export default function RecycleBin({
               <div className="flex items-center gap-3">
                 <Checkbox
                   id="select-all-trash"
-                  checked={selectedIds.length === items.length && items.length > 0}
+                  checked={
+                    selectedIds.length === items.length && items.length > 0
+                  }
                   onCheckedChange={toggleSelectAll}
                   className="rounded-md border-gray-300 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
                 />
@@ -221,7 +237,7 @@ export default function RecycleBin({
                       key={item.id}
                       className={cn(
                         "group flex items-center gap-4 p-6 transition-all duration-300",
-                        isSelected ? "bg-red-50/20" : "hover:bg-gray-50/50"
+                        isSelected ? "bg-red-50/20" : "hover:bg-gray-50/50",
                       )}
                     >
                       <Checkbox
@@ -239,7 +255,7 @@ export default function RecycleBin({
                             "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-500",
                             isSelected
                               ? "bg-red-100 text-red-500 scale-110 shadow-lg shadow-red-500/10"
-                              : "bg-gray-50 text-gray-400"
+                              : "bg-gray-50 text-gray-400",
                           )}
                         >
                           {getIcon()}
@@ -257,7 +273,11 @@ export default function RecycleBin({
                           <p className="text-[10px] text-gray-400 uppercase tracking-[0.1em] font-bold">
                             Eliminado el{" "}
                             {item.archived_at
-                              ? format(new Date(item.archived_at), "d 'de' MMM, HH:mm", { locale: es })
+                              ? format(
+                                  new Date(item.archived_at),
+                                  "d 'de' MMM, HH:mm",
+                                  { locale: es },
+                                )
                               : "Recientemente"}
                           </p>
                         </div>
@@ -268,7 +288,10 @@ export default function RecycleBin({
                           size="icon"
                           variant="ghost"
                           className="rounded-full text-blue-600 hover:bg-blue-50 h-10 w-10"
-                          onClick={(e) => { e.stopPropagation(); onRestore(item.id); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRestore(item.id);
+                          }}
                         >
                           <RotateCcw className="w-4 h-4" />
                         </Button>
@@ -276,7 +299,10 @@ export default function RecycleBin({
                           size="icon"
                           variant="ghost"
                           className="rounded-full text-red-600 hover:bg-red-50 h-10 w-10"
-                          onClick={(e) => { e.stopPropagation(); setConfirmDelete(item); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDelete(item);
+                          }}
                         >
                           <Trash className="w-4 h-4" />
                         </Button>
@@ -291,8 +317,11 @@ export default function RecycleBin({
       </AdminEditorPanel>
 
       {/* Dialogs de Confirmación (estilo editorial) */}
-      <Dialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
-        <DialogContent className="max-w-md rounded-[2.5rem] border-none shadow-2xl p-10 text-center">
+      <Dialog
+        open={!!confirmDelete}
+        onOpenChange={() => setConfirmDelete(null)}
+      >
+        <DialogContent className="max-w-md rounded-[2.5rem] border-none shadow-2xl p-10 text-center [&>button]:hidden">
           <div className="mx-auto w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-8 animate-in zoom-in-50 duration-300">
             <AlertCircle className="w-10 h-10" />
           </div>
@@ -300,7 +329,13 @@ export default function RecycleBin({
             ¿Eliminar para siempre?
           </DialogTitle>
           <DialogDescription className="text-gray-500 mb-10 text-center text-base leading-relaxed">
-            Esta acción es <span className="font-bold text-gray-900">irreversible</span>. Se borrará permanentemente <span className="italic font-medium">"{confirmDelete?.title || "este elemento"}"</span>.
+            Esta acción es{" "}
+            <span className="font-bold text-gray-900">irreversible</span>. Se
+            borrará permanentemente{" "}
+            <span className="italic font-medium">
+              "{confirmDelete?.title || "este elemento"}"
+            </span>
+            .
           </DialogDescription>
           <div className="grid grid-cols-1 gap-3">
             <Button
@@ -321,7 +356,10 @@ export default function RecycleBin({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={confirmBulkDelete} onOpenChange={() => setConfirmBulkDelete(false)}>
+      <Dialog
+        open={confirmBulkDelete}
+        onOpenChange={() => setConfirmBulkDelete(false)}
+      >
         <DialogContent className="max-w-md rounded-[2.5rem] border-none shadow-2xl p-10 text-center">
           <div className="mx-auto w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-8">
             <Trash2 className="w-10 h-10" />
@@ -330,7 +368,11 @@ export default function RecycleBin({
             Borrar Selección
           </DialogTitle>
           <DialogDescription className="text-gray-500 mb-10 text-center text-base leading-relaxed">
-            Estás a punto de borrar definitivamente <span className="font-bold text-gray-900">{selectedIds.length} elementos</span>. ¿Deseas proceder?
+            Estás a punto de borrar definitivamente{" "}
+            <span className="font-bold text-gray-900">
+              {selectedIds.length} elementos
+            </span>
+            . ¿Deseas proceder?
           </DialogDescription>
           <div className="grid grid-cols-1 gap-3">
             <Button
@@ -360,7 +402,9 @@ export default function RecycleBin({
             ¿Vaciar Papelera?
           </DialogTitle>
           <DialogDescription className="text-gray-500 mb-10 text-center text-base leading-relaxed">
-            Se eliminarán <span className="font-bold text-gray-900">TODOS</span> los elementos de la papelera de forma definitiva. No hay vuelta atrás.
+            Se eliminarán <span className="font-bold text-gray-900">TODOS</span>{" "}
+            los elementos de la papelera de forma definitiva. No hay vuelta
+            atrás.
           </DialogDescription>
           <div className="grid grid-cols-1 gap-3">
             <Button

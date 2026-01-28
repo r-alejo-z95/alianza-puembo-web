@@ -4,14 +4,13 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  
-
   --puembo-green: hsl(92, 45.9%, 47.8%);
   --puembo-brown: hsl(34, 57%, 30%);
   --puembo-black: hsl(345, 6%, 13%);
 }
 
 :root {
+  --puembo-green-rgb: 74, 222, 128;
   --background: oklch(1 0 0);
   --foreground: oklch(0.24 0.01 0.59);
   --card: oklch(1 0 0);
@@ -46,20 +45,26 @@
   --sidebar-ring: oklch(0.77 0 0);
   --font-sans: var(--font-poppins);
   --font-serif: var(--font-merriweather);
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   --radius: 0.25rem;
   --shadow-2xs: 0 1px 3px 0px hsl(345 6.06% 12.94% / 0.05);
   --shadow-xs: 0 1px 3px 0px hsl(345 6.06% 12.94% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(345 6.06% 12.94% / 0.1),
+  --shadow-sm:
+    0 1px 3px 0px hsl(345 6.06% 12.94% / 0.1),
     0 1px 2px -1px hsl(345 6.06% 12.94% / 0.1);
-  --shadow: 0 1px 3px 0px hsl(345 6.06% 12.94% / 0.1),
+  --shadow:
+    0 1px 3px 0px hsl(345 6.06% 12.94% / 0.1),
     0 1px 2px -1px hsl(345 6.06% 12.94% / 0.1);
-  --shadow-md: 0 1px 3px 0px hsl(345 6.06% 12.94% / 0.1),
+  --shadow-md:
+    0 1px 3px 0px hsl(345 6.06% 12.94% / 0.1),
     0 2px 4px -1px hsl(345 6.06% 12.94% / 0.1);
-  --shadow-lg: 0 1px 3px 0px hsl(345 6.06% 12.94% / 0.1),
+  --shadow-lg:
+    0 1px 3px 0px hsl(345 6.06% 12.94% / 0.1),
     0 4px 6px -1px hsl(345 6.06% 12.94% / 0.1);
-  --shadow-xl: 0 1px 3px 0px hsl(345 6.06% 12.94% / 0.1),
+  --shadow-xl:
+    0 1px 3px 0px hsl(345 6.06% 12.94% / 0.1),
     0 8px 10px -1px hsl(345 6.06% 12.94% / 0.1);
   --shadow-2xl: 0 1px 3px 0px hsl(345 6.06% 12.94% / 0.25);
 }
@@ -99,22 +104,42 @@
   --sidebar-ring: oklch(0.87 0.01 286.29);
   --font-sans: var(--font-poppins);
   --font-serif: var(--font-merriweather);
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   --radius: 0.25rem;
   --shadow-2xs: 0 1px 3px 0px hsl(0 0% 10.2% / 0.05);
   --shadow-xs: 0 1px 3px 0px hsl(0 0% 10.2% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 10.2% / 0.1),
-    0 1px 2px -1px hsl(0 0% 10.2% / 0.1);
-  --shadow: 0 1px 3px 0px hsl(0 0% 10.2% / 0.1),
-    0 1px 2px -1px hsl(0 0% 10.2% / 0.1);
-  --shadow-md: 0 1px 3px 0px hsl(0 0% 10.2% / 0.1),
-    0 2px 4px -1px hsl(0 0% 10.2% / 0.1);
-  --shadow-lg: 0 1px 3px 0px hsl(0 0% 10.2% / 0.1),
-    0 4px 6px -1px hsl(0 0% 10.2% / 0.1);
-  --shadow-xl: 0 1px 3px 0px hsl(0 0% 10.2% / 0.1),
-    0 8px 10px -1px hsl(0 0% 10.2% / 0.1);
+  --shadow-sm:
+    0 1px 3px 0px hsl(0 0% 10.2% / 0.1), 0 1px 2px -1px hsl(0 0% 10.2% / 0.1);
+  --shadow:
+    0 1px 3px 0px hsl(0 0% 10.2% / 0.1), 0 1px 2px -1px hsl(0 0% 10.2% / 0.1);
+  --shadow-md:
+    0 1px 3px 0px hsl(0 0% 10.2% / 0.1), 0 2px 4px -1px hsl(0 0% 10.2% / 0.1);
+  --shadow-lg:
+    0 1px 3px 0px hsl(0 0% 10.2% / 0.1), 0 4px 6px -1px hsl(0 0% 10.2% / 0.1);
+  --shadow-xl:
+    0 1px 3px 0px hsl(0 0% 10.2% / 0.1), 0 8px 10px -1px hsl(0 0% 10.2% / 0.1);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 10.2% / 0.25);
+}
+
+@keyframes highlight-pulse-effect {
+  0% {
+    box-shadow: 0 0 0 0 rgba(var(--puembo-green-rgb), 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 20px rgba(var(--puembo-green-rgb), 0);
+    transform: scale(1.01);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--puembo-green-rgb), 0);
+    transform: scale(1);
+  }
+}
+
+.highlight-pulse-effect {
+  animation: highlight-pulse-effect 1s ease-out;
 }
 
 @theme inline {
@@ -270,9 +295,18 @@
   font-weight: bold;
 }
 
-.tiptap-content h1, .tiptap h1 { font-size: 2rem; }
-.tiptap-content h2, .tiptap h2 { font-size: 1.5rem; }
-.tiptap-content h3, .tiptap h3 { font-size: 1.25rem; }
+.tiptap-content h1,
+.tiptap h1 {
+  font-size: 2rem;
+}
+.tiptap-content h2,
+.tiptap h2 {
+  font-size: 1.5rem;
+}
+.tiptap-content h3,
+.tiptap h3 {
+  font-size: 1.25rem;
+}
 
 .tiptap-content code,
 .tiptap code {
@@ -284,9 +318,9 @@
 
 .tiptap-content pre,
 .tiptap pre {
-  background: #0D0D0D;
-  color: #FFF;
-  font-family: 'JetBrainsMono', monospace;
+  background: #0d0d0d;
+  color: #fff;
+  font-family: "JetBrainsMono", monospace;
   padding: 0.75rem 1rem;
   border-radius: 0.5rem;
 }

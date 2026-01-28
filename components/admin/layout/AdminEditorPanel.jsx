@@ -40,7 +40,7 @@ export function AdminEditorPanel({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
           className={cn(
-            "sm:max-w-2xl w-full p-0 flex flex-col border-none shadow-2xl overflow-hidden",
+            "sm:max-w-2xl w-full p-0 flex flex-col border-none shadow-2xl overflow-hidden [&>button]:hidden",
             className,
           )}
           side="right"
