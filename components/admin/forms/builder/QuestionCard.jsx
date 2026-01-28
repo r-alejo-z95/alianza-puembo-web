@@ -350,9 +350,6 @@ function QuestionCard({
               <Select value={type} onValueChange={handleTypeChange}>
                 <SelectTrigger className="h-14 bg-white border-gray-200 rounded-[1.25rem] shadow-sm hover:border-[var(--puembo-green)] transition-all px-5">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-[var(--puembo-green)]/10">
-                      <TypeIcon className="w-4 h-4 text-gray-400" />
-                    </div>
                     <SelectValue />
                   </div>
                 </SelectTrigger>
@@ -743,7 +740,7 @@ function QuestionCard({
         onActivate();
       }}
       className={cn(
-        "bg-white border-2 rounded-[3rem] transition-all duration-500 group relative cursor-pointer",
+        "bg-white border-2 rounded-[3rem] transition-all duration-500 group relative cursor-pointer field-card-container",
         isActive
           ? "border-[var(--puembo-green)] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] scale-[1.01] my-10"
           : "border-gray-200 hover:border-gray-300 hover:shadow-xl my-4",

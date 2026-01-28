@@ -139,18 +139,13 @@ export default function FormBuilder({
 
     scrollTimeoutRef.current = setTimeout(() => {
       requestAnimationFrame(() => {
-        // Estrategia 1: Buscar por ID de tarjeta (basado en índice) - Muy fiable para nuevos elementos
         let element = null;
         if (index !== null) {
           element = document.getElementById(`field-card-${index}`);
         }
-
-        // Estrategia 2: Buscar por data-field-id (ID estable de useFieldArray)
         if (!element && id) {
           element = document.querySelector(`[data-field-id="${id}"]`);
         }
-
-        // Estrategia 3: Buscar por ID de DOM simple
         if (!element && id) {
           element = document.getElementById(`field-${id}`);
         }
@@ -169,24 +164,42 @@ export default function FormBuilder({
           );
         }
       });
-    }, 300); // Aumentado a 300ms para asegurar renderizado completo
+    }, 300);
   }, []);
 
+  /**
+   * handleFieldClick mejorado: Solo activa el campo.
+   * Evitamos el toggle para prevenir cierres accidentales al clickar dentro.
+   */
   const handleFieldClick = useCallback((fieldId) => {
-    setActiveFieldId((prev) => (prev === fieldId ? null : fieldId));
+    setActiveFieldId(fieldId);
   }, []);
 
-  // Click outside detection
+  /**
+   * Detectar clicks fuera de los campos activos para cerrarlos
+   */
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!activeFieldId || activeFieldId === "header") return;
+      if (!activeFieldId) return;
 
-      const isInside =
-        event.target.closest("[data-field-card]") ||
-        event.target.closest("[data-toolbar]") ||
-        event.target.closest("[data-panel]");
+      // Un enfoque robusto basado en clases y elementos interactivos
+      const isInsideSafeZone = 
+        event.target.closest(".field-card-container") || 
+        event.target.closest(".form-header-card") || 
+        event.target.closest("[data-toolbar]") || 
+        event.target.closest("[data-panel]") ||
+        event.target.closest("button") ||
+        event.target.closest("input") ||
+        event.target.closest("textarea") ||
+        event.target.closest("label") ||
+        event.target.closest(".tiptap") ||
+        event.target.closest(".ProseMirror") ||
+        event.target.closest("[data-radix-popper-content-wrapper]") ||
+        event.target.closest(".radix-portal") ||
+        event.target.closest(".sonner-toast");
 
-      if (!isInside) {
+      // Si el click no es dentro de una zona segura, cerramos el estado activo
+      if (!isInsideSafeZone) {
         setActiveFieldId(null);
       }
     };
@@ -222,18 +235,11 @@ export default function FormBuilder({
 
       setActiveFieldId(newFieldId);
       setIsMobilePanelOpen(false);
-
-      // Scroll usando tanto ID como Índice para máxima compatibilidad
       scrollToField(newFieldId, targetIndex);
 
       toast.success(`${type === "section" ? "Sección" : "Pregunta"} añadida`, {
         description: "Personaliza tu nuevo bloque",
-        icon:
-          type === "section" ? (
-            <Layout className="w-4 h-4" />
-          ) : (
-            <Plus className="w-4 h-4" />
-          ),
+        icon: type === "section" ? <Layout className="w-4 h-4" /> : <Plus className="w-4 h-4" />,
       });
     },
     [activeFieldId, append, fields, insert, scrollToField],
@@ -273,9 +279,7 @@ export default function FormBuilder({
   const onInvalid = useCallback(
     (errors) => {
       if (errors.title) {
-        toast.error("El título es obligatorio", {
-          description: "Por favor, asigna un nombre a tu formulario.",
-        });
+        toast.error("El título es obligatorio");
         setActiveFieldId("header");
         scrollToField("header");
         return;
@@ -290,14 +294,10 @@ export default function FormBuilder({
         if (fieldIndices.length > 0) {
           const firstErrorIndex = fieldIndices[0];
           const field = fields[firstErrorIndex];
-
-          toast.error("Revisa los campos requeridos", {
-            description: `El elemento #${firstErrorIndex + 1} tiene errores.`,
-          });
-
+          toast.error(`Revisa el bloque #${firstErrorIndex + 1}`);
           if (field?.id) {
             setActiveFieldId(field.id);
-            scrollToField(field.id);
+            scrollToField(field.id, firstErrorIndex);
           }
         }
       }
@@ -438,20 +438,14 @@ export default function FormBuilder({
               onClick={() => setIsMobilePanelOpen(true)}
               label="BLOQUES"
               icon={Plus}
+              data-panel
               className="lg:hidden"
             />
 
             <AdminEditorPanel
               open={isMobilePanelOpen}
               onOpenChange={setIsMobilePanelOpen}
-              title={
-                <>
-                  Añadir{" "}
-                  <span className="text-[var(--puembo-green)] italic">
-                    Contenido
-                  </span>
-                </>
-              }
+              title={<>Añadir <span className="text-[var(--puembo-green)] italic">Contenido</span></>}
               description="Selecciona el tipo de bloque que deseas añadir al formulario."
               data-panel
             >
@@ -465,12 +459,8 @@ export default function FormBuilder({
                     <Plus className="w-6 h-6 text-[var(--puembo-green)]" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-black uppercase tracking-widest text-[10px]">
-                      Pregunta
-                    </span>
-                    <span className="text-xs text-gray-400 font-medium">
-                      Añade un campo de entrada
-                    </span>
+                    <span className="font-black uppercase tracking-widest text-[10px]">Pregunta</span>
+                    <span className="text-xs text-gray-400 font-medium">Añade un campo de entrada</span>
                   </div>
                 </Button>
                 <Button
@@ -482,12 +472,8 @@ export default function FormBuilder({
                     <Layout className="w-6 h-6 text-black" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-black uppercase tracking-widest text-[10px]">
-                      Sección
-                    </span>
-                    <span className="text-xs text-gray-400 font-medium">
-                      Organiza por grupos de preguntas
-                    </span>
+                    <span className="font-black uppercase tracking-widest text-[10px]">Sección</span>
+                    <span className="text-xs text-gray-400 font-medium">Organiza por grupos de preguntas</span>
                   </div>
                 </Button>
               </div>
@@ -501,12 +487,8 @@ export default function FormBuilder({
                     <CheckCircle2 className="w-5 h-5 text-[var(--puembo-green)]" />
                   </div>
                   <div className="flex flex-col text-left">
-                    <span className="font-black text-xs text-black uppercase tracking-tight">
-                      Reordenando
-                    </span>
-                    <span className="text-[8px] text-gray-400 font-black uppercase tracking-widest">
-                      Suelte para colocar
-                    </span>
+                    <span className="font-black text-xs text-black uppercase tracking-tight">Reordenando</span>
+                    <span className="text-[8px] text-gray-400 font-black uppercase tracking-widest">Suelte para colocar</span>
                   </div>
                 </div>
               ) : null}

@@ -14,6 +14,7 @@ export function AdminFAB({
   label = "NUEVO",
   icon: Icon = Plus,
   className,
+  ...props
 }) {
   return (
     <AnimatePresence>
@@ -29,6 +30,7 @@ export function AdminFAB({
             "h-12 w-auto px-6 rounded-full bg-black text-white shadow-2xl shadow-black/40 active:scale-95 transition-all duration-500 border border-[var(--puembo-green)]/30 flex items-center gap-3 backdrop-blur-md",
             className,
           )}
+          {...props}
         >
           <Icon
             size={18}

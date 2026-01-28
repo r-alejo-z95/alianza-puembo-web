@@ -60,7 +60,7 @@ const FormHeader = ({
         onActivate();
       }}
       className={cn(
-        "bg-white rounded-[2.5rem] border transition-all duration-500 relative overflow-hidden group mb-8 cursor-pointer",
+        "bg-white rounded-[2.5rem] border transition-all duration-500 relative overflow-hidden group mb-8 cursor-pointer form-header-card",
         isActive
           ? "border-[var(--puembo-green)] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] ring-8 ring-[var(--puembo-green)]/5"
           : "border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md",
@@ -242,18 +242,8 @@ export default function FormCanvas({
     .filter((f) => f.type === "section")
     .map((f) => ({ id: f.id, label: f.label || "Sección sin título" }));
 
-  const handleCanvasClick = useCallback(
-    (e) => {
-      if (e.target === e.currentTarget) onActivateField(null);
-    },
-    [onActivateField],
-  );
-
   return (
-    <div
-      className="w-full max-w-3xl mx-auto pt-4 md:pt-10"
-      onClick={handleCanvasClick}
-    >
+    <div className="w-full max-w-3xl mx-auto pt-4 md:pt-10">
       <FormHeader
         isActive={activeFieldId === "header"}
         onActivate={() => onActivateField("header")}

@@ -31,6 +31,7 @@ export function AdminEditorPanel({
   children,
   className,
   headerClassName,
+  ...props
 }) {
   const { isLg } = useScreenSize();
 
@@ -44,6 +45,7 @@ export function AdminEditorPanel({
             className,
           )}
           side="right"
+          {...props}
         >
           <div className={cn("bg-black p-8 md:p-12 shrink-0", headerClassName)}>
             <SheetHeader className="space-y-4 text-left">
