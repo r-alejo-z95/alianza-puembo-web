@@ -134,12 +134,27 @@ export default function FormBuilder({
     };
   }, []);
 
-  const scrollToField = useCallback((id, behavior = "smooth") => {
+  const scrollToField = useCallback((id, index = null, behavior = "smooth") => {
     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
 
     scrollTimeoutRef.current = setTimeout(() => {
       requestAnimationFrame(() => {
-        const element = document.getElementById(`field-${id}`);
+        // Estrategia 1: Buscar por ID de tarjeta (basado en índice) - Muy fiable para nuevos elementos
+        let element = null;
+        if (index !== null) {
+          element = document.getElementById(`field-card-${index}`);
+        }
+
+        // Estrategia 2: Buscar por data-field-id (ID estable de useFieldArray)
+        if (!element && id) {
+          element = document.querySelector(`[data-field-id="${id}"]`);
+        }
+
+        // Estrategia 3: Buscar por ID de DOM simple
+        if (!element && id) {
+          element = document.getElementById(`field-${id}`);
+        }
+
         if (element) {
           element.scrollIntoView({
             behavior,
@@ -152,18 +167,9 @@ export default function FormBuilder({
             () => element.classList.remove("highlight-pulse-effect"),
             2000,
           );
-        } else {
-          const dataElement = document.querySelector(`[data-field-id="${id}"]`);
-          if (dataElement) {
-            dataElement.scrollIntoView({
-              behavior,
-              block: "center",
-              inline: "nearest",
-            });
-          }
         }
       });
-    }, 100);
+    }, 300); // Aumentado a 300ms para asegurar renderizado completo
   }, []);
 
   const handleFieldClick = useCallback((fieldId) => {
@@ -191,29 +197,34 @@ export default function FormBuilder({
 
   const handleAddField = useCallback(
     (type) => {
-      const id = uuidv4();
+      const newFieldId = uuidv4();
       const newField = {
-        id,
+        id: newFieldId,
         type,
         label: "",
         required: false,
         options: ["radio", "checkbox", "select"].includes(type)
-          ? [{ id: uuidv4(), label: "Opción 1", value: "opcion_1" }]
+          ? [{ id: uuidv4(), label: "Opción 1", value: uuidv4() }]
           : [],
         order_index: fields.length,
       };
 
       const activeIndex = fields.findIndex((f) => f.id === activeFieldId);
+      let targetIndex;
+
       if (activeIndex !== -1) {
-        insert(activeIndex + 1, newField);
+        targetIndex = activeIndex + 1;
+        insert(targetIndex, newField);
       } else {
+        targetIndex = fields.length;
         append(newField);
       }
 
-      setActiveFieldId(id);
+      setActiveFieldId(newFieldId);
       setIsMobilePanelOpen(false);
 
-      setTimeout(() => scrollToField(id), 200);
+      // Scroll usando tanto ID como Índice para máxima compatibilidad
+      scrollToField(newFieldId, targetIndex);
 
       toast.success(`${type === "section" ? "Sección" : "Pregunta"} añadida`, {
         description: "Personaliza tu nuevo bloque",
@@ -231,16 +242,19 @@ export default function FormBuilder({
   const handleDuplicateField = useCallback(
     (index) => {
       const field = form.getValues(`fields.${index}`);
-      const id = uuidv4();
+      const newId = uuidv4();
       const newField = {
         ...field,
-        id,
+        id: newId,
         label: field.label ? `${field.label} (Copia)` : "",
         options: field.options?.map((o) => ({ ...o, id: uuidv4() })),
       };
-      insert(index + 1, newField);
-      setActiveFieldId(id);
-      setTimeout(() => scrollToField(id), 200);
+      
+      const targetIndex = index + 1;
+      insert(targetIndex, newField);
+      setActiveFieldId(newId);
+      
+      scrollToField(newId, targetIndex);
       toast.success("Elemento duplicado");
     },
     [form, insert, scrollToField],
@@ -413,7 +427,7 @@ export default function FormBuilder({
 
               {/* Floating Desktop Toolbar */}
               <div className="hidden xl:block w-20 relative" data-toolbar>
-                <div className="sticky top-32">
+                <div className="fixed top-48">
                   <FloatingToolbar onAdd={handleAddField} />
                 </div>
               </div>

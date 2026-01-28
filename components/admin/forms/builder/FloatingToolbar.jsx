@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 export default function FloatingToolbar({ onAdd }) {
   const ToolBtn = ({ icon: Icon, label, onClick, highlight, description }) => (
@@ -19,26 +20,29 @@ export default function FloatingToolbar({ onAdd }) {
             variant="ghost"
             size="icon"
             className={cn(
-              "h-14 w-14 rounded-[1.25rem] transition-all duration-500 relative group/btn",
+              "h-14 w-14 rounded-2xl transition-all duration-500 relative group/btn border border-transparent",
               highlight
-                ? "bg-black text-[var(--puembo-green)] hover:bg-black shadow-xl shadow-black/10 hover:scale-110 active:scale-95"
-                : "hover:bg-gray-100 text-gray-400 hover:text-black hover:scale-110 active:scale-95"
+                ? "bg-white/10 text-[var(--puembo-green)] hover:bg-white/20 shadow-xl shadow-black/20 hover:scale-110 active:scale-95 border-white/5"
+                : "text-white/40 hover:text-white hover:bg-white/5 hover:scale-110 active:scale-95",
             )}
             onClick={onClick}
           >
-            <Icon className="h-6 w-6 group-hover/btn:rotate-6 transition-transform" />
+            <Icon
+              className="h-6 w-6 group-hover/btn:rotate-6 transition-transform"
+              strokeWidth={highlight ? 3 : 2}
+            />
             {highlight && (
               <span className="absolute -top-1 -right-1 flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--puembo-green)] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-[var(--puembo-green)]"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--puembo-green)]"></span>
               </span>
             )}
           </Button>
         </TooltipTrigger>
         <TooltipContent
           side="left"
-          className="font-black text-[9px] uppercase tracking-[0.2em] border-none shadow-2xl px-5 py-3 rounded-2xl bg-black text-white max-w-[180px]"
-          sideOffset={15}
+          className="font-black text-[9px] uppercase tracking-[0.2em] border border-white/10 shadow-2xl px-5 py-3 rounded-2xl bg-black text-white max-w-[180px] backdrop-blur-xl"
+          sideOffset={20}
         >
           <div className="space-y-1">
             <p className="text-[var(--puembo-green)]">{label}</p>
@@ -54,19 +58,15 @@ export default function FloatingToolbar({ onAdd }) {
   );
 
   return (
-    <div
+    <motion.div
+      initial={{ x: 50, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
       data-toolbar
       className={cn(
-        "bg-white/90 backdrop-blur-2xl p-4 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-100 flex flex-col gap-4 items-center",
-        "animate-in fade-in slide-in-from-right duration-700 ease-out",
-        "hover:shadow-2xl transition-all duration-500"
+        "bg-black backdrop-blur-md p-4 rounded-[2.5rem] shadow-2xl border border-[var(--puembo-green)]/20 flex flex-col gap-4 items-center",
+        "transition-all duration-500 hover:border-[var(--puembo-green)]/40 hover:shadow-[var(--puembo-green)]/5",
       )}
     >
-      {/* Visual handle / Header */}
-      <div className="flex flex-col items-center gap-1.5 opacity-20 group-hover:opacity-40 transition-opacity">
-        <MoveVertical className="w-4 h-4 text-gray-400" />
-      </div>
-
       <div className="flex flex-col gap-4">
         <ToolBtn
           icon={Plus}
@@ -76,7 +76,7 @@ export default function FloatingToolbar({ onAdd }) {
           highlight
         />
 
-        <div className="h-px w-10 bg-gradient-to-r from-transparent via-gray-100 to-transparent mx-auto" />
+        <div className="h-px w-8 bg-white/10 mx-auto" />
 
         <ToolBtn
           icon={Layout}
@@ -85,11 +85,6 @@ export default function FloatingToolbar({ onAdd }) {
           onClick={() => onAdd("section")}
         />
       </div>
-
-      {/* Decorative Brand indicator */}
-      <div className="pt-2">
-        <Sparkles className="w-4 h-4 text-[var(--puembo-green)] opacity-20 animate-pulse" />
-      </div>
-    </div>
+    </motion.div>
   );
 }

@@ -735,7 +735,7 @@ function QuestionCard({
     <div
       ref={setNodeRef}
       style={style}
-      id={`field-${field.id}`}
+      id={`field-card-${index}`}
       data-field-id={field.id}
       data-field-card
       onClick={(e) => {
