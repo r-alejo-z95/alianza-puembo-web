@@ -21,7 +21,7 @@ const NEWS_PER_PAGE = 4;
  */
 export async function getNews(
   page: number = 1,
-  newsPerPage: number = NEWS_PER_PAGE
+  newsPerPage: number = NEWS_PER_PAGE,
 ): Promise<{
   paginatedNews: (NewsItem & { page?: number })[];
   totalPages: number;
@@ -33,8 +33,8 @@ export async function getNews(
     .from("news")
     .select("*")
     .eq("is_archived", false)
-    .order("news_date", { ascending: true, nullsFirst: true })
-    .order("news_time", { ascending: true, nullsFirst: true });
+    .order("news_date", { ascending: false, nullsFirst: true })
+    .order("news_time", { ascending: false, nullsFirst: true });
 
   if (error) {
     console.error("Error fetching news:", error);
@@ -49,7 +49,7 @@ export async function getNews(
   const totalPages = Math.ceil(newsWithPage.length / newsPerPage);
   const paginatedNews = newsWithPage.slice(
     (page - 1) * newsPerPage,
-    page * newsPerPage
+    page * newsPerPage,
   );
 
   const hasNextPage = page * newsPerPage < newsWithPage.length;
