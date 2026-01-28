@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ImageIcon, Trash2, Layout, Plus } from "lucide-react";
 import QuestionCard from "./QuestionCard";
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useMemo } from "react";
 import RichTextEditor from "../RichTextEditor";
 import { toast } from "sonner";
 
@@ -161,7 +161,7 @@ const FormHeader = ({
                 error ? "text-red-500" : "text-[var(--puembo-green)]",
               )}
             >
-              {error ? "Título Requerido" : "Identidad del Formulario"}
+              {error ? "Título Requerido" : "Formulario"}
             </span>
           </div>
 
@@ -172,7 +172,7 @@ const FormHeader = ({
               <Input
                 {...field}
                 value={field.value || ""}
-                placeholder="Dale un nombre a tu formulario..."
+                placeholder="Título del Formulario"
                 className={cn(
                   "text-3xl md:text-5xl font-serif font-bold border-none shadow-none px-0 focus-visible:ring-0 rounded-none h-auto py-2 transition-all bg-transparent placeholder:text-gray-200",
                   isActive ? "border-b border-gray-100" : "pointer-events-none",
@@ -185,8 +185,8 @@ const FormHeader = ({
 
         <div className="space-y-5">
           <div className="flex items-center gap-3">
-            <div className="h-px w-8 bg-gray-100" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">
+            <div className="h-px w-8 bg-(--puembo-green)" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-(--puembo-green)">
               Contexto y Descripción
             </span>
           </div>
@@ -199,7 +199,7 @@ const FormHeader = ({
                   <RichTextEditor
                     content={field.value || ""}
                     onChange={field.onChange}
-                    className="prose-sm"
+                    className="prose-sm cursor-auto max-w-none min-h-[80px] p-6 text-gray-600 font-light leading-relaxed focus:outline-none bg-transparent"
                   />
                 )}
               />
@@ -238,9 +238,41 @@ export default function FormCanvas({
   onDelete,
   errors,
 }) {
-  const sections = fields
-    .filter((f) => f.type === "section")
-    .map((f) => ({ id: f.id, label: f.label || "Sección sin título" }));
+  // Analizar qué secciones tienen preguntas con saltos lógicos internos
+  const sections = useMemo(() => {
+    const groups = [];
+    let currentSectionBranching = false;
+    let currentSectionId = null;
+
+    // Solo nos interesan las secciones para el mapeo de destinos
+    const sectionList = fields
+      .filter((f) => f.type === "section")
+      .map((f) => ({ id: f.id, label: f.label || "Sección sin título" }));
+
+    // Analizar la estructura para detectar bifurcaciones por sección
+    fields.forEach((f) => {
+      if (f.type === "section") {
+        currentSectionId = f.id;
+        currentSectionBranching = false;
+      } else if (f.type === "radio") {
+        const hasJumps = f.options?.some(opt => opt.next_section_id && opt.next_section_id !== "default");
+        if (hasJumps) {
+          currentSectionBranching = true;
+        }
+      }
+      
+      if (currentSectionId) {
+        const existing = groups.find(g => g.id === currentSectionId);
+        if (existing) {
+          existing.hasInternalBranching = existing.hasInternalBranching || currentSectionBranching;
+        } else {
+          groups.push({ id: currentSectionId, hasInternalBranching: currentSectionBranching });
+        }
+      }
+    });
+
+    return { sectionList, groupsMeta: groups };
+  }, [fields]);
 
   return (
     <div className="w-full max-w-3xl mx-auto pt-4 md:pt-10">
@@ -253,23 +285,27 @@ export default function FormCanvas({
       />
 
       <SortableContext
-        items={fields.map((f) => f.id)}
+        items={fields.map((f) => f.rhf_id)}
         strategy={verticalListSortingStrategy}
       >
         <div className="space-y-8">
-          {fields.map((field, index) => (
-            <QuestionCard
-              key={field.id}
-              field={field}
-              index={index}
-              isActive={activeFieldId === field.id}
-              onActivate={() => onActivateField(field.id)}
-              onDuplicate={onDuplicate}
-              onDelete={onDelete}
-              sections={sections}
-              error={errors?.fields?.[index]?.label}
-            />
-          ))}
+          {fields.map((field, index) => {
+            const sectionMeta = sections.groupsMeta.find(g => g.id === field.id);
+            return (
+              <QuestionCard
+                key={field.rhf_id}
+                field={field}
+                index={index}
+                isActive={activeFieldId === field.id}
+                onActivate={() => onActivateField(field.id)}
+                onDuplicate={onDuplicate}
+                onDelete={onDelete}
+                sections={sections.sectionList}
+                hasInternalBranching={sectionMeta?.hasInternalBranching}
+                error={errors?.fields?.[index]?.label}
+              />
+            );
+          })}
 
           {fields.length === 0 && (
             <div className="text-center py-32 border-2 border-dashed border-gray-200 rounded-[3rem] bg-white/40 backdrop-blur-sm flex flex-col items-center gap-8 hover:bg-white/60 transition-all group">

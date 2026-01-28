@@ -7,36 +7,40 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 async function getAccessToken(supabase) {
   // 1. Get the refresh token from the database
   const { data, error } = await supabase
-    .from('google_integration')
-    .select('refresh_token')
-    .eq('id', 1)
+    .from("google_integration")
+    .select("refresh_token")
+    .eq("id", 1)
     .single();
 
   if (error || !data) {
-    throw new Error('No Google integration found. Please connect a Google account in the admin panel.');
+    throw new Error(
+      "No Google integration found. Please connect a Google account in the admin panel.",
+    );
   }
 
   const refreshToken = data.refresh_token;
 
   // 2. Exchange the refresh token for a new access token
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      "Content-Type": "application/x-www-form-urlencoded",
     },
     body: new URLSearchParams({
       client_id: Deno.env.get("GOOGLE_CLIENT_ID")!,
       client_secret: Deno.env.get("GOOGLE_CLIENT_SECRET")!,
       refresh_token: refreshToken,
-      grant_type: 'refresh_token',
+      grant_type: "refresh_token",
     }),
   });
 
   const tokens = await response.json();
 
   if (!response.ok) {
-    console.error('Failed to refresh access token:', tokens);
-    throw new Error('Could not refresh Google access token. The integration might need to be re-authorized.');
+    console.error("Failed to refresh access token:", tokens);
+    throw new Error(
+      "Could not refresh Google access token. The integration might need to be re-authorized.",
+    );
   }
 
   return tokens.access_token;
@@ -48,7 +52,7 @@ async function createDriveFolder(accessToken, name) {
   const response = await fetch("https://www.googleapis.com/drive/v3/files", {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${accessToken}`,
+      Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -57,30 +61,38 @@ async function createDriveFolder(accessToken, name) {
     }),
   });
   const data = await response.json();
-  if (!response.ok) throw new Error(`Failed to create folder: ${JSON.stringify(data)}`);
+  if (!response.ok)
+    throw new Error(`Failed to create folder: ${JSON.stringify(data)}`);
   return data.id;
 }
 
 async function createGoogleSheet(accessToken, title) {
-  const response = await fetch("https://sheets.googleapis.com/v4/spreadsheets", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+  const response = await fetch(
+    "https://sheets.googleapis.com/v4/spreadsheets",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ properties: { title } }),
     },
-    body: JSON.stringify({ properties: { title } }),
-  });
+  );
   const data = await response.json();
-  if (!response.ok) throw new Error(`Failed to create sheet: ${JSON.stringify(data)}`);
+  if (!response.ok)
+    throw new Error(`Failed to create sheet: ${JSON.stringify(data)}`);
   return data.spreadsheetId;
 }
 
 async function getFirstSheetName(accessToken, spreadsheetId) {
-  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
-  });
+  );
 
   const data = await response.json();
 
@@ -89,7 +101,10 @@ async function getFirstSheetName(accessToken, spreadsheetId) {
   }
 
   const sheetProperties = data.sheets?.[0]?.properties;
-  return { name: sheetProperties?.title || "Sheet1", id: sheetProperties?.sheetId };
+  return {
+    name: sheetProperties?.title || "Sheet1",
+    id: sheetProperties?.sheetId,
+  };
 }
 
 async function appendToSheet(accessToken, spreadsheetId, values, sheetName) {
@@ -98,11 +113,11 @@ async function appendToSheet(accessToken, spreadsheetId, values, sheetName) {
     {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ values }),
-    }
+    },
   );
   if (!response.ok) {
     const error = await response.json();
@@ -110,18 +125,24 @@ async function appendToSheet(accessToken, spreadsheetId, values, sheetName) {
   }
 }
 
-async function updateSheetRow(accessToken, spreadsheetId, sheetName, rowNumber, values) {
+async function updateSheetRow(
+  accessToken,
+  spreadsheetId,
+  sheetName,
+  rowNumber,
+  values,
+) {
   const range = `${encodeURIComponent(sheetName)}!A${rowNumber}`;
   const response = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?valueInputOption=RAW`,
     {
       method: "PUT",
       headers: {
-        "Authorization": `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ values: [values] }),
-    }
+    },
   );
   if (!response.ok) {
     const error = await response.json();
@@ -129,17 +150,29 @@ async function updateSheetRow(accessToken, spreadsheetId, sheetName, rowNumber, 
   }
 }
 
-async function uploadFileToDrive(accessToken, folderId, fileName, fileData, mimeType) {
-  const metadataResponse = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,webViewLink", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+async function uploadFileToDrive(
+  accessToken,
+  folderId,
+  fileName,
+  fileData,
+  mimeType,
+) {
+  const metadataResponse = await fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,webViewLink",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ name: fileName, parents: [folderId] }),
     },
-    body: JSON.stringify({ name: fileName, parents: [folderId] }),
-  });
-  if (!metadataResponse.ok) throw new Error(`Failed to initiate file upload: ${metadataResponse.statusText}`);
-  
+  );
+  if (!metadataResponse.ok)
+    throw new Error(
+      `Failed to initiate file upload: ${metadataResponse.statusText}`,
+    );
+
   const uploadUrl = metadataResponse.headers.get("location");
   if (!uploadUrl) throw new Error("No upload URL received");
 
@@ -148,67 +181,74 @@ async function uploadFileToDrive(accessToken, folderId, fileName, fileData, mime
     headers: { "Content-Type": mimeType },
     body: fileData,
   });
-  if (!uploadResponse.ok) throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
-  
+  if (!uploadResponse.ok)
+    throw new Error(`Failed to upload file: ${uploadResponse.statusText}`);
+
   const fileDataResult = await uploadResponse.json();
   if (!fileDataResult.webViewLink) {
-    throw new Error(`File uploaded but no webViewLink received for ${fileName}. Response: ${JSON.stringify(fileDataResult)}`);
+    throw new Error(
+      `File uploaded but no webViewLink received for ${fileName}. Response: ${JSON.stringify(fileDataResult)}`,
+    );
   }
   return fileDataResult.webViewLink;
 }
 
 async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
-  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      requests: [
-        {
-          repeatCell: {
-            range: {
-              sheetId: sheetId,
-              startRowIndex: 0,
-              endRowIndex: 1,
-            },
-            cell: {
-              userEnteredFormat: {
-                backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 },
-                horizontalAlignment: "CENTER",
-                textFormat: {
-                  bold: true,
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        requests: [
+          {
+            repeatCell: {
+              range: {
+                sheetId: sheetId,
+                startRowIndex: 0,
+                endRowIndex: 1,
+              },
+              cell: {
+                userEnteredFormat: {
+                  backgroundColor: { red: 0.9, green: 0.9, blue: 0.9 },
+                  horizontalAlignment: "CENTER",
+                  textFormat: {
+                    bold: true,
+                  },
                 },
               },
+              fields:
+                "userEnteredFormat(backgroundColor,horizontalAlignment,textFormat.bold)",
             },
-            fields: "userEnteredFormat(backgroundColor,horizontalAlignment,textFormat.bold)",
           },
-        },
-        {
-          updateSheetProperties: {
-            properties: {
-              sheetId: sheetId,
-              gridProperties: {
-                frozenRowCount: 1,
+          {
+            updateSheetProperties: {
+              properties: {
+                sheetId: sheetId,
+                gridProperties: {
+                  frozenRowCount: 1,
+                },
+              },
+              fields: "gridProperties.frozenRowCount",
+            },
+          },
+          {
+            autoResizeDimensions: {
+              dimensions: {
+                sheetId: sheetId,
+                dimension: "COLUMNS",
+                startIndex: 0,
+                endIndex: 30,
               },
             },
-            fields: "gridProperties.frozenRowCount",
           },
-        },
-        {
-          autoResizeDimensions: {
-            dimensions: {
-              sheetId: sheetId,
-              dimension: "COLUMNS",
-              startIndex: 0,
-              endIndex: 30,
-            },
-          },
-        },
-      ],
-    }),
-  });
+        ],
+      }),
+    },
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -217,57 +257,65 @@ async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
 }
 
 async function applyInitialFormatting(accessToken, spreadsheetId, sheetId) {
-  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        requests: [
+          {
+            addBanding: {
+              bandedRange: {
+                range: {
+                  sheetId: sheetId,
+                  startRowIndex: 0,
+                  endRowIndex: 100,
+                  startColumnIndex: 0,
+                  endColumnIndex: 30,
+                },
+                rowProperties: {
+                  headerColor: { red: 0.9, green: 0.9, blue: 0.9 },
+                  firstBandColor: { red: 1, green: 1, blue: 1 },
+                  secondBandColor: { red: 0.95, green: 0.95, blue: 0.95 },
+                },
+              },
+            },
+          },
+          {
+            addProtectedRange: {
+              protectedRange: {
+                range: { sheetId: sheetId },
+                description: "Respuestas automáticas",
+                warningOnly: true,
+              },
+            },
+          },
+        ],
+      }),
     },
-    body: JSON.stringify({
-      requests: [
-        {
-          addBanding: {
-            bandedRange: {
-              range: {
-                sheetId: sheetId,
-                startRowIndex: 0,
-                endRowIndex: 100,
-                startColumnIndex: 0,
-                endColumnIndex: 30,
-              },
-              rowProperties: {
-                headerColor: { red: 0.9, green: 0.9, blue: 0.9 },
-                firstBandColor: { red: 1, green: 1, blue: 1 },
-                secondBandColor: { red: 0.95, green: 0.95, blue: 0.95 },
-              },
-            },
-          },
-        },
-        {
-          addProtectedRange: {
-            protectedRange: {
-              range: { sheetId: sheetId },
-              description: "Respuestas automáticas",
-              warningOnly: true,
-            },
-          },
-        },
-      ],
-    }),
-  });
+  );
 
   if (!response.ok) {
     const error = await response.json();
-    console.warn(`Initial formatting warning (might already exist): ${JSON.stringify(error)}`);
+    console.warn(
+      `Initial formatting warning (might already exist): ${JSON.stringify(error)}`,
+    );
   }
 }
 
 async function getSheetHeaders(accessToken, spreadsheetId, sheetName) {
-  const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!1:1`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!1:1`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
     },
-  });
+  );
 
   const data = await response.json();
   if (!response.ok) {
@@ -280,15 +328,16 @@ async function getSheetHeaders(accessToken, spreadsheetId, sheetName) {
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 serve(async (req) => {
   try {
-    console.log('Incoming request URL:', req.url);
+    console.log("Incoming request URL:", req.url);
     const url = new URL(req.url);
-    console.log('Parsed pathname:', url.pathname);
+    console.log("Parsed pathname:", url.pathname);
 
     if (req.method === "OPTIONS") {
       return new Response("ok", { headers: CORS_HEADERS });
@@ -303,28 +352,39 @@ serve(async (req) => {
       }
       try {
         const requestBody = await req.json();
-        console.log('Received request body:', requestBody);
-        const { formId, formTitle, formSlug, formFields: providedFields } = requestBody;
+        console.log("Received request body:", requestBody);
+        const {
+          formId,
+          formTitle,
+          formSlug,
+          formFields: providedFields,
+        } = requestBody;
         if (!formId || !formTitle || !formSlug) {
-          return new Response(JSON.stringify({ error: "Missing formId, formTitle or formSlug" }), {
-            status: 400,
-            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-          });
+          return new Response(
+            JSON.stringify({ error: "Missing formId, formTitle or formSlug" }),
+            {
+              status: 400,
+              headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+            },
+          );
         }
 
         const supabase = createClient(
           Deno.env.get("SUPABASE_URL")!,
           Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-          { auth: { persistSession: false } }
+          { auth: { persistSession: false } },
         );
 
         const accessToken = await getAccessToken(supabase);
 
         // 1. Get form fields to initialize headers
         let headers: string[] = ["Timestamp"];
-        
+
         if (providedFields && Array.isArray(providedFields)) {
-          headers = ["Timestamp", ...providedFields.map((f: any) => f.label || f.name || "Pregunta")];
+          headers = [
+            "Timestamp",
+            ...providedFields.map((f: any) => f.label || f.name || "Pregunta"),
+          ];
         } else {
           // Fetch from database if not provided (fallback for existing forms)
           const { data: dbFields, error: fetchError } = await supabase
@@ -334,7 +394,10 @@ serve(async (req) => {
             .order("id", { ascending: true });
 
           if (!fetchError && dbFields && dbFields.length > 0) {
-            headers = ["Timestamp", ...dbFields.map((f: any) => f.label || f.name || "Pregunta")];
+            headers = [
+              "Timestamp",
+              ...dbFields.map((f: any) => f.label || f.name || "Pregunta"),
+            ];
           }
           // If no fields found, it will just have "Timestamp" for now
         }
@@ -342,9 +405,9 @@ serve(async (req) => {
         // 2. Create Drive Folder and Sheet
         const [folderId, sheetId] = await Promise.all([
           createDriveFolder(accessToken, formTitle),
-          createGoogleSheet(accessToken, formTitle)
+          createGoogleSheet(accessToken, formTitle),
         ]);
-        
+
         const sheetInfo = await getFirstSheetName(accessToken, sheetId);
 
         // 3. Initialize headers and formatting (Run in parallel to save significant time)
@@ -359,32 +422,37 @@ serve(async (req) => {
         // 4. Update Supabase with the new IDs
         const { error: updateError } = await supabase
           .from("forms")
-          .update({ 
-            google_sheet_id: sheetId, 
-            google_drive_folder_id: folderId, 
-            google_sheet_url: `https://docs.google.com/spreadsheets/d/${sheetId}/edit` 
+          .update({
+            google_sheet_id: sheetId,
+            google_drive_folder_id: folderId,
+            google_sheet_url: `https://docs.google.com/spreadsheets/d/${sheetId}/edit`,
           })
           .eq("id", formId);
 
         if (updateError) {
           console.error("Error updating forms table in Supabase:", updateError);
           // Even if DB update fails, we have the IDs, but we should throw to let the caller know
-          throw new Error(`Sheet created but failed to update database: ${updateError.message}`);
+          throw new Error(
+            `Sheet created but failed to update database: ${updateError.message}`,
+          );
         }
 
-        return new Response(
-          JSON.stringify({ sheetId, folderId, formSlug }),
-          { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
-        );
-
+        return new Response(JSON.stringify({ sheetId, folderId, formSlug }), {
+          status: 200,
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        });
       } catch (err) {
         console.error("Error in /create-sheet edge function:", err);
         return new Response(
           JSON.stringify({ error: err.message, details: err.stack }),
-          { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+          {
+            status: 500,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          },
         );
       }
-    } else if (url.pathname.endsWith("/sheets-drive-integration")) { // Existing logic for form submission
+    } else if (url.pathname.endsWith("/sheets-drive-integration")) {
+      // Existing logic for form submission
       if (req.method !== "POST") {
         return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
           status: 405,
@@ -395,16 +463,19 @@ serve(async (req) => {
       try {
         const { formId, formData } = await req.json();
         if (!formId || !formData) {
-          return new Response(JSON.stringify({ error: "Missing formId or formData" }), {
-            status: 400,
-            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-          });
+          return new Response(
+            JSON.stringify({ error: "Missing formId or formData" }),
+            {
+              status: 400,
+              headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+            },
+          );
         }
 
         const supabase = createClient(
           Deno.env.get("SUPABASE_URL")!,
           Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-          { auth: { persistSession: false } }
+          { auth: { persistSession: false } },
         );
 
         const { data: form, error: formError } = await supabase
@@ -422,8 +493,11 @@ serve(async (req) => {
 
         const accessToken = await getAccessToken(supabase);
 
-        let { google_sheet_id: sheetId, google_drive_folder_id: folderId } = form;
-        const currentFormDataHeaders = Object.keys(formData).filter(h => h !== "Timestamp");
+        let { google_sheet_id: sheetId, google_drive_folder_id: folderId } =
+          form;
+        const currentFormDataHeaders = Object.keys(formData).filter(
+          (h) => h !== "Timestamp",
+        );
         let sheetInfo;
         let finalHeaders;
 
@@ -434,35 +508,56 @@ serve(async (req) => {
 
           await supabase
             .from("forms")
-            .update({ google_sheet_id: sheetId, google_drive_folder_id: folderId, google_sheet_url: `https://docs.google.com/spreadsheets/d/${sheetId}/edit` })
+            .update({
+              google_sheet_id: sheetId,
+              google_drive_folder_id: folderId,
+              google_sheet_url: `https://docs.google.com/spreadsheets/d/${sheetId}/edit`,
+            })
             .eq("id", formId);
 
           sheetInfo = await getFirstSheetName(accessToken, sheetId);
-          finalHeaders = ["Timestamp", ...currentFormDataHeaders]; 
-          await appendToSheet(accessToken, sheetId, [finalHeaders], sheetInfo.name);
+          finalHeaders = ["Timestamp", ...currentFormDataHeaders];
+          await appendToSheet(
+            accessToken,
+            sheetId,
+            [finalHeaders],
+            sheetInfo.name,
+          );
           await applyInitialFormatting(accessToken, sheetId, sheetInfo.id);
           await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
-
         } else {
           sheetInfo = await getFirstSheetName(accessToken, sheetId);
-          const existingSheetHeaders = await getSheetHeaders(accessToken, sheetId, sheetInfo.name);
+          const existingSheetHeaders = await getSheetHeaders(
+            accessToken,
+            sheetId,
+            sheetInfo.name,
+          );
 
           // Ensure Timestamp is first
           let baseHeaders = [...existingSheetHeaders];
           let headersChanged = false;
 
           if (baseHeaders.length === 0 || baseHeaders[0] !== "Timestamp") {
-            baseHeaders = ["Timestamp", ...baseHeaders.filter(h => h !== "Timestamp")];
+            baseHeaders = [
+              "Timestamp",
+              ...baseHeaders.filter((h) => h !== "Timestamp"),
+            ];
             headersChanged = true;
           }
 
           const newHeadersToAdd = currentFormDataHeaders.filter(
-            (header) => !baseHeaders.includes(header)
+            (header) => !baseHeaders.includes(header),
           );
 
           if (newHeadersToAdd.length > 0 || headersChanged) {
             finalHeaders = [...baseHeaders, ...newHeadersToAdd];
-            await updateSheetRow(accessToken, sheetId, sheetInfo.name, 1, finalHeaders);
+            await updateSheetRow(
+              accessToken,
+              sheetId,
+              sheetInfo.name,
+              1,
+              finalHeaders,
+            );
             // If it was empty or newly created, apply initial formatting
             if (existingSheetHeaders.length === 0) {
               await applyInitialFormatting(accessToken, sheetId, sheetInfo.id);
@@ -474,7 +569,9 @@ serve(async (req) => {
         }
 
         const rowData = {
-          Timestamp: new Date().toLocaleString("es-EC", { timeZone: "America/Guayaquil" })
+          Timestamp: new Date().toLocaleString("es-EC", {
+            timeZone: "America/Guayaquil",
+          }),
         };
 
         const fileUrls: Record<string, string> = {};
@@ -482,23 +579,39 @@ serve(async (req) => {
         for (const key in formData) {
           if (key === "Timestamp") continue;
           const value = formData[key];
-          if (value && typeof value === 'object' && value.type === 'file' && value.name && value.data) {
+          if (
+            value &&
+            typeof value === "object" &&
+            value.type === "file" &&
+            value.name &&
+            value.data
+          ) {
             try {
-              const base64Data = value.data.includes(',') ? value.data.split(',')[1] : value.data;
-              const mimeType = value.data.match(/data:(.*?);base64,/)?.[1] || "application/octet-stream";
+              const base64Data = value.data.includes(",")
+                ? value.data.split(",")[1]
+                : value.data;
+              const mimeType =
+                value.data.match(/data:(.*?);base64,/)?.[1] ||
+                "application/octet-stream";
               const binaryString = atob(base64Data);
               const binaryData = new Uint8Array(binaryString.length);
               for (let i = 0; i < binaryString.length; i++) {
                 binaryData[i] = binaryString.charCodeAt(i);
               }
-              const fileUrl = await uploadFileToDrive(accessToken, folderId, value.name, binaryData, mimeType);
+              const fileUrl = await uploadFileToDrive(
+                accessToken,
+                folderId,
+                value.name,
+                binaryData,
+                mimeType,
+              );
               rowData[key] = fileUrl;
               fileUrls[key] = fileUrl;
             } catch (fileError) {
               console.error(`Error uploading file ${value.name}:`, fileError);
               rowData[key] = `Error uploading file: ${value.name}`;
             }
-          } else if (value && typeof value === 'object') {
+          } else if (value && typeof value === "object") {
             // Fix: avoid [object Object] when files are missing or other objects are sent
             rowData[key] = "";
           } else {
@@ -508,25 +621,30 @@ serve(async (req) => {
 
         const values = finalHeaders.map((header) => rowData[header] || "");
         await appendToSheet(accessToken, sheetId, [values], sheetInfo.name);
-        
+
         // Auto-resize columns on every submission
         await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
 
         return new Response(
-          JSON.stringify({ 
-            message: "Datos enviados correctamente", 
-            sheetId, 
+          JSON.stringify({
+            message: "Datos enviados correctamente",
+            sheetId,
             folderId,
-            fileUrls 
+            fileUrls,
           }),
-          { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+          {
+            status: 200,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          },
         );
-
       } catch (err) {
         console.error("Error in edge function:", err);
         return new Response(
           JSON.stringify({ error: err.message, details: err.stack }),
-          { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+          {
+            status: 500,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          },
         );
       }
     } else {
@@ -538,8 +656,14 @@ serve(async (req) => {
   } catch (globalError) {
     console.error("Global Edge Function Error:", globalError);
     return new Response(
-      JSON.stringify({ error: globalError.message, details: globalError.stack }),
-      { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: globalError.message,
+        details: globalError.stack,
+      }),
+      {
+        status: 500,
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      },
     );
   }
 });

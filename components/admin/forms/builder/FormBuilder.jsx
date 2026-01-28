@@ -97,6 +97,7 @@ export default function FormBuilder({
   const { fields, append, move, remove, insert } = useFieldArray({
     control: form.control,
     name: "fields",
+    keyName: "rhf_id", // Prevenir que RHF sobrescriba nuestro 'id' de base de datos
   });
 
   const { errors } = form.formState;
@@ -183,10 +184,10 @@ export default function FormBuilder({
       if (!activeFieldId) return;
 
       // Un enfoque robusto basado en clases y elementos interactivos
-      const isInsideSafeZone = 
-        event.target.closest(".field-card-container") || 
-        event.target.closest(".form-header-card") || 
-        event.target.closest("[data-toolbar]") || 
+      const isInsideSafeZone =
+        event.target.closest(".field-card-container") ||
+        event.target.closest(".form-header-card") ||
+        event.target.closest("[data-toolbar]") ||
         event.target.closest("[data-panel]") ||
         event.target.closest("button") ||
         event.target.closest("input") ||
@@ -239,7 +240,12 @@ export default function FormBuilder({
 
       toast.success(`${type === "section" ? "Sección" : "Pregunta"} añadida`, {
         description: "Personaliza tu nuevo bloque",
-        icon: type === "section" ? <Layout className="w-4 h-4" /> : <Plus className="w-4 h-4" />,
+        icon:
+          type === "section" ? (
+            <Layout className="w-4 h-4" />
+          ) : (
+            <Plus className="w-4 h-4" />
+          ),
       });
     },
     [activeFieldId, append, fields, insert, scrollToField],
@@ -255,11 +261,11 @@ export default function FormBuilder({
         label: field.label ? `${field.label} (Copia)` : "",
         options: field.options?.map((o) => ({ ...o, id: uuidv4() })),
       };
-      
+
       const targetIndex = index + 1;
       insert(targetIndex, newField);
       setActiveFieldId(newId);
-      
+
       scrollToField(newId, targetIndex);
       toast.success("Elemento duplicado");
     },
@@ -330,8 +336,8 @@ export default function FormBuilder({
     (event) => {
       const { active, over } = event;
       if (active.id !== over?.id) {
-        const oldIndex = fields.findIndex((f) => f.id === active.id);
-        const newIndex = fields.findIndex((f) => f.id === over.id);
+        const oldIndex = fields.findIndex((f) => f.rhf_id === active.id);
+        const newIndex = fields.findIndex((f) => f.rhf_id === over.id);
         if (oldIndex !== -1 && newIndex !== -1) {
           move(oldIndex, newIndex);
         }
@@ -426,7 +432,7 @@ export default function FormBuilder({
               </div>
 
               {/* Floating Desktop Toolbar */}
-              <div className="hidden xl:block w-20 relative" data-toolbar>
+              <div className="hidden lg:block w-20 relative" data-toolbar>
                 <div className="fixed top-48">
                   <FloatingToolbar onAdd={handleAddField} />
                 </div>
@@ -445,7 +451,14 @@ export default function FormBuilder({
             <AdminEditorPanel
               open={isMobilePanelOpen}
               onOpenChange={setIsMobilePanelOpen}
-              title={<>Añadir <span className="text-[var(--puembo-green)] italic">Contenido</span></>}
+              title={
+                <>
+                  Añadir{" "}
+                  <span className="text-[var(--puembo-green)] italic">
+                    Contenido
+                  </span>
+                </>
+              }
               description="Selecciona el tipo de bloque que deseas añadir al formulario."
               data-panel
             >
@@ -459,8 +472,12 @@ export default function FormBuilder({
                     <Plus className="w-6 h-6 text-[var(--puembo-green)]" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-black uppercase tracking-widest text-[10px]">Pregunta</span>
-                    <span className="text-xs text-gray-400 font-medium">Añade un campo de entrada</span>
+                    <span className="font-black uppercase tracking-widest text-[10px]">
+                      Pregunta
+                    </span>
+                    <span className="text-xs text-gray-400 font-medium">
+                      Añade un campo de entrada
+                    </span>
                   </div>
                 </Button>
                 <Button
@@ -472,8 +489,12 @@ export default function FormBuilder({
                     <Layout className="w-6 h-6 text-black" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="font-black uppercase tracking-widest text-[10px]">Sección</span>
-                    <span className="text-xs text-gray-400 font-medium">Organiza por grupos de preguntas</span>
+                    <span className="font-black uppercase tracking-widest text-[10px]">
+                      Sección
+                    </span>
+                    <span className="text-xs text-gray-400 font-medium">
+                      Organiza por grupos de preguntas
+                    </span>
                   </div>
                 </Button>
               </div>
@@ -487,8 +508,12 @@ export default function FormBuilder({
                     <CheckCircle2 className="w-5 h-5 text-[var(--puembo-green)]" />
                   </div>
                   <div className="flex flex-col text-left">
-                    <span className="font-black text-xs text-black uppercase tracking-tight">Reordenando</span>
-                    <span className="text-[8px] text-gray-400 font-black uppercase tracking-widest">Suelte para colocar</span>
+                    <span className="font-black text-xs text-black uppercase tracking-tight">
+                      Reordenando
+                    </span>
+                    <span className="text-[8px] text-gray-400 font-black uppercase tracking-widest">
+                      Suelte para colocar
+                    </span>
                   </div>
                 </div>
               ) : null}

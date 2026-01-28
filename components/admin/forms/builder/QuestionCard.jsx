@@ -93,6 +93,7 @@ function QuestionCard({
   onDuplicate,
   onDelete,
   sections,
+  hasInternalBranching,
   error,
 }) {
   const { control, setValue, getValues, watch } = useFormContext();
@@ -103,7 +104,7 @@ function QuestionCard({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: field.id });
+  } = useSortable({ id: field.rhf_id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -215,28 +216,42 @@ function QuestionCard({
     if (["radio", "checkbox", "select"].includes(type)) {
       return (
         <div className="space-y-3 pt-2">
-          {options?.slice(0, 4).map((opt, i) => (
+          {options?.slice(0, 6).map((opt, i) => (
             <div
               key={opt.id || i}
-              className="flex items-center gap-3 text-gray-500 text-sm font-medium"
+              className="flex items-center justify-between gap-3"
             >
-              {type === "radio" && (
-                <div className="w-5 h-5 rounded-full border border-gray-200 bg-white" />
-              )}
-              {type === "checkbox" && (
-                <div className="w-5 h-5 rounded-md border border-gray-200 bg-white" />
-              )}
-              {type === "select" && (
-                <span className="text-gray-300 w-5 text-center font-mono text-[10px]">
-                  {i + 1}.
-                </span>
-              )}
-              <span className="truncate">{opt.label || `Opción ${i + 1}`}</span>
+              <div className="flex items-center gap-3 text-gray-500 text-sm font-medium flex-grow">
+                {type === "radio" && (
+                  <div className="w-5 h-5 rounded-full border border-gray-200 bg-white" />
+                )}
+                {type === "checkbox" && (
+                  <div className="w-5 h-5 rounded-md border border-gray-200 bg-white" />
+                )}
+                {type === "select" && (
+                  <span className="text-gray-300 w-5 text-center font-mono text-[10px]">
+                    {i + 1}.
+                  </span>
+                )}
+                <span className="truncate">{opt.label || `Opción ${i + 1}`}</span>
+              </div>
+
+                {/* Indicador de Salto Visual en Modo Vista */}
+                {type === "radio" && opt.next_section_id && opt.next_section_id !== "default" && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] rounded-full border border-[var(--puembo-green)]/20 shrink-0 shadow-sm animate-in fade-in slide-in-from-right-2 duration-500">
+                    <GitBranch className="w-3 h-3" />
+                    <span className="text-[9px] font-black uppercase tracking-tight">
+                      {opt.next_section_id === "submit" 
+                        ? "Finalizar" 
+                        : (sections?.find(s => s.id === opt.next_section_id)?.label || "Sección")}
+                    </span>
+                  </div>
+                )}
             </div>
           ))}
-          {options?.length > 4 && (
+          {options?.length > 6 && (
             <div className="text-[10px] text-gray-300 uppercase font-black tracking-widest pl-8">
-              + {options.length - 4} opciones más
+              + {options.length - 6} opciones más
             </div>
           )}
         </div>
@@ -454,71 +469,61 @@ function QuestionCard({
                       />
                     )}
                   />
+
+                  {/* Salto Lógico: UI más obvia y directa */}
                   {type === "radio" && sections?.length > 0 && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 text-gray-300 hover:text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/5 rounded-xl"
-                        >
-                          <GitBranch className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="w-72 rounded-3xl shadow-2xl p-4 border-none bg-black text-white"
-                      >
-                        <Controller
-                          control={control}
-                          name={`fields.${index}.options.${optIdx}.next_section_id`}
-                          render={({ field: jField }) => (
-                            <div className="space-y-4">
-                              <div className="flex items-center gap-3">
-                                <GitBranch className="w-4 h-4 text-[var(--puembo-green)]" />
-                                <span className="text-[10px] uppercase font-black tracking-[0.2em] text-white">
-                                  Salto Lógico
-                                </span>
-                              </div>
-                              <Select
-                                value={jField.value || "default"}
-                                onValueChange={(v) =>
-                                  jField.onChange(v === "default" ? null : v)
-                                }
+                    <div className="flex items-center gap-2 min-w-[140px]">
+                      <div className="h-4 w-px bg-gray-100 mx-1" />
+                      <Controller
+                        control={control}
+                        name={`fields.${index}.options.${optIdx}.next_section_id`}
+                        render={({ field: jField }) => (
+                          <Select
+                            value={jField.value || "default"}
+                            onValueChange={(v) =>
+                              jField.onChange(v === "default" ? null : v)
+                            }
+                          >
+                            <SelectTrigger
+                              className={cn(
+                                "h-8 text-[10px] font-black uppercase tracking-tight border-none shadow-none bg-transparent hover:bg-gray-50 transition-all gap-2 px-2",
+                                jField.value
+                                  ? "text-[var(--puembo-green)] bg-[var(--puembo-green)]/5"
+                                  : "text-gray-300",
+                              )}
+                            >
+                              <GitBranch className="w-3 h-3" />
+                              <SelectValue placeholder="Flujo" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl border-none shadow-2xl">
+                              <SelectItem
+                                value="default"
+                                className="text-[10px] font-bold uppercase"
                               >
-                                <SelectTrigger className="w-full h-12 text-xs rounded-2xl bg-white/10 border-none text-white hover:bg-white/20 transition-all px-4">
-                                  <SelectValue placeholder="Siguiente sección" />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-2xl border-none shadow-xl">
-                                  <SelectItem
-                                    value="default"
-                                    className="text-xs uppercase font-black"
-                                  >
-                                    → Siguiente paso
-                                  </SelectItem>
-                                  {sections.map((s) => (
-                                    <SelectItem
-                                      key={s.id}
-                                      value={s.id}
-                                      className="text-xs font-bold"
-                                    >
-                                      → {s.label}
-                                    </SelectItem>
-                                  ))}
-                                  <SelectItem
-                                    value="submit"
-                                    className="text-xs font-black text-red-500 uppercase tracking-widest"
-                                  >
-                                    ✓ Finalizar Formulario
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
-                        />
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                                → Siguiente
+                              </SelectItem>
+                              {sections.map((s) => (
+                                <SelectItem
+                                  key={s.id}
+                                  value={s.id}
+                                  className="text-[10px] font-bold uppercase"
+                                >
+                                  → {s.label || "Sección"}
+                                </SelectItem>
+                              ))}
+                              <SelectItem
+                                value="submit"
+                                className="text-[10px] font-black text-red-500 uppercase"
+                              >
+                                ✓ Finalizar
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </div>
                   )}
+
                   <Button
                     type="button"
                     variant="ghost"
@@ -591,78 +596,25 @@ function QuestionCard({
             </Button>
           </div>
 
-          {!isSection ? (
-            <div className="flex items-center gap-4 px-6 py-2 bg-white rounded-2xl border border-gray-100 shadow-sm">
-              <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
-                Requerido
-              </Label>
-              <Controller
-                control={control}
-                name={`fields.${index}.required`}
-                render={({ field: rField }) => (
-                  <Switch
-                    checked={rField.value}
-                    onCheckedChange={rField.onChange}
-                  />
-                )}
-              />
-            </div>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-xl h-10 w-10 border border-gray-100"
-                >
-                  <MoreVertical className="w-5 h-5 text-gray-400" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-72 p-4 rounded-3xl shadow-2xl border-none"
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <ChevronRight className="w-4 h-4 text-[var(--puembo-green)]" />
-                    <Label className="text-[10px] text-gray-400 uppercase font-black tracking-widest">
-                      Comportamiento Post-Sección
-                    </Label>
-                  </div>
-                  <Controller
-                    control={control}
-                    name={`fields.${index}.next_section_id`}
-                    render={({ field: jsField }) => (
-                      <Select
-                        value={jsField.value || "default"}
-                        onValueChange={(v) =>
-                          jsField.onChange(v === "default" ? null : v)
-                        }
-                      >
-                        <SelectTrigger className="h-12 text-xs rounded-2xl bg-gray-50 border-none">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl shadow-xl">
-                          <SelectItem
-                            value="default"
-                            className="text-xs font-bold uppercase tracking-tight"
-                          >
-                            Pasar a la siguiente bloque
-                          </SelectItem>
-                          <SelectItem
-                            value="submit"
-                            className="text-xs font-black text-red-500 uppercase tracking-widest"
-                          >
-                            Finalizar y Enviar
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          <div className="flex items-center gap-3">
+            {!isSection && (
+              <div className="flex items-center gap-4 px-6 py-2 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
+                  Requerido
+                </Label>
+                <Controller
+                  control={control}
+                  name={`fields.${index}.required`}
+                  render={({ field: rField }) => (
+                    <Switch
+                      checked={rField.value}
+                      onCheckedChange={rField.onChange}
+                    />
+                  )}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

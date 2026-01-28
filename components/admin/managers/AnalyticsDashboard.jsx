@@ -445,10 +445,12 @@ export default function AnalyticsDashboard({
 
           {/* Gráficos por Pregunta */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {form.form_fields.map((field) => {
-              const { data: stats, respondedCount } = getFieldStats(
-                field.label
-              );
+            {form.form_fields
+              .filter((f) => f.type !== "section")
+              .map((field) => {
+                const { data: stats, respondedCount } = getFieldStats(
+                  field.label
+                );
               const fieldType = field.field_type || field.type;
               const isChartable = ["radio", "select", "checkbox"].includes(
                 fieldType
@@ -707,6 +709,25 @@ export default function AnalyticsDashboard({
 
                 <div className="p-8 md:p-20 space-y-16">
                   {form.form_fields.map((field) => {
+                    const fieldType = field.field_type || field.type;
+
+                    // SEPARADOR DE SECCIÓN EN VISTA INDIVIDUAL
+                    if (fieldType === "section") {
+                      return (
+                        <div
+                          key={field.id}
+                          className="pt-10 border-b border-gray-100 pb-4"
+                        >
+                          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)] block mb-2">
+                            Bloque de Información
+                          </span>
+                          <h3 className="text-3xl font-serif font-bold text-gray-900 leading-tight">
+                            {field.label}
+                          </h3>
+                        </div>
+                      );
+                    }
+
                     const val = currentIndividual.data[field.label];
                     const empty = isValueEmpty(val);
                     const isFile =
