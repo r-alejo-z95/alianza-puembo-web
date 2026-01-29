@@ -75,7 +75,7 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSel
   const formattedPublishAt = formatInEcuador(newsItem.publish_at, "d 'de' MMM, HH:mm");
 
   // Construir URL con página y ancla
-  const publicHref = `/noticias?page=${publicPage}#${newsItem.id}`;
+  const publicHref = `/noticias?page=${publicPage}#${newsItem.slug || newsItem.id}`;
 
   if (compact) {
     return (

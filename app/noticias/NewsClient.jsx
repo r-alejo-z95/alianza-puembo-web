@@ -120,7 +120,7 @@ export function NewsClient({ news: initialNews = [] }) {
               return (
                 <motion.div
                   key={item.id}
-                  id={item.id}
+                  id={item.slug || item.id}
                   initial={{ opacity: 0, x: isEven ? -30 : 30 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, margin: "-100px" }}

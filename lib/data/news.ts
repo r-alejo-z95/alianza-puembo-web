@@ -4,6 +4,7 @@ import { getNowInEcuador } from "@/lib/date-utils";
 interface NewsItem {
   id: string;
   title: string;
+  slug: string;
   description: string;
   news_date: string;
   news_time: string;

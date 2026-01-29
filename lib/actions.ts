@@ -5,6 +5,7 @@
 import { z } from "zod";
 import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
+import { slugify } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { loginSchema } from "@/lib/schemas";
@@ -222,18 +223,6 @@ export async function addPrayerRequest(formData: FormData) {
 export async function verifyCaptcha(token: string) {
   const isValid = await verifyTurnstileToken(token);
   return { isValid };
-}
-
-// Helper to slugify text
-function slugify(text: string) {
-  return text
-    .toString()
-    .toLowerCase()
-    .replace(/\s+/g, "-") // Replace spaces with -
-    .replace(/[^\w\-]+/g, "") // Remove all non-word chars
-    .replace(/\-\-+/g, "-") // Replace multiple - with single -
-    .replace(/^-+/, "") // Trim - from start of text
-    .replace(/-+$/, ""); // Trim - from end of text
 }
 
 // Create Form and Sheet Action
