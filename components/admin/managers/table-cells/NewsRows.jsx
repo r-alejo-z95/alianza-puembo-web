@@ -13,13 +13,14 @@ import {
 import { TableRow, TableCell } from "@/components/ui/table";
 import { OverflowCell } from "./OverflowCell";
 import { toast } from "sonner";
-import { Edit, Trash2, Link as LinkIcon, Copy, Calendar, Clock, Eye } from "lucide-react";
+import { Edit, Trash2, Link as LinkIcon, Copy, Calendar, Clock, Eye, Send } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatLiteralDate } from "@/lib/date-utils";
+import { formatLiteralDate, formatInEcuador } from "@/lib/date-utils";
 import { AuthorAvatar } from "@/components/shared/AuthorAvatar";
 import { cn } from "@/lib/utils.ts";
 import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 
 const formatNewsTime = (timeStr) => {
   if (!timeStr) return "-";
@@ -28,6 +29,8 @@ const formatNewsTime = (timeStr) => {
 };
 
 export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSelected, onSelect }) {
+  const isScheduled = new Date(newsItem.publish_at) > new Date();
+
   const actions = (
     <div className="flex items-center justify-end gap-2">
       <Button
@@ -69,6 +72,8 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSel
     : "-";
   const formattedTime = newsItem.news_time ? formatNewsTime(newsItem.news_time) : "-";
 
+  const formattedPublishAt = formatInEcuador(newsItem.publish_at, "d 'de' MMM, HH:mm");
+
   // Construir URL con página y ancla
   const publicHref = `/noticias?page=${publicPage}#${newsItem.id}`;
 
@@ -86,7 +91,14 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSel
                 className="mt-1 rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
             />
             <div className="space-y-1 min-w-0">
-                <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Noticia</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest">Noticia</span>
+                  {isScheduled && (
+                    <Badge variant="outline" className="text-[8px] h-4 border-[var(--puembo-green)]/30 text-[var(--puembo-green)] bg-[var(--puembo-green)]/5 uppercase tracking-tighter">
+                      Programada
+                    </Badge>
+                  )}
+                </div>
                 <OverflowCell 
                 href={publicHref}
                 linkText="Ver noticia"
@@ -107,9 +119,9 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSel
           <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400">
             <Calendar className="w-3 h-3 text-[var(--puembo-green)]/50" /> {formattedDate}
           </div>
-          {formattedTime !== "-" && (
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400">
-              <Clock className="w-3 h-3 text-[var(--puembo-green)]/50" /> {formattedTime}
+          {isScheduled && (
+            <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--puembo-green)]/70">
+              <Send className="w-3 h-3" /> {formattedPublishAt}
             </div>
           )}
         </div>
@@ -134,7 +146,14 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSel
         />
       </TableCell>
       <TableCell className="px-4 py-6 w-1/4">
-        <div className="max-w-[200px]">
+        <div className="max-w-[200px] space-y-1">
+          <div className="flex items-center gap-2">
+            {isScheduled && (
+              <Badge variant="outline" className="text-[8px] h-4 border-[var(--puembo-green)]/30 text-[var(--puembo-green)] bg-[var(--puembo-green)]/5 uppercase tracking-tighter">
+                Programada
+              </Badge>
+            )}
+          </div>
           <OverflowCell 
             href={publicHref}
             linkText="Ver noticia"
@@ -152,13 +171,19 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSel
         </div>
       </TableCell>
       <TableCell className="px-8 py-6 min-w-[150px]">
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
             <Calendar className="w-3 h-3 text-[var(--puembo-green)]" /> {formattedDate}
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
-            <Clock className="w-3 h-3" /> {formattedTime}
-          </div>
+          {isScheduled ? (
+            <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--puembo-green)]/80">
+              <Send className="w-3 h-3" /> {formattedPublishAt}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <Clock className="w-3 h-3" /> {formattedTime}
+            </div>
+          )}
         </div>
       </TableCell>
       <TableCell className="px-8 py-6 text-center">

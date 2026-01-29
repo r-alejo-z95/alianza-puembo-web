@@ -27,14 +27,22 @@ import {
   Loader2,
   Trash2,
   Camera,
+  Send,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
+import {
+  ecuadorToUTC,
+  formatEcuadorDateForInput,
+  formatEcuadorTimeForInput,
+} from "@/lib/date-utils";
 
 const newsSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
   description: z.string().optional(),
   date: z.string().optional(),
   time: z.string().optional(),
+  publish_date: z.string().min(1, "La fecha de publicación es requerida."),
+  publish_time: z.string().min(1, "La hora de publicación es requerida."),
 });
 
 export default function NewsForm({ newsItem, onSave, onCancel }) {
@@ -43,6 +51,8 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
   const [removeImage, setRemoveImage] = useState(false);
   const fileInputRef = useRef(null);
 
+  const initialPublishAt = newsItem?.publish_at || new Date().toISOString();
+
   const form = useForm({
     resolver: zodResolver(newsSchema),
     defaultValues: {
@@ -50,16 +60,21 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
       description: newsItem?.description || "",
       date: newsItem?.news_date || "",
       time: newsItem?.news_time || "",
+      publish_date: formatEcuadorDateForInput(initialPublishAt),
+      publish_time: formatEcuadorTimeForInput(initialPublishAt),
     },
   });
 
   useEffect(() => {
     if (newsItem) {
+      const pubAt = newsItem.publish_at || new Date().toISOString();
       form.reset({
         title: newsItem.title || "",
         description: newsItem.description || "",
         date: newsItem.news_date || "",
         time: newsItem.news_time || "",
+        publish_date: formatEcuadorDateForInput(pubAt),
+        publish_time: formatEcuadorTimeForInput(pubAt),
       });
     }
   }, [newsItem, form]);
@@ -104,11 +119,17 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
   };
 
   const onSubmit = async (data) => {
+    const publish_at_utc = ecuadorToUTC(
+      data.publish_date,
+      data.publish_time,
+    ).toISOString();
+
     await onSave(
       {
         ...data,
         news_date: data.date || null,
         news_time: data.time || null,
+        publish_at: publish_at_utc,
         remove_image: removeImage,
       },
       imageFile,
@@ -168,7 +189,61 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
             />
           </div>
 
-          {/* Fecha y Hora */}
+          {/* Programación de Visibilidad (publish_at) */}
+          <div className="bg-[var(--puembo-green)]/5 p-6 rounded-[2rem] border border-[var(--puembo-green)]/10 space-y-6">
+            <div className="space-y-0.5">
+              <FormLabel className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <Send className="w-4 h-4 text-[var(--puembo-green)]" />
+                Programar Visibilidad
+              </FormLabel>
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest">
+                ¿Cuándo será visible esta noticia en la web pública?
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="publish_date"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                      Fecha de Lanzamiento
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        className="h-12 rounded-xl bg-white border-gray-100 shadow-sm"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="publish_time"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                      Hora de Lanzamiento
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="time"
+                        className="h-12 rounded-xl bg-white border-gray-100 shadow-sm"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Fecha y Hora del Suceso (Opcional - news_date/time) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <FormField
               control={form.control}
@@ -178,7 +253,7 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                   <div className="flex items-center gap-2 text-gray-400">
                     <Calendar className="w-3.5 h-3.5" />
                     <FormLabel className="text-[10px] font-black uppercase tracking-widest">
-                      Fecha de Publicación
+                      Fecha del Suceso (Opcional)
                     </FormLabel>
                   </div>
                   <FormControl>
@@ -200,7 +275,7 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
                   <div className="flex items-center gap-2 text-gray-400">
                     <Clock className="w-3.5 h-3.5" />
                     <FormLabel className="text-[10px] font-black uppercase tracking-widest">
-                      Hora (Opcional)
+                      Hora del Suceso (Opcional)
                     </FormLabel>
                   </div>
                   <FormControl>

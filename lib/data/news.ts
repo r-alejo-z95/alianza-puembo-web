@@ -1,10 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
+import { getNowInEcuador } from "@/lib/date-utils";
 
 interface NewsItem {
   id: string;
   title: string;
   description: string;
   news_date: string;
+  news_time: string;
+  publish_at: string; // Nueva columna
   image_url?: string;
   image_w?: number;
   image_h?: number;
@@ -14,10 +17,7 @@ interface NewsItem {
 const NEWS_PER_PAGE = 4;
 
 /**
- * @description Obtiene las noticias paginadas.
- * @param {number} page - El número de página actual.
- * @param {number} newsPerPage - El número de noticias por página.
- * @returns {Promise<{paginatedNews: Array, totalPages: number, hasNextPage: boolean}>} Un objeto con las noticias paginadas y la información de paginación.
+ * @description Obtiene las noticias paginadas y filtradas por fecha de publicación programada.
  */
 export async function getNews(
   page: number = 1,
@@ -28,11 +28,14 @@ export async function getNews(
   hasNextPage: boolean;
 }> {
   const supabase = await createClient();
+  const nowStr = new Date().toISOString(); // UTC real para comparar con TIMESTAMPTZ
 
+  // Filtrar directamente en la consulta de Supabase para mayor eficiencia
   const { data: news, error } = await supabase
     .from("news")
     .select("*")
     .eq("is_archived", false)
+    .lte("publish_at", nowStr) // Solo publicadas (ahora o en el pasado UTC)
     .order("news_date", { ascending: false, nullsFirst: true })
     .order("news_time", { ascending: false, nullsFirst: true });
 
