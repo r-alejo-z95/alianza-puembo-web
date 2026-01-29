@@ -255,3 +255,36 @@ export function formatEventTimeRange(
 
   return `${startTime} - ${endTime}`;
 }
+
+/**
+ * Retorna una descripción legible de la frecuencia de un evento recurrente.
+ * Ejemplo: "Todos los domingos", "Cada dos semanas", etc.
+ */
+export function formatEventFrequency(
+  date: Date | string,
+  pattern: "weekly" | "biweekly" | "monthly" | "yearly" | string | null | undefined
+): string {
+  if (!pattern) return "";
+
+  const d = typeof date === "string" ? new Date(date) : date;
+  if (isNaN(d.getTime())) return "";
+
+  if (pattern === "weekly") {
+    // "Todos los domingos", "Todos los lunes", etc.
+    const dayName = formatInEcuador(d, "EEEE");
+    const dayNameCapitalized = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+    // Pluralización simple en español para días de la semana
+    const pluralDay = dayNameCapitalized.endsWith("s")
+      ? dayNameCapitalized
+      : `${dayNameCapitalized}s`;
+    return `Todos los ${pluralDay}`;
+  }
+
+  const patterns: Record<string, string> = {
+    biweekly: "Cada dos semanas",
+    monthly: "Cada mes",
+    yearly: "Cada año",
+  };
+
+  return patterns[pattern] || "";
+}

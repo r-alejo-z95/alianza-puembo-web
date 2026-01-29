@@ -12,7 +12,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { PaginationControls } from "@/components/shared/PaginationControls";
-import { formatInEcuador } from "@/lib/date-utils";
+import { formatInEcuador, formatEventFrequency } from "@/lib/date-utils";
 import { MapPin, Calendar, Clock, Search, X } from "lucide-react";
 
 const ITEMS_PER_PAGE = 4;
@@ -146,7 +146,9 @@ export function UpcomingEventsClient({ initialEvents = [] }) {
                           <div className="flex items-center gap-3 text-sm text-gray-600">
                             <Calendar className="w-4 h-4 text-[var(--puembo-green)]" />
                             <span className="font-medium">
-                              {formatInEcuador(event.start_time, "d 'de' MMMM, yyyy")}
+                              {event.is_recurring 
+                                ? formatEventFrequency(event.start_time, event.recurrence_pattern)
+                                : formatInEcuador(event.start_time, "d 'de' MMMM, yyyy")}
                             </span>
                           </div>
 

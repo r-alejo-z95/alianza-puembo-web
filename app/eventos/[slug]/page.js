@@ -1,14 +1,17 @@
 import { getEventBySlug } from "@/lib/data/events";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { notFound } from "next/navigation";
-import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
+import {
+  formatInEcuador,
+  getNowInEcuador,
+  formatEventFrequency,
+} from "@/lib/date-utils";
 import { Calendar, Clock, MapPin, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { contentSection, sectionText, sectionTitle } from "@/lib/styles";
-import { subDays } from "date-fns";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
@@ -32,10 +35,14 @@ export default async function EventPage({ params }) {
   const now = getNowInEcuador();
   const registrationOpen = true;
 
+  const dateDisplay = event.is_recurring
+    ? formatEventFrequency(event.start_time, event.recurrence_pattern)
+    : formatInEcuador(event.start_time, "EEEE d 'de' MMMM, yyyy");
+
   return (
     <PublicPageLayout
       title={event.title}
-      description={formatInEcuador(event.start_time, "EEEE d 'de' MMMM, yyyy")}
+      description={dateDisplay}
       imageUrl={event.poster_url || "/eventos/Eventos.jpg"}
       imageAlt={event.title}
     >
@@ -88,17 +95,23 @@ export default async function EventPage({ params }) {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-8 border-t border-gray-200">
-                <div className="flex items-start gap-4">
+                <div className="flex items-center gap-4">
                   <div className="p-3 bg-green-50 rounded-xl text-[var(--puembo-green)]">
                     <Calendar className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">
-                      Fecha
-                    </p>
-                    <p className="text-gray-600">
-                      {formatInEcuador(event.start_time, "EEEE d 'de' MMMM")}
-                    </p>
+                    {event.is_recurring ? (
+                      <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                        {dateDisplay}
+                      </p>
+                    ) : (
+                      <>
+                        <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                          Fecha
+                        </p>
+                        <p className="text-gray-600">{dateDisplay}</p>
+                      </>
+                    )}
                   </div>
                 </div>
 
