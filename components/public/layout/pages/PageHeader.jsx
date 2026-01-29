@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -20,7 +20,7 @@ export function PageHeader({ title, description, imageUrl, imageAlt }) {
           fill
           priority
           className="object-cover object-center brightness-75"
-          sizes="100vw"
+          sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
         />
         {/* Deep gradient for readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />

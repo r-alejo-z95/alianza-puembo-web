@@ -59,3 +59,26 @@ export async function getNews(
 
   return { paginatedNews, totalPages, hasNextPage };
 }
+
+/**
+ * @description Obtiene todas las noticias publicadas sin paginar.
+ */
+export async function getAllNews(): Promise<NewsItem[]> {
+  const supabase = await createClient();
+  const nowStr = new Date().toISOString();
+
+  const { data: news, error } = await supabase
+    .from("news")
+    .select("*")
+    .eq("is_archived", false)
+    .lte("publish_at", nowStr)
+    .order("news_date", { ascending: false, nullsFirst: true })
+    .order("news_time", { ascending: false, nullsFirst: true });
+
+  if (error) {
+    console.error("Error fetching all news:", error);
+    return [];
+  }
+
+  return news as NewsItem[];
+}

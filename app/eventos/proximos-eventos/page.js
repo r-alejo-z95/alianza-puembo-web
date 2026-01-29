@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getUpcomingEvents } from '@/lib/data/events.ts';
+import { getAllUpcomingEvents } from '@/lib/data/events';
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { UpcomingEventsClient } from "./UpcomingEventsClient";
 import { Loader2 } from "lucide-react";
@@ -20,10 +20,8 @@ function LoadingState() {
   );
 }
 
-export default async function ProximosEventos({ searchParams }) {
-  const resolvedSearchParams = await searchParams;
-  const page = parseInt(resolvedSearchParams.page) || 1;
-  const { paginatedEvents, totalPages, hasNextPage } = await getUpcomingEvents(page);
+export default async function ProximosEventos() {
+  const events = await getAllUpcomingEvents();
 
   const introSectionData = {
     title: "No te Pierdas Nada",
@@ -42,15 +40,10 @@ export default async function ProximosEventos({ searchParams }) {
       description="Mantente al tanto de lo que viene en nuestra comunidad."
       imageUrl="/eventos/Eventos.jpg"
       imageAlt="Personas en un evento de la iglesia"
-      introSectionData={page === 1 ? introSectionData : undefined}
+      introSectionData={introSectionData}
     >
       <Suspense fallback={<LoadingState />}>
-        <UpcomingEventsClient 
-          paginatedEvents={paginatedEvents}
-          totalPages={totalPages}
-          hasNextPage={hasNextPage}
-          page={page}
-        />
+        <UpcomingEventsClient initialEvents={events} />
       </Suspense>
     </PublicPageLayout>
   );

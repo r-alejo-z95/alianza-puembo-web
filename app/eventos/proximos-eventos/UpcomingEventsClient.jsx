@@ -1,29 +1,25 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils.ts";
 import {
-  sectionTitle,
-  sectionText,
   contentSection,
   notAvailableText,
 } from "@/lib/styles";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { PaginationControls } from "@/components/shared/PaginationControls";
-import { subDays } from "date-fns";
-import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
-import { MapPin, Calendar, Clock } from "lucide-react";
+import { formatInEcuador } from "@/lib/date-utils";
+import { MapPin, Calendar, Clock, Search, X } from "lucide-react";
 
-export function UpcomingEventsClient({
-  paginatedEvents,
-  totalPages,
-  hasNextPage,
-  page,
-}) {
-  const now = getNowInEcuador();
+const ITEMS_PER_PAGE = 4;
+
+export function UpcomingEventsClient({ initialEvents = [] }) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -32,11 +28,36 @@ export function UpcomingEventsClient({
     transition: { duration: 0.6 },
   };
 
+  const filteredEvents = useMemo(() => {
+    if (!searchTerm) return initialEvents;
+    return initialEvents.filter((event) =>
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (event.description && event.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (event.location && event.location.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [initialEvents, searchTerm]);
+
+  const totalPages = Math.ceil(filteredEvents.length / ITEMS_PER_PAGE);
+  const paginatedEvents = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredEvents.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredEvents, currentPage]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const clearSearch = () => {
+    setSearchTerm("");
+    setCurrentPage(1);
+  };
+
   return (
-    <div className={cn(contentSection, "bg-gray-50/50 pt-12 pb-24 space-y-20")}>
+    <div className={cn(contentSection, "bg-gray-50/50 pt-12 pb-24 space-y-12")}>
       <section className="max-w-7xl mx-auto w-full">
         {/* Separador Visual Estándar */}
-        <div className="flex items-center gap-6 mb-16 px-4">
+        <div className="flex items-center gap-6 mb-12 px-4">
           <h2 className="text-2xl md:text-4xl font-serif font-bold text-gray-900 whitespace-nowrap">
             Próximos Eventos
           </h2>
@@ -44,12 +65,40 @@ export function UpcomingEventsClient({
           <div className="h-1.5 w-12 bg-[var(--puembo-green)] rounded-full" />
         </div>
 
-        {paginatedEvents.length === 0 ? (
-          <p className={cn(notAvailableText, "text-center py-20")}>
-            No hay eventos próximamente.
-          </p>
+        {/* Barra de Búsqueda */}
+        <motion.div
+          {...fadeIn}
+          className="bg-white p-4 md:p-6 rounded-3xl shadow-lg border border-gray-100 mb-12 flex flex-col md:flex-row gap-4 items-center mx-4"
+        >
+          <div className="relative w-full">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              placeholder="Buscar eventos por nombre, descripción o lugar..."
+              className="pl-12 h-14 rounded-2xl bg-gray-50/50 border-gray-100 focus:bg-white transition-all text-base"
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+            {searchTerm && (
+              <button
+                onClick={clearSearch}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
+            )}
+          </div>
+        </motion.div>
+
+        {filteredEvents.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200 text-gray-400 mx-4">
+            <p className={notAvailableText}>
+              {searchTerm 
+                ? "No se encontraron eventos que coincidan con tu búsqueda." 
+                : "No hay eventos próximamente."}
+            </p>
+          </div>
         ) : (
-          <div className="space-y-12">
+          <div className="space-y-12 px-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               {paginatedEvents.map((event, index) => (
                 <motion.div
@@ -129,10 +178,9 @@ export function UpcomingEventsClient({
             {totalPages > 1 && (
               <div className="flex justify-center pt-8">
                 <PaginationControls
-                  hasNextPage={hasNextPage}
+                  currentPage={currentPage}
                   totalPages={totalPages}
-                  basePath="/eventos/proximos-eventos"
-                  currentPage={page}
+                  onPageChange={setCurrentPage}
                 />
               </div>
             )}

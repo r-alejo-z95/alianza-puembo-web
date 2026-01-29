@@ -133,6 +133,38 @@ export async function getUpcomingEvents(page: number = 1, eventsPerPage: number 
   return { paginatedEvents, totalPages, hasNextPage };
 }
 
+/**
+ * @description Obtiene todos los próximos eventos sin paginar.
+ * Útil para búsqueda y filtrado en el cliente.
+ */
+export async function getAllUpcomingEvents(): Promise<Event[]> {
+  const supabase = await createClient();
+  const { data: rawEvents, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('is_archived', false)
+    .order('start_time', { ascending: true });
+
+  if (error) return [];
+
+  const now = getNowInEcuador();
+  
+  const upcomingEvents = (rawEvents as Event[]).map(event => {
+    if (!event.is_recurring) return event;
+    
+    const instances = expandRecurringEvent(event);
+    const nextInstance = instances
+        .filter(instance => new Date(instance.end_time || instance.start_time) >= now)
+        .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())[0];
+    
+    return nextInstance || null;
+  })
+  .filter((e): e is Event => e !== null && new Date(e.end_time || e.start_time) >= now)
+  .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+
+  return upcomingEvents;
+}
+
 export async function getEventBySlug(slug: string): Promise<Event | null> {
   noStore();
   const supabase = await createClient();
