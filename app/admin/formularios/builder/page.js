@@ -7,7 +7,7 @@ import FormBuilder from "@/components/admin/forms/builder/FormBuilder";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { initializeGoogleIntegration } from "@/lib/actions";
-import { slugify } from "@/lib/utils/text";
+import { slugify } from "@/lib/utils";
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-z0-9.]/gi, "_").toLowerCase();
