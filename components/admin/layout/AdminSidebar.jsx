@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils.ts";
 import { createClient } from "@/lib/supabase/client";
 import { AdminBottomNav } from "./AdminBottomNav";
+import { NotificationBell } from "./NotificationBell";
 
 const navLinks = [
   {
@@ -146,17 +147,20 @@ export default function AdminSidebar({ user, children }) {
         </nav>
 
         <div className="mt-auto pt-8 border-t border-white/5 space-y-4">
-          <Link
-            href="/"
-            className="flex items-center gap-4 px-4 py-3 rounded-2xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group"
-          >
-            <div className="p-2 rounded-xl bg-white/5 group-hover:bg-white/10">
-              <Home className="h-5 w-5" />
-            </div>
-            <span className="text-sm font-bold tracking-wide">
-              Sitio Público
-            </span>
-          </Link>
+          <div className="flex items-center justify-between gap-2 pl-2 pr-4">
+            <Link
+              href="/"
+              className="flex-1 flex items-center gap-3 px-3 py-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group"
+            >
+              <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-white/10">
+                <Home className="h-4 w-4" />
+              </div>
+              <span className="text-xs font-bold tracking-wide">
+                Sitio Público
+              </span>
+            </Link>
+            <NotificationBell userId={user?.id} />
+          </div>
 
           <div className="p-4 bg-white/5 rounded-[2rem] border border-white/5">
             <div className="flex items-center gap-4">

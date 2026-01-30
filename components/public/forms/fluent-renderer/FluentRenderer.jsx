@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/dialog";
 import TurnstileCaptcha from "@/components/shared/TurnstileCaptcha";
 import { cn } from "@/lib/utils";
-import { verifyCaptcha } from "@/lib/actions";
+import { verifyCaptcha, notifyFormSubmission } from "@/lib/actions";
 import { createClient } from "@/lib/supabase/client";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 
@@ -758,6 +758,9 @@ export default function FluentRenderer({ form }) {
       ]);
 
       if (error) throw error;
+
+      // 3. Notificar al autor del formulario (Dashboard + Email)
+      await notifyFormSubmission(form.title, form.slug, form.user_id);
 
       setSubmissionStatus("success");
 

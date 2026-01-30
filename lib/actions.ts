@@ -3,14 +3,12 @@
 "use server";
 
 import { z } from "zod";
-import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { loginSchema } from "@/lib/schemas";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendSystemNotification } from "@/lib/services/notifications";
 
 /**
  * Verifica un token de Cloudflare Turnstile.
@@ -106,24 +104,20 @@ export async function submitContactForm(
   const { name, email, phone, message } = validatedFields.data;
 
   try {
-    await resend.emails.send({
-      from: "Formulario de Contacto – Alianza Puembo <contactform@alianzapuembo.org>",
-      to: "info@alianzapuembo.org",
-      replyTo: email,
-      subject: `${name} ha enviado un mensaje desde el formulario de contacto – Alianza Puembo Web`,
-      html: `
-        <p><strong>Nombre:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Teléfono:</strong> ${phone || "N/A"}</p>
-        <p><strong>Mensaje:</strong></p>
-        <p style="background: #f9f9f9; padding: 15px; border-radius: 5px;">${message}</p>
-      
-        <br />
-        <hr style="border: 0; border-top: 1px solid #eee;" />
-        <p style="font-size: 12px; color: #888; font-style: italic;">
-        <strong>Nota interna:</strong> Para responder a la persona que llenó este formulario, solo haz clic en "Responder" a este correo. Se enviará directamente a <b>${email}</b>.
-        </p>
+    // Usar el servicio centralizado de notificaciones
+    await sendSystemNotification({
+      type: "contact",
+      target: "info_email",
+      title: `${name} ha enviado un mensaje a través del formulario de contacto - Alianza Puembo Web`,
+      message: `
+        <strong>De:</strong> ${name} &lt;${email}&gt;<br/>
+        <strong>Teléfono:</strong> ${phone || "N/A"}<br/>
+        <br/>
+        ${message}
       `,
+      meta: {
+        replyTo: email,
+      },
     });
 
     return {
@@ -132,7 +126,7 @@ export async function submitContactForm(
         "¡Gracias por tu mensaje! Nos pondremos en contacto contigo pronto.",
     };
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Error sending contact notification:", error);
     return {
       success: false,
       message:
@@ -212,6 +206,21 @@ export async function addPrayerRequest(formData: FormData) {
     };
   }
 
+  // Notificar usando el servicio centralizado
+  await sendSystemNotification({
+    type: "prayer",
+    target: "all_admins",
+    title: `Alguien ha enviado una nueva petición de oración - Alianza Puembo Web`,
+    message: `
+      <strong>Solicitante:</strong> ${is_anonymous ? "Anónimo" : name || "Alguien"}<br/>
+      <strong>Petición:</strong><br/>
+      <blockquote>${request_text}</blockquote>
+    `,
+    meta: {
+      link: "/admin/oracion",
+    },
+  });
+
   revalidatePath("/oracion");
 
   return { data };
@@ -223,6 +232,31 @@ export async function addPrayerRequest(formData: FormData) {
 export async function verifyCaptcha(token: string) {
   const isValid = await verifyTurnstileToken(token);
   return { isValid };
+}
+
+/**
+ * Acción para notificar envío de formularios dinámicos
+ */
+export async function notifyFormSubmission(
+  formTitle: string,
+  formSlug: string,
+  authorId: string,
+) {
+  if (!authorId) return { success: false };
+
+  try {
+    await sendSystemNotification({
+      type: "form",
+      target: { userId: authorId },
+      title: `Alguien ha respondido al formulario: ${formTitle} - Alianza Puembo Web`,
+      message: `El formulario <strong>"${formTitle}"</strong> ha recibido una nueva respuesta.`,
+      meta: { link: `/admin/formularios/analiticas/${formSlug}` },
+    });
+    return { success: true };
+  } catch (e) {
+    console.error("Error notifying form submission:", e);
+    return { success: false };
+  }
 }
 
 // Create Form and Sheet Action
@@ -318,9 +352,6 @@ export async function regenerateFormAndSheet(
       .eq("slug", formSlug)
       .eq("is_archived", false)
       .single();
-
-    console.log("Found form by slug:", oldForm);
-    console.log("Fetch error:", fetchError);
 
     if (fetchError || !oldForm) {
       console.error("Error fetching form by slug:", fetchError);
