@@ -38,11 +38,6 @@ const navLinks = [
     label: "Forms",
     icon: FileText,
   },
-  {
-    href: "/admin/preferencias",
-    label: "Perfil",
-    icon: UserCircle,
-  },
 ];
 
 export function AdminBottomNav() {

@@ -14,8 +14,15 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils.ts";
 import { createClient } from "@/lib/supabase/client";
@@ -61,7 +68,7 @@ export default function AdminSidebar({ user, children }) {
 
   const handleSignOut = async () => {
     const supabase = createClient();
-    await supabase.auth.signOut({ scope: 'local' });
+    await supabase.auth.signOut({ scope: "local" });
     window.location.href = "/";
   };
 
@@ -113,6 +120,72 @@ export default function AdminSidebar({ user, children }) {
 
   return (
     <div className="flex h-screen w-full bg-gray-50/50 overflow-hidden font-sans text-gray-900 relative">
+      {/* Móvil: Header Superior (Solo visible en < MD) */}
+      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-black/95 backdrop-blur-md border-b border-white/10 z-[40] flex items-center justify-between px-6 shadow-2xl">
+        <Link href="/admin">
+          <Image
+            src="/brand/logo-puembo-white.png"
+            alt="Logo"
+            width={100}
+            height={40}
+            className="h-6 w-auto"
+          />
+        </Link>
+        <div className="flex items-center gap-2">
+          <NotificationBell userId={user?.id} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-xl hover:bg-white/10 p-0 overflow-hidden border border-white/10 transition-all active:scale-95"
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-[var(--puembo-green)] text-white text-[10px] font-black">
+                    {getInitials(user?.user_metadata?.full_name || user?.email)}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-56 rounded-[2rem] bg-white border-none shadow-2xl p-2 mt-2 z-[100]"
+            >
+              <div className="px-4 py-3 mb-1 border-b border-gray-50">
+                <p className="text-xs font-bold text-gray-900 truncate">
+                  {user?.user_metadata?.full_name || "Administrador"}
+                </p>
+                <p className="text-[10px] text-gray-400 truncate tracking-tight">
+                  {user?.email}
+                </p>
+              </div>
+              <DropdownMenuItem
+                onClick={() => router.push("/admin/preferencias")}
+                className="rounded-[1.2rem] py-3 px-4 focus:bg-gray-50 flex items-center gap-3 cursor-pointer group"
+              >
+                <div className="p-2 rounded-xl bg-gray-50 group-focus:bg-white transition-colors">
+                  <User className="h-4 w-4 text-gray-400" />
+                </div>
+                <span className="text-xs font-bold text-gray-700">
+                  Ajustes de Perfil
+                </span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleSignOut}
+                className="rounded-[1.2rem] py-3 px-4 focus:bg-red-50 flex items-center gap-3 cursor-pointer group"
+              >
+                <div className="p-2 rounded-xl bg-red-50/50 group-focus:bg-white transition-colors">
+                  <LogOut className="h-4 w-4 text-red-500" />
+                </div>
+                <span className="text-xs font-bold text-red-600">
+                  Cerrar Sesión
+                </span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </header>
+
       {/* Sidebar Desktop (Visible desde MD) */}
       <aside className="hidden md:flex w-72 lg:w-80 bg-black text-white p-6 flex-col border-r border-white/5 relative z-50 shrink-0 h-screen sticky top-0">
         <div className="mb-12 px-2">
@@ -203,7 +276,7 @@ export default function AdminSidebar({ user, children }) {
       {/* Móvil: Barra de Navegación Inferior (Oculto desde MD) */}
       <AdminBottomNav />
 
-      <main className="flex-1 h-screen overflow-y-auto relative bg-gray-50/50 pb-24 md:pb-0">
+      <main className="flex-1 h-screen overflow-y-auto relative bg-gray-50/50 pb-24 md:pb-0 pt-16 md:pt-0">
         <div className="absolute inset-0 bg-grid-black/[0.5] -z-10 pointer-events-none" />
         <div className="max-w-7xl mx-auto py-6 px-6 md:py-16 lg:px-12">
           {children}
