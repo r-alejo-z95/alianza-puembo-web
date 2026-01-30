@@ -12,6 +12,7 @@ export default function RootLayoutClient({ children }) {
   const isStandalonePage = pathname.startsWith('/admin') || 
                            pathname === '/login' || 
                            pathname === '/mantenimiento' ||
+                           pathname.startsWith('/admin/formularios/preview') ||
                            pathname.startsWith('/formularios');
 
   return (

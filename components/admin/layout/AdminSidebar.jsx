@@ -71,6 +71,11 @@ export default function AdminSidebar({ user, children }) {
   const pathname = usePathname();
   const router = useRouter();
 
+  // Si es la página de vista previa, renderizar el contenido puro
+  if (pathname.includes('/formularios/preview')) {
+    return <main className="w-full min-h-screen">{children}</main>;
+  }
+
   // Filtrar links según permisos del usuario
   const filteredLinks = navLinks.filter((link) => {
     if (user?.is_super_admin) return true; // Super Admin ve todo

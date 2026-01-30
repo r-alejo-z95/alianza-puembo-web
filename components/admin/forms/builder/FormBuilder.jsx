@@ -31,6 +31,7 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 import FormCanvas from "./FormCanvas";
 import FloatingToolbar from "./FloatingToolbar";
+import FluentRenderer from "@/components/public/forms/fluent-renderer/FluentRenderer";
 import { AdminFAB } from "@/components/admin/layout/AdminFAB";
 import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
 import { Card, CardTitle, CardContent } from "@/components/ui/card";
@@ -80,6 +81,7 @@ export default function FormBuilder({
   const [activeDragId, setActiveDragId] = useState(null);
   const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const lastScrollY = useRef(0);
 
   const containerRef = useRef(null);
@@ -376,6 +378,20 @@ export default function FormBuilder({
     [fields, move],
   );
 
+  const handlePreview = () => {
+    // Preparar los datos actuales (watch captura todo el estado del formulario)
+    const currentData = {
+      ...form.getValues(),
+      form_fields: form.getValues("fields"),
+    };
+
+    // Guardar en sessionStorage para que la página de preview pueda leerlo
+    sessionStorage.setItem("ap_form_preview_data", JSON.stringify(currentData));
+
+    // Abrir en una nueva pestaña
+    window.open("/admin/formularios/preview", "_blank");
+  };
+
   const formTitle = useMemo(() => {
     return form.watch("title") || "Formulario sin título";
   }, [form.watch("title")]);
@@ -385,7 +401,7 @@ export default function FormBuilder({
       {/* Premium Header */}
       <div
         className={cn(
-          "sticky top-5 md:top-0 z-[100] w-full bg-black text-white px-6 md:px-12 py-5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md bg-black/95 transition-all duration-300 ease-in-out",
+          "sticky top-5 md:top-0 z-[100] w-full rounded-3xl bg-black text-white px-6 md:px-12 py-5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md bg-black/95 transition-all duration-300 ease-in-out",
           !isHeaderVisible
             ? "-translate-y-full opacity-0 pointer-events-none md:translate-y-0 md:opacity-100 md:pointer-events-auto"
             : "translate-y-0 opacity-100",
@@ -416,14 +432,11 @@ export default function FormBuilder({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-around gap-3">
           <Button
             variant="ghost"
-            className="rounded-2xl px-6 py-6 font-bold border border-white/10 hover:bg-white/5 h-12 transition-all lg:flex hidden uppercase tracking-widest text-[10px] text-gray-400 hover:text-white"
-            onClick={() =>
-              window.open(`/formularios/${initialForm?.slug}`, "_blank")
-            }
-            disabled={!initialForm?.slug}
+            className="rounded-2xl px-6 py-6 font-bold border border-white/10 hover:bg-white/5 h-12 transition-all flex uppercase tracking-widest text-[10px] text-gray-400 hover:text-white"
+            onClick={handlePreview}
           >
             <Eye className="w-4 h-4 mr-2" /> Vista Previa
           </Button>
@@ -438,7 +451,7 @@ export default function FormBuilder({
             ) : (
               <Save className="w-4 h-4 mr-2" />
             )}
-            <span>{isSaving ? "Guardando..." : "Guardar Formulario"}</span>
+            <span>{isSaving ? "Guardando..." : "Guardar"}</span>
           </Button>
         </div>
       </div>

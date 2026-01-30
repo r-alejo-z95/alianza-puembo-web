@@ -436,26 +436,18 @@ const FieldInput = ({
   }
 };
 
-export default function FluentRenderer({ form }) {
+export default function FluentRenderer({ form, isPreview = false }) {
   const router = useRouter();
 
   const {
     register,
-
     handleSubmit,
-
     control,
-
     formState: { errors },
-
     reset,
-
     watch,
-
     trigger,
-
     getValues,
-
     setValue,
   } = useForm({ mode: "onChange" });
 
@@ -635,6 +627,14 @@ export default function FluentRenderer({ form }) {
   };
 
   const onSubmit = async (data) => {
+    if (isPreview) {
+      toast.success("Vista previa: Formulario válido", {
+        description:
+          "En el sitio real, esta respuesta se guardaría en la base de datos.",
+      });
+      return;
+    }
+
     if (form?.enabled === false) {
       toast.error("Formulario cerrado.");
 
@@ -1002,9 +1002,25 @@ export default function FluentRenderer({ form }) {
 
           {isLastStep && (
             <div className="pt-16 space-y-10">
-              <div className="flex justify-center scale-110 md:scale-125 py-4">
-                <TurnstileCaptcha key={captchaKey} onVerify={setCaptchaToken} />
-              </div>
+              {!isPreview && (
+                <div className="flex justify-center scale-110 md:scale-125 py-4">
+                  <TurnstileCaptcha
+                    key={captchaKey}
+                    onVerify={setCaptchaToken}
+                  />
+                </div>
+              )}
+
+              {isPreview && (
+                <div className="bg-blue-50 border border-blue-100 p-6 rounded-[1.5rem] text-center">
+                  <p className="text-blue-600 font-bold text-xs uppercase tracking-widest">
+                    Modo Vista Previa
+                  </p>
+                  <p className="text-[10px] text-blue-400 mt-1">
+                    El CAPTCHA está desactivado en este modo.
+                  </p>
+                </div>
+              )}
 
               <div className="bg-white/50 backdrop-blur-sm p-6 rounded-[1.5rem] border border-gray-100 shadow-sm">
                 <p className="text-[10px] text-gray-500 leading-relaxed text-center font-medium">
@@ -1019,19 +1035,19 @@ export default function FluentRenderer({ form }) {
         </motion.div>
       </AnimatePresence>
 
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-2xl bg-white/90 backdrop-blur-xl border border-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] rounded-[2.5rem] p-3 md:p-4 z-40">
-        <div className="flex items-center justify-between gap-4">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-2xl bg-white/90 backdrop-blur-xl border border-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] rounded-[2.5rem] p-2 md:p-4 z-40">
+        <div className="flex items-center justify-between gap-2 md:gap-4">
           <Button
             variant="ghost"
             onClick={handleBack}
             disabled={sending || stepHistory.length <= 1}
             className={cn(
-              "rounded-full h-14 px-8 text-[11px] font-black uppercase tracking-[0.2em] transition-all",
-
+              "rounded-full h-12 md:h-14 px-4 md:px-8 text-[10px] md:text-[11px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] transition-all",
               stepHistory.length <= 1 && "opacity-0 pointer-events-none",
             )}
           >
-            <ChevronLeft className="w-5 h-5 mr-3" /> Atrás
+            <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 mr-1 md:mr-3" />
+            <span className="xs:hidden">Volver</span>
           </Button>
 
           <Button
@@ -1041,7 +1057,7 @@ export default function FluentRenderer({ form }) {
               sending || (isLastStep && !captchaToken) || !isBranchingSelected
             }
             className={cn(
-              "rounded-full h-14 px-10 text-[11px] font-black uppercase tracking-[0.2em] shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] min-w-[180px]",
+              "rounded-full h-12 md:h-14 px-6 md:px-10 text-[10px] md:text-[11px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] min-w-[120px] md:min-w-[180px]",
 
               isLastStep
                 ? "bg-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/90 text-white shadow-[var(--puembo-green)]/20"
@@ -1053,16 +1069,20 @@ export default function FluentRenderer({ form }) {
           >
             {isLastStep ? (
               sending ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
               ) : (
                 <>
-                  <Send className="w-4 h-4 mr-3" /> Enviar Ahora
+                  <Send className="w-3.5 h-3.5 md:w-4 md:h-4 mr-2 md:mr-3" />
+                  <span className="hidden xs:inline">Enviar Ahora</span>
+                  <span className="xs:hidden">Enviar</span>
                 </>
               )
             ) : (
               <>
-                {isBranchingSelected ? "Siguiente Paso" : "Elige una opción"}{" "}
-                <ChevronRight className="w-4 h-4 ml-3" />
+                <span className="xs:hidden">
+                  {isBranchingSelected ? "Siguiente" : "Elige"}
+                </span>
+                <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4 ml-2 md:ml-3" />
               </>
             )}
           </Button>
