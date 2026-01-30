@@ -221,29 +221,33 @@ function QuestionCard({
               key={opt.id || i}
               className="flex items-center justify-between gap-3"
             >
-              <div className="flex items-center gap-3 text-gray-500 text-sm font-medium flex-grow">
+              <div className="flex items-center gap-3 text-gray-500 text-sm font-medium flex-grow min-w-0">
                 {type === "radio" && (
-                  <div className="w-5 h-5 rounded-full border border-gray-200 bg-white" />
+                  <div className="w-5 h-5 rounded-full border border-gray-200 bg-white shrink-0" />
                 )}
                 {type === "checkbox" && (
-                  <div className="w-5 h-5 rounded-md border border-gray-200 bg-white" />
+                  <div className="w-5 h-5 rounded-md border border-gray-200 bg-white shrink-0" />
                 )}
                 {type === "select" && (
-                  <span className="text-gray-300 w-5 text-center font-mono text-[10px]">
+                  <span className="text-gray-300 w-5 text-center font-mono text-[10px] shrink-0">
                     {i + 1}.
                   </span>
                 )}
-                <span className="truncate">{opt.label || `Opción ${i + 1}`}</span>
+                <span className="truncate">
+                  {opt.label || `Opción ${i + 1}`}
+                </span>
               </div>
 
-                {/* Indicador de Salto Visual en Modo Vista */}
-                {type === "radio" && opt.next_section_id && opt.next_section_id !== "default" && (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] rounded-full border border-[var(--puembo-green)]/20 shrink-0 shadow-sm animate-in fade-in slide-in-from-right-2 duration-500">
-                    <GitBranch className="w-3 h-3" />
-                    <span className="text-[9px] font-black uppercase tracking-tight">
-                      {opt.next_section_id === "submit" 
-                        ? "Finalizar" 
-                        : (sections?.find(s => s.id === opt.next_section_id)?.label || "Sección")}
+              {type === "radio" &&
+                opt.next_section_id &&
+                opt.next_section_id !== "default" && (
+                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] rounded-full border border-[var(--puembo-green)]/20 shrink-0 shadow-sm animate-in fade-in slide-in-from-right-2 duration-500 max-w-[100px] sm:max-w-none">
+                    <GitBranch className="w-3 h-3 shrink-0" />
+                    <span className="text-[9px] font-black uppercase tracking-tight truncate">
+                      {opt.next_section_id === "submit"
+                        ? "Finalizar"
+                        : sections?.find((s) => s.id === opt.next_section_id)
+                            ?.label || "Sección"}
                     </span>
                   </div>
                 )}
@@ -470,7 +474,6 @@ function QuestionCard({
                     )}
                   />
 
-                  {/* Salto Lógico: UI más obvia y directa */}
                   {type === "radio" && sections?.length > 0 && (
                     <div className="flex items-center gap-2 min-w-[140px]">
                       <div className="h-4 w-px bg-gray-100 mx-1" />
@@ -568,14 +571,14 @@ function QuestionCard({
           </div>
         )}
 
-        <div className="flex items-center justify-between pt-6 border-t border-gray-50 mt-4 px-1">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pt-6 border-t border-gray-50 mt-4 px-1 gap-6">
           <div className="flex items-center gap-2">
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={() => onDuplicate(index)}
-              className="rounded-xl h-10 hover:bg-gray-100 gap-2 px-4"
+              className="rounded-xl h-10 hover:bg-gray-100 gap-2 px-4 flex-1 sm:flex-none"
             >
               <Copy className="w-4 h-4 text-gray-500" />
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
@@ -587,7 +590,7 @@ function QuestionCard({
               variant="ghost"
               size="sm"
               onClick={() => onDelete(index)}
-              className="rounded-xl h-10 hover:bg-red-50 hover:text-red-600 gap-2 px-4"
+              className="rounded-xl h-10 hover:bg-red-50 hover:text-red-600 gap-2 px-4 flex-1 sm:flex-none"
             >
               <Trash2 className="w-4 h-4" />
               <span className="text-[10px] font-black uppercase tracking-widest">
@@ -596,9 +599,9 @@ function QuestionCard({
             </Button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between sm:justify-end gap-3 px-2 sm:px-0">
             {!isSection && (
-              <div className="flex items-center gap-4 px-6 py-2 bg-white rounded-2xl border border-gray-100 shadow-sm">
+              <div className="flex items-center gap-4 px-6 py-2 bg-white rounded-2xl border border-gray-100 shadow-sm w-full sm:w-auto justify-between sm:justify-start">
                 <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">
                   Requerido
                 </Label>
@@ -623,7 +626,7 @@ function QuestionCard({
   const renderViewContent = () => (
     <div className="space-y-4 transition-all duration-300 pointer-events-none group-hover:px-1">
       <div className="flex justify-between items-start gap-6">
-        <div className="space-y-2.5 flex-grow">
+        <div className="space-y-2.5 flex-grow min-w-0">
           {isSection && (
             <div className="flex items-center gap-3 mb-4">
               <div className="h-1.5 w-10 rounded-full bg-black" />
@@ -634,7 +637,7 @@ function QuestionCard({
           )}
           <h3
             className={cn(
-              "text-lg font-bold text-gray-800 leading-snug tracking-tight",
+              "text-lg font-bold text-gray-800 leading-snug tracking-tight break-words",
               isSection && "font-serif text-3xl md:text-4xl text-black",
               error && "text-red-500",
               !label && "text-gray-200 italic font-light",
@@ -649,7 +652,7 @@ function QuestionCard({
             )}
           </h3>
           {helpText && (
-            <p className="text-sm text-gray-400 font-light italic leading-relaxed line-clamp-2">
+            <p className="text-sm text-gray-400 font-light italic leading-relaxed line-clamp-3 break-words">
               {helpText}
             </p>
           )}
@@ -692,10 +695,10 @@ function QuestionCard({
         onActivate();
       }}
       className={cn(
-        "bg-white border-2 rounded-[3rem] transition-all duration-500 group relative cursor-pointer field-card-container",
+        "bg-white border-2 rounded-[2.5rem] md:rounded-[3rem] transition-all duration-500 group relative cursor-pointer field-card-container min-w-0 my-10",
         isActive
-          ? "border-[var(--puembo-green)] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] scale-[1.01] my-10"
-          : "border-gray-200 hover:border-gray-300 hover:shadow-xl my-4",
+          ? "border-[var(--puembo-green)] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)]"
+          : "border-gray-200 hover:border-gray-300 hover:shadow-xl",
         isSection && !isActive && "bg-[#F8F9FA] border-gray-100",
         error && !isActive && "border-red-400 bg-red-50/10",
         isDragging &&
@@ -704,21 +707,21 @@ function QuestionCard({
     >
       {/* Dynamic Left accent */}
       {isActive && (
-        <div className="absolute left-0 top-12 bottom-12 w-1.5 bg-[var(--puembo-green)] rounded-r-full" />
+        <div className="absolute left-0 top-12 bottom-12 w-1.5 bg-[var(--puembo-green)] rounded-r-full z-10" />
       )}
 
-      {/* Improved Drag Handle */}
+      {/* Improved Drag Handle - Larger and always visible on mobile */}
       <div
         className={cn(
-          "absolute -top-5 left-1/2 -translate-x-1/2 w-14 h-9 bg-white border-2 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-all z-[60]",
+          "absolute -top-5 left-1/2 -translate-x-1/2 w-16 h-10 md:w-14 md:h-9 bg-white border-2 rounded-full shadow-lg flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-110 transition-all z-[60] touch-none",
           isActive
             ? "opacity-100 border-[var(--puembo-green)] text-[var(--puembo-green)]"
-            : "opacity-0 group-hover:opacity-100 border-gray-200 text-gray-300",
+            : "opacity-100 md:opacity-0 group-hover:opacity-100 border-gray-200 text-gray-300",
         )}
         {...attributes}
         {...listeners}
       >
-        <GripHorizontal className="w-6 h-6" />
+        <GripHorizontal className="w-6 h-6 md:w-5 md:h-5" />
       </div>
 
       <div

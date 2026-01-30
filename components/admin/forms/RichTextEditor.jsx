@@ -90,9 +90,9 @@ const RichTextEditor = ({ content, onChange, className }) => {
   }
 
   return (
-    <div className={cn("flex flex-col", className)}>
+    <div className={cn("flex flex-col max-w-full overflow-hidden", className)}>
       {/* Sticky & Scrollable Toolbar */}
-      <div className="sticky top-0 z-10 flex items-center gap-0.5 p-2 border-b bg-white/80 backdrop-blur-md overflow-x-auto no-scrollbar scroll-smooth">
+      <div className="sticky top-0 z-10 flex items-center gap-0.5 p-2 border-b bg-white/80 backdrop-blur-md overflow-x-auto no-scrollbar scroll-smooth max-w-full">
         <div className="flex items-center gap-0.5 pr-2 border-r border-gray-200">
           <Toggle
             size="sm"

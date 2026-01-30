@@ -79,9 +79,38 @@ export default function FormBuilder({
   const [headerFile, setHeaderFile] = useState(null);
   const [activeDragId, setActiveDragId] = useState(null);
   const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   const containerRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
+
+  // Smart Header Logic
+  useEffect(() => {
+    // En nuestro layout, el scroll sucede en el <main>, no en el window
+    const scrollableElement = containerRef.current?.closest("main") || window;
+
+    const handleScroll = () => {
+      const currentScrollY =
+        scrollableElement === window
+          ? window.scrollY
+          : scrollableElement.scrollTop;
+
+      if (Math.abs(currentScrollY - lastScrollY.current) < 10) return;
+
+      if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+        setIsHeaderVisible(false);
+      } else {
+        setIsHeaderVisible(true);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    scrollableElement.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+    return () => scrollableElement.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -354,7 +383,14 @@ export default function FormBuilder({
   return (
     <div ref={containerRef} className="min-h-screen bg-[#F8F9FA] pb-32">
       {/* Premium Header */}
-      <div className="sticky top-0 z-[100] w-full bg-black text-white px-6 md:px-12 py-5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md bg-black/95">
+      <div
+        className={cn(
+          "sticky top-5 md:top-0 z-[100] w-full bg-black text-white px-6 md:px-12 py-5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md bg-black/95 transition-all duration-300 ease-in-out",
+          !isHeaderVisible
+            ? "-translate-y-full opacity-0 pointer-events-none md:translate-y-0 md:opacity-100 md:pointer-events-auto"
+            : "translate-y-0 opacity-100",
+        )}
+      >
         <div className="flex items-center gap-6">
           <Button
             variant="ghost"
@@ -466,16 +502,16 @@ export default function FormBuilder({
                 <Button
                   onClick={() => handleAddField("text")}
                   variant="outline"
-                  className="h-24 flex items-center justify-start gap-6 px-8 rounded-3xl border-2 border-gray-100 hover:border-[var(--puembo-green)] hover:bg-gray-50 transition-all text-left wrap-break-words"
+                  className="h-24 flex items-center justify-start gap-4 px-4 sm:px-8 rounded-3xl border-2 border-gray-100 hover:border-[var(--puembo-green)] hover:bg-gray-50 transition-all text-left min-w-0 whitespace-normal"
                 >
-                  <div className="p-3 bg-[var(--puembo-green)]/10 rounded-2xl wrap-normal">
+                  <div className="p-3 bg-[var(--puembo-green)]/10 rounded-2xl shrink-0">
                     <Plus className="w-6 h-6 text-[var(--puembo-green)]" />
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0">
                     <span className="font-black uppercase tracking-widest text-[10px]">
                       Pregunta
                     </span>
-                    <span className="text-xs text-gray-400 font-medium">
+                    <span className="text-xs text-gray-400 font-medium leading-tight">
                       Añade un campo de entrada
                     </span>
                   </div>
@@ -483,16 +519,16 @@ export default function FormBuilder({
                 <Button
                   onClick={() => handleAddField("section")}
                   variant="outline"
-                  className="h-24 flex items-center justify-start gap-6 px-8 rounded-3xl border-2 border-gray-100 hover:border-black hover:bg-gray-50 transition-all text-left wrap-break-words"
+                  className="h-24 flex items-center justify-start gap-4 px-4 sm:px-8 rounded-3xl border-2 border-gray-100 hover:border-black hover:bg-gray-50 transition-all text-left min-w-0 whitespace-normal"
                 >
-                  <div className="p-3 bg-black/5 rounded-2xl">
+                  <div className="p-3 bg-black/5 rounded-2xl shrink-0">
                     <Layout className="w-6 h-6 text-black" />
                   </div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col min-w-0">
                     <span className="font-black uppercase tracking-widest text-[10px]">
                       Sección
                     </span>
-                    <span className="text-xs text-gray-400 font-medium">
+                    <span className="text-xs text-gray-400 font-medium leading-tight">
                       Organiza por grupos de preguntas
                     </span>
                   </div>

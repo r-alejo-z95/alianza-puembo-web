@@ -72,7 +72,7 @@ export default function AdminSidebar({ user, children }) {
   const router = useRouter();
 
   // Filtrar links según permisos del usuario
-  const filteredLinks = navLinks.filter(link => {
+  const filteredLinks = navLinks.filter((link) => {
     if (user?.is_super_admin) return true; // Super Admin ve todo
     return user?.permissions?.[link.permission];
   });
@@ -132,7 +132,7 @@ export default function AdminSidebar({ user, children }) {
   return (
     <div className="flex h-screen w-full bg-gray-50/50 overflow-hidden font-sans text-gray-900 relative">
       {/* Móvil: Header Superior (Solo visible en < MD) */}
-      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-black/95 backdrop-blur-md border-b border-white/10 z-[40] flex items-center justify-between px-6 shadow-2xl">
+      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-black/95 backdrop-blur-md border-b border-white/10 z-[101] flex items-center justify-between px-6 shadow-2xl">
         <Link href="/admin">
           <Image
             src="/brand/logo-puembo-white.png"
@@ -289,7 +289,12 @@ export default function AdminSidebar({ user, children }) {
 
       <main className="flex-1 h-screen overflow-y-auto relative bg-gray-50/50 pb-24 md:pb-0 pt-16 md:pt-0">
         <div className="absolute inset-0 bg-grid-black/[0.5] -z-10 pointer-events-none" />
-        <div className="max-w-7xl mx-auto py-6 px-6 md:py-16 lg:px-12">
+        <div
+          className={cn(
+            "max-w-7xl mx-auto py-6 md:py-16 lg:px-12",
+            pathname.includes("/formularios/builder") ? "px-2" : "px-6",
+          )}
+        >
           {children}
         </div>
       </main>

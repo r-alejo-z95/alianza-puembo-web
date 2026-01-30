@@ -62,7 +62,7 @@ const FormHeader = ({
       className={cn(
         "bg-white rounded-[2.5rem] border transition-all duration-500 relative overflow-hidden group mb-8 cursor-pointer form-header-card",
         isActive
-          ? "border-[var(--puembo-green)] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] ring-8 ring-[var(--puembo-green)]/5"
+          ? "border-[var(--puembo-green)] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] ring-8 ring-[var(--puembo-green)]/5 max-w-screen"
           : "border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md",
         error && !isActive && "border-red-500 ring-4 ring-red-500/5",
       )}
@@ -146,7 +146,7 @@ const FormHeader = ({
       </div>
 
       {/* Header Info Section */}
-      <div className="p-10 md:p-14 space-y-8">
+      <div className="py-10 px-4 md:p-14 space-y-8">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <div
@@ -255,18 +255,24 @@ export default function FormCanvas({
         currentSectionId = f.id;
         currentSectionBranching = false;
       } else if (f.type === "radio") {
-        const hasJumps = f.options?.some(opt => opt.next_section_id && opt.next_section_id !== "default");
+        const hasJumps = f.options?.some(
+          (opt) => opt.next_section_id && opt.next_section_id !== "default",
+        );
         if (hasJumps) {
           currentSectionBranching = true;
         }
       }
-      
+
       if (currentSectionId) {
-        const existing = groups.find(g => g.id === currentSectionId);
+        const existing = groups.find((g) => g.id === currentSectionId);
         if (existing) {
-          existing.hasInternalBranching = existing.hasInternalBranching || currentSectionBranching;
+          existing.hasInternalBranching =
+            existing.hasInternalBranching || currentSectionBranching;
         } else {
-          groups.push({ id: currentSectionId, hasInternalBranching: currentSectionBranching });
+          groups.push({
+            id: currentSectionId,
+            hasInternalBranching: currentSectionBranching,
+          });
         }
       }
     });
@@ -290,7 +296,9 @@ export default function FormCanvas({
       >
         <div className="space-y-8">
           {fields.map((field, index) => {
-            const sectionMeta = sections.groupsMeta.find(g => g.id === field.id);
+            const sectionMeta = sections.groupsMeta.find(
+              (g) => g.id === field.id,
+            );
             return (
               <QuestionCard
                 key={field.rhf_id}
