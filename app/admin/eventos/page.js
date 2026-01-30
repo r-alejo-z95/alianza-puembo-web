@@ -1,6 +1,7 @@
 import EventManager from "@/components/admin/managers/EventManager";
 import { AdminCalendar } from "@/components/shared/CalendarOrigin";
 import { EventsProvider } from "@/components/providers/EventsProvider";
+import { verifyPermission } from "@/lib/auth/guards";
 import {
   adminPageSection,
   adminPageHeaderContainer,
@@ -18,7 +19,9 @@ export const metadata = {
   },
 };
 
-export default function EventosPage() {
+export default async function EventosPage() {
+  await verifyPermission("perm_events");
+
   return (
     <EventsProvider>
       <section className={adminPageSection}>

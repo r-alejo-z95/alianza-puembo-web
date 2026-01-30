@@ -1,4 +1,5 @@
 import PrayerRequestManager from '@/components/admin/managers/PrayerRequestManager';
+import { verifyPermission } from "@/lib/auth/guards";
 import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles.ts";
 
 export const metadata = {
@@ -10,7 +11,9 @@ export const metadata = {
   },
 };
 
-export default function OracionAdminPage() {
+export default async function OracionAdminPage() {
+  await verifyPermission("perm_prayer");
+
   return (
     <section className={adminPageSection}>
       <header className={adminPageHeaderContainer}>

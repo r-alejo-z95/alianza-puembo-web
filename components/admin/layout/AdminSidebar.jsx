@@ -35,36 +35,47 @@ const navLinks = [
     label: "Eventos",
     icon: Calendar,
     description: "Gestión de actividades",
+    permission: "perm_events",
   },
   {
     href: "/admin/noticias",
     label: "Noticias",
     icon: Newspaper,
     description: "Crónicas y novedades",
+    permission: "perm_news",
   },
   {
     href: "/admin/lom",
     label: "LOM",
     icon: BookOpen,
     description: "Devocionales diarios",
+    permission: "perm_lom",
   },
   {
     href: "/admin/oracion",
     label: "Peticiones",
     icon: HandHelping,
     description: "Muro de oración",
+    permission: "perm_prayer",
   },
   {
     href: "/admin/formularios",
     label: "Formularios",
     icon: FileText,
     description: "Constructor dinámico",
+    permission: "perm_forms",
   },
 ];
 
 export default function AdminSidebar({ user, children }) {
   const pathname = usePathname();
   const router = useRouter();
+
+  // Filtrar links según permisos del usuario
+  const filteredLinks = navLinks.filter(link => {
+    if (user?.is_super_admin) return true; // Super Admin ve todo
+    return user?.permissions?.[link.permission];
+  });
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -214,7 +225,7 @@ export default function AdminSidebar({ user, children }) {
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 px-4 mb-2">
             Administración
           </p>
-          {navLinks.map((link) => (
+          {filteredLinks.map((link) => (
             <NavItem key={link.href} link={link} />
           ))}
         </nav>
@@ -274,7 +285,7 @@ export default function AdminSidebar({ user, children }) {
       </aside>
 
       {/* Móvil: Barra de Navegación Inferior (Oculto desde MD) */}
-      <AdminBottomNav />
+      <AdminBottomNav user={user} />
 
       <main className="flex-1 h-screen overflow-y-auto relative bg-gray-50/50 pb-24 md:pb-0 pt-16 md:pt-0">
         <div className="absolute inset-0 bg-grid-black/[0.5] -z-10 pointer-events-none" />

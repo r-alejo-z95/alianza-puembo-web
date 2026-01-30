@@ -7,7 +7,8 @@ import {
   BookOpen, 
   HandHelping, 
   FileText,
-  ArrowRight
+  ArrowRight,
+  ShieldAlert
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 
@@ -21,19 +22,40 @@ export const metadata = {
 };
 
 const quickActions = [
-  { href: "/admin/eventos", label: "Eventos", icon: Calendar, description: "Organiza y publica las próximas actividades de la iglesia.", color: "bg-blue-500" },
-  { href: "/admin/noticias", label: "Noticias", icon: Newspaper, description: "Comparte historias y crónicas de lo que Dios está haciendo.", color: "bg-emerald-500" },
-  { href: "/admin/lom", label: "LOM", icon: BookOpen, description: "Gestiona los devocionales diarios de Lee, Ora, Medita.", color: "bg-amber-500" },
-  { href: "/admin/oracion", label: "Peticiones", icon: HandHelping, description: "Revisa y administra el muro de oraciones de la comunidad.", color: "bg-purple-500" },
-  { href: "/admin/formularios", label: "Formularios", icon: FileText, description: "Crea y gestiona formularios de registro dinámicos.", color: "bg-rose-500" },
+  { href: "/admin/eventos", label: "Eventos", icon: Calendar, description: "Organiza y publica las próximas actividades de la iglesia.", color: "bg-blue-500", permission: "perm_events" },
+  { href: "/admin/noticias", label: "Noticias", icon: Newspaper, description: "Comparte historias y crónicas de lo que Dios está haciendo.", color: "bg-emerald-500", permission: "perm_news" },
+  { href: "/admin/lom", label: "LOM", icon: BookOpen, description: "Gestiona los devocionales diarios de Lee, Ora, Medita.", color: "bg-amber-500", permission: "perm_lom" },
+  { href: "/admin/oracion", label: "Peticiones", icon: HandHelping, description: "Revisa y administra el muro de oraciones de la comunidad.", color: "bg-purple-500", permission: "perm_prayer" },
+  { href: "/admin/formularios", label: "Formularios", icon: FileText, description: "Crea y gestiona formularios de registro dinámicos.", color: "bg-rose-500", permission: "perm_forms" },
 ];
 
-export default async function AdminHomePage() {
+export default async function AdminHomePage({ searchParams }) {
   const user = await getSessionUser();
+  const params = await searchParams;
+  const hasError = params?.error === "no_permission";
+  
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Admin';
+
+  // Filtrar acciones rápidas
+  const filteredActions = quickActions.filter(action => {
+    if (user?.is_super_admin) return true;
+    return user?.permissions?.[action.permission];
+  });
 
   return (
     <section className={adminPageSection}>
+      {hasError && (
+        <div className="mb-8 p-6 bg-red-50 border border-red-100 rounded-[2rem] flex items-center gap-4 animate-in slide-in-from-top-4 duration-500">
+          <div className="w-12 h-12 rounded-2xl bg-red-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-red-500/20">
+            <ShieldAlert className="w-6 h-6" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-red-900 uppercase tracking-tight">Acceso Denegado</h4>
+            <p className="text-xs text-red-600/70 font-medium">No tienes los permisos necesarios para acceder a esa sección.</p>
+          </div>
+        </div>
+      )}
+
       <header className={adminPageHeaderContainer}>
         <div className="flex items-center gap-4 mb-6">
           <div className="h-px w-12 bg-[var(--puembo-green)]" />
@@ -48,7 +70,7 @@ export default async function AdminHomePage() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {quickActions.map((action) => (
+        {filteredActions.map((action) => (
           <Link 
             key={action.href} 
             href={action.href}

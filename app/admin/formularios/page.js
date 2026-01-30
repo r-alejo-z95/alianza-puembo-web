@@ -1,5 +1,6 @@
 import FormManager from "@/components/admin/managers/FormManager";
 import GoogleConnectButton from "@/components/admin/auth/GoogleConnectButton";
+import { verifyPermission } from "@/lib/auth/guards";
 import {
   adminPageSection,
   adminPageHeaderContainer,
@@ -21,6 +22,8 @@ export const metadata = {
 };
 
 export default async function FormulariosAdminPage() {
+  await verifyPermission("perm_forms");
+
   const supabase = await createClient();
   const { data: googleConn } = await supabase
     .from("google_integration")

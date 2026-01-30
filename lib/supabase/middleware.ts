@@ -40,6 +40,36 @@ export const updateSession = async (request: NextRequest) => {
   // IMPORTANT: DO NOT REMOVE auth.getUser()
   const { data: { user } } = await supabase.auth.getUser();
 
+  // -----------------------------------------------------------------
+  // LOGICA DE MODO MANTENIMIENTO
+  // -----------------------------------------------------------------
+  // 1. Obtener estado de mantenimiento
+  const { data: settings } = await supabase
+    .from('site_settings')
+    .select('maintenance_mode')
+    .eq('id', 1)
+    .single();
+
+  const isMaintenance = settings?.maintenance_mode || false;
+  const isMaintenancePage = request.nextUrl.pathname === '/mantenimiento';
+  const isAdminPath = request.nextUrl.pathname.startsWith('/admin');
+  const isLoginPage = request.nextUrl.pathname.startsWith('/login');
+  const isStaticAsset = request.nextUrl.pathname.match(/\.(jpg|jpeg|png|gif|svg|ico|webp|js|css)$/);
+
+  // 2. Redirigir si está en mantenimiento y NO es admin ni página de login/assets
+  if (isMaintenance && !user && !isMaintenancePage && !isLoginPage && !isAdminPath && !isStaticAsset) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/mantenimiento';
+    return NextResponse.redirect(url);
+  }
+
+  // 3. Si NO está en mantenimiento y el usuario está en /mantenimiento, sacarlo de ahí
+  if (!isMaintenance && isMaintenancePage) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/';
+    return NextResponse.redirect(url);
+  }
+
   // If the user is not authenticated and is trying to access an admin route, redirect to login.
   if (!user && request.nextUrl.pathname.startsWith('/admin')) {
     const url = request.nextUrl.clone();

@@ -1,5 +1,6 @@
 import NewsManager from '@/components/admin/managers/NewsManager';
 import { NewsProvider } from '@/components/providers/NewsProvider';
+import { verifyPermission } from "@/lib/auth/guards";
 import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles.ts";
 
 export const metadata = {
@@ -11,7 +12,9 @@ export const metadata = {
   },
 };
 
-export default function NoticiasAdminPage() {
+export default async function NoticiasAdminPage() {
+  await verifyPermission("perm_news");
+
   return (
     <NewsProvider>
       <section className={adminPageSection}>

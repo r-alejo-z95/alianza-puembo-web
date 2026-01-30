@@ -8,7 +8,6 @@ import {
   BookOpen,
   HandHelping,
   FileText,
-  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 
@@ -17,36 +16,47 @@ const navLinks = [
     href: "/admin/eventos",
     label: "Eventos",
     icon: Calendar,
+    permission: "perm_events",
   },
   {
     href: "/admin/noticias",
     label: "Noticias",
     icon: Newspaper,
+    permission: "perm_news",
   },
   {
     href: "/admin/lom",
     label: "LOM",
     icon: BookOpen,
+    permission: "perm_lom",
   },
   {
     href: "/admin/oracion",
     label: "Oración",
     icon: HandHelping,
+    permission: "perm_prayer",
   },
   {
     href: "/admin/formularios",
     label: "Forms",
     icon: FileText,
+    permission: "perm_forms",
   },
 ];
 
-export function AdminBottomNav() {
+export function AdminBottomNav({ user }) {
   const pathname = usePathname();
+
+  // Filtrar links según permisos del usuario
+  const filteredLinks = navLinks.filter(link => {
+    if (user?.is_super_admin) return true;
+    return user?.permissions?.[link.permission];
+  });
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-399 bg-black backdrop-blur-xl border-t border-white/10 px-1 py-2 md:hidden">
       <div className="flex items-center justify-between max-w-lg mx-auto">
-        {navLinks.map((link) => {
+        {filteredLinks.map((link) => {
           const isActive = pathname.startsWith(link.href);
           return (
             <Link

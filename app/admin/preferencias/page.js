@@ -15,6 +15,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { toast } from "sonner";
 import {
@@ -34,9 +35,19 @@ import {
   ShieldAlert,
   History,
   LogOut,
+  Users,
+  Globe,
+  ShieldCheck,
+  Mail,
+  Zap,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { formatInEcuador } from "@/lib/date-utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { useAdminProfiles } from "@/lib/hooks/useAdminProfiles";
 
 const profileSchema = z.object({
   email: z
@@ -60,6 +71,14 @@ export default function PreferenciasPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const {
+    profiles,
+    siteSettings,
+    loading: loadingTeam,
+    updateProfilePermission,
+    updateSiteSettings,
+  } = useAdminProfiles();
+
   const supabase = createClient();
 
   const form = useForm({
@@ -82,38 +101,29 @@ export default function PreferenciasPage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      setUser(user);
       if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        setUser({ ...user, ...profile });
         form.reset({
           email: user.email || "",
-          full_name: user.user_metadata?.full_name || "",
+          full_name: profile?.full_name || "",
         });
       }
       setLoading(false);
     };
     fetchUser();
-  }, [form, supabase.auth]);
+  }, [form, supabase]);
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut({ scope: "local" });
-    if (error) {
-      toast.error("Error al cerrar sesión.");
-    } else {
-      window.location.href = "/login";
-    }
+    await supabase.auth.signOut({ scope: "local" });
+    window.location.href = "/login";
   };
 
-  const handleGlobalLogout = async () => {
-    const { error } = await supabase.auth.signOut({ scope: "global" });
-    if (error) {
-      toast.error("Error al cerrar sesiones globales.");
-    } else {
-      toast.success("Sesiones cerradas en todos los dispositivos.");
-      window.location.href = "/login";
-    }
-  };
-
-  const onSubmit = async (data) => {
+  const onProfileSubmit = async (data) => {
     if (data.password && data.password !== data.confirmPassword) {
       form.setError("confirmPassword", {
         message: "Las contraseñas no coinciden.",
@@ -122,36 +132,32 @@ export default function PreferenciasPage() {
     }
 
     setSubmitting(true);
-    const updates = {};
-    if (data.email && data.email !== user?.email) {
-      updates.email = data.email;
-    }
-    if (data.password) {
-      updates.password = data.password;
-    }
-    if (data.full_name && data.full_name !== user?.user_metadata?.full_name) {
-      updates.data = { full_name: data.full_name };
-    }
+    try {
+      const updates = {};
+      if (data.email && data.email !== user?.email) updates.email = data.email;
+      if (data.password) updates.password = data.password;
 
-    if (Object.keys(updates).length === 0) {
-      toast("No hay cambios para guardar.");
-      setSubmitting(false);
-      return;
-    }
+      // Update Auth
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase.auth.updateUser(updates);
+        if (error) throw error;
+      }
 
-    const { error } = await supabase.auth.updateUser(updates);
+      // Update Public Profile
+      if (data.full_name && data.full_name !== user?.full_name) {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ full_name: data.full_name })
+          .eq("id", user.id);
+        if (error) throw error;
+      }
 
-    if (error) {
-      toast.error("Error al actualizar el perfil.", {
-        description: error.message,
-      });
-    } else {
       toast.success("Perfil actualizado con éxito.");
-      setTimeout(() => {
-        window.location.href = "/admin";
-      }, 1000);
+    } catch (error) {
+      toast.error("Error al actualizar perfil.");
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   if (loading) {
@@ -171,250 +177,468 @@ export default function PreferenciasPage() {
         <div className="flex items-center gap-4 mb-6">
           <div className="h-px w-12 bg-[var(--puembo-green)]" />
           <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--puembo-green)]">
-            Cuenta
+            Preferencias
           </span>
         </div>
         <h1 className={adminPageTitle}>
-          Ajustes de{" "}
-          <span className="text-[var(--puembo-green)] italic">Perfil</span>
+          Configuración del{" "}
+          <span className="text-[var(--puembo-green)] italic">Sistema</span>
         </h1>
         <p className={adminPageDescription}>
-          Personaliza tu identidad en la plataforma y mantén la seguridad de tu
-          acceso administrativo.
+          Administra tu cuenta, permisos de equipo y ajustes globales de la
+          plataforma.
         </p>
       </header>
 
-      <div className="max-w-2xl mx-auto space-y-8">
-        <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
-          <div className="bg-black p-8 flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <Settings className="w-5 h-5 text-[var(--puembo-green)]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">
-                Configuración
-              </span>
-            </div>
-            {user?.last_sign_in_at && (
-              <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-white/40">
-                <History className="w-3 h-3" />
-                Último acceso:{" "}
-                {formatInEcuador(user.last_sign_in_at, "d MMM, HH:mm")}
-              </div>
-            )}
+      <div className="max-w-4xl mx-auto pb-20">
+        <Tabs defaultValue="perfil" className="space-y-8">
+          <div className="w-full px-4 max-w-md mx-auto">
+            <TabsList className="bg-gray-100 p-1 rounded-full h-12 md:h-14 w-full flex">
+              <TabsTrigger
+                value="perfil"
+                className="flex-1 rounded-full px-2 md:px-8 data-[state=active]:bg-black data-[state=active]:text-white transition-all font-bold text-[9px] md:text-xs uppercase tracking-tighter sm:tracking-widest gap-1.5 md:gap-2"
+              >
+                <User className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden xs:inline">Perfil</span>
+                <span className="xs:hidden">Perfil</span>
+              </TabsTrigger>
+              {user?.is_super_admin && (
+                <>
+                  <TabsTrigger
+                    value="sitio"
+                    className="flex-1 rounded-full px-2 md:px-8 data-[state=active]:bg-black data-[state=active]:text-white transition-all font-bold text-[9px] md:text-xs uppercase tracking-tighter sm:tracking-widest gap-1.5 md:gap-2"
+                  >
+                    <Globe className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    <span className="hidden xs:inline">Global</span>
+                    <span className="xs:hidden">Sitio</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="equipo"
+                    className="flex-1 rounded-full px-2 md:px-8 data-[state=active]:bg-black data-[state=active]:text-white transition-all font-bold text-[9px] md:text-xs uppercase tracking-tighter sm:tracking-widest gap-1.5 md:gap-2"
+                  >
+                    <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    <span className="hidden xs:inline">Equipo</span>
+                    <span className="xs:hidden">Team</span>
+                  </TabsTrigger>
+                </>
+              )}
+            </TabsList>
           </div>
 
-          <CardContent className="p-8 md:p-12">
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-10"
-              >
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 border-b border-gray-50 pb-4 mb-6">
-                    <User className="w-4 h-4 text-gray-400" />
-                    <h3 className="text-xs font-black uppercase tracking-widest text-gray-900">
-                      Información General
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-1 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="full_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-                            Nombre Completo
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Tu nombre"
-                              className="h-12 rounded-xl bg-gray-50 border-gray-100 focus:bg-white transition-all"
-                              {...field}
-                              value={field.value || ""}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-                            Correo Electrónico
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="email"
-                              placeholder="tu@ejemplo.com"
-                              className="h-12 rounded-xl bg-gray-50 border-gray-100 focus:bg-white transition-all"
-                              {...field}
-                              value={field.value || ""}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 border-b border-gray-50 pb-4 mb-6">
-                    <Key className="w-4 h-4 text-gray-400" />
-                    <h3 className="text-xs font-black uppercase tracking-widest text-gray-900">
-                      Seguridad
-                    </h3>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-10">
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem className="relative pb-2">
-                          <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-                            Nueva Contraseña
-                          </FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input
-                                type={showPassword ? "text" : "password"}
-                                placeholder="********"
-                                className="h-12 rounded-xl bg-gray-50 border-gray-100 focus:bg-white transition-all pr-10"
-                                {...field}
-                                value={field.value || ""}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                              >
-                                {showPassword ? (
-                                  <EyeOff className="w-4 h-4" />
-                                ) : (
-                                  <Eye className="w-4 h-4" />
-                                )}
-                              </button>
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem className="relative pb-2">
-                          <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-                            Confirmar Contraseña
-                          </FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Input
-                                type={showConfirmPassword ? "text" : "password"}
-                                placeholder="********"
-                                className={cn(
-                                  "h-12 rounded-xl bg-gray-50 border-gray-100 focus:bg-white transition-all pr-10",
-                                  !passwordsMatch &&
-                                    watchConfirmPassword &&
-                                    "border-red-300 bg-red-50/30",
-                                )}
-                                {...field}
-                                value={field.value || ""}
-                              />
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setShowConfirmPassword(!showConfirmPassword)
-                                }
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                              >
-                                {showConfirmPassword ? (
-                                  <EyeOff className="w-4 h-4" />
-                                ) : (
-                                  <Eye className="w-4 h-4" />
-                                )}
-                              </button>
-                            </div>
-                          </FormControl>
-                          {!passwordsMatch && watchConfirmPassword && (
-                            <p className="text-[10px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1 absolute top-full left-0">
-                              <ShieldAlert className="w-3 h-3" /> Las
-                              contraseñas no coinciden
-                            </p>
-                          )}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <p className="text-[10px] text-gray-400 italic">
-                    Deja estos campos en blanco si no deseas cambiar tu
-                    contraseña actual.
-                  </p>
-                </div>
-
-                <div className="pt-6">
-                  <Button
-                    type="submit"
-                    disabled={
-                      submitting || (!passwordsMatch && !!watchConfirmPassword)
-                    }
-                    variant="green"
-                    className="w-full rounded-full py-7 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
-                  >
-                    {submitting ? (
-                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                    ) : (
-                      <Save className="w-4 h-4 mr-2" />
-                    )}
-                    Actualizar Perfil
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-
-        {/* Peligro / Seguridad Avanzada */}
-        <Card className="border border-red-100 shadow-xl bg-white rounded-[2.5rem] overflow-hidden">
-          <CardContent className="p-8 flex flex-col sm:flex-row items-center justify-between gap-6 bg-red-50/30">
-            <div className="flex items-center gap-4 text-center sm:text-left">
-              <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-red-500 shadow-sm border border-red-100">
-                <LogOut className="w-6 h-6" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-sm font-bold text-red-900 uppercase tracking-tight">
-                  Seguridad de la Sesión
-                </h4>
-                <p className="text-[11px] text-red-600/70 max-w-xs font-medium">
-                  Cierra la sesión en todos los navegadores y dispositivos donde
-                  hayas ingresado.
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              onClick={handleGlobalLogout}
-              className="rounded-full border-red-200 text-red-600 hover:bg-red-600 hover:text-white transition-all px-8 h-12 text-[10px] font-black uppercase tracking-widest shadow-sm"
-            >
-              Cerrar todas las sesiones
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Mobile-only Quick Logout at the very bottom */}
-        <div className="md:hidden pt-4 pb-12">
-          <Button
-            variant="ghost"
-            onClick={handleLogout}
-            className="w-full rounded-[2rem] bg-red-500 text-white py-8 text-xs font-black uppercase tracking-[0.2em] gap-3 shadow-xl shadow-red-500/20 active:scale-95 transition-all"
+          <TabsContent
+            value="perfil"
+            className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
           >
-            <LogOut className="h-5 w-5" /> Cerrar Sesión Actual
-          </Button>
-        </div>
+            <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+              <div className="bg-black p-8 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <User className="w-5 h-5 text-[var(--puembo-green)]" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">
+                    Datos Personales
+                  </span>
+                </div>
+                {user?.last_sign_in_at && (
+                  <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-white/40">
+                    <History className="w-3 h-3" /> Último acceso:{" "}
+                    {formatInEcuador(user.last_sign_in_at, "d MMM, HH:mm")}
+                  </div>
+                )}
+              </div>
+              <CardContent className="p-8 md:p-12">
+                <Form {...form}>
+                  <form
+                    onSubmit={form.handleSubmit(onProfileSubmit)}
+                    className="space-y-10"
+                  >
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <FormField
+                        control={form.control}
+                        name="full_name"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                              Nombre Completo
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Tu nombre"
+                                className="h-12 rounded-xl bg-gray-50 border-gray-100 focus:bg-white transition-all"
+                                {...field}
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="email"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                              Correo Electrónico
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="email"
+                                placeholder="tu@ejemplo.com"
+                                className="h-12 rounded-xl bg-gray-50 border-gray-100 focus:bg-white transition-all"
+                                {...field}
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="space-y-6 pt-6 border-t border-gray-50">
+                      <h3 className="text-xs font-black uppercase tracking-widest text-gray-900 flex items-center gap-2">
+                        <Key className="w-4 h-4 text-gray-400" /> Cambio de
+                        Contraseña
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <FormField
+                          control={form.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem className="relative">
+                              <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                Nueva Contraseña
+                              </FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="********"
+                                    className="h-12 rounded-xl bg-gray-50 border-gray-100 focus:bg-white transition-all pr-10"
+                                    {...field}
+                                    value={field.value || ""}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setShowPassword(!showPassword)
+                                    }
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                  >
+                                    {showPassword ? (
+                                      <EyeOff className="w-4 h-4" />
+                                    ) : (
+                                      <Eye className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="confirmPassword"
+                          render={({ field }) => (
+                            <FormItem className="relative">
+                              <FormLabel className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                Confirmar Contraseña
+                              </FormLabel>
+                              <FormControl>
+                                <div className="relative">
+                                  <Input
+                                    type={
+                                      showConfirmPassword ? "text" : "password"
+                                    }
+                                    placeholder="********"
+                                    className={cn(
+                                      "h-12 rounded-xl bg-gray-50 border-gray-100 focus:bg-white transition-all pr-10",
+                                      !passwordsMatch &&
+                                        watchConfirmPassword &&
+                                        "border-red-300 bg-red-50/30",
+                                    )}
+                                    {...field}
+                                    value={field.value || ""}
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setShowConfirmPassword(
+                                        !showConfirmPassword,
+                                      )
+                                    }
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                  >
+                                    {showConfirmPassword ? (
+                                      <EyeOff className="w-4 h-4" />
+                                    ) : (
+                                      <Eye className="w-4 h-4" />
+                                    )}
+                                  </button>
+                                </div>
+                              </FormControl>
+                              {!passwordsMatch && watchConfirmPassword && (
+                                <p className="text-[10px] text-red-500 font-bold uppercase mt-1 flex items-center gap-1">
+                                  <ShieldAlert className="w-3 h-3" /> No
+                                  coinciden
+                                </p>
+                              )}
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={
+                        submitting ||
+                        (!passwordsMatch && !!watchConfirmPassword)
+                      }
+                      variant="green"
+                      className="w-full rounded-full py-7 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
+                    >
+                      {submitting ? (
+                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      ) : (
+                        <Save className="w-4 h-4 mr-2" />
+                      )}{" "}
+                      Actualizar Mi Información
+                    </Button>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border border-red-100 shadow-xl bg-white rounded-[2.5rem] overflow-hidden">
+                <CardContent className="p-8 space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center text-red-500">
+                      <LogOut className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-sm font-bold text-red-900 uppercase tracking-tight">
+                      Seguridad
+                    </h4>
+                  </div>
+                  <p className="text-[11px] text-red-600/70 font-medium leading-relaxed">
+                    Cierra sesión en todos tus dispositivos activos por
+                    seguridad.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={handleLogout}
+                    className="w-full rounded-full border-red-200 text-red-600 hover:bg-red-600 hover:text-white transition-all h-12 text-[10px] font-black uppercase tracking-widest"
+                  >
+                    Cerrar todas las sesiones
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="border border-gray-100 shadow-xl bg-white rounded-[2.5rem] overflow-hidden">
+                <CardContent className="p-8 space-y-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400">
+                      <ShieldCheck className="w-6 h-6" />
+                    </div>
+                    <h4 className="text-sm font-bold text-gray-900 uppercase tracking-tight">
+                      Tu Rol
+                    </h4>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {user?.is_super_admin && (
+                      <Badge
+                        variant="blue"
+                        className="rounded-full px-4 py-1 uppercase text-[9px] font-black"
+                      >
+                        Super Admin
+                      </Badge>
+                    )}
+                    <Badge
+                      variant="approved"
+                      className="rounded-full px-4 py-1 uppercase text-[9px] font-black"
+                    >
+                      Administrador
+                    </Badge>
+                  </div>
+                  <p className="text-[11px] text-gray-400 italic">
+                    Tienes acceso completo a las herramientas asignadas por el
+                    sistema.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {user?.is_super_admin && (
+            <>
+              <TabsContent
+                value="sitio"
+                className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
+              >
+                <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+                  <div className="bg-black p-8">
+                    <div className="flex items-center gap-3">
+                      <Globe className="w-5 h-5 text-[var(--puembo-green)]" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">
+                        Preferencias del Sitio
+                      </span>
+                    </div>
+                  </div>
+                  <CardContent className="p-8 md:p-12 space-y-12">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <Mail className="w-4 h-4 text-[var(--puembo-green)]" />
+                          <h4 className="text-xs font-black uppercase tracking-widest">
+                            Email de Notificaciones
+                          </h4>
+                        </div>
+                        <p className="text-[11px] text-gray-500 font-medium">
+                          Correo donde llegarán los formularios de contacto.
+                        </p>
+                        <div className="flex gap-2">
+                          <Input
+                            defaultValue={siteSettings?.notification_email}
+                            placeholder="info@alianzapuembo.org"
+                            className="h-12 rounded-xl bg-gray-50 border-gray-100"
+                            onBlur={(e) =>
+                              updateSiteSettings({
+                                notification_email: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Zap className="w-4 h-4 text-orange-500" />
+                              <h4 className="text-xs font-black uppercase tracking-widest text-gray-900">
+                                Modo Mantenimiento
+                              </h4>
+                            </div>
+                            <p className="text-[10px] text-gray-500">
+                              Oculta la web pública temporalmente.
+                            </p>
+                          </div>
+                          <Switch
+                            checked={siteSettings?.maintenance_mode || false}
+                            onCheckedChange={(val) =>
+                              updateSiteSettings({ maintenance_mode: val })
+                            }
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Lock className="w-4 h-4 text-blue-500" />
+                              <h4 className="text-xs font-black uppercase tracking-widest text-gray-900">
+                                Protección Captcha
+                              </h4>
+                            </div>
+                            <p className="text-[10px] text-gray-500">
+                              Activa seguridad en formularios públicos.
+                            </p>
+                          </div>
+                          <Switch
+                            checked={siteSettings?.captcha_enabled || false}
+                            onCheckedChange={(val) =>
+                              updateSiteSettings({ captcha_enabled: val })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent
+                value="equipo"
+                className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500"
+              >
+                <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+                  <div className="bg-black p-8">
+                    <div className="flex items-center gap-3">
+                      <Users className="w-5 h-5 text-[var(--puembo-green)]" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">
+                        Gestión de Permisos
+                      </span>
+                    </div>
+                  </div>
+                  <CardContent className="p-0">
+                    <div className="divide-y divide-gray-50">
+                      {profiles.map((profile) => (
+                        <div key={profile.id} className="p-8 lg:p-12 space-y-8">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-gray-900 flex items-center justify-center text-white font-black text-xs uppercase tracking-widest">
+                                {profile.full_name?.substring(0, 2) ||
+                                  profile.email?.substring(0, 2)}
+                              </div>
+                              <div className="space-y-0.5">
+                                <p className="font-bold text-gray-900">
+                                  {profile.full_name || "Sin nombre"}
+                                </p>
+                                <p className="text-[10px] text-gray-400 font-medium italic">
+                                  {profile.email}
+                                </p>
+                              </div>
+                            </div>
+                            {profile.is_super_admin && (
+                              <Badge
+                                variant="blue"
+                                className="rounded-full px-4 py-1.5 uppercase text-[8px] font-black tracking-widest"
+                              >
+                                Super Admin
+                              </Badge>
+                            )}
+                          </div>
+
+                          {!profile.is_super_admin && (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                              {[
+                                { key: "perm_events", label: "Eventos" },
+                                { key: "perm_news", label: "Noticias" },
+                                { key: "perm_lom", label: "LOM" },
+                                { key: "perm_prayer", label: "Oración" },
+                                { key: "perm_forms", label: "Forms" },
+                              ].map((perm) => (
+                                <div
+                                  key={perm.key}
+                                  className="flex flex-col items-center gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 transition-all hover:bg-white hover:shadow-md group"
+                                >
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-gray-900 transition-colors">
+                                    {perm.label}
+                                  </span>
+                                  <Switch
+                                    checked={profile[perm.key]}
+                                    onCheckedChange={(val) =>
+                                      updateProfilePermission(
+                                        profile.id,
+                                        perm.key,
+                                        val,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </>
+          )}
+        </Tabs>
       </div>
     </section>
   );

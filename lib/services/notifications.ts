@@ -48,6 +48,9 @@ export async function sendSystemNotification({
         name: "Info Alianza Puembo",
       });
     } else if (target === "all_admins") {
+      // TODO: Implementar preferencias dinámicas por usuario.
+      // Actualmente se envía a todos los que están en la tabla profiles.
+      // En el futuro, filtrar por toggles de preferencia (email_notifications_enabled, etc.)
       const { data, error } = await supabaseAdmin
         .from("profiles")
         .select("id, email, full_name")

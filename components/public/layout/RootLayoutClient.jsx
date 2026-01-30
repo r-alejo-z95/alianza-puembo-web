@@ -9,7 +9,10 @@ const Toaster = dynamic(() => import('@/components/ui/sonner').then(mod => mod.T
 
 export default function RootLayoutClient({ children }) {
   const pathname = usePathname();
-  const isStandalonePage = pathname.startsWith('/admin') || pathname === '/login' || pathname.startsWith('/formularios');
+  const isStandalonePage = pathname.startsWith('/admin') || 
+                           pathname === '/login' || 
+                           pathname === '/mantenimiento' ||
+                           pathname.startsWith('/formularios');
 
   return (
     <>

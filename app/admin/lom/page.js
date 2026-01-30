@@ -1,6 +1,7 @@
 import LomManager from '@/components/admin/managers/LomManager';
 import PassageManager from '@/components/admin/managers/PassageManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { verifyPermission } from "@/lib/auth/guards";
 import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles.ts";
 import { BookOpen, Calendar } from 'lucide-react';
 
@@ -13,7 +14,9 @@ export const metadata = {
   },
 };
 
-export default function LomPage() {
+export default async function LomPage() {
+  await verifyPermission("perm_lom");
+
   return (
     <section className={adminPageSection}>
       <header className={adminPageHeaderContainer}>
