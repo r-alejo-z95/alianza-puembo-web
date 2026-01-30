@@ -179,29 +179,27 @@ export default function PreferenciasPage() {
 
       <div className="max-w-4xl mx-auto pb-20">
         <Tabs defaultValue="perfil" className="space-y-8">
-          <div className="w-full px-4 max-w-md mx-auto">
-            <TabsList className="bg-gray-100 p-1 rounded-full h-12 md:h-14 w-full flex">
-              <TabsTrigger value="perfil" className="flex-1 rounded-full px-2 md:px-8 data-[state=active]:bg-black data-[state=active]:text-white transition-all font-bold text-[9px] md:text-xs uppercase tracking-tighter sm:tracking-widest gap-1.5 md:gap-2">
-                <User className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
-                <span className="hidden xs:inline">Perfil</span>
-                <span className="xs:hidden">Mío</span>
-              </TabsTrigger>
-              {user?.is_super_admin && (
-                <>
-                  <TabsTrigger value="sitio" className="flex-1 rounded-full px-2 md:px-8 data-[state=active]:bg-black data-[state=active]:text-white transition-all font-bold text-[9px] md:text-xs uppercase tracking-tighter sm:tracking-widest gap-1.5 md:gap-2">
-                    <Globe className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
-                    <span className="hidden xs:inline">Global</span>
-                    <span className="xs:hidden">Sitio</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="equipo" className="flex-1 rounded-full px-2 md:px-8 data-[state=active]:bg-black data-[state=active]:text-white transition-all font-bold text-[9px] md:text-xs uppercase tracking-tighter sm:tracking-widest gap-1.5 md:gap-2">
-                    <Users className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
-                    <span className="hidden xs:inline">Equipo</span>
-                    <span className="xs:hidden">Team</span>
-                  </TabsTrigger>
-                </>
-              )}
-            </TabsList>
-          </div>
+          {user?.is_super_admin && (
+            <div className="w-full px-4 max-w-md mx-auto">
+              <TabsList className="bg-gray-100 p-1 rounded-full h-12 md:h-14 w-full flex">
+                <TabsTrigger value="perfil" className="flex-1 rounded-full px-2 md:px-8 data-[state=active]:bg-black data-[state=active]:text-white transition-all font-bold text-[9px] md:text-xs uppercase tracking-tighter sm:tracking-widest gap-1.5 md:gap-2">
+                  <User className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
+                  <span className="hidden xs:inline">Perfil</span>
+                  <span className="xs:hidden">Mío</span>
+                </TabsTrigger>
+                <TabsTrigger value="sitio" className="flex-1 rounded-full px-2 md:px-8 data-[state=active]:bg-black data-[state=active]:text-white transition-all font-bold text-[9px] md:text-xs uppercase tracking-tighter sm:tracking-widest gap-1.5 md:gap-2">
+                  <Globe className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
+                  <span className="hidden xs:inline">Global</span>
+                  <span className="xs:hidden">Sitio</span>
+                </TabsTrigger>
+                <TabsTrigger value="equipo" className="flex-1 rounded-full px-2 md:px-8 data-[state=active]:bg-black data-[state=active]:text-white transition-all font-bold text-[9px] md:text-xs uppercase tracking-tighter sm:tracking-widest gap-1.5 md:gap-2">
+                  <Users className="w-3.5 h-3.5 md:w-4 md:h-4" /> 
+                  <span className="hidden xs:inline">Equipo</span>
+                  <span className="xs:hidden">Team</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          )}
 
           <TabsContent value="perfil" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
@@ -288,15 +286,15 @@ export default function PreferenciasPage() {
               </Card>
               
               <Card className="border border-gray-100 shadow-xl bg-white rounded-[2.5rem] overflow-hidden">
-                <CardContent className="p-8 space-y-6">
-                  <div className="flex items-center gap-4">
+                <CardContent className="p-8 space-y-6 flex flex-col items-center text-center">
+                  <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-400"><ShieldCheck className="w-6 h-6" /></div>
                     <h4 className="text-sm font-bold text-gray-900 uppercase tracking-tight">Tu Rol</h4>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant={getRoleInfo(user).variant} className="rounded-full px-4 py-1 uppercase text-[9px] font-black">{getRoleInfo(user).label}</Badge>
+                  <div className="flex justify-center">
+                    <Badge variant={getRoleInfo(user).variant} className="rounded-full px-6 py-1.5 uppercase text-[9px] font-black tracking-widest">{getRoleInfo(user).label}</Badge>
                   </div>
-                  <p className="text-[11px] text-gray-400 italic">Tienes acceso completo a las herramientas asignadas por el sistema.</p>
+                  <p className="text-[11px] text-gray-400 italic max-w-[220px]">Tienes acceso completo a las herramientas asignadas por el sistema.</p>
                 </CardContent>
               </Card>
             </div>
