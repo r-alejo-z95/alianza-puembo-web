@@ -40,7 +40,7 @@ export default function FormPreviewPage() {
           <Layout className="w-10 h-10 text-gray-300" />
         </div>
         <h1 className="text-2xl font-serif font-bold text-gray-900 mb-2">No hay datos de vista previa</h1>
-        <p className="text-gray-500 max-w-sm">Vuelve al editor y haz clic en "Vista Previa" para generar una visualización.</p>
+        <p className="text-gray-500 max-w-sm">Vuelve al editor y haz clic en &quot;Vista Previa&quot; para generar una visualización.</p>
       </div>
     );
   }
