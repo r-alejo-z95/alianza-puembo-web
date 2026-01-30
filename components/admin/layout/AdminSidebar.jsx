@@ -198,7 +198,7 @@ export default function AdminSidebar({ user, children }) {
               alt="Alianza Puembo Admin"
               width={160}
               height={100}
-              className="h-auto w-28 lg:w-32"
+              className="h-auto w-28 lg:w-32 mx-auto"
               priority
             />
             <div className="mt-4 flex items-center gap-3">
