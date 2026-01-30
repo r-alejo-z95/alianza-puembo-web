@@ -1,4 +1,4 @@
-import { getSessionUser } from "./getSessionUser";
+import { getSessionUser, AdminUser } from "./getSessionUser";
 import { redirect } from "next/navigation";
 
 /**
@@ -6,10 +6,10 @@ import { redirect } from "next/navigation";
  * Si no lo tiene, redirige al dashboard con un mensaje de error.
  * Solo para uso en Server Components.
  */
-export async function verifyPermission(permission: string) {
-  const user = await getSessionUser();
+export async function verifyPermission(permission: keyof AdminUser["permissions"]) {
+  const user = await getSessionUser() as AdminUser;
 
-  // 1. Si no hay usuario, mandarlo al login (doble check)
+  // 1. Si no hay usuario, mandarlo al login
   if (!user) {
     redirect("/login");
   }
@@ -23,8 +23,6 @@ export async function verifyPermission(permission: string) {
   const hasPermission = user.permissions?.[permission];
 
   if (!hasPermission) {
-    // Redirigir al dashboard principal si intenta entrar a una zona prohibida
-    // Agregamos un searchParam para que el dashboard pueda mostrar un toast de error
     redirect("/admin?error=no_permission");
   }
 
@@ -35,7 +33,7 @@ export async function verifyPermission(permission: string) {
  * Verifica si el usuario es Super Admin.
  */
 export async function verifySuperAdmin() {
-  const user = await getSessionUser();
+  const user = await getSessionUser() as AdminUser;
 
   if (!user || !user.is_super_admin) {
     redirect("/admin?error=no_permission");

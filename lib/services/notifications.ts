@@ -20,8 +20,8 @@ type NotificationType = "contact" | "prayer" | "form";
 interface NotificationParams {
   type: NotificationType;
   title: string;
-  message: string; // Puede ser HTML simple
-  target: "all_admins" | "info_email" | { userId: string }; // Explícito: Todos, Info, o Usuario específico
+  message: string;
+  target: "permitted_admins" | { userId: string }; // 'info_email' eliminado como target primario
   meta?: {
     link?: string;
     replyTo?: string;
@@ -37,161 +37,151 @@ export async function sendSystemNotification({
 }: NotificationParams) {
   try {
     // ---------------------------------------------------------
-    // PASO 1: Resolver Destinatarios (Emails y IDs)
+    // PASO 0: Obtener ajustes del sitio (solo para Fallback)
     // ---------------------------------------------------------
-    let recipients: { id?: string; email: string; name: string }[] = [];
+    const { data: settings } = await supabaseAdmin
+      .from("site_settings")
+      .select("notification_email")
+      .eq("id", 1)
+      .single();
 
-    if (target === "info_email") {
-      recipients.push({
-        id: "system-info",
-        email: "info@alianzapuembo.org",
-        name: "Info Alianza Puembo",
-      });
-    } else if (target === "all_admins") {
-      // TODO: Implementar preferencias dinámicas por usuario.
-      // Actualmente se envía a todos los que están en la tabla profiles.
-      // En el futuro, filtrar por toggles de preferencia (email_notifications_enabled, etc.)
-      const { data, error } = await supabaseAdmin
+    const fallbackEmail =
+      settings?.notification_email || "info@alianzapuembo.org";
+    const multiNotifyEmail = "no-reply@alianzapuembo.org"; // Email genérico para múltiples destinatarios
+
+    // ---------------------------------------------------------
+    // PASO 1: Resolver Destinatarios (Granular)
+    // ---------------------------------------------------------
+    let emailRecipients: string[] = [];
+    let dashRecipientIds: string[] = [];
+
+    if (target === "permitted_admins") {
+      // Caso dinámico (Contacto u Oración): Filtramos por las suscripciones de cada perfil
+      const emailField = `notify_email_${type}`;
+      const dashField = `notify_dash_${type}`;
+
+      const { data: profiles } = await supabaseAdmin
         .from("profiles")
-        .select("id, email, full_name")
+        .select(`id, email, ${emailField}, ${dashField}`)
         .not("email", "is", null);
 
-      if (error) {
-        throw new Error("Failed to fetch admin profiles");
-      }
-
-      if (data) {
-        recipients = data.map((p) => ({
-          id: p.id,
-          email: p.email,
-          name: p.full_name || "Admin",
-        }));
-      }
-
-      if (recipients.length === 0) {
-        recipients.push({
-          id: "dev-admin",
-          email: "info@alianzapuembo.org",
-          name: "Admin Sistema",
+      if (profiles) {
+        profiles.forEach((p: any) => {
+          if (p[emailField]) emailRecipients.push(p.email);
+          if (p[dashField]) dashRecipientIds.push(p.id);
         });
       }
-    } else if (target.userId) {
-      const { data, error } = await supabaseAdmin
+    } else if (typeof target === "object" && "userId" in target) {
+      // Caso directo (Formularios): El autor recibe ambos siempre
+      const { data: p } = await supabaseAdmin
         .from("profiles")
-        .select("id, email, full_name")
+        .select("id, email")
         .eq("id", target.userId)
         .single();
 
-      if (!error && data && data.email) {
-        recipients.push({
-          id: data.id,
-          email: data.email,
-          name: data.full_name || "Usuario",
-        });
+      if (p) {
+        emailRecipients.push(p.email);
+        dashRecipientIds.push(p.id);
       }
     }
 
-    if (recipients.length === 0) {
-      return { success: false, error: "No recipients found" };
+    // --- LOGICA DE FALLBACK ---
+    // Si después de filtrar no hay nadie que reciba el email, lo mandamos al de info
+    // para que la notificación no se pierda en el vacío.
+    if (emailRecipients.length === 0) {
+      console.log("No subscribers found for email. Using fallback.");
+      emailRecipients.push(fallbackEmail);
     }
 
     // ---------------------------------------------------------
-    // PASO 2: Guardar en Base de Datos
+    // PASO 2: Guardar en Dashboard (Individualizado)
     // ---------------------------------------------------------
-    const cleanMessage =
-      message
-        .replace(/<[^>]*>/g, " ")
-        .substring(0, 150)
-        .trim() + "...";
+    if (dashRecipientIds.length > 0) {
+      const cleanMessage =
+        message
+          .replace(/<[^>]*>/g, " ")
+          .substring(0, 150)
+          .trim() + "...";
 
-    const dbNotification = {
-      title,
-      message: cleanMessage,
-      type,
-      link: meta?.link || null,
-      user_id:
-        target === "all_admins" || target === "info_email"
-          ? null
-          : target.userId,
-      read: false,
-    };
+      const notificationEntries = dashRecipientIds.map((uid) => ({
+        user_id: uid,
+        title,
+        message: cleanMessage,
+        type,
+        link: meta?.link || null,
+        read: false,
+      }));
 
-    await supabaseAdmin.from("notifications").insert([dbNotification]);
+      await supabaseAdmin.from("notifications").insert(notificationEntries);
+    }
 
     // ---------------------------------------------------------
-    // PASO 3: Enviar Emails (Optimizado con BCC)
+    // PASO 3: Enviar Emails
     // ---------------------------------------------------------
-    const config = {
-      prayer: { color: "#0284c7", label: "Nueva Petición de Oración" },
-      contact: { color: "#ea580c", label: "Nuevo Mensaje de Contacto" },
-      form: { color: "#7c3aed", label: "Respuesta en Formulario" },
-    }[type] || { color: "#059669", label: "Notificación" };
+    if (emailRecipients.length > 0) {
+      const config = {
+        prayer: { color: "#0284c7", label: "Nueva Petición de Oración" },
+        contact: { color: "#ea580c", label: "Nuevo Mensaje de Contacto" },
+        form: { color: "#7c3aed", label: "Respuesta en Formulario" },
+      }[type] || { color: "#059669", label: "Notificación" };
 
-    const fromEmail =
-      type === "contact"
-        ? "Formulario de Contacto - Alianza Puembo Web <contactform-noreply@alianzapuembo.org>"
-        : "Notificación [no responder] - Alianza Puembo Web <notifications-noreply@alianzapuembo.org>";
+      const fromEmail =
+        type === "contact"
+          ? `Formulario de Contacto <contactform-noreply@alianzapuembo.org>`
+          : `Notificación Alianza Puembo <notifications-noreply@alianzapuembo.org>`;
 
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html>
-      <body style="font-family: sans-serif; background-color: #f4f4f5; padding: 20px;">
-        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e4e4e7;">
-          <div style="background-color: ${config.color}; padding: 24px; text-align: center;">
-            <h2 style="color: white; margin: 0; font-size: 20px;">${config.label}</h2>
-          </div>
-          <div style="padding: 32px;">
-            <p style="font-size: 16px; color: #18181b; margin-top: 0;">Hola,</p>
-            
-            <div style="background: #f8fafc; border-left: 4px solid ${config.color}; padding: 16px; margin: 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
-              ${message}
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: sans-serif; background-color: #f4f4f5; padding: 20px;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e4e4e7;">
+            <div style="background-color: ${config.color}; padding: 24px; text-align: center;">
+              <h2 style="color: white; margin: 0; font-size: 20px;">${config.label}</h2>
             </div>
-
-            ${
-              meta?.link
-                ? `
-              <div style="text-align: center; margin-top: 32px;">
-                <a href="https://alianzapuembo.org${meta.link}" style="background-color: #18181b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
-                  Ver en el Panel
-                </a>
+            <div style="padding: 32px;">
+              <div style="background: #f8fafc; border-left: 4px solid ${config.color}; padding: 16px; margin: 24px 0; color: #3f3f46; font-size: 15px; line-height: 1.6;">
+                ${message}
               </div>
-            `
-                : ""
-            }
+              ${
+                meta?.link
+                  ? `
+                <div style="text-align: center; margin-top: 32px;">
+                  <a href="https://alianzapuembo.org${meta.link}" style="background-color: #18181b; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px;">
+                    Ver en el Panel
+                  </a>
+                </div>
+              `
+                  : ""
+              }
+            </div>
           </div>
-          <div style="background: #fafafa; padding: 16px; text-align: center; font-size: 12px; color: #a1a1aa; border-top: 1px solid #f4f4f5;">
-            Enviado automáticamente por Alianza Puembo Web
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
+        </body>
+        </html>
+      `;
 
-    if (recipients.length === 1) {
-      await resend.emails.send({
-        from: fromEmail,
-        to: recipients[0].email,
-        replyTo: meta?.replyTo || undefined,
-        subject: title,
-        html: htmlContent,
-      });
-    } else {
-      const bccList = recipients.map((r) => r.email);
-      const mainRecipient = "no-reply@alianzapuembo.org";
-
-      await resend.emails.send({
-        from: fromEmail,
-        to: mainRecipient,
-        bcc: bccList,
-        replyTo: meta?.replyTo || undefined,
-        subject: title,
-        html: htmlContent,
-      });
+      if (emailRecipients.length === 1) {
+        await resend.emails.send({
+          from: fromEmail,
+          to: emailRecipients[0],
+          replyTo: meta?.replyTo || undefined,
+          subject: title,
+          html: htmlContent,
+        });
+      } else {
+        await resend.emails.send({
+          from: fromEmail,
+          to: multiNotifyEmail, // Envío a email genérico para no exponer correos en BCC
+          bcc: emailRecipients,
+          replyTo: meta?.replyTo || undefined,
+          subject: title,
+          html: htmlContent,
+        });
+      }
     }
 
     return { success: true };
   } catch (error) {
-    console.error("Critical error in notification service");
+    console.error("Critical error in notification service:", error);
     return { success: false, error: "Internal service error" };
   }
 }

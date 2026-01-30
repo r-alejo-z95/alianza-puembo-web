@@ -107,7 +107,7 @@ export async function submitContactForm(
     // Usar el servicio centralizado de notificaciones
     await sendSystemNotification({
       type: "contact",
-      target: "info_email",
+      target: "permitted_admins",
       title: `${name} ha enviado un mensaje a través del formulario de contacto - Alianza Puembo Web`,
       message: `
         <strong>De:</strong> ${name} &lt;${email}&gt;<br/>
@@ -209,7 +209,7 @@ export async function addPrayerRequest(formData: FormData) {
   // Notificar usando el servicio centralizado
   await sendSystemNotification({
     type: "prayer",
-    target: "all_admins",
+    target: "permitted_admins",
     title: `Alguien ha enviado una nueva petición de oración - Alianza Puembo Web`,
     message: `
       <strong>Solicitante:</strong> ${is_anonymous ? "Anónimo" : name || "Alguien"}<br/>
