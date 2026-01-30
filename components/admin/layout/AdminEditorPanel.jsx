@@ -77,7 +77,7 @@ export function AdminEditorPanel({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent
-        className={cn("max-h-[96vh] flex flex-col z-401 bg-black", className)}
+        className={cn("max-h-[96vh] flex flex-col z-400 bg-black", className)}
       >
         <div
           className={cn("rounded-3xl bg-black p-6 shrink-0", headerClassName)}

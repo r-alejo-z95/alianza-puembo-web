@@ -44,7 +44,7 @@ export function AdminBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-402 bg-black backdrop-blur-xl border-t border-white/10 px-1 py-2 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-399 bg-black backdrop-blur-xl border-t border-white/10 px-1 py-2 md:hidden">
       <div className="flex items-center justify-between max-w-lg mx-auto">
         {navLinks.map((link) => {
           const isActive = pathname.startsWith(link.href);

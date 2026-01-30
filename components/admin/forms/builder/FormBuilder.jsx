@@ -462,13 +462,13 @@ export default function FormBuilder({
               description="Selecciona el tipo de bloque que deseas añadir al formulario."
               data-panel
             >
-              <div className="grid grid-cols-1 gap-4 p-4">
+              <div className="grid grid-cols-1 gap-4 p-4 pb-12">
                 <Button
                   onClick={() => handleAddField("text")}
                   variant="outline"
-                  className="h-24 flex items-center justify-start gap-6 px-8 rounded-3xl border-2 border-gray-100 hover:border-[var(--puembo-green)] hover:bg-gray-50 transition-all text-left"
+                  className="h-24 flex items-center justify-start gap-6 px-8 rounded-3xl border-2 border-gray-100 hover:border-[var(--puembo-green)] hover:bg-gray-50 transition-all text-left wrap-break-words"
                 >
-                  <div className="p-3 bg-[var(--puembo-green)]/10 rounded-2xl">
+                  <div className="p-3 bg-[var(--puembo-green)]/10 rounded-2xl wrap-normal">
                     <Plus className="w-6 h-6 text-[var(--puembo-green)]" />
                   </div>
                   <div className="flex flex-col">
@@ -483,7 +483,7 @@ export default function FormBuilder({
                 <Button
                   onClick={() => handleAddField("section")}
                   variant="outline"
-                  className="h-24 flex items-center justify-start gap-6 px-8 rounded-3xl border-2 border-gray-100 hover:border-black hover:bg-gray-50 transition-all text-left"
+                  className="h-24 flex items-center justify-start gap-6 px-8 rounded-3xl border-2 border-gray-100 hover:border-black hover:bg-gray-50 transition-all text-left wrap-break-words"
                 >
                   <div className="p-3 bg-black/5 rounded-2xl">
                     <Layout className="w-6 h-6 text-black" />
