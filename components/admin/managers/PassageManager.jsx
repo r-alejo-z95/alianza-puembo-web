@@ -272,7 +272,7 @@ export default function PassageManager() {
                     </option>
                   ))}
                 </select>
-                <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none rotate-90" />
+                <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
               </div>
             </div>
 

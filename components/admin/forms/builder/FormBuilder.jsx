@@ -81,7 +81,7 @@ export default function FormBuilder({
   const [activeFieldId, setActiveFieldId] = useState("header");
   const [headerFile, setHeaderFile] = useState(null);
   const [activeDragId, setActiveDragId] = useState(null);
-  
+
   // Panel Control (Single Drawer for everything)
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [panelView, setPanelView] = useState("blocks"); // 'blocks' | 'importer'
@@ -595,7 +595,7 @@ export default function FormBuilder({
                       </span>
                     </div>
                   </Button>
-                  <div className="h-px bg-gray-50 my-2" />
+                  <div className="h-px bg-gray-100 my-2" />
                   <Button
                     onClick={() => setPanelView("importer")}
                     variant="outline"
