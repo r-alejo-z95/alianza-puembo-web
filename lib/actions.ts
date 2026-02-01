@@ -19,10 +19,8 @@ async function verifyTurnstileToken(token: string | null) {
 
   const secretKey = process.env.TURNSTILE_SECRET_KEY;
   if (!secretKey) {
-    console.warn(
-      "TURNSTILE_SECRET_KEY no configurada. Saltando validación en desarrollo.",
-    );
-    return true;
+    console.error("ERROR: TURNSTILE_SECRET_KEY no está configurada en las variables de entorno.");
+    return false;
   }
 
   try {
