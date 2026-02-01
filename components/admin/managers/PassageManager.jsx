@@ -23,6 +23,8 @@ import {
   CheckCircle2,
   SortAsc,
   SortDesc,
+  User,
+  ChevronRight
 } from "lucide-react";
 import {
   AlertDialog,
@@ -72,6 +74,7 @@ export default function PassageManager() {
   const [selectedWeek, setSelectedWeek] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [authorFilter, setAuthorFilter] = useState("all");
   const [sortDirection, setSortDirection] = useState("desc");
   const [selectedIds, setSelectedIds] = useState([]);
 
@@ -80,11 +83,21 @@ export default function PassageManager() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, authorFilter]);
 
   useEffect(() => {
     if (isRecycleBinOpen) fetchArchivedItems();
   }, [isRecycleBinOpen, fetchArchivedItems]);
+
+  const uniqueAuthors = useMemo(() => {
+    const authors = passages.map(p => p.profiles).filter(Boolean);
+    const seen = new Set();
+    return authors.filter(author => {
+      const duplicate = seen.has(author.email);
+      seen.add(author.email);
+      return !duplicate;
+    });
+  }, [passages]);
 
   const allWeeks = useMemo(() => {
     if (!passages) return [];
@@ -97,6 +110,9 @@ export default function PassageManager() {
             .includes(searchTerm.toLowerCase()) ||
           p.week_number.toString().includes(searchTerm),
       );
+    }
+    if (authorFilter !== "all") {
+      filtered = filtered.filter(p => p.profiles?.email === authorFilter);
     }
     const sortedData = [...filtered].sort(
       (a, b) =>
@@ -121,7 +137,7 @@ export default function PassageManager() {
         ? b.week_number - a.week_number
         : a.week_number - b.week_number,
     );
-  }, [passages, searchTerm, sortDirection]);
+  }, [passages, searchTerm, authorFilter, sortDirection]);
 
   const currentWeeks = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -223,22 +239,41 @@ export default function PassageManager() {
 
         <div className="px-6 py-4 border-b border-gray-50 bg-white/50 backdrop-blur-sm sticky top-0 z-20">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="relative w-full lg:max-w-md group">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-colors" />
-              <Input
-                placeholder="Buscar pasaje..."
-                className="pl-14 h-14 rounded-full bg-gray-50 border-gray-100 focus:bg-white transition-all text-sm font-medium focus:ring-4 focus:ring-[var(--puembo-green)]/10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:max-w-2xl">
+              <div className="relative flex-1 group">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-colors" />
+                <Input
+                  placeholder="Buscar pasaje..."
+                  className="pl-14 h-14 rounded-full bg-gray-50 border-gray-100 focus:bg-white transition-all text-sm font-medium focus:ring-4 focus:ring-[var(--puembo-green)]/10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <X className="w-3 h-3 text-gray-400" />
+                  </button>
+                )}
+              </div>
+
+              <div className="relative group min-w-[200px]">
+                <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-colors" />
+                <select 
+                  value={authorFilter} 
+                  onChange={(e) => setAuthorFilter(e.target.value)}
+                  className="w-full pl-14 pr-10 h-14 rounded-full bg-gray-50 border-gray-100 focus:bg-white transition-all text-sm font-medium focus:ring-4 focus:ring-[var(--puembo-green)]/10 appearance-none outline-none cursor-pointer text-gray-700"
                 >
-                  <X className="w-3 h-3 text-gray-400" />
-                </button>
-              )}
+                  <option value="all">Todos los autores</option>
+                  {uniqueAuthors.map(author => (
+                    <option key={author.email} value={author.email}>
+                      {author.full_name?.split(' ')[0] || author.email}
+                    </option>
+                  ))}
+                </select>
+                <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none rotate-90" />
+              </div>
             </div>
 
             <div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:w-auto">

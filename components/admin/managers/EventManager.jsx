@@ -34,6 +34,7 @@ import {
   Calendar as CalendarIcon,
   ChevronDown,
   X,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { AdminFAB } from "../layout/AdminFAB";
@@ -78,6 +79,7 @@ export default function EventManager() {
   const [successData, setSuccessData] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [authorFilter, setAuthorFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState({
     key: "start_time",
     direction: "asc",
@@ -104,11 +106,21 @@ export default function EventManager() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, authorFilter]);
 
   useEffect(() => {
     if (isRecycleBinOpen) fetchArchivedEvents();
   }, [isRecycleBinOpen, fetchArchivedEvents]);
+
+  const uniqueAuthors = useMemo(() => {
+    const authors = events.map((e) => e.profiles).filter(Boolean);
+    const seen = new Set();
+    return authors.filter((author) => {
+      const duplicate = seen.has(author.email);
+      seen.add(author.email);
+      return !duplicate;
+    });
+  }, [events]);
 
   const handleSave = async (eventData, posterFile) => {
     const result = await saveEvent(eventData, posterFile, selectedEvent);
@@ -158,6 +170,9 @@ export default function EventManager() {
             e.description.toLowerCase().includes(searchTerm.toLowerCase())),
       );
     }
+    if (authorFilter !== "all") {
+      result = result.filter((e) => e.profiles?.email === authorFilter);
+    }
     result.sort((a, b) => {
       let valA = a[sortConfig.key];
       let valB = b[sortConfig.key];
@@ -170,7 +185,7 @@ export default function EventManager() {
       return 0;
     });
     return result;
-  }, [events, searchTerm, sortConfig]);
+  }, [events, searchTerm, authorFilter, sortConfig]);
 
   const currentItems = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -244,22 +259,41 @@ export default function EventManager() {
 
         <div className="px-6 py-4 border-b border-gray-50 bg-white/50 backdrop-blur-sm sticky top-0 z-20">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="relative w-full lg:max-w-md group">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-colors" />
-              <Input
-                placeholder="Buscar evento..."
-                className="pl-14 h-14 rounded-full bg-gray-50 border-gray-100 focus:bg-white transition-all text-sm font-medium focus:ring-4 focus:ring-[var(--puembo-green)]/10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:max-w-2xl">
+              <div className="relative flex-1 group">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-colors" />
+                <Input
+                  placeholder="Buscar evento..."
+                  className="pl-14 h-14 rounded-full bg-gray-50 border-gray-100 focus:bg-white transition-all text-sm font-medium focus:ring-4 focus:ring-[var(--puembo-green)]/10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <X className="w-3 h-3 text-gray-400" />
+                  </button>
+                )}
+              </div>
+
+              <div className="relative group min-w-[200px]">
+                <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-colors" />
+                <select
+                  value={authorFilter}
+                  onChange={(e) => setAuthorFilter(e.target.value)}
+                  className="w-full pl-14 pr-10 h-14 rounded-full bg-gray-50 border-gray-100 focus:bg-white transition-all text-sm font-medium focus:ring-4 focus:ring-[var(--puembo-green)]/10 appearance-none outline-none cursor-pointer text-gray-700"
                 >
-                  <X className="w-3 h-3 text-gray-400" />
-                </button>
-              )}
+                  <option value="all">Todos los autores</option>
+                  {uniqueAuthors.map((author) => (
+                    <option key={author.email} value={author.email}>
+                      {author.full_name?.split(" ")[0] || author.email}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
+              </div>
             </div>
 
             <div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:w-auto">

@@ -24,7 +24,9 @@ import {
   LayoutGrid, 
   Rows, 
   X, 
-  CheckCircle2 
+  CheckCircle2,
+  User,
+  ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
 import { FormRow } from "./table-cells/FormRow";
@@ -53,6 +55,7 @@ export default function FormManager() {
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [authorFilter, setAuthorFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState({ key: "created_at", direction: "desc" });
   const [groupByMonth, setGroupByMonth] = useState(() => {
     if (typeof window !== "undefined") {
@@ -70,17 +73,27 @@ export default function FormManager() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  useEffect(() => { setCurrentPage(1); }, [searchTerm]);
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, authorFilter]);
 
   useEffect(() => {
     if (isRecycleBinOpen) fetchArchivedForms();
   }, [isRecycleBinOpen, fetchArchivedForms]);
 
+  const uniqueAuthors = useMemo(() => {
+    const authors = forms.map(f => f.profiles).filter(Boolean);
+    const seen = new Set();
+    return authors.filter(author => {
+      const duplicate = seen.has(author.email);
+      seen.add(author.email);
+      return !duplicate;
+    });
+  }, [forms]);
+
   const handleEdit = (form) => { router.push(`/admin/formularios/builder?slug=${form.slug}`); };
 
   const handleDelete = async (formId) => {
     const success = await archiveForm(formId);
-    if (success) setSelectedIds(prev => prev.filter(id => id !== formId));
+    if (success) setSelectedIds(prev => prev.filter(id => id !== newsId));
   };
 
   const handleBulkArchive = async () => {
@@ -99,6 +112,9 @@ export default function FormManager() {
   const processedForms = useMemo(() => {
     let result = [...forms];
     if (searchTerm) result = result.filter(f => f.title.toLowerCase().includes(searchTerm.toLowerCase()));
+    if (authorFilter !== "all") {
+      result = result.filter(f => f.profiles?.email === authorFilter);
+    }
     result.sort((a, b) => {
       let valA = a[sortConfig.key]; let valB = b[sortConfig.key];
       if (!valA) return 1; if (!valB) return -1;
@@ -108,7 +124,7 @@ export default function FormManager() {
       return 0;
     });
     return result;
-  }, [forms, searchTerm, sortConfig]);
+  }, [forms, searchTerm, authorFilter, sortConfig]);
 
   const currentItems = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -161,10 +177,29 @@ export default function FormManager() {
 
         <div className="px-6 py-4 border-b border-gray-50 bg-white/50 backdrop-blur-sm sticky top-0 z-20">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="relative w-full lg:max-w-md group">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-colors" />
-              <Input placeholder="Buscar formulario..." className="pl-14 h-14 rounded-full bg-gray-50 border-gray-100 focus:bg-white transition-all text-sm font-medium focus:ring-4 focus:ring-[var(--puembo-green)]/10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-              {searchTerm && <button onClick={() => setSearchTerm("")} className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-full transition-colors"><X className="w-3 h-3 text-gray-400" /></button>}
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:max-w-2xl">
+              <div className="relative flex-1 group">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-colors" />
+                <Input placeholder="Buscar formulario..." className="pl-14 h-14 rounded-full bg-gray-50 border-gray-100 focus:bg-white transition-all text-sm font-medium focus:ring-4 focus:ring-[var(--puembo-green)]/10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                {searchTerm && <button onClick={() => setSearchTerm("")} className="absolute right-5 top-1/2 -translate-y-1/2 p-1.5 hover:bg-gray-100 rounded-full transition-colors"><X className="w-3 h-3 text-gray-400" /></button>}
+              </div>
+
+              <div className="relative group min-w-[200px]">
+                <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-colors" />
+                <select 
+                  value={authorFilter} 
+                  onChange={(e) => setAuthorFilter(e.target.value)}
+                  className="w-full pl-14 pr-10 h-14 rounded-full bg-gray-50 border-gray-100 focus:bg-white transition-all text-sm font-medium focus:ring-4 focus:ring-[var(--puembo-green)]/10 appearance-none outline-none cursor-pointer text-gray-700"
+                >
+                  <option value="all">Todos los autores</option>
+                  {uniqueAuthors.map(author => (
+                    <option key={author.email} value={author.email}>
+                      {author.full_name?.split(' ')[0] || author.email}
+                    </option>
+                  ))}
+                </select>
+                <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none rotate-90" />
+              </div>
             </div>
             
             <div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:w-auto">
@@ -192,9 +227,7 @@ export default function FormManager() {
             {selectedIds.length > 0 && (
               <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 40 }} className="mt-6 p-5 lg:p-4 bg-gray-900 rounded-[2.5rem] lg:rounded-full flex flex-col lg:flex-row items-center justify-between gap-6 shadow-2xl ring-4 ring-black/5 z-30">
                 <div className="flex items-center gap-5 w-full lg:w-auto pl-2">
-                  <div className="w-12 h-12 bg-[var(--puembo-green)] rounded-full flex items-center justify-center text-white shadow-lg shadow-green-500/20">
-                    <CheckCircle2 className="w-6 h-6" />
-                  </div>
+                  <div className="w-12 h-12 bg-[var(--puembo-green)] rounded-full flex items-center justify-center text-white shadow-lg shadow-green-500/20"><CheckCircle2 className="w-6 h-6" /></div>
                   <div className="flex flex-col text-left">
                     <span className="font-bold text-base text-white">{selectedIds.length} seleccionados</span>
                     <span className="text-[9px] text-gray-500 font-black uppercase tracking-[0.3em]">Gestión masiva</span>

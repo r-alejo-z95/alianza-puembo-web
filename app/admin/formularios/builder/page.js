@@ -123,9 +123,27 @@ function BuilderContent() {
                 `Error en adjunto de "${field.label}": ` + upErr.message,
               );
             attachmentUrl = `/api/storage/forms/${supaPath}`;
-          } else if (field.attachment_url === null && field.id) {
-            // If explicity cleared, we might want to cleanup storage?
-            // Logic omitted for brevity but recommended for production cleanups
+          } else if (attachmentUrl && attachmentUrl.includes("/fields/")) {
+            // Check if it's an IMPORTED attachment (path doesn't match current field.id)
+            const pathParts = attachmentUrl.split("/fields/")[1].split("/");
+            const originalFieldId = pathParts[0];
+            const fileName = pathParts[1];
+
+            if (originalFieldId !== field.id) {
+              // Deep copy: Create a new file copy for the imported question
+              const sourcePath = `fields/${originalFieldId}/${fileName}`;
+              const destPath = `fields/${field.id}/${fileName}`;
+              
+              const { error: copyErr } = await supabase.storage
+                .from("forms")
+                .copy(sourcePath, destPath);
+              
+              if (!copyErr) {
+                attachmentUrl = `/api/storage/forms/${destPath}`;
+              } else {
+                console.error("Error copying imported attachment:", copyErr);
+              }
+            }
           }
 
           // Sanitize for DB

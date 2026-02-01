@@ -15,6 +15,7 @@ import {
   Plus,
   CheckCircle2,
   ChevronRight,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,7 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import FormCanvas from "./FormCanvas";
 import FloatingToolbar from "./FloatingToolbar";
 import FluentRenderer from "@/components/public/forms/fluent-renderer/FluentRenderer";
+import QuestionImporter from "./QuestionImporter";
 import { AdminFAB } from "@/components/admin/layout/AdminFAB";
 import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
 import { Card, CardTitle, CardContent } from "@/components/ui/card";
@@ -79,7 +81,11 @@ export default function FormBuilder({
   const [activeFieldId, setActiveFieldId] = useState("header");
   const [headerFile, setHeaderFile] = useState(null);
   const [activeDragId, setActiveDragId] = useState(null);
-  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+  
+  // Panel Control (Single Drawer for everything)
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [panelView, setPanelView] = useState("blocks"); // 'blocks' | 'importer'
+
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const lastScrollY = useRef(0);
@@ -266,7 +272,7 @@ export default function FormBuilder({
       }
 
       setActiveFieldId(newFieldId);
-      setIsMobilePanelOpen(false);
+      setIsPanelOpen(false); // Close panel on field add
       scrollToField(newFieldId, targetIndex);
 
       toast.success(`${type === "section" ? "Sección" : "Pregunta"} añadida`, {
@@ -280,6 +286,28 @@ export default function FormBuilder({
       });
     },
     [activeFieldId, append, fields, insert, scrollToField],
+  );
+
+  const handleImportQuestions = useCallback(
+    (questions) => {
+      const preparedQuestions = questions.map((q) => ({
+        ...q,
+        id: uuidv4(),
+        options: q.options?.map((o) => ({ ...o, id: uuidv4() })),
+      }));
+
+      // Insertar después del campo activo o al final
+      const activeIndex = fields.findIndex((f) => f.id === activeFieldId);
+      if (activeIndex !== -1) {
+        insert(activeIndex + 1, preparedQuestions);
+      } else {
+        append(preparedQuestions);
+      }
+
+      setIsPanelOpen(false); // Close panel on import
+      toast.success(`${preparedQuestions.length} preguntas importadas`);
+    },
+    [activeFieldId, append, fields, insert],
   );
 
   const handleDuplicateField = useCallback(
@@ -483,14 +511,23 @@ export default function FormBuilder({
               {/* Floating Desktop Toolbar */}
               <div className="hidden lg:block w-20 relative" data-toolbar>
                 <div className="fixed top-48">
-                  <FloatingToolbar onAdd={handleAddField} />
+                  <FloatingToolbar
+                    onAdd={handleAddField}
+                    onOpenImporter={() => {
+                      setPanelView("importer");
+                      setIsPanelOpen(true);
+                    }}
+                  />
                 </div>
               </div>
             </div>
 
             {/* Mobile Actions */}
             <AdminFAB
-              onClick={() => setIsMobilePanelOpen(true)}
+              onClick={() => {
+                setPanelView("blocks");
+                setIsPanelOpen(true);
+              }}
               label="BLOQUES"
               icon={Plus}
               data-panel
@@ -498,55 +535,91 @@ export default function FormBuilder({
             />
 
             <AdminEditorPanel
-              open={isMobilePanelOpen}
-              onOpenChange={setIsMobilePanelOpen}
+              open={isPanelOpen}
+              onOpenChange={setIsPanelOpen}
               title={
-                <>
-                  Añadir{" "}
-                  <span className="text-[var(--puembo-green)] italic">
-                    Contenido
-                  </span>
-                </>
+                panelView === "blocks" ? (
+                  <>
+                    Añadir{" "}
+                    <span className="text-[var(--puembo-green)] italic">
+                      Contenido
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    Importar{" "}
+                    <span className="text-blue-500 italic">Preguntas</span>
+                  </>
+                )
               }
-              description="Selecciona el tipo de bloque que deseas añadir al formulario."
+              description={
+                panelView === "blocks"
+                  ? "Selecciona el tipo de bloque que deseas añadir al formulario."
+                  : "Selecciona un formulario existente para copiar sus campos."
+              }
               data-panel
             >
-              <div className="grid grid-cols-1 gap-4 p-4 pb-12">
-                <Button
-                  onClick={() => handleAddField("text")}
-                  variant="outline"
-                  className="h-24 flex items-center justify-start gap-4 px-4 sm:px-8 rounded-3xl border-2 border-gray-100 hover:border-[var(--puembo-green)] hover:bg-gray-50 transition-all text-left min-w-0 whitespace-normal"
-                >
-                  <div className="p-3 bg-[var(--puembo-green)]/10 rounded-2xl shrink-0">
-                    <Plus className="w-6 h-6 text-[var(--puembo-green)]" />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-black uppercase tracking-widest text-[10px]">
-                      Pregunta
-                    </span>
-                    <span className="text-xs text-gray-400 font-medium leading-tight">
-                      Añade un campo de entrada
-                    </span>
-                  </div>
-                </Button>
-                <Button
-                  onClick={() => handleAddField("section")}
-                  variant="outline"
-                  className="h-24 flex items-center justify-start gap-4 px-4 sm:px-8 rounded-3xl border-2 border-gray-100 hover:border-black hover:bg-gray-50 transition-all text-left min-w-0 whitespace-normal"
-                >
-                  <div className="p-3 bg-black/5 rounded-2xl shrink-0">
-                    <Layout className="w-6 h-6 text-black" />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-black uppercase tracking-widest text-[10px]">
-                      Sección
-                    </span>
-                    <span className="text-xs text-gray-400 font-medium leading-tight">
-                      Organiza por grupos de preguntas
-                    </span>
-                  </div>
-                </Button>
-              </div>
+              {panelView === "blocks" ? (
+                <div className="grid grid-cols-1 gap-4 p-4 pb-12">
+                  <Button
+                    onClick={() => handleAddField("text")}
+                    variant="outline"
+                    className="h-24 flex items-center justify-start gap-4 px-4 sm:px-8 rounded-3xl border-2 border-gray-100 hover:border-[var(--puembo-green)] hover:bg-gray-50 transition-all text-left min-w-0 whitespace-normal"
+                  >
+                    <div className="p-3 bg-[var(--puembo-green)]/10 rounded-2xl shrink-0">
+                      <Plus className="w-6 h-6 text-[var(--puembo-green)]" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-black uppercase tracking-widest text-[10px]">
+                        Pregunta
+                      </span>
+                      <span className="text-xs text-gray-400 font-medium leading-tight">
+                        Añade un campo de entrada
+                      </span>
+                    </div>
+                  </Button>
+                  <Button
+                    onClick={() => handleAddField("section")}
+                    variant="outline"
+                    className="h-24 flex items-center justify-start gap-4 px-4 sm:px-8 rounded-3xl border-2 border-gray-100 hover:border-black hover:bg-gray-50 transition-all text-left min-w-0 whitespace-normal"
+                  >
+                    <div className="p-3 bg-black/5 rounded-2xl shrink-0">
+                      <Layout className="w-6 h-6 text-black" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-black uppercase tracking-widest text-[10px]">
+                        Sección
+                      </span>
+                      <span className="text-xs text-gray-400 font-medium leading-tight">
+                        Organiza por grupos de preguntas
+                      </span>
+                    </div>
+                  </Button>
+                  <div className="h-px bg-gray-50 my-2" />
+                  <Button
+                    onClick={() => setPanelView("importer")}
+                    variant="outline"
+                    className="h-24 flex items-center justify-start gap-4 px-4 sm:px-8 rounded-3xl border-2 border-gray-100 hover:border-blue-500 hover:bg-gray-50 transition-all text-left min-w-0 whitespace-normal"
+                  >
+                    <div className="p-3 bg-blue-50 rounded-2xl shrink-0">
+                      <FileSpreadsheet className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-black uppercase tracking-widest text-[10px]">
+                        Importar
+                      </span>
+                      <span className="text-xs text-gray-400 font-medium leading-tight">
+                        Copia preguntas de otro formulario
+                      </span>
+                    </div>
+                  </Button>
+                </div>
+              ) : (
+                <QuestionImporter
+                  onImport={handleImportQuestions}
+                  onCancel={() => setIsPanelOpen(false)}
+                />
+              )}
             </AdminEditorPanel>
 
             {/* Dragging Preview */}

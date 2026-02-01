@@ -1,6 +1,6 @@
 "use client";
 
-import { Layout, Plus, Sparkles, MoveVertical } from "lucide-react";
+import { Layout, Plus, Sparkles, MoveVertical, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -11,7 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
-export default function FloatingToolbar({ onAdd }) {
+export default function FloatingToolbar({ onAdd, onOpenImporter }) {
   const ToolBtn = ({ icon: Icon, label, onClick, highlight, description }) => (
     <TooltipProvider delayDuration={0}>
       <Tooltip>
@@ -83,6 +83,15 @@ export default function FloatingToolbar({ onAdd }) {
           label="Nueva Sección"
           description="Agrupa preguntas para organizar el flujo"
           onClick={() => onAdd("section")}
+        />
+
+        <div className="h-px w-8 bg-white/10 mx-auto" />
+
+        <ToolBtn
+          icon={FileSpreadsheet}
+          label="Importar"
+          description="Copia preguntas de otros formularios"
+          onClick={onOpenImporter}
         />
       </div>
     </motion.div>
