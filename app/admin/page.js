@@ -5,7 +5,7 @@ import {
   Calendar, 
   Newspaper, 
   BookOpen, 
-  HandHelping, 
+  Users, 
   FileText,
   ArrowRight,
   ShieldAlert
@@ -25,7 +25,7 @@ const quickActions = [
   { href: "/admin/eventos", label: "Eventos", icon: Calendar, description: "Organiza y publica las próximas actividades de la iglesia.", color: "bg-blue-500", permission: "perm_events" },
   { href: "/admin/noticias", label: "Noticias", icon: Newspaper, description: "Comparte historias y crónicas de lo que Dios está haciendo.", color: "bg-emerald-500", permission: "perm_news" },
   { href: "/admin/lom", label: "LOM", icon: BookOpen, description: "Gestiona los devocionales diarios de Lee, Ora, Medita.", color: "bg-amber-500", permission: "perm_lom" },
-  { href: "/admin/oracion", label: "Peticiones", icon: HandHelping, description: "Revisa y administra el muro de oraciones de la comunidad.", color: "bg-purple-500", permission: "perm_prayer" },
+  { href: "/admin/comunidad", label: "Comunidad", icon: Users, description: "Atiende los mensajes de contacto y modera las peticiones de oración.", color: "bg-purple-500", permission: "perm_comunidad" },
   { href: "/admin/formularios", label: "Formularios", icon: FileText, description: "Crea y gestiona formularios de registro dinámicos.", color: "bg-rose-500", permission: "perm_forms" },
 ];
 

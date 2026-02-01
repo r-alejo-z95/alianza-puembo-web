@@ -6,7 +6,7 @@ import {
   Calendar,
   Newspaper,
   BookOpen,
-  HandHelping,
+  Users,
   FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
@@ -31,10 +31,10 @@ const navLinks = [
     permission: "perm_lom",
   },
   {
-    href: "/admin/oracion",
-    label: "Oración",
-    icon: HandHelping,
-    permission: "perm_prayer",
+    href: "/admin/comunidad",
+    label: "Comunidad",
+    icon: Users,
+    permission: "perm_comunidad",
   },
   {
     href: "/admin/formularios",
@@ -48,7 +48,7 @@ export function AdminBottomNav({ user }) {
   const pathname = usePathname();
 
   // Filtrar links según permisos del usuario
-  const filteredLinks = navLinks.filter(link => {
+  const filteredLinks = navLinks.filter((link) => {
     if (user?.is_super_admin) return true;
     return user?.permissions?.[link.permission];
   });

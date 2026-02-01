@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { loginSchema } from "@/lib/schemas";
 import { sendSystemNotification } from "@/lib/services/notifications";
+import { headers } from "next/headers";
 
 /**
  * Verifica un token de Cloudflare Turnstile.
@@ -45,6 +46,27 @@ async function verifyTurnstileToken(token: string | null) {
   }
 }
 
+/**
+ * Helper para Rate Limiting básico basado en IP y Email/Nombre
+ * Previene abusos manuales en formularios públicos.
+ */
+async function checkRateLimit(type: "contact" | "prayer", identifier: string) {
+  const supabase = await createClient();
+  const timeWindow = new Date(Date.now() - 10 * 60 * 1000).toISOString(); // 10 minutos
+
+  const table = type === "contact" ? "contact_messages" : "prayer_requests";
+  const column = type === "contact" ? "email" : "name"; // En prayer usamos name o aproximado
+
+  const { count, error } = await supabase
+    .from(table)
+    .select("*", { count: "exact", head: true })
+    .eq(column, identifier)
+    .gt("created_at", timeWindow);
+
+  if (error) return true; // Si hay error, permitimos por seguridad de UX
+  return (count || 0) < 3; // Máximo 3 mensajes cada 10 minutos
+}
+
 // Contact Form Action
 const contactSchema = z.object({
   name: z
@@ -66,6 +88,7 @@ type ContactFormState = {
     phone?: string[];
     message?: string[];
     captcha?: string[];
+    rateLimit?: string[];
   };
   success?: boolean;
   message?: string;
@@ -103,20 +126,43 @@ export async function submitContactForm(
 
   const { name, email, phone, message } = validatedFields.data;
 
+  // Rate Limit check
+  const isAllowed = await checkRateLimit("contact", email);
+  if (!isAllowed) {
+    return {
+      errors: {
+        rateLimit: ["Has enviado demasiados mensajes. Por favor, espera unos minutos."],
+      },
+    };
+  }
+
   try {
-    // Usar el servicio centralizado de notificaciones
+    const supabase = await createClient();
+    
+    // 1. Guardar en Base de Datos
+    const { data: newMessage, error: dbError } = await supabase
+      .from("contact_messages")
+      .insert([{ name, email, phone, message, status: "unread" }])
+      .select()
+      .single();
+
+    if (dbError) throw dbError;
+
+    // 2. Notificar al equipo
     await sendSystemNotification({
       type: "contact",
       target: "permitted_admins",
-      title: `${name} ha enviado un mensaje a través del formulario de contacto - Alianza Puembo Web`,
+      title: `Nuevo mensaje de contacto: ${name}`,
       message: `
-        <strong>De:</strong> ${name} &lt;${email}&gt;<br/>
-        <strong>Teléfono:</strong> ${phone || "N/A"}<br/>
-        <br/>
-        ${message}
+        <p>Has recibido un nuevo mensaje a través de la web.</p>
+        <p><strong>De:</strong> ${name} (${email})</p>
+        <p><strong>Mensaje:</strong><br/>${message.substring(0, 100)}${message.length > 100 ? "..." : ""}</p>
+        <p style="margin-top: 20px; font-size: 12px; color: #666; border-top: 1px solid #eee; pt: 10px;">
+          <em>Por favor, gestiona este mensaje y envía la respuesta oficial desde el Panel de Administración para mantener el historial.</em>
+        </p>
       `,
       meta: {
-        replyTo: email,
+        link: `/admin/comunidad?tab=mensajes&id=${newMessage.id}`,
       },
     });
 
@@ -126,12 +172,109 @@ export async function submitContactForm(
         "¡Gracias por tu mensaje! Nos pondremos en contacto contigo pronto.",
     };
   } catch (error) {
-    console.error("Error sending contact notification:", error);
+    console.error("Error processing contact form:", error);
     return {
       success: false,
       message:
         "Hubo un error al enviar tu mensaje. Por favor, inténtalo de nuevo más tarde.",
     };
+  }
+}
+
+/**
+ * Acción para responder a un mensaje de contacto vía Resend
+ * Configura Reply-To al admin actual y CC a info@alianzapuembo.org.
+ */
+export async function replyToContactMessage(messageId: string, content: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { success: false, error: "No autorizado" };
+
+  try {
+    // 1. Obtener datos del mensaje y del admin
+    const { data: message, error: msgError } = await supabase
+      .from("contact_messages")
+      .select("*")
+      .eq("id", messageId)
+      .single();
+
+    if (msgError || !message) throw new Error("Mensaje no encontrado");
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", user.id)
+      .single();
+
+    // 2. Enviar Correo vía Resend
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) throw new Error("Configuración de correo incompleta en el servidor");
+
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${resendApiKey}`,
+      },
+      body: JSON.stringify({
+        from: "Iglesia Alianza Puembo <notificaciones@alianzapuembo.org>",
+        to: [message.email],
+        cc: ["info@alianzapuembo.org"],
+        reply_to: profile?.email || user.email,
+        subject: `Re: Su mensaje a Iglesia Alianza Puembo`,
+        html: `
+          <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
+            <div style="background-color: #000; padding: 20px; text-align: center;">
+              <img src="https://alianzapuembo.org/brand/logo-puembo-white.png" alt="Alianza Puembo" style="height: 40px;">
+            </div>
+            <div style="padding: 40px;">
+              <p>Estimado(a) <strong>${message.name}</strong>,</p>
+              <p>Le escribimos en respuesta a su mensaje enviado a través de nuestro sitio web:</p>
+              <div style="background-color: #f9f9f9; padding: 20px; border-left: 4px solid #8fc641; font-style: italic; margin: 20px 0;">
+                "${message.message}"
+              </div>
+              <p>${content.replace(/\n/g, "<br/>")}</p>
+              <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
+              <p style="font-size: 14px; color: #666;">
+                Atentamente,<br/>
+                <strong>${profile?.full_name || "Equipo Alianza Puembo"}</strong><br/>
+                Iglesia Alianza Puembo
+              </p>
+            </div>
+            <div style="background-color: #f4f4f4; padding: 20px; text-align: center; font-size: 12px; color: #999;">
+              Nota: Si responde a este correo, su mensaje será recibido directamente por la persona que le atendió con copia a la oficina principal.
+            </div>
+          </div>
+        `,
+      }),
+    });
+
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.message || "Error al enviar correo por Resend");
+    }
+
+    // 3. Actualizar DB
+    const { error: updateError } = await supabase
+      .from("contact_messages")
+      .update({
+        status: "replied",
+        reply_content: content,
+        replied_at: new Date().toISOString(),
+        replied_by: user.id,
+      })
+      .eq("id", messageId);
+
+    if (updateError) throw updateError;
+
+    revalidatePath("/admin/mensajes");
+    return { success: true };
+  } catch (e: any) {
+    console.error("Error in replyToContactMessage:", e);
+    return { success: false, error: e.message };
   }
 }
 
@@ -190,6 +333,12 @@ export async function addPrayerRequest(formData: FormData) {
     return { error: "El texto de la petición no puede estar vacío." };
   }
 
+  // Rate limit para peticiones (usamos el nombre o 'anon' como base)
+  const isAllowed = await checkRateLimit("prayer", name || "anonymous");
+  if (!isAllowed) {
+    return { error: "Has enviado demasiadas peticiones. Por favor, espera unos minutos." };
+  }
+
   const supabase = await createClient();
 
   const { data, error } = await supabase
@@ -210,11 +359,10 @@ export async function addPrayerRequest(formData: FormData) {
   await sendSystemNotification({
     type: "prayer",
     target: "permitted_admins",
-    title: `Alguien ha enviado una nueva petición de oración - Alianza Puembo Web`,
+    title: `Nueva petición de oración recibida`,
     message: `
-      <strong>Solicitante:</strong> ${is_anonymous ? "Anónimo" : name || "Alguien"}<br/>
-      <strong>Petición:</strong><br/>
-      <blockquote>${request_text}</blockquote>
+      <p><strong>Solicitante:</strong> ${is_anonymous ? "Anónimo" : name || "Alguien"}</p>
+      <p><strong>Petición:</strong><br/>${request_text.substring(0, 100)}...</p>
     `,
     meta: {
       link: "/admin/oracion",

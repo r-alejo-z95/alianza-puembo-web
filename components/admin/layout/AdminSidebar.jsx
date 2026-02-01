@@ -15,6 +15,7 @@ import {
   LogOut,
   ChevronRight,
   User,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,11 +53,11 @@ const navLinks = [
     permission: "perm_lom",
   },
   {
-    href: "/admin/oracion",
-    label: "Peticiones",
-    icon: HandHelping,
-    description: "Muro de oración",
-    permission: "perm_prayer",
+    href: "/admin/comunidad",
+    label: "Comunidad",
+    icon: Users,
+    description: "Mensajes y peticiones",
+    permission: "perm_comunidad", 
   },
   {
     href: "/admin/formularios",
@@ -72,7 +73,7 @@ export default function AdminSidebar({ user, children }) {
   const router = useRouter();
 
   // Si es la página de vista previa, renderizar el contenido puro
-  if (pathname.includes('/formularios/preview')) {
+  if (pathname.includes("/formularios/preview")) {
     return <main className="w-full min-h-screen">{children}</main>;
   }
 
