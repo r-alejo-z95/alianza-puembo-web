@@ -24,7 +24,7 @@ import {
   SortAsc,
   SortDesc,
   User,
-  ChevronRight
+  ChevronDown,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -90,9 +90,9 @@ export default function PassageManager() {
   }, [isRecycleBinOpen, fetchArchivedItems]);
 
   const uniqueAuthors = useMemo(() => {
-    const authors = passages.map(p => p.profiles).filter(Boolean);
+    const authors = passages.map((p) => p.profiles).filter(Boolean);
     const seen = new Set();
-    return authors.filter(author => {
+    return authors.filter((author) => {
       const duplicate = seen.has(author.email);
       seen.add(author.email);
       return !duplicate;
@@ -112,7 +112,7 @@ export default function PassageManager() {
       );
     }
     if (authorFilter !== "all") {
-      filtered = filtered.filter(p => p.profiles?.email === authorFilter);
+      filtered = filtered.filter((p) => p.profiles?.email === authorFilter);
     }
     const sortedData = [...filtered].sort(
       (a, b) =>
@@ -260,15 +260,15 @@ export default function PassageManager() {
 
               <div className="relative group min-w-[200px]">
                 <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-colors" />
-                <select 
-                  value={authorFilter} 
+                <select
+                  value={authorFilter}
                   onChange={(e) => setAuthorFilter(e.target.value)}
                   className="w-full pl-14 pr-10 h-14 rounded-full bg-gray-50 border-gray-100 focus:bg-white transition-all text-sm font-medium focus:ring-4 focus:ring-[var(--puembo-green)]/10 appearance-none outline-none cursor-pointer text-gray-700"
                 >
                   <option value="all">Todos los autores</option>
-                  {uniqueAuthors.map(author => (
+                  {uniqueAuthors.map((author) => (
                     <option key={author.email} value={author.email}>
-                      {author.full_name?.split(' ')[0] || author.email}
+                      {author.full_name?.split(" ")[0] || author.email}
                     </option>
                   ))}
                 </select>
