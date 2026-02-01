@@ -9,12 +9,12 @@ export type Permissions = {
   perm_forms: boolean;
 }
 
-export type SessionUser = User & {
+export type AdminUser = User & {
   is_super_admin: boolean;
   permissions: Permissions;
 };
 
-export async function getSessionUser(): Promise<SessionUser | null> {
+export async function getSessionUser(): Promise<AdminUser | null> {
   const supabase = await createClient();
 
   const {

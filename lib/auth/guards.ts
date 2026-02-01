@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
  * Solo para uso en Server Components.
  */
 export async function verifyPermission(permission: keyof AdminUser["permissions"]) {
-  const user = await getSessionUser() as AdminUser;
+  const user = await getSessionUser();
 
   // 1. Si no hay usuario, mandarlo al login
   if (!user) {
@@ -33,7 +33,7 @@ export async function verifyPermission(permission: keyof AdminUser["permissions"
  * Verifica si el usuario es Super Admin.
  */
 export async function verifySuperAdmin() {
-  const user = await getSessionUser() as AdminUser;
+  const user = await getSessionUser();
 
   if (!user || !user.is_super_admin) {
     redirect("/admin?error=no_permission");
