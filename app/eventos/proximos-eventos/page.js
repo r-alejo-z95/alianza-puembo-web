@@ -1,12 +1,13 @@
 import { Suspense } from "react";
-import { getAllUpcomingEvents } from '@/lib/data/events';
+import { getAllUpcomingEvents } from "@/lib/data/events";
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { UpcomingEventsClient } from "./UpcomingEventsClient";
 import { Loader2 } from "lucide-react";
 
 export const metadata = {
   title: "Próximos Eventos",
-  description: "Mantente al tanto de los próximos eventos y actividades especiales en Alianza Puembo. ¡No te pierdas nada!",
+  description:
+    "Mantente al tanto de los próximos eventos y actividades especiales en Alianza Puembo. ¡No te pierdas nada!",
   alternates: {
     canonical: "/eventos/proximos-eventos",
   },
@@ -27,11 +28,7 @@ export default async function ProximosEventos() {
     title: "No te Pierdas Nada",
     description: [
       "Mantente al tanto de los próximos eventos y actividades especiales en Alianza Puembo. Aquí encontrarás información detallada sobre cada evento, incluyendo fechas, horarios y cómo participar.",
-      "Desde servicios especiales hasta reuniones de grupos pequeños y eventos comunitarios, nuestro calendario te ayudará a planificar tu participación y a no perderte ninguna oportunidad de crecimiento y comunión.",
     ],
-    imageUrl: "/eventos/upcoming-events-intro.jpg",
-    imageAlt: "Personas en un evento de la iglesia",
-    imagePosition: "right",
   };
 
   return (

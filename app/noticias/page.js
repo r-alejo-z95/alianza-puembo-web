@@ -6,7 +6,8 @@ import { Loader2 } from "lucide-react";
 
 export const metadata = {
   title: "Noticias y Crónicas",
-  description: "Descubre lo que Dios está haciendo en nuestra comunidad. Historias, testimonios y actualizaciones de Alianza Puembo.",
+  description:
+    "Descubre lo que Dios está haciendo en nuestra comunidad. Historias, testimonios y actualizaciones de Alianza Puembo.",
   alternates: {
     canonical: "/noticias",
   },
@@ -29,11 +30,7 @@ export default async function Noticias({ searchParams }) {
     title: "Crónicas de Nuestra Familia",
     description: [
       "Esta no es solo una sección de anuncios; es un diario de la fidelidad de Dios. Aquí compartimos los frutos de los ministerios, los testimonios de transformación y el impacto de nuestra comunidad en Puembo y el mundo.",
-      "Te invitamos a recorrer estas historias y celebrar con nosotros cada paso que damos como una familia de familias.",
     ],
-    imageUrl: "/noticias/news-intro.jpg",
-    imageAlt: "Comunidad compartiendo",
-    imagePosition: "left",
   };
 
   return (
