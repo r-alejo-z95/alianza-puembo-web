@@ -387,6 +387,7 @@ export async function notifyFormSubmission(
   formTitle: string,
   formSlug: string,
   authorId: string,
+  submitterId?: string,
 ) {
   if (!authorId) return { success: false };
 
@@ -401,6 +402,19 @@ export async function notifyFormSubmission(
       .single();
 
     const isInternal = form?.is_internal || false;
+    let submitterName = "Un miembro del equipo";
+
+    if (isInternal && submitterId) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", submitterId)
+        .single();
+      
+      if (profile?.full_name) {
+        submitterName = profile.full_name;
+      }
+    }
 
     await sendSystemNotification({
       type: "form",
@@ -409,7 +423,7 @@ export async function notifyFormSubmission(
         ? `Nuevo registro operativo: ${formTitle}`
         : `Nueva respuesta recibida: ${formTitle}`,
       message: isInternal
-        ? `Un miembro del equipo ha hecho una solicitud en <strong>"${formTitle}"</strong>.`
+        ? `<strong>${submitterName}</strong> ha hecho una solicitud en <strong>"${formTitle}"</strong>.`
         : `El formulario <strong>"${formTitle}"</strong> ha recibido una nueva respuesta de un usuario.`,
       meta: { 
         link: isInternal 

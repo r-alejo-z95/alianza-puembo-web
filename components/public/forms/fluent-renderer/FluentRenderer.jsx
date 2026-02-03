@@ -756,7 +756,8 @@ export default function FluentRenderer({ form, isPreview = false }) {
       }
 
       // 3. Notificar al autor del formulario (Dashboard + Email)
-      await notifyFormSubmission(form.title, form.slug, form.user_id);
+      // Pasamos el ID del usuario actual si es interno para personalizar el mensaje
+      await notifyFormSubmission(form.title, form.slug, form.user_id, user?.id);
 
       setSubmissionStatus("success");
       reset();
