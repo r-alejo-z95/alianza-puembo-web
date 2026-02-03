@@ -20,7 +20,9 @@ function LoadingState() {
   );
 }
 
-export default async function Noticias() {
+export default async function Noticias({ searchParams }) {
+  const params = await searchParams;
+  const page = parseInt(params.page) || 1;
   const news = await getAllNews();
 
   const introSectionData = {

@@ -367,7 +367,7 @@ export default function EventForm({ event, onSave, onCancel }) {
 
               {/* Área de Visualización */}
               <div
-                className="relative w-full aspect-video max-w-[280px] rounded-[1.5rem] overflow-hidden bg-white shadow-inner border border-gray-100 group/preview cursor-pointer"
+                className="relative w-full aspect-video rounded-[1.5rem] overflow-hidden bg-white shadow-inner border border-gray-100 group/preview cursor-pointer"
                 onClick={() => fileInputRef.current.click()}
               >
                 {previewUrl || (event?.poster_url && !removePoster) ? (

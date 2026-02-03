@@ -1,14 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
-import { getNowInEcuador } from "@/lib/date-utils";
 
 interface NewsItem {
   id: string;
   title: string;
   slug: string;
   description: string;
-  news_date: string;
-  news_time: string;
-  publish_at: string; // Nueva columna
+  publish_at: string;
   image_url?: string;
   image_w?: number;
   image_h?: number;
@@ -37,8 +34,7 @@ export async function getNews(
     .select("*")
     .eq("is_archived", false)
     .lte("publish_at", nowStr) // Solo publicadas (ahora o en el pasado UTC)
-    .order("news_date", { ascending: false, nullsFirst: true })
-    .order("news_time", { ascending: false, nullsFirst: true });
+    .order("publish_at", { ascending: false });
 
   if (error) {
     console.error("Error fetching news:", error);
@@ -73,8 +69,7 @@ export async function getAllNews(): Promise<NewsItem[]> {
     .select("*")
     .eq("is_archived", false)
     .lte("publish_at", nowStr)
-    .order("news_date", { ascending: false, nullsFirst: true })
-    .order("news_time", { ascending: false, nullsFirst: true });
+    .order("publish_at", { ascending: false });
 
   if (error) {
     console.error("Error fetching all news:", error);

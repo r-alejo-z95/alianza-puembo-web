@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
@@ -28,21 +28,42 @@ import {
   Trash2,
   Camera,
   Send,
+  Globe,
+  Timer,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import {
   ecuadorToUTC,
   formatEcuadorDateForInput,
   formatEcuadorTimeForInput,
+  getNowInEcuador,
 } from "@/lib/date-utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { AnimatePresence, motion } from "framer-motion";
 
 const newsSchema = z.object({
   title: z.string().min(3, "El título debe tener al menos 3 caracteres."),
   description: z.string().optional(),
-  date: z.string().optional(),
-  time: z.string().optional(),
-  publish_date: z.string().min(1, "La fecha de publicación es requerida."),
-  publish_time: z.string().min(1, "La hora de publicación es requerida."),
+  publish_mode: z.enum(["now", "scheduled"]),
+  publish_date: z.string().optional(),
+  publish_time: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.publish_mode === "scheduled") {
+    if (!data.publish_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Fecha requerida",
+        path: ["publish_date"],
+      });
+    }
+    if (!data.publish_time) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Hora requerida",
+        path: ["publish_time"],
+      });
+    }
+  }
 });
 
 export default function NewsForm({ newsItem, onSave, onCancel }) {
@@ -52,27 +73,29 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
   const fileInputRef = useRef(null);
 
   const initialPublishAt = newsItem?.publish_at || new Date().toISOString();
+  const isInitiallyScheduled = newsItem?.publish_at && new Date(newsItem.publish_at) > new Date();
 
   const form = useForm({
     resolver: zodResolver(newsSchema),
     defaultValues: {
       title: newsItem?.title || "",
       description: newsItem?.description || "",
-      date: newsItem?.news_date || "",
-      time: newsItem?.news_time || "",
+      publish_mode: isInitiallyScheduled ? "scheduled" : "now",
       publish_date: formatEcuadorDateForInput(initialPublishAt),
       publish_time: formatEcuadorTimeForInput(initialPublishAt),
     },
   });
 
+  const publishMode = useWatch({ control: form.control, name: "publish_mode" });
+
   useEffect(() => {
     if (newsItem) {
       const pubAt = newsItem.publish_at || new Date().toISOString();
+      const isScheduled = new Date(pubAt) > new Date();
       form.reset({
         title: newsItem.title || "",
         description: newsItem.description || "",
-        date: newsItem.news_date || "",
-        time: newsItem.news_time || "",
+        publish_mode: isScheduled ? "scheduled" : "now",
         publish_date: formatEcuadorDateForInput(pubAt),
         publish_time: formatEcuadorTimeForInput(pubAt),
       });
@@ -92,8 +115,8 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
   const getOptimizedUrl = (url) => {
     if (!url) return null;
     if (url.startsWith("blob:")) return url;
-    // Usar transformación de Supabase (resize a 200px para el aspecto 16:9)
-    return `${url}?width=200&resize=contain`;
+    // Usar transformación de Supabase (aspecto 16:9)
+    return `${url}?width=400&height=225&resize=cover`;
   };
 
   const handleFileChange = async (e) => {
@@ -119,16 +142,20 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
   };
 
   const onSubmit = async (data) => {
-    const publish_at_utc = ecuadorToUTC(
-      data.publish_date,
-      data.publish_time,
-    ).toISOString();
+    let publish_at_utc;
+    
+    if (data.publish_mode === "now") {
+      publish_at_utc = new Date().toISOString();
+    } else {
+      publish_at_utc = ecuadorToUTC(
+        data.publish_date,
+        data.publish_time,
+      ).toISOString();
+    }
 
     await onSave(
       {
         ...data,
-        news_date: data.date || null,
-        news_time: data.time || null,
         publish_at: publish_at_utc,
         remove_image: removeImage,
       },
@@ -189,106 +216,131 @@ export default function NewsForm({ newsItem, onSave, onCancel }) {
             />
           </div>
 
-          {/* Programación de Visibilidad (publish_at) */}
-          <div className="bg-[var(--puembo-green)]/5 p-6 rounded-[2rem] border border-[var(--puembo-green)]/10 space-y-6">
-            <div className="space-y-0.5">
+          {/* Programación de Visibilidad */}
+          <div className="bg-[var(--puembo-green)]/5 p-8 rounded-[2.5rem] border border-[var(--puembo-green)]/10 space-y-8">
+            <div className="space-y-1">
               <FormLabel className="text-sm font-bold text-gray-900 flex items-center gap-2">
                 <Send className="w-4 h-4 text-[var(--puembo-green)]" />
-                Programar Visibilidad
+                Opciones de Publicación
               </FormLabel>
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest">
-                ¿Cuándo será visible esta noticia en la web pública?
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-medium">
+                ¿Cuándo quieres que se publique esta historia?
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="publish_date"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                      Fecha de Lanzamiento
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        className="h-12 rounded-xl bg-white border-gray-100 shadow-sm"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="publish_time"
-                render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                      Hora de Lanzamiento
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="time"
-                        className="h-12 rounded-xl bg-white border-gray-100 shadow-sm"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
+            <FormField
+              control={form.control}
+              name="publish_mode"
+              render={({ field }) => (
+                <FormItem className="space-y-4">
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    >
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroupItem value="now" className="sr-only" />
+                        </FormControl>
+                        <FormLabel className={cn(
+                          "flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all",
+                          field.value === "now" 
+                            ? "bg-white border-[var(--puembo-green)] shadow-md text-[var(--puembo-green)]" 
+                            : "bg-white/50 border-transparent text-gray-400 hover:bg-white"
+                        )}>
+                          <div className={cn(
+                            "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                            field.value === "now" ? "bg-[var(--puembo-green)] text-white" : "bg-gray-100"
+                          )}>
+                            <Globe className="w-5 h-5" />
+                          </div>
+                          <div className="flex flex-col text-left">
+                            <span className="font-bold text-sm">Publicar Ahora</span>
+                            <span className="text-[10px] uppercase tracking-wider font-black opacity-60">Inmediato</span>
+                          </div>
+                        </FormLabel>
+                      </FormItem>
 
-          {/* Fecha y Hora del Suceso (Opcional - news_date/time) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <FormField
-              control={form.control}
-              name="date"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest">
-                      Fecha del Suceso (Opcional)
-                    </FormLabel>
-                  </div>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      className="h-12 rounded-xl bg-white border-gray-100 shadow-sm"
-                      {...field}
-                    />
+                      <FormItem>
+                        <FormControl>
+                          <RadioGroupItem value="scheduled" className="sr-only" />
+                        </FormControl>
+                        <FormLabel className={cn(
+                          "flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all",
+                          field.value === "scheduled" 
+                            ? "bg-white border-[var(--puembo-green)] shadow-md text-[var(--puembo-green)]" 
+                            : "bg-white/50 border-transparent text-gray-400 hover:bg-white"
+                        )}>
+                          <div className={cn(
+                            "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                            field.value === "scheduled" ? "bg-[var(--puembo-green)] text-white" : "bg-gray-100"
+                          )}>
+                            <Timer className="w-5 h-5" />
+                          </div>
+                          <div className="flex flex-col text-left">
+                            <span className="font-bold text-sm">Programar</span>
+                            <span className="text-[10px] uppercase tracking-wider font-black opacity-60">Fecha y Hora</span>
+                          </div>
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="time"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Clock className="w-3.5 h-3.5" />
-                    <FormLabel className="text-[10px] font-black uppercase tracking-widest">
-                      Hora del Suceso (Opcional)
-                    </FormLabel>
-                  </div>
-                  <FormControl>
-                    <Input
-                      type="time"
-                      className="h-12 rounded-xl bg-white border-gray-100 shadow-sm"
-                      {...field}
+
+            <AnimatePresence mode="wait">
+              {publishMode === "scheduled" && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[var(--puembo-green)]/10 mt-2">
+                    <FormField
+                      control={form.control}
+                      name="publish_date"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                            Fecha
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="date"
+                              className="h-12 rounded-xl bg-white border-gray-100 shadow-sm"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                    <FormField
+                      control={form.control}
+                      name="publish_time"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                            Hora
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="time"
+                              className="h-12 rounded-xl bg-white border-gray-100 shadow-sm"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </motion.div>
               )}
-            />
+            </AnimatePresence>
           </div>
 
           {/* Multimedia */}

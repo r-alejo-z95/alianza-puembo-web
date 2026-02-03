@@ -69,7 +69,7 @@ export default function NewsManager() {
   const [searchTerm, setSearchTerm] = useState("");
   const [authorFilter, setAuthorFilter] = useState("all");
   const [sortConfig, setSortConfig] = useState({
-    key: "news_date",
+    key: "publish_at",
     direction: "desc",
   });
   const [groupByMonth, setGroupByMonth] = useState(() => {
@@ -98,6 +98,20 @@ export default function NewsManager() {
   useEffect(() => {
     if (isRecycleBinOpen) fetchArchivedNews();
   }, [isRecycleBinOpen, fetchArchivedNews]);
+
+  // Calcular página pública para cada noticia
+  const newsPublicPages = useMemo(() => {
+    const now = new Date();
+    const publishedNews = news
+      .filter(item => new Date(item.publish_at) <= now)
+      .sort((a, b) => new Date(b.publish_at) - new Date(a.publish_at));
+    
+    const pagesMap = {};
+    publishedNews.forEach((item, index) => {
+      pagesMap[item.id] = Math.floor(index / 4) + 1; // ITEMS_PER_PAGE = 4 en el cliente público
+    });
+    return pagesMap;
+  }, [news]);
 
   const uniqueAuthors = useMemo(() => {
     const authors = news.map((n) => n.profiles).filter(Boolean);
@@ -176,8 +190,8 @@ export default function NewsManager() {
     if (!groupByMonth) return { Resultados: currentItems };
     const groups = {};
     currentItems.forEach((item) => {
-      const date = item.news_date ? parseISO(item.news_date) : new Date(0);
-      const monthYear = item.news_date
+      const date = item.publish_at ? parseISO(item.publish_at) : new Date(0);
+      const monthYear = item.publish_at
         ? format(date, "MMMM yyyy", { locale: es })
         : "Sin Fecha";
       const capitalizedMonth =
@@ -299,16 +313,16 @@ export default function NewsManager() {
                   Nombre
                 </Button>
                 <Button
-                  variant={sortConfig.key === "news_date" ? "green" : "ghost"}
-                  onClick={() => handleSort("news_date")}
+                  variant={sortConfig.key === "publish_at" ? "green" : "ghost"}
+                  onClick={() => handleSort("publish_at")}
                   className={cn(
                     "flex-1 lg:flex-none rounded-full h-10 px-6 font-bold text-[9px] uppercase tracking-[0.2em] gap-2 transition-all",
-                    sortConfig.key === "news_date"
+                    sortConfig.key === "publish_at"
                       ? "shadow-md"
                       : "text-gray-400 hover:bg-gray-100",
                   )}
                 >
-                  {sortConfig.key === "news_date" &&
+                  {sortConfig.key === "publish_at" &&
                     (sortConfig.direction === "asc" ? (
                       <SortAsc className="w-3.5 h-3.5" />
                     ) : (
@@ -429,7 +443,7 @@ export default function NewsManager() {
                         Extracto
                       </TableHead>
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">
-                        Fecha y Hora
+                        Fecha Programada
                       </TableHead>
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
                         Autor
@@ -463,6 +477,7 @@ export default function NewsManager() {
                             <NewsRow
                               key={item.id}
                               newsItem={item}
+                              publicPage={newsPublicPages[item.id] || 1}
                               isSelected={selectedIds.includes(item.id)}
                               onSelect={() => toggleSelect(item.id)}
                               onEdit={() => {
@@ -495,6 +510,7 @@ export default function NewsManager() {
                         <NewsRow
                           key={item.id}
                           newsItem={item}
+                          publicPage={newsPublicPages[item.id] || 1}
                           isSelected={selectedIds.includes(item.id)}
                           onSelect={() => toggleSelect(item.id)}
                           onEdit={() => {

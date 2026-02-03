@@ -22,13 +22,7 @@ import Link from "next/link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 
-const formatNewsTime = (timeStr) => {
-  if (!timeStr) return "-";
-  const parts = timeStr.split(":");
-  return `${parts[0]}:${parts[1]}`;
-};
-
-export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSelected, onSelect }) {
+export function NewsRow({ newsItem, publicPage = 1, onEdit, onDelete, compact, isSelected, onSelect }) {
   const isScheduled = new Date(newsItem.publish_at) > new Date();
 
   const actions = (
@@ -67,12 +61,8 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSel
     </div>
   );
 
-  const formattedDate = newsItem.news_date
-    ? formatLiteralDate(newsItem.news_date, "d 'de' MMM, yyyy")
-    : "-";
-  const formattedTime = newsItem.news_time ? formatNewsTime(newsItem.news_time) : "-";
-
-  const formattedPublishAt = formatInEcuador(newsItem.publish_at, "d 'de' MMM, HH:mm");
+  const formattedPublishAt = formatInEcuador(newsItem.publish_at, "d 'de' MMMM, yyyy");
+  const formattedPublishTime = formatInEcuador(newsItem.publish_at, "HH:mm");
 
   // Construir URL con página y ancla
   const publicHref = `/noticias?page=${publicPage}#${newsItem.slug || newsItem.id}`;
@@ -100,7 +90,7 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSel
                   )}
                 </div>
                 <OverflowCell 
-                href={publicHref}
+                href={isScheduled ? null : publicHref}
                 linkText="Ver noticia"
                 className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words leading-tight"
                 >
@@ -116,14 +106,13 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSel
         </p>
 
         <div className="flex flex-wrap gap-4 pt-1 pl-9">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400">
-            <Calendar className="w-3 h-3 text-[var(--puembo-green)]/50" /> {formattedDate}
+          <div className={cn(
+            "flex items-center gap-1.5 text-[10px] font-bold",
+            isScheduled ? "text-[var(--puembo-green)]/70" : "text-gray-400"
+          )}>
+            {isScheduled ? <Send className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}
+            {formattedPublishAt} a las {formattedPublishTime}
           </div>
-          {isScheduled && (
-            <div className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--puembo-green)]/70">
-              <Send className="w-3 h-3" /> {formattedPublishAt}
-            </div>
-          )}
         </div>
 
         <div className="flex items-center justify-end pt-3 border-t border-gray-50 pl-9">
@@ -155,7 +144,7 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSel
             )}
           </div>
           <OverflowCell 
-            href={publicHref}
+            href={isScheduled ? null : publicHref}
             linkText="Ver noticia"
             className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors"
           >
@@ -172,18 +161,16 @@ export function NewsRow({ newsItem, publicPage, onEdit, onDelete, compact, isSel
       </TableCell>
       <TableCell className="px-8 py-6 min-w-[150px]">
         <div className="space-y-1.5">
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
-            <Calendar className="w-3 h-3 text-[var(--puembo-green)]" /> {formattedDate}
+          <div className={cn(
+            "flex items-center gap-2 text-xs font-bold",
+            isScheduled ? "text-[var(--puembo-green)]" : "text-gray-700"
+          )}>
+            {isScheduled ? <Send className="w-3 h-3" /> : <Calendar className="w-3 h-3" />}
+            {formattedPublishAt}
           </div>
-          {isScheduled ? (
-            <div className="flex items-center gap-2 text-[10px] font-bold text-[var(--puembo-green)]/80">
-              <Send className="w-3 h-3" /> {formattedPublishAt}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <Clock className="w-3 h-3" /> {formattedTime}
-            </div>
-          )}
+          <div className="flex items-center gap-2 text-[10px] font-medium text-gray-400">
+            <Clock className="w-3 h-3" /> {formattedPublishTime}
+          </div>
         </div>
       </TableCell>
       <TableCell className="px-8 py-6 text-center">

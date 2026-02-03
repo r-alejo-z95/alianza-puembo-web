@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils.ts";
 import {
@@ -18,8 +19,12 @@ import { Quote, Search, X } from "lucide-react";
 const ITEMS_PER_PAGE = 4;
 
 export function NewsClient({ news: initialNews = [] }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialPage = parseInt(searchParams.get("page")) || 1;
+
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(initialPage);
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -27,6 +32,14 @@ export function NewsClient({ news: initialNews = [] }) {
     viewport: { once: true },
     transition: { duration: 0.6 }
   };
+
+  // Sincronizar currentPage con cambios en la URL (ej. botones atrás/adelante)
+  useEffect(() => {
+    const page = parseInt(searchParams.get("page")) || 1;
+    if (page !== currentPage) {
+      setCurrentPage(page);
+    }
+  }, [searchParams]);
 
   // Manejar el scroll al hash ID si existe en la URL
   useEffect(() => {
@@ -59,14 +72,21 @@ export function NewsClient({ news: initialNews = [] }) {
     return filteredNews.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredNews, currentPage]);
 
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    const params = new URLSearchParams(searchParams);
+    params.set("page", page.toString());
+    router.push(`/noticias?${params.toString()}`, { scroll: false });
+  };
+
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1);
+    handlePageChange(1);
   };
 
   const clearSearch = () => {
     setSearchTerm("");
-    setCurrentPage(1);
+    handlePageChange(1);
   };
 
   return (
@@ -153,7 +173,7 @@ export function NewsClient({ news: initialNews = [] }) {
                   <div className="w-full md:w-1/2 space-y-6 px-4">
                     <div className="space-y-2">
                       <span className="text-[var(--puembo-green)] font-bold tracking-widest uppercase text-xs">
-                        {item.news_date ? formatLiteralDate(item.news_date) : "Actualidad"}
+                        {formatLiteralDate(item.publish_at)}
                       </span>
                       <h3 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 leading-tight">
                         {item.title}
@@ -180,7 +200,7 @@ export function NewsClient({ news: initialNews = [] }) {
                 <PaginationControls
                   currentPage={currentPage}
                   totalPages={totalPages}
-                  onPageChange={setCurrentPage}
+                  onPageChange={handlePageChange}
                 />
               </div>
             )}
