@@ -16,7 +16,6 @@ export default function Ruta() {
   const pageTitle = "Ruta: Tu Camino en Nuestra Iglesia";
   const pageDescription = [
     "En Alianza Puembo, creemos que la vida cristiana es un viaje de crecimiento y descubrimiento. Nuestra 'Ruta' está diseñada para guiarte en cada etapa de tu caminar, desde tus primeros pasos hasta el desarrollo de tu propósito en Dios.",
-    "Te invitamos a explorar los diferentes hitos de esta ruta, donde encontrarás herramientas, enseñanzas y comunidad para fortalecer tu relación con Dios y con los demás.",
   ];
 
   return (
