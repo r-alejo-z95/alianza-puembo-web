@@ -84,7 +84,7 @@ export default async function EventPage({ params }) {
 
               {/* Mobile Only Poster */}
               <div className="md:hidden">
-                <div className="relative aspect-square w-full rounded-2xl overflow-hidden shadow-2xl">
+                <div className="relative aspect-video w-full rounded-2xl overflow-hidden shadow-2xl">
                   <Image
                     src={event.poster_url || "/eventos/Eventos.jpg"}
                     alt={event.title}
@@ -150,7 +150,7 @@ export default async function EventPage({ params }) {
             {/* Right Column: Actions / Sticky Poster */}
             <div className="space-y-8">
               <div className="hidden md:block sticky top-28 space-y-8">
-                <div className="relative aspect-square w-full rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5">
+                <div className="relative aspect-video w-full rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5">
                   <Image
                     src={event.poster_url || "/eventos/Eventos.jpg"}
                     alt={event.title}

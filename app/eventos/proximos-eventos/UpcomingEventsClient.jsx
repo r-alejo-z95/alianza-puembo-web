@@ -112,7 +112,7 @@ export function UpcomingEventsClient({ initialEvents = [] }) {
                 >
                   <Link href={`/eventos/${event.slug}`} className="block h-full group">
                     <Card className="h-full border-none shadow-xl bg-white hover:shadow-2xl transition-all duration-500 overflow-hidden rounded-2xl">
-                      <div className="relative w-full aspect-square overflow-hidden">
+                      <div className="relative w-full aspect-video overflow-hidden">
                         {event.poster_url ? (
                           <Image
                             src={event.poster_url}

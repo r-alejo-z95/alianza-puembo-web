@@ -210,8 +210,8 @@ export default function EventForm({ event, onSave, onCancel }) {
   const getOptimizedUrl = (url) => {
     if (!url) return null;
     if (url.startsWith("blob:")) return url;
-    // Usar transformación de Supabase (resize a 200px para el aspecto 1:1)
-    return `${url}?width=200&height=200&resize=cover`;
+    // Usar transformación de Supabase (aspecto 16:9)
+    return `${url}?width=400&height=225&resize=cover`;
   };
 
   const fetchForms = async () => {
@@ -247,7 +247,7 @@ export default function EventForm({ event, onSave, onCancel }) {
     let start_time_utc, end_time_utc;
     if (data.is_multi_day) {
       start_time_utc = ecuadorToUTC(data.start_date, "00:00").toISOString();
-      end_time_utc = data.end_date 
+      end_time_utc = data.end_date
         ? ecuadorToUTC(data.end_date, "23:59").toISOString()
         : ecuadorToUTC(data.start_date, "23:59").toISOString();
     } else if (data.all_day) {
@@ -258,9 +258,9 @@ export default function EventForm({ event, onSave, onCancel }) {
         data.start_date,
         data.start_time,
       ).toISOString();
-      
+
       // La hora de fin ahora es opcional
-      end_time_utc = data.end_time 
+      end_time_utc = data.end_time
         ? ecuadorToUTC(data.start_date, data.end_time).toISOString()
         : null;
     }
@@ -367,7 +367,7 @@ export default function EventForm({ event, onSave, onCancel }) {
 
               {/* Área de Visualización */}
               <div
-                className="relative w-full aspect-square max-w-[280px] rounded-[1.5rem] overflow-hidden bg-white shadow-inner border border-gray-100 group/preview cursor-pointer"
+                className="relative w-full aspect-video max-w-[280px] rounded-[1.5rem] overflow-hidden bg-white shadow-inner border border-gray-100 group/preview cursor-pointer"
                 onClick={() => fileInputRef.current.click()}
               >
                 {previewUrl || (event?.poster_url && !removePoster) ? (
@@ -440,7 +440,7 @@ export default function EventForm({ event, onSave, onCancel }) {
                   </div>
                 ) : (
                   <p className="text-[10px] text-gray-400 uppercase tracking-widest">
-                    Formatos recomendados: JPG, WEBP, PNG (Relación 1:1)
+                    Formatos recomendados: JPG, WEBP, PNG (Relación 16:9)
                   </p>
                 )}
               </div>
