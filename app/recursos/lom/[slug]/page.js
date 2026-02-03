@@ -39,7 +39,7 @@ export default async function LomPostPage({ params }) {
   }
 
   const { prevPost, nextPost } = await getLomNavigationPosts(
-    post.publication_date
+    post.publication_date,
   );
 
   const todayStr = getTodayEcuadorDateLiteral();
@@ -49,7 +49,7 @@ export default async function LomPostPage({ params }) {
 
   const publicationDate = formatLiteralDate(
     post.publication_date,
-    "EEEE d 'de' MMMM, yyyy"
+    "EEEE d 'de' MMMM, yyyy",
   );
 
   return (
@@ -118,7 +118,8 @@ export default async function LomPostPage({ params }) {
                   prose-strong:text-gray-900 prose-strong:font-black
                   prose-img:rounded-[3rem] prose-img:shadow-2xl prose-img:my-20
                   prose-li:text-gray-600 prose-li:marker:text-[var(--puembo-green)]
-                  prose-a:text-[var(--puembo-green)] prose-a:font-bold prose-a:no-underline hover:prose-a:underline"
+                  prose-a:text-[var(--puembo-green)] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
+                  overflow-hidden wrap-anywhere"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
 
