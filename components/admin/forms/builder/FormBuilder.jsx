@@ -69,6 +69,7 @@ const formSchema = z.object({
   title: z.string().min(3, "Título requerido"),
   description: z.string().optional().nullable(),
   image_url: z.string().optional().nullable(),
+  is_internal: z.boolean().default(false),
   fields: z.array(fieldSchema),
 });
 
@@ -126,6 +127,7 @@ export default function FormBuilder({
       title: "",
       description: "",
       image_url: "",
+      is_internal: false,
       fields: [],
     },
     mode: "onBlur",
@@ -161,6 +163,7 @@ export default function FormBuilder({
         title: initialForm.title || "",
         description: initialForm.description || "",
         image_url: initialForm.image_url || "",
+        is_internal: initialForm.is_internal || false,
         fields: preparedFields,
       });
     }

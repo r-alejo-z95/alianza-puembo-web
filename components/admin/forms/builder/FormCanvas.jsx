@@ -8,7 +8,9 @@ import { useFormContext, Controller } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ImageIcon, Trash2, Layout, Plus } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { ImageIcon, Trash2, Layout, Plus, ShieldCheck, Globe } from "lucide-react";
 import QuestionCard from "./QuestionCard";
 import { useRef, useCallback, useMemo } from "react";
 import RichTextEditor from "../RichTextEditor";
@@ -25,6 +27,7 @@ const FormHeader = ({
   const imageUrl = watch("image_url");
   const description = watch("description");
   const title = watch("title");
+  const isInternal = watch("is_internal");
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -182,6 +185,42 @@ const FormHeader = ({
             )}
           />
         </div>
+
+        {/* Visibility & Type Switch */}
+        {isActive && (
+          <div className="flex flex-col sm:flex-row gap-4 p-6 bg-gray-50 rounded-[2rem] border border-gray-100 animate-in fade-in zoom-in-95 duration-300">
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center gap-2">
+                {isInternal ? (
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                ) : (
+                  <Globe className="w-4 h-4 text-blue-600" />
+                )}
+                <Label className="text-xs font-black uppercase tracking-widest text-gray-900">
+                  {isInternal ? "Formulario Interno (Staff)" : "Formulario Público"}
+                </Label>
+              </div>
+              <p className="text-[10px] text-gray-500 leading-relaxed">
+                {isInternal 
+                  ? "Este formulario solo será visible en la sección de Staff y sus respuestas están protegidas por permisos especiales." 
+                  : "Este formulario será accesible mediante un enlace público y cualquier administrador de formularios podrá ver las respuestas."}
+              </p>
+            </div>
+            <div className="flex items-center">
+              <Controller
+                control={control}
+                name="is_internal"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="data-[state=checked]:bg-emerald-600"
+                  />
+                )}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="space-y-5">
           <div className="flex items-center gap-3">

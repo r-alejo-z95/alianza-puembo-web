@@ -13,6 +13,7 @@ import {
   Trash,
   AlertCircle,
   X,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
@@ -70,6 +71,8 @@ export default function RecycleBin({
         return <BookOpen className="w-5 h-5" />;
       case "lom-passages":
         return <Calendar className="w-5 h-5" />;
+      case "submissions":
+        return <ClipboardList className="w-5 h-5" />;
       default:
         return <Trash2 className="w-5 h-5" />;
     }
@@ -89,6 +92,8 @@ export default function RecycleBin({
         return "Devocionales";
       case "lom-passages":
         return "Semanas LOM";
+      case "submissions":
+        return "Respuestas";
       default:
         return "Elementos";
     }
@@ -262,13 +267,15 @@ export default function RecycleBin({
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="font-bold text-gray-900 truncate text-base mb-0.5">
-                            {item.title ||
-                              item.passage_reference ||
-                              (item.week_number
-                                ? `Semana ${item.week_number}`
-                                : null) ||
-                              item.request_text?.substring(0, 50) ||
-                              "Sin título"}
+                            {type === "submissions" 
+                              ? (item.profiles?.full_name || item.profiles?.email || "Registro operativo")
+                              : (item.title ||
+                                item.passage_reference ||
+                                (item.week_number
+                                  ? `Semana ${item.week_number}`
+                                  : null) ||
+                                item.request_text?.substring(0, 50) ||
+                                "Registro operativo")}
                           </p>
                           <p className="text-[10px] text-gray-400 uppercase tracking-[0.1em] font-bold">
                             Eliminado el{" "}

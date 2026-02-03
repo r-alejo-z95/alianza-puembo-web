@@ -8,7 +8,8 @@ import {
   Users, 
   FileText,
   ArrowRight,
-  ShieldAlert
+  ShieldAlert,
+  ClipboardList
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 
@@ -27,6 +28,7 @@ const quickActions = [
   { href: "/admin/lom", label: "LOM", icon: BookOpen, description: "Gestiona los devocionales diarios de Lee, Ora, Medita.", color: "bg-amber-500", permission: "perm_lom" },
   { href: "/admin/comunidad", label: "Comunidad", icon: Users, description: "Atiende los mensajes de contacto y modera las peticiones de oración.", color: "bg-purple-500", permission: "perm_comunidad" },
   { href: "/admin/formularios", label: "Formularios", icon: FileText, description: "Crea y gestiona formularios de registro dinámicos.", color: "bg-rose-500", permission: "perm_forms" },
+  { href: "/admin/staff", label: "Staff & Procesos", icon: ClipboardList, description: "Gestión de requerimientos y procesos operativos internos.", color: "bg-indigo-500", permission: "perm_internal_forms" },
 ];
 
 export default async function AdminHomePage({ searchParams }) {

@@ -36,7 +36,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect }) {
+export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect, isInternalView }) {
   const [isEnabled, setEnabled] = useState(form.enabled ?? true);
   const [isUpdating, setIsUpdating] = useState(false);
   const supabase = createClient();
@@ -110,23 +110,33 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect 
     </span>
   );
 
+  const responsesPath = form.is_internal 
+    ? `/admin/staff/respuestas/${form.slug}` 
+    : `/admin/formularios/analiticas/${form.slug}`;
+  
+  const responsesLabel = form.is_internal ? "Ver Respuestas" : "Ver Analíticas";
+  
+  const viewPath = form.is_internal
+    ? `/admin/staff/proceso/${form.slug}`
+    : `/formularios/${form.slug}`;
+
   const actions = (
     <div className="flex items-center justify-end lg:justify-center gap-2 w-full lg:w-auto">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Link href={`/admin/formularios/analiticas/${form.slug}`} className="flex-1 lg:flex-none">
+            <Link href={responsesPath} className="flex-1 lg:flex-none">
               <Button
                 variant="ghost"
                 size="icon"
                 className="rounded-xl w-full text-blue-600 lg:text-black hover:bg-blue-50 lg:hover:text-blue-600 transition-all duration-300 gap-2 px-4 lg:px-2"
               >
                 <BarChart3 className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Ver Analíticas</span>
+                <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">{responsesLabel}</span>
               </Button>
             </Link>
           </TooltipTrigger>
-          <TooltipContent>Ver Analíticas</TooltipContent>
+          <TooltipContent>{responsesLabel}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
@@ -190,11 +200,11 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect 
             />
             <div className="space-y-1 min-w-0">
                 <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest">
-                Formulario
+                Formulario {form.is_internal && "(Staff)"}
                 </span>
                 <OverflowCell
-                href={`/formularios/${form.slug}`}
-                linkText="Ver formulario"
+                href={viewPath}
+                linkText={form.is_internal ? "Abrir formulario" : "Ver formulario"}
                 className="text-lg font-serif font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors whitespace-normal break-words leading-tight"
                 >
                 {form.title}
@@ -220,9 +230,11 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect 
         </div>
 
         <div className="flex flex-col gap-2 pt-2 border-t border-gray-50 pl-9">
-          <div className="flex flex-wrap gap-2">
-            {sheetLinkActions} {folderLinkActions}
-          </div>
+          {!isInternalView && (
+            <div className="flex flex-wrap gap-2">
+              {sheetLinkActions} {folderLinkActions}
+            </div>
+          )}
           <div className="flex justify-end w-full">{actions}</div>
         </div>
       </div>
@@ -244,8 +256,8 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect 
       <TableCell className="px-4 py-6 w-1/3">
         <div className="max-w-[250px]">
           <OverflowCell
-            href={`/formularios/${form.slug}`}
-            linkText="Ver formulario"
+            href={viewPath}
+            linkText={form.is_internal ? "Abrir formulario" : "Ver formulario"}
             className="font-bold text-gray-900 group-hover:text-[var(--puembo-green)] transition-colors"
           >
             {form.title}
@@ -260,12 +272,16 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect 
             </span>
         </div>
       </TableCell>
-      <TableCell className="px-8 py-6 text-center">
-        {sheetLinkActions}
-      </TableCell>
-      <TableCell className="px-8 py-6 text-center">
-        {folderLinkActions}
-      </TableCell>
+      {!isInternalView && (
+        <>
+          <TableCell className="px-8 py-6 text-center">
+            {sheetLinkActions}
+          </TableCell>
+          <TableCell className="px-8 py-6 text-center">
+            {folderLinkActions}
+          </TableCell>
+        </>
+      )}
       <TableCell className="px-8 py-6">
         <div className="flex justify-center">
           <AuthorAvatar

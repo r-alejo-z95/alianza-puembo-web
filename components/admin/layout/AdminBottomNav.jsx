@@ -8,6 +8,7 @@ import {
   BookOpen,
   Users,
   FileText,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 
@@ -41,6 +42,12 @@ const navLinks = [
     label: "Forms",
     icon: FileText,
     permission: "perm_forms",
+  },
+  {
+    href: "/admin/staff",
+    label: "Staff",
+    icon: ClipboardList,
+    permission: "perm_internal_forms",
   },
 ];
 

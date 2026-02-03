@@ -16,6 +16,7 @@ import {
   ChevronRight,
   User,
   Users,
+  ClipboardList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,7 +58,7 @@ const navLinks = [
     label: "Comunidad",
     icon: Users,
     description: "Mensajes y peticiones",
-    permission: "perm_comunidad", 
+    permission: "perm_comunidad",
   },
   {
     href: "/admin/formularios",
@@ -66,14 +67,24 @@ const navLinks = [
     description: "Constructor dinámico",
     permission: "perm_forms",
   },
+  {
+    href: "/admin/staff",
+    label: "Staff",
+    icon: ClipboardList,
+    description: "Procesos Operativos",
+    permission: "perm_internal_forms",
+  },
 ];
 
 export default function AdminSidebar({ user, children }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Si es la página de vista previa, renderizar el contenido puro
-  if (pathname.includes("/formularios/preview")) {
+  // Si es la página de vista previa o de proceso staff, renderizar el contenido puro
+  if (
+    pathname.includes("/formularios/preview") ||
+    pathname.includes("/admin/staff/proceso/")
+  ) {
     return <main className="w-full min-h-screen">{children}</main>;
   }
 
@@ -136,7 +147,7 @@ export default function AdminSidebar({ user, children }) {
   };
 
   return (
-    <div className="flex h-screen w-full bg-gray-50/50 overflow-hidden font-sans text-gray-900 relative">
+    <div className="flex w-full bg-gray-50/50 font-sans text-gray-900 relative">
       {/* Móvil: Header Superior (Solo visible en < MD) */}
       <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-black/95 backdrop-blur-md border-b border-white/10 z-[101] flex items-center justify-between px-6 shadow-2xl">
         <Link href="/admin">
@@ -204,8 +215,8 @@ export default function AdminSidebar({ user, children }) {
       </header>
 
       {/* Sidebar Desktop (Visible desde MD) */}
-      <aside className="hidden md:flex w-72 lg:w-80 bg-black text-white p-6 flex-col border-r border-white/5 relative z-50 shrink-0 h-screen sticky top-0">
-        <div className="mb-12 px-2">
+      <aside className="hidden md:flex w-72 lg:w-80 bg-black text-white p-6 flex-col border-r border-white/5 relative z-50 shrink-0 sticky top-0">
+        <div className="px-2">
           <Link
             href="/admin"
             className="block group transition-all duration-500 hover:opacity-80"

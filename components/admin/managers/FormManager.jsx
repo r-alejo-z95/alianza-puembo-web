@@ -44,7 +44,7 @@ import { cn } from "@/lib/utils";
 
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function FormManager() {
+export default function FormManager({ isInternal = false }) {
   const {
     forms,
     archivedForms,
@@ -59,7 +59,7 @@ export default function FormManager() {
     emptyRecycleBin,
     fetchArchivedForms,
     refetchForms,
-  } = useForms();
+  } = useForms({ isInternal });
 
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -191,6 +191,8 @@ export default function FormManager() {
     );
   };
 
+  const createFormUrl = `/admin/formularios/builder${isInternal ? "?internal=true" : ""}`;
+
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
@@ -200,7 +202,7 @@ export default function FormManager() {
               <FolderOpen className="w-3 h-3" /> <span>Base de Datos</span>
             </div>
             <CardTitle className="text-3xl font-serif font-bold text-gray-900">
-              Gestión de Formularios
+              {isInternal ? "Procesos Operativos" : "Gestión de Formularios"}
             </CardTitle>
           </div>
           <div className="flex gap-3">
@@ -217,7 +219,7 @@ export default function FormManager() {
             <Button
               variant="green"
               className="hidden lg:flex rounded-full px-8 py-6 font-bold shadow-lg shadow-[var(--puembo-green)]/20 transition-all hover:-translate-y-0.5"
-              onClick={() => router.push("/admin/formularios/builder")}
+              onClick={() => router.push(createFormUrl)}
             >
               <Plus className="w-5 h-5 mr-2" /> Crear Formulario
             </Button>
@@ -413,12 +415,16 @@ export default function FormManager() {
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
                         Estado
                       </TableHead>
-                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
-                        Sheets
-                      </TableHead>
-                      <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
-                        Drive
-                      </TableHead>
+                      {!isInternal && (
+                        <>
+                          <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
+                            Sheets
+                          </TableHead>
+                          <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
+                            Drive
+                          </TableHead>
+                        </>
+                      )}
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
                         Autor
                       </TableHead>
@@ -434,7 +440,7 @@ export default function FormManager() {
                           {groupByMonth && (
                             <TableRow className="bg-white hover:bg-white border-none">
                               <TableCell
-                                colSpan={7}
+                                colSpan={isInternal ? 5 : 7}
                                 className="px-8 pt-12 pb-4"
                               >
                                 <div className="flex items-center gap-4">
@@ -456,6 +462,7 @@ export default function FormManager() {
                               onEdit={handleEdit}
                               onDelete={handleDelete}
                               compact={false}
+                              isInternalView={isInternal}
                             />
                           ))}
                         </React.Fragment>
@@ -485,6 +492,7 @@ export default function FormManager() {
                           onEdit={handleEdit}
                           onDelete={handleDelete}
                           compact={true}
+                          isInternalView={isInternal}
                         />
                       ))}
                     </div>
@@ -518,7 +526,7 @@ export default function FormManager() {
         loading={loadingArchived}
       />
       <AdminFAB
-        onClick={() => router.push("/admin/formularios/builder")}
+        onClick={() => router.push(createFormUrl)}
         label="Crear Formulario"
       />
     </div>

@@ -637,40 +637,38 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
     if (form?.enabled === false) {
       toast.error("Formulario cerrado.");
-
       return;
     }
 
-    if (!captchaToken) {
-      toast.error("Verificación de seguridad requerida.");
+    // El CAPTCHA solo es requerido si NO es interno y NO es preview
+    const needsCaptcha = !form.is_internal && !isPreview;
 
+    if (needsCaptcha && !captchaToken) {
+      toast.error("Verificación de seguridad requerida.");
       return;
     }
 
     setSending(true);
 
     try {
-      const { isValid } = await verifyCaptcha(captchaToken);
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
 
-      if (!isValid) {
-        toast.error("Captcha inválido.");
-
-        setCaptchaKey((p) => p + 1);
-
-        setSending(false);
-
-        return;
+      if (needsCaptcha) {
+        const { isValid } = await verifyCaptcha(captchaToken);
+        if (!isValid) {
+          toast.error("Captcha inválido.");
+          setCaptchaKey((p) => p + 1);
+          setSending(false);
+          return;
+        }
       }
 
-      const supabase = createClient();
-
       const processedData = {};
-
       const rawDataForDb = {};
 
       for (const key in data) {
         const value = data[key];
-
         const fieldDef = form.form_fields.find((f) => f.label === key);
 
         if (!fieldDef || (fieldDef.type || fieldDef.field_type) === "section")
@@ -678,26 +676,19 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
         if (value instanceof FileList && value.length > 0) {
           const file = value[0];
-
           const reader = new FileReader();
-
           const fileData = await new Promise((resolve) => {
             reader.onload = () =>
               resolve({
                 type: "file",
-
                 name: file.name,
-
                 data: reader.result.split(",")[1],
-
                 mimeType: file.type,
               });
-
             reader.readAsDataURL(file);
           });
 
           processedData[key] = fileData;
-
           rawDataForDb[key] = {
             _type: "file",
             name: file.name,
@@ -710,13 +701,10 @@ export default function FluentRenderer({ form, isPreview = false }) {
               : fieldDef.options || [];
 
           const selected = Object.keys(value)
-
             .filter((k) => value[k])
-
             .map((k) => fieldOptions.find((o) => o.value === k)?.label || k);
 
           processedData[key] = selected.join("\n");
-
           rawDataForDb[key] = selected;
         } else if (fieldDef.options) {
           const fieldOptions =
@@ -725,15 +713,11 @@ export default function FluentRenderer({ form, isPreview = false }) {
               : fieldDef.options || [];
 
           const opt = fieldOptions.find((o) => o.value === value);
-
           const label = opt ? opt.label : value;
-
           processedData[key] = label;
-
           rawDataForDb[key] = label;
         } else {
           processedData[key] = value;
-
           rawDataForDb[key] = value;
         }
       }
@@ -742,36 +726,44 @@ export default function FluentRenderer({ form, isPreview = false }) {
         getNowInEcuador(),
         "d/M/yyyy HH:mm:ss",
       );
-
       rawDataForDb.Timestamp = processedData.Timestamp;
 
-      await supabase.functions.invoke("sheets-drive-integration", {
-        body: { formId: form.id, formData: processedData },
-      });
+      // Solo llamar a la integración de Google si NO es interno
+      if (!form.is_internal) {
+        await supabase.functions.invoke("sheets-drive-integration", {
+          body: { formId: form.id, formData: processedData },
+        });
+      }
 
-      const { error } = await supabase.from("form_submissions").insert([
-        {
-          form_id: form.id,
-          data: rawDataForDb,
-          user_agent: navigator.userAgent,
-        },
-      ]);
+      const submissionData = {
+        form_id: form.id,
+        data: rawDataForDb,
+        user_agent: navigator.userAgent,
+      };
 
-      if (error) throw error;
+      // Solo incluir user_id si el formulario es interno
+      if (form.is_internal && user?.id) {
+        submissionData.user_id = user.id;
+      }
+
+      const { error } = await supabase
+        .from("form_submissions")
+        .insert([submissionData]);
+
+      if (error) {
+        console.error("Supabase Submission Error:", error);
+        throw error;
+      }
 
       // 3. Notificar al autor del formulario (Dashboard + Email)
       await notifyFormSubmission(form.title, form.slug, form.user_id);
 
       setSubmissionStatus("success");
-
       reset();
-
       setCaptchaToken(null);
-
       setCaptchaKey((p) => p + 1);
     } catch (e) {
-      console.error(e);
-
+      console.error("Form Submission detailed error:", e);
       setSubmissionStatus("error");
     }
 
@@ -818,6 +810,8 @@ export default function FluentRenderer({ form, isPreview = false }) {
     watchedValues,
     currentFields,
   ]);
+
+  const needsCaptcha = useMemo(() => !form.is_internal && !isPreview, [form.is_internal, isPreview]);
 
   return (
     <div className="w-full max-w-3xl mx-auto px-5 md:px-0 pb-32">
@@ -1002,7 +996,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
           {isLastStep && (
             <div className="pt-16 space-y-10">
-              {!isPreview && (
+              {needsCaptcha && (
                 <div className="flex justify-center scale-110 md:scale-125 py-4">
                   <TurnstileCaptcha
                     key={captchaKey}
@@ -1022,14 +1016,27 @@ export default function FluentRenderer({ form, isPreview = false }) {
                 </div>
               )}
 
-              <div className="bg-white/50 backdrop-blur-sm p-6 rounded-[1.5rem] border border-gray-100 shadow-sm">
-                <p className="text-[10px] text-gray-500 leading-relaxed text-center font-medium">
-                  Al enviar este formulario, usted autoriza a la Iglesia Alianza
-                  Puembo el tratamiento de sus datos personales para fines de
-                  contacto y gestión eclesial, conforme a la Ley Orgánica de
-                  Protección de Datos Personales de Ecuador.
-                </p>
-              </div>
+              {form.is_internal && (
+                <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-[1.5rem] text-center">
+                  <p className="text-emerald-600 font-bold text-xs uppercase tracking-widest">
+                    Proceso Staff Autorizado
+                  </p>
+                  <p className="text-[10px] text-emerald-400 mt-1">
+                    Este envío será registrado bajo tu perfil administrativo.
+                  </p>
+                </div>
+              )}
+
+              {!form.is_internal && (
+                <div className="bg-white/50 backdrop-blur-sm p-6 rounded-[1.5rem] border border-gray-100 shadow-sm">
+                  <p className="text-[10px] text-gray-500 leading-relaxed text-center font-medium">
+                    Al enviar este formulario, usted autoriza a la Iglesia Alianza
+                    Puembo el tratamiento de sus datos personales para fines de
+                    contacto y gestión eclesial, conforme a la Ley Orgánica de
+                    Protección de Datos Personales de Ecuador.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </motion.div>
@@ -1054,7 +1061,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
             onClick={handleNext}
             type="button"
             disabled={
-              sending || (isLastStep && !captchaToken) || !isBranchingSelected
+              sending || (isLastStep && needsCaptcha && !captchaToken) || !isBranchingSelected
             }
             className={cn(
               "rounded-full h-12 md:h-14 px-6 md:px-10 text-[10px] md:text-[11px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] min-w-[120px] md:min-w-[180px]",
@@ -1063,7 +1070,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
                 ? "bg-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/90 text-white shadow-[var(--puembo-green)]/20"
                 : "bg-black text-white hover:bg-gray-800 shadow-black/10",
 
-              (!isBranchingSelected || (isLastStep && !captchaToken)) &&
+              (!isBranchingSelected || (isLastStep && needsCaptcha && !captchaToken)) &&
                 "opacity-50 grayscale cursor-not-allowed scale-100",
             )}
           >

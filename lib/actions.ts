@@ -391,12 +391,31 @@ export async function notifyFormSubmission(
   if (!authorId) return { success: false };
 
   try {
+    const supabase = await createClient();
+    
+    // Consultar si el formulario es interno para personalizar el mensaje
+    const { data: form } = await supabase
+      .from("forms")
+      .select("is_internal")
+      .eq("slug", formSlug)
+      .single();
+
+    const isInternal = form?.is_internal || false;
+
     await sendSystemNotification({
       type: "form",
       target: { userId: authorId },
-      title: `Alguien ha respondido al formulario: ${formTitle} - Alianza Puembo Web`,
-      message: `El formulario <strong>"${formTitle}"</strong> ha recibido una nueva respuesta.`,
-      meta: { link: `/admin/formularios/analiticas/${formSlug}` },
+      title: isInternal 
+        ? `Nuevo registro operativo: ${formTitle}`
+        : `Nueva respuesta recibida: ${formTitle}`,
+      message: isInternal
+        ? `Un miembro del equipo ha hecho una solicitud en <strong>"${formTitle}"</strong>.`
+        : `El formulario <strong>"${formTitle}"</strong> ha recibido una nueva respuesta de un usuario.`,
+      meta: { 
+        link: isInternal 
+          ? `/admin/staff/respuestas/${formSlug}`
+          : `/admin/formularios/analiticas/${formSlug}` 
+      },
     });
     return { success: true };
   } catch (e) {

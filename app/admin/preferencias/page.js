@@ -149,7 +149,8 @@ export default function PreferenciasPage() {
       profile.perm_news,
       profile.perm_lom,
       profile.perm_comunidad,
-      profile.perm_forms
+      profile.perm_forms,
+      profile.perm_internal_forms
     ];
     const hasAll = perms.every(p => p === true);
     return hasAll 
@@ -420,6 +421,7 @@ export default function PreferenciasPage() {
                                         { key: 'perm_lom', label: 'LOM' },
                                         { key: 'perm_comunidad', label: 'Comunidad' },
                                         { key: 'perm_forms', label: 'Forms' },
+                                        { key: 'perm_internal_forms', label: 'Internos' },
                                       ].map((perm) => (
                                         <div key={perm.key} className="flex flex-col items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100 transition-all hover:shadow-md group">
                                           <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 group-hover:text-gray-900 transition-colors">{perm.label}</span>
@@ -437,7 +439,7 @@ export default function PreferenciasPage() {
                                       <Zap className="w-4 h-4 text-[var(--puembo-green)]" />
                                       <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-500">Suscripciones a Notificaciones</h4>
                                     </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                       {/* Oración */}
                                       <div className="p-6 bg-blue-50/30 rounded-[2rem] border border-blue-100/50 space-y-4">
                                         <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 block text-center border-b border-blue-100 pb-2">Muro de Oración</span>
@@ -461,6 +463,19 @@ export default function PreferenciasPage() {
                                         <div className="flex items-center justify-between">
                                           <span className="text-xs font-bold text-gray-600">Dashboard</span>
                                           <Switch checked={profile.notify_dash_contact} onCheckedChange={(val) => updateProfileField(profile.id, 'notify_dash_contact', val)} />
+                                        </div>
+                                      </div>
+
+                                      {/* Internos */}
+                                      <div className="p-6 bg-emerald-50/30 rounded-[2rem] border border-emerald-100/50 space-y-4">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 block text-center border-b border-emerald-100 pb-2">Forms Internos</span>
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-xs font-bold text-gray-600">Email</span>
+                                          <Switch checked={profile.notify_email_internal} onCheckedChange={(val) => updateProfileField(profile.id, 'notify_email_internal', val)} />
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                          <span className="text-xs font-bold text-gray-600">Dashboard</span>
+                                          <Switch checked={profile.notify_dash_internal} onCheckedChange={(val) => updateProfileField(profile.id, 'notify_dash_internal', val)} />
                                         </div>
                                       </div>
                                     </div>

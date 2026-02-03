@@ -7,6 +7,7 @@ export type Permissions = {
   perm_lom: boolean;
   perm_comunidad: boolean;
   perm_forms: boolean;
+  perm_internal_forms: boolean;
 }
 
 export type AdminUser = User & {
@@ -41,6 +42,7 @@ export async function getSessionUser(): Promise<AdminUser | null> {
       perm_lom: !!profile.perm_lom,
       perm_comunidad: !!profile.perm_comunidad,
       perm_forms: !!profile.perm_forms,
+      perm_internal_forms: !!profile.perm_internal_forms,
     },
   };
 }

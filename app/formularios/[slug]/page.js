@@ -115,6 +115,9 @@ export default function PublicFormPage() {
       if (error || !data) {
         console.error("Form fetch error:", error);
         setErrorType("not_found");
+      } else if (data.is_internal) {
+        // Bloquear acceso público a formularios internos
+        setErrorType("not_found");
       } else if (!data.enabled) {
         setErrorType("inactive");
         setForm(data); // Guardamos la data por si queremos mostrar el título
