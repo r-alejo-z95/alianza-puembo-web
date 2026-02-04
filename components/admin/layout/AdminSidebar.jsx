@@ -215,8 +215,8 @@ export default function AdminSidebar({ user, children }) {
       </header>
 
       {/* Sidebar Desktop (Visible desde MD) */}
-      <aside className="hidden md:flex w-72 lg:w-80 bg-black text-white p-6 flex-col border-r border-white/5 relative z-50 shrink-0 sticky top-0">
-        <div className="px-2">
+      <aside className="hidden md:flex w-72 lg:w-80 bg-black text-white p-5 lg:p-6 flex-col border-r border-white/5 relative z-50 shrink-0 sticky top-0 h-screen overflow-y-auto scrollbar-none">
+        <div className="px-2 mb-8">
           <Link
             href="/admin"
             className="block group transition-all duration-500 hover:opacity-80"
@@ -226,20 +226,20 @@ export default function AdminSidebar({ user, children }) {
               alt="Alianza Puembo Admin"
               width={160}
               height={100}
-              className="h-auto w-28 lg:w-32 mx-auto"
+              className="h-auto w-24 lg:w-28 mx-auto"
               priority
             />
             <div className="mt-4 flex items-center gap-3">
-              <div className="h-px w-8 bg-[var(--puembo-green)]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+              <div className="h-px w-6 bg-[var(--puembo-green)]" />
+              <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
                 Panel de Control
               </span>
             </div>
           </Link>
         </div>
 
-        <nav className="flex flex-col space-y-3 grow">
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 px-4 mb-2">
+        <nav className="flex flex-col space-y-1 grow">
+          <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-600 px-4 mb-2">
             Administración
           </p>
           {filteredLinks.map((link) => (
@@ -247,7 +247,7 @@ export default function AdminSidebar({ user, children }) {
           ))}
         </nav>
 
-        <div className="mt-auto pt-8 border-t border-white/5 space-y-4">
+        <div className="mt-auto pt-4 border-t border-white/5 space-y-3">
           <div className="flex items-center justify-between gap-2 pl-2 pr-4">
             <Link
               href="/"
@@ -256,45 +256,45 @@ export default function AdminSidebar({ user, children }) {
               <div className="p-1.5 rounded-lg bg-white/5 group-hover:bg-white/10">
                 <Home className="h-4 w-4" />
               </div>
-              <span className="text-xs font-bold tracking-wide">
+              <span className="text-[11px] font-bold tracking-wide">
                 Sitio Público
               </span>
             </Link>
             <NotificationBell userId={user?.id} />
           </div>
 
-          <div className="p-4 bg-white/5 rounded-[2rem] border border-white/5">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-12 w-12 border-2 border-[var(--puembo-green)]/30">
-                <AvatarFallback className="bg-[var(--puembo-green)] text-white text-lg font-black">
+          <div className="p-3 bg-white/5 rounded-[1.5rem] border border-white/5">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-10 w-10 border-2 border-[var(--puembo-green)]/30">
+                <AvatarFallback className="bg-[var(--puembo-green)] text-white text-base font-black">
                   {getInitials(user?.user_metadata?.full_name || user?.email)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col truncate">
-                <span className="text-sm font-bold truncate">
+                <span className="text-xs font-bold truncate">
                   {user?.user_metadata?.full_name || "Administrador"}
                 </span>
-                <span className="text-[10px] text-gray-500 tracking-wider truncate italic">
+                <span className="text-[9px] text-gray-500 tracking-wider truncate italic">
                   {user?.email}
                 </span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 mt-4">
+            <div className="grid grid-cols-2 gap-2 mt-3">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push("/admin/preferencias")}
-                className="rounded-xl hover:bg-white/10 text-gray-400 hover:text-white text-xs gap-2"
+                className="rounded-xl hover:bg-white/10 text-gray-400 hover:text-white text-[10px] h-8 gap-2"
               >
-                <Settings className="h-3.5 w-3.5" /> Ajustes
+                <Settings className="h-3 w-3" /> Ajustes
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleSignOut}
-                className="rounded-xl hover:bg-red-500/10 text-gray-400 hover:text-red-400 text-xs gap-2"
+                className="rounded-xl hover:bg-red-500/10 text-gray-400 hover:text-red-400 text-[10px] h-8 gap-2"
               >
-                <LogOut className="h-3.5 w-3.5" /> Salir
+                <LogOut className="h-3 w-3" /> Salir
               </Button>
             </div>
           </div>
