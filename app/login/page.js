@@ -55,12 +55,8 @@ export default function LoginPage() {
       }
     } else {
       toast.success("Sesión iniciada con éxito.");
-      // Forzar un refresh del router para asegurar que el middleware reconozca la cookie en prod
-      router.refresh();
-      // Pequeño delay para permitir que el estado se sincronice antes del push
-      setTimeout(() => {
-        router.push("/admin");
-      }, 100);
+      // Usamos window.location para forzar una recarga completa y que el middleware detecte la cookie
+      window.location.href = "/admin";
     }
     setLoading(false);
   };
