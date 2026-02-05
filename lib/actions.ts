@@ -603,13 +603,21 @@ export async function initializeGoogleIntegration(
   formFields?: any[],
 ) {
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  
+  // 1. Verificación de Seguridad: Solo usuarios autenticados
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    return { error: "User not authenticated." };
+    return { error: "No autorizado", details: "Debes estar autenticado para realizar esta acción." };
+  }
+
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!serviceRoleKey) {
+    console.error("CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing in the current environment.");
+    return { 
+      error: "Error de configuración: Llave de servicio no encontrada en el servidor.",
+      details: "Verifica las variables de entorno en Vercel."
+    };
   }
 
   try {
@@ -621,17 +629,11 @@ export async function initializeGoogleIntegration(
       .single();
 
     if (fetchError) {
-      console.error(
-        "Error checking existing form for Google integration:",
-        fetchError,
-      );
+      console.error("Error checking existing form:", fetchError);
       return { error: "Error al verificar el estado del formulario." };
     }
 
     if (existingForm?.google_sheet_id) {
-      console.log(
-        "Form already has a Google Sheet ID. Skipping initialization.",
-      );
       return { success: true, alreadyInitialized: true };
     }
 
@@ -641,35 +643,29 @@ export async function initializeGoogleIntegration(
 
     const response = await fetch(edgeFunctionUrl, {
       method: "POST",
-
       headers: {
         "Content-Type": "application/json",
-
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        Authorization: `Bearer ${serviceRoleKey}`,
       },
-
       body: JSON.stringify({ formId, formTitle, formSlug, formFields }),
     });
 
     const result = await response.json();
 
     if (!response.ok) {
-      console.error("Error calling edge function:", result);
-
-      // If it's a timeout or a known error but the creation might have happened
+      console.error("Edge Function Error:", result);
       return {
-        error:
-          result.error || "La conexión con Google tardó más de lo esperado.",
-        details: result.details,
+        error: result.error || "La conexión con Google falló.",
+        details: result.details || response.statusText,
+        status: response.status
       };
     }
 
     revalidatePath("/admin/formularios");
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Unexpected error in initializeGoogleIntegration:", error);
-
-    return { error: "Ocurrió un error inesperado al conectar con Google." };
+    return { error: "Error inesperado al conectar con Google.", details: error.message };
   }
 }
 

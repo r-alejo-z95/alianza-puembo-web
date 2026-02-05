@@ -195,7 +195,15 @@ function BuilderContent() {
       // 5. Google Integration (New forms only, and only if NOT internal)
       if (!form?.id && !is_internal) {
         toast.info("Conectando con Google Sheets...");
-        await initializeGoogleIntegration(currentFormId, title, slug, fields);
+        const googleRes = await initializeGoogleIntegration(currentFormId, title, slug, fields);
+        
+        if (googleRes?.error) {
+          toast.error("Google Integration: " + googleRes.error, {
+            description: googleRes.details,
+            duration: 10000, // Show longer for debugging
+          });
+          // Note: We don't throw here to allow the form to be saved even if Google fails
+        }
       }
 
       toast.success("Formulario guardado correctamente.");
