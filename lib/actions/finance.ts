@@ -171,6 +171,73 @@ export async function updateFinancialStatus(submissionId: string, status: string
 }
 
 /**
+ * Gets a summary of all events with financial forms for the dashboard.
+ * Visible to all admins.
+ */
+export async function getFinancialSummary() {
+  const supabase = await createClient();
+
+  try {
+    // 1. Get events that have a linked financial form
+    const { data: events, error: eventsErr } = await supabase
+      .from("events")
+      .select(`
+        id, 
+        title, 
+        start_time,
+        forms!inner (
+          id,
+          title,
+          is_financial
+        )
+      `)
+      .eq("forms.is_financial", true)
+      .eq("is_archived", false)
+      .order("start_time", { ascending: true });
+
+    if (eventsErr) throw eventsErr;
+
+    const summary = [];
+
+    for (const event of events) {
+      // 2. For each event/form, get submissions and linked bank data
+      const { data: submissions, error: subErr } = await supabase
+        .from("form_submissions")
+        .select(`
+          id,
+          financial_status,
+          bank_transactions (
+            amount
+          )
+        `)
+        .eq("form_id", event.forms.id)
+        .eq("is_archived", false);
+
+      if (subErr) continue;
+
+      const totalInscribed = submissions.length;
+      const verifiedAmount = submissions
+        .filter(s => s.financial_status === 'verified' && s.bank_transactions)
+        .reduce((acc, curr) => acc + (curr.bank_transactions?.amount || 0), 0);
+
+      summary.push({
+        eventId: event.id,
+        eventTitle: event.title,
+        startTime: event.start_time,
+        formId: event.forms.id,
+        totalInscribed,
+        verifiedAmount
+      });
+    }
+
+    return { summary };
+  } catch (e: any) {
+    console.error("Error fetching financial summary:", e);
+    return { error: e.message };
+  }
+}
+
+/**
  * Gets temporary URL for visual audit.
  */
 export async function getReceiptSignedUrl(fullPath: string) {
