@@ -776,9 +776,19 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
       // Solo llamar a la integración de Google si NO es interno
       if (!form.is_internal) {
-        await supabase.functions.invoke("sheets-drive-integration", {
+        const { data: googleRes, error: invokeError } = await supabase.functions.invoke("sheets-drive-integration", {
           body: { formId: form.id, formData: processedData },
         });
+
+        if (!invokeError && googleRes?.fileUrls) {
+          // Actualizar rawDataForDb con los links reales de Drive antes de guardar en Supabase
+          Object.keys(googleRes.fileUrls).forEach(key => {
+            if (rawDataForDb[key] && typeof rawDataForDb[key] === 'object') {
+              rawDataForDb[key].url = googleRes.fileUrls[key];
+              rawDataForDb[key].webViewLink = googleRes.fileUrls[key];
+            }
+          });
+        }
       }
 
       const submissionData = {

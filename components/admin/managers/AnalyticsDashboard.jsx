@@ -592,7 +592,7 @@ export default function AnalyticsDashboard({
                                 ) : typeof val === "object" &&
                                   val._type === "file" ? (
                                   <a
-                                    href={val.url}
+                                    href={val.url || val.webViewLink || "#"}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center gap-2 text-[var(--puembo-green)] font-bold truncate hover:underline"
@@ -749,7 +749,7 @@ export default function AnalyticsDashboard({
                             </span>
                           ) : isFile ? (
                             <a
-                              href={val.url}
+                              href={val.url || val.webViewLink || "#"}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-5 p-6 bg-emerald-50/50 rounded-[2rem] w-fit border border-emerald-100 shadow-inner group/file transition-all max-w-full overflow-hidden hover:bg-emerald-100/50"
@@ -762,7 +762,7 @@ export default function AnalyticsDashboard({
                                   {val.name}
                                 </span>
                                 <span className="text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)] opacity-60 mt-1">
-                                  {val.info}
+                                  {val.info || "Archivo adjunto"}
                                 </span>
                               </div>
                             </a>
