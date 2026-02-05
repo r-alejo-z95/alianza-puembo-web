@@ -178,7 +178,7 @@ export default function PrayerRequestManager() {
   return (
     <div className="space-y-6">
       <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
-        <CardHeader className="p-6 md:p-12 border-b border-gray-50 bg-gray-50/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <CardHeader className="p-6 md:p-10 border-b border-gray-50 bg-gray-50/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
               <ListFilter className="w-3 h-3" /> <span>Moderación de Muro</span>

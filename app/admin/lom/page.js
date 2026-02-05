@@ -28,7 +28,7 @@ export default async function LomPage() {
           Gestión de <span className="text-[var(--puembo-green)] italic">Lee, Ora, Medita</span>
         </h1>
         <p className={adminPageDescription}>
-          Cura y publica los devocionales diarios y los pasajes de lectura semanal que alimentan la vida espiritual de nuestra comunidad.
+          Publica devocionales diarios y pasajes de lectura semanal.
         </p>
       </header>
 

@@ -226,13 +226,13 @@ export default function AnalyticsDashboard({
             Inventario de Formularios
           </Link>
           <div className="space-y-1">
-            <h1 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 tracking-tight leading-none">
+            <h1 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 tracking-tight leading-none">
               Analíticas{" "}
               <span className="text-[var(--puembo-green)] italic">
                 de Datos
               </span>
             </h1>
-            <div className="flex flex-wrap items-center gap-3 text-gray-400 font-light text-lg">
+            <div className="flex flex-wrap items-center gap-3 text-gray-400 font-light text-base">
               <span>Resultados del formulario:</span>
               <Link
                 href={`/formularios/${form.slug}`}
@@ -370,7 +370,7 @@ export default function AnalyticsDashboard({
 
           {/* Gráfico de Actividad General */}
           <Card className="border-none shadow-2xl bg-white rounded-[3rem] overflow-hidden">
-            <CardHeader className="p-8 md:p-12 pb-0 border-b border-gray-50 bg-gray-50/20">
+            <CardHeader className="p-8 md:p-10 pb-0 border-b border-gray-50 bg-gray-50/20">
               <div className="flex items-center gap-3 mb-2">
                 <div className="h-px w-8 bg-[var(--puembo-green)]" />
                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">

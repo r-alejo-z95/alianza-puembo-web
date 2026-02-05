@@ -428,7 +428,7 @@ export default function LomManager() {
             className="space-y-6"
           >
             <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
-              <CardHeader className="p-6 md:p-12 border-b border-gray-50 bg-gray-50/30 flex flex-col md:flex-row gap-3 justify-between">
+              <CardHeader className="p-6 md:p-10 border-b border-gray-50 bg-gray-50/30 flex flex-col md:flex-row gap-3 justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
                     <BookOpen className="w-3 h-3" />{" "}

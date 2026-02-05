@@ -99,7 +99,7 @@ export function ReconciliationManager({ forms }) {
                 <span>Paso 1: Movimientos Diarios</span>
               </div>
               <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-900 leading-tight">Alimentar Historial</h3>
-              <p className="text-[10px] md:text-xs text-gray-400 font-medium">Sincroniza el extracto bancario global.</p>
+              <p className="text-[10px] md:text-xs text-gray-400 font-medium">Sincroniza el extracto bancario.</p>
             </div>
 
             <div className="space-y-4">
@@ -149,7 +149,7 @@ export function ReconciliationManager({ forms }) {
                 <span>Paso 2: Actividad</span>
               </div>
               <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-900 leading-tight">Auditar Registro</h3>
-              <p className="text-[10px] md:text-xs text-gray-400 font-medium">Elige el formulario que deseas validar.</p>
+              <p className="text-[10px] md:text-xs text-gray-400 font-medium">Elige el formulario a validar.</p>
             </div>
 
             <div className="space-y-4 md:space-y-6">

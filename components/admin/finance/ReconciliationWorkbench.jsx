@@ -276,7 +276,7 @@ export function ReconciliationWorkbench({
     <div className="space-y-12">
       {/* 1. MASTER BANK LEDGER */}
       <Card className="border-none shadow-2xl bg-white rounded-[2rem] md:rounded-[2.5rem] overflow-hidden">
-        <CardHeader className="p-6 md:p-12 border-b border-gray-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-gray-900 text-white">
+        <CardHeader className="p-6 md:p-10 border-b border-gray-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 bg-gray-900 text-white">
           <div className="flex items-center gap-6">
             <div className="w-14 h-14 md:w-16 md:h-16 rounded-[1.2rem] md:rounded-[1.5rem] bg-[var(--puembo-green)] flex items-center justify-center text-black shadow-lg shadow-green-500/20"><Banknote className="w-7 h-7 md:w-8 md:h-8" /></div>
             <div><CardTitle className="text-xl md:text-3xl font-serif font-bold tracking-tight">Movimientos Bancarios</CardTitle><p className="text-gray-400 text-[10px] uppercase font-black tracking-[0.4em] mt-1">Historial Consolidado de Ingresos</p></div>
@@ -327,7 +327,7 @@ export function ReconciliationWorkbench({
               <TabsTrigger value="pending" className="rounded-full py-4 px-12 data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all duration-500 gap-4">Pendientes <span className={cn("rounded-full px-3 py-1 text-[10px] font-black transition-colors duration-500", activeTab === "pending" ? "bg-[var(--puembo-green)] text-black" : "bg-gray-200 text-gray-500")}>{pendingItems.length}</span></TabsTrigger>
               <TabsTrigger value="verified" className="rounded-full py-4 px-12 data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all duration-500 gap-4">Conciliados <span className={cn("rounded-full px-3 py-1 text-[10px] font-black transition-colors duration-500", activeTab === "verified" ? "bg-[var(--puembo-green)] text-black" : "bg-gray-200 text-gray-500")}>{verifiedItems.length}</span></TabsTrigger>
             </TabsList>
-            <div className="relative group min-w-full lg:min-w-[450px]"><Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-all duration-500" /><Input placeholder="Buscar inscrito..." className="pl-16 h-16 rounded-[2rem] bg-white border-gray-100 shadow-xl focus:ring-8 focus:ring-[var(--puembo-green)]/5 transition-all duration-500 text-sm font-medium placeholder:text-gray-400" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
+            <div className="relative group min-w-full lg:min-w-[450px]"><Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-[var(--puembo-green)] transition-all duration-500" /><Input placeholder="Buscar inscrito..." className="pl-16 h-14 rounded-[2rem] bg-white border-gray-100 shadow-xl focus:ring-8 focus:ring-[var(--puembo-green)]/5 transition-all duration-500 text-sm font-medium placeholder:text-gray-400" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
           </div>
           
           <TabsContent value="pending" className="outline-none">

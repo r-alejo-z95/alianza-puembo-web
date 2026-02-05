@@ -35,12 +35,13 @@ export default async function StaffAdminPage() {
           <span className="text-[var(--puembo-green)] italic">Staff</span>
         </h1>
         <p className={adminPageDescription}>
-          Gestión centralizada de requerimientos, procesos operativos y formularios internos de la iglesia.
+          Gestiona requerimientos y procesos operativos internos.
         </p>
-      </header>
-
-      <div className="mb-12">
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-6 bg-emerald-50 border border-emerald-100 p-8 rounded-[2.5rem] shadow-sm max-w-3xl">
+              </header>
+      
+            <div className="mb-8">
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-6 bg-emerald-50 border border-emerald-100 p-8 rounded-[2.5rem] shadow-sm max-w-3xl">
+      
           <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-white shrink-0 shadow-lg shadow-emerald-500/20">
             <ShieldCheck className="w-7 h-7" />
           </div>

@@ -14,7 +14,8 @@ import {
   FileText,
   ArrowRight,
   ShieldAlert,
-  ClipboardList
+  ClipboardList,
+  Banknote
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 
@@ -28,12 +29,13 @@ export const metadata = {
 };
 
 const quickActions = [
-  { href: "/admin/eventos", label: "Eventos", icon: Calendar, description: "Organiza y publica las próximas actividades de la iglesia.", color: "bg-blue-500", permission: "perm_events" },
-  { href: "/admin/noticias", label: "Noticias", icon: Newspaper, description: "Comparte historias y crónicas de lo que Dios está haciendo.", color: "bg-emerald-500", permission: "perm_news" },
-  { href: "/admin/lom", label: "LOM", icon: BookOpen, description: "Gestiona los devocionales diarios de Lee, Ora, Medita.", color: "bg-amber-500", permission: "perm_lom" },
-  { href: "/admin/comunidad", label: "Comunidad", icon: Users, description: "Atiende los mensajes de contacto y modera las peticiones de oración.", color: "bg-purple-500", permission: "perm_comunidad" },
-  { href: "/admin/formularios", label: "Formularios", icon: FileText, description: "Crea y gestiona formularios de registro dinámicos.", color: "bg-rose-500", permission: "perm_forms" },
-  { href: "/admin/staff", label: "Staff & Procesos", icon: ClipboardList, description: "Gestión de requerimientos y procesos operativos internos.", color: "bg-indigo-500", permission: "perm_internal_forms" },
+  { href: "/admin/eventos", label: "Eventos", icon: Calendar, description: "Organiza y publica actividades.", color: "bg-blue-500", permission: "perm_events" },
+  { href: "/admin/noticias", label: "Noticias", icon: Newspaper, description: "Comparte historias y noticias.", color: "bg-emerald-500", permission: "perm_news" },
+  { href: "/admin/lom", label: "LOM", icon: BookOpen, description: "Gestiona devocionales diarios.", color: "bg-amber-500", permission: "perm_lom" },
+  { href: "/admin/comunidad", label: "Comunidad", icon: Users, description: "Atiende mensajes y peticiones.", color: "bg-purple-500", permission: "perm_comunidad" },
+  { href: "/admin/formularios", label: "Formularios", icon: FileText, description: "Crea y gestiona formularios.", color: "bg-rose-500", permission: "perm_forms" },
+  { href: "/admin/finanzas", label: "Finanzas", icon: Banknote, description: "Conciliación bancaria y donaciones.", color: "bg-orange-500", permission: "perm_finanzas" },
+  { href: "/admin/staff", label: "Staff & Procesos", icon: ClipboardList, description: "Gestiona requerimientos internos.", color: "bg-indigo-500", permission: "perm_internal_forms" },
 ];
 
 export default async function AdminHomePage({ searchParams }) {
@@ -72,7 +74,7 @@ export default async function AdminHomePage({ searchParams }) {
           Hola, <span className="text-[var(--puembo-green)] italic">{userName}</span>
         </h1>
         <p className={adminPageDescription}>
-          Bienvenido a tu centro de gestión. Desde aquí tienes el control total sobre el contenido narrativo y funcional de Alianza Puembo.
+          Bienvenido. Desde aquí controlas el contenido y funciones de Alianza Puembo.
         </p>
       </header>
 

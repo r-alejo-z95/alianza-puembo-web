@@ -176,7 +176,7 @@ export default function PreferenciasPage() {
           <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--puembo-green)]">Preferencias</span>
         </div>
         <h1 className={adminPageTitle}>Configuración del <span className="text-[var(--puembo-green)] italic">Sistema</span></h1>
-        <p className={adminPageDescription}>Administra tu cuenta, permisos de equipo y ajustes globales de la plataforma.</p>
+        <p className={adminPageDescription}>Administra tu cuenta, equipo y ajustes globales.</p>
       </header>
 
       <div className="max-w-4xl mx-auto pb-20">
@@ -216,7 +216,7 @@ export default function PreferenciasPage() {
                   </div>
                 )}
               </div>
-              <CardContent className="p-8 md:p-12">
+              <CardContent className="p-8 md:p-10">
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onProfileSubmit)} className="space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -312,7 +312,7 @@ export default function PreferenciasPage() {
                       <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">Preferencias del Sitio</span>
                     </div>
                   </div>
-                  <CardContent className="p-8 md:p-12 space-y-12">
+                  <CardContent className="p-8 md:p-10 space-y-12">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                       <div className="space-y-4">
                         <div className="flex items-center gap-3">
@@ -383,7 +383,7 @@ export default function PreferenciasPage() {
                             </div>
                           </AccordionTrigger>
                           <AccordionContent className="bg-gray-50/30">
-                            <div className="p-8 lg:p-12 space-y-10 border-t border-gray-100">
+                            <div className="p-8 lg:p-10 space-y-10 border-t border-gray-100">
                               {/* Nombre Editable (Solo para otros, no para uno mismo aquí) */}
                               <div className="space-y-4">
                                 <div className="flex items-center gap-3">

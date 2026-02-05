@@ -47,9 +47,7 @@ export default async function FormulariosAdminPage() {
           <span className="text-[var(--puembo-green)] italic">Formularios</span>
         </h1>
         <p className={adminPageDescription}>
-          Crea y administra formularios dinámicos para registros, encuestas y
-          recopilación de datos. Conecta con Google para automatizar el
-          almacenamiento.
+          Crea formularios para registros y encuestas. Conecta con Google para almacenamiento.
         </p>
       </header>
 

@@ -27,7 +27,7 @@ export default async function NoticiasAdminPage() {
             Gestionar <span className="text-[var(--puembo-green)] italic">Noticias</span>
           </h1>
           <p className={adminPageDescription}>
-            Crea, edita y administra las crónicas y novedades que mantienen a nuestra comunidad conectada e inspirada.
+            Crea y administra noticias y novedades.
           </p>
         </header>
         <NewsManager />

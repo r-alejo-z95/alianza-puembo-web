@@ -41,8 +41,7 @@ export default async function ReconciliationPage() {
           <span className="text-[var(--puembo-green)] italic">Financiera</span>
         </h1>
         <p className={adminPageDescription}>
-          Control consolidado de ingresos. Cruza la información de tus
-          formularios con el extracto bancario global de la Iglesia.
+          Control de ingresos. Cruza información de formularios con extractos bancarios.
         </p>
       </header>
 

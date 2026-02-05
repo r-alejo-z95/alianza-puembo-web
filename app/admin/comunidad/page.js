@@ -57,14 +57,14 @@ function ComunidadHubContent() {
           Gestión de <span className="text-[var(--puembo-green)] italic">Comunidad</span>
         </h1>
         <p className={adminPageDescription}>
-          Centralice la atención a los usuarios y modere las peticiones de oración desde un solo lugar.
+          Centraliza la atención a usuarios y modera peticiones de oración.
         </p>
       </header>
 
       <div className="max-w-6xl mx-auto">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-8">
           <div className="flex justify-center">
-            <TabsList className="bg-gray-100 p-1 rounded-full h-14 md:h-16 w-full max-w-md shadow-inner border border-gray-200/50">
+            <TabsList className="bg-gray-100 p-1 rounded-full h-12 md:h-14 w-full max-w-md shadow-inner border border-gray-200/50">
               <TabsTrigger 
                 value="mensajes" 
                 className="flex-1 rounded-full data-[state=active]:bg-black data-[state=active]:text-white transition-all duration-500 font-bold text-[10px] md:text-xs uppercase tracking-widest gap-3"

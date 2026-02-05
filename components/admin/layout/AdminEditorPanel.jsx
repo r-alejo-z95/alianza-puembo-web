@@ -47,7 +47,7 @@ export function AdminEditorPanel({
           side="right"
           {...props}
         >
-          <div className={cn("bg-black p-8 md:p-12 shrink-0", headerClassName)}>
+          <div className={cn("bg-black p-8 md:p-10 shrink-0", headerClassName)}>
             <SheetHeader className="space-y-4 text-left">
               <div className="flex items-center gap-3">
                 <div className="h-px w-8 bg-[var(--puembo-green)]" />

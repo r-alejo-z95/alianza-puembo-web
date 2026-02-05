@@ -42,14 +42,13 @@ export default async function EventosPage() {
             <span className="text-[var(--puembo-green)] italic">Eventos</span>
           </h1>
           <p className={adminPageDescription}>
-            Organiza, agenda y publica las actividades que fortalecen nuestra
-            comunidad. Gestiona desde la tabla o visualiza en el calendario.
+            Organiza y publica actividades. Gestiona en lista o calendario.
           </p>
         </header>
 
         {/* FINANCIAL SUMMARY WIDGET */}
         {summary && summary.length > 0 && (
-          <div className="mb-16 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="mb-10 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center gap-3">
               <TrendingUp className="w-5 h-5 text-[var(--puembo-green)]" />
               <h2 className="text-sm font-black uppercase tracking-[0.3em] text-gray-400">Estado de Inscripciones</h2>
