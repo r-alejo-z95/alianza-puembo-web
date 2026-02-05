@@ -473,6 +473,11 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
   const [captchaKey, setCaptchaKey] = useState(0);
 
+  // Auto-scroll al cambiar de sección
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentStep]);
+
   const watchedValues = watch();
 
   const currentSection = steps[currentStep]?.section;
@@ -596,8 +601,6 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
         setCurrentStep(targetIndex);
 
-        window.scrollTo({ top: 0, behavior: "smooth" });
-
         return;
       }
     }
@@ -608,8 +611,6 @@ export default function FluentRenderer({ form, isPreview = false }) {
       setStepHistory((prev) => [...prev, nextIndex]);
 
       setCurrentStep(nextIndex);
-
-      window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       handleSubmit(onSubmit)();
     }
@@ -626,8 +627,6 @@ export default function FluentRenderer({ form, isPreview = false }) {
       setStepHistory(newHistory);
 
       setCurrentStep(previousStep);
-
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -1037,9 +1036,9 @@ export default function FluentRenderer({ form, isPreview = false }) {
           </div>
 
           {isLastStep && (
-            <div className="pt-16 space-y-10">
+            <div className="pt-8 space-y-6">
               {needsCaptcha && (
-                <div className="flex justify-center scale-110 md:scale-125 py-4">
+                <div className="flex justify-center scale-110 md:scale-125 py-2">
                   <TurnstileCaptcha
                     key={captchaKey}
                     onVerify={setCaptchaToken}
@@ -1070,7 +1069,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
               )}
 
               {!form.is_internal && (
-                <div className="bg-white/50 backdrop-blur-sm p-6 rounded-[1.5rem] border border-gray-100 shadow-sm">
+                <div className="bg-white/50 backdrop-blur-sm p-5 rounded-[1.5rem] border border-gray-100 shadow-sm">
                   <p className="text-[10px] text-gray-500 leading-relaxed text-center font-medium">
                     Al enviar este formulario, usted autoriza a la Iglesia
                     Alianza Puembo el tratamiento de sus datos personales para
@@ -1083,6 +1082,29 @@ export default function FluentRenderer({ form, isPreview = false }) {
           )}
         </motion.div>
       </AnimatePresence>
+
+      {/* Pantalla de Bloqueo durante el Envío */}
+      <Dialog open={sending && submissionStatus === null}>
+        <DialogContent className="sm:max-w-md rounded-[3rem] border-none p-0 overflow-hidden shadow-2xl [&>button]:hidden bg-white/80 backdrop-blur-xl">
+          <div className="p-16 text-center flex flex-col items-center gap-8">
+            <div className="relative">
+              <div className="w-24 h-24 border-4 border-gray-100 rounded-full animate-pulse" />
+              <div className="absolute inset-0 border-t-4 border-[var(--puembo-green)] rounded-full animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Send className="w-8 h-8 text-[var(--puembo-green)] animate-bounce" />
+              </div>
+            </div>
+            <div className="space-y-3">
+              <DialogTitle className="text-2xl font-serif font-black text-gray-900">
+                Enviando Respuesta
+              </DialogTitle>
+              <DialogDescription className="text-gray-500 font-medium text-sm uppercase tracking-widest animate-pulse">
+                Procesando información...
+              </DialogDescription>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-2xl bg-white/90 backdrop-blur-xl border border-white shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] rounded-[2.5rem] p-2 md:p-4 z-40">
         <div className="flex items-center justify-between gap-2 md:gap-4">
