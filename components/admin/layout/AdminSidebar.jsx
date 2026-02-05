@@ -17,6 +17,7 @@ import {
   User,
   Users,
   ClipboardList,
+  Banknote,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +67,13 @@ const navLinks = [
     icon: FileText,
     description: "Constructor dinámico",
     permission: "perm_forms",
+  },
+  {
+    href: "/admin/finanzas",
+    label: "Finanzas",
+    icon: Banknote,
+    description: "Conciliación bancaria",
+    permission: "perm_finanzas",
   },
   {
     href: "/admin/staff",
@@ -226,7 +234,7 @@ export default function AdminSidebar({ user, children }) {
               alt="Alianza Puembo Admin"
               width={160}
               height={100}
-              className="h-auto w-24 lg:w-28 mx-auto"
+              className="h-auto w-12 lg:w-20 mx-auto"
               priority
             />
             <div className="mt-4 flex items-center gap-3">

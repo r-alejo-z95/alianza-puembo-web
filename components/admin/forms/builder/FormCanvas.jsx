@@ -1,5 +1,3 @@
-"use client";
-
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -10,7 +8,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ImageIcon, Trash2, Layout, Plus, ShieldCheck, Globe } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ImageIcon, Trash2, Layout, Plus, ShieldCheck, Globe, Receipt, Banknote } from "lucide-react";
 import QuestionCard from "./QuestionCard";
 import { useRef, useCallback, useMemo } from "react";
 import RichTextEditor from "../RichTextEditor";
@@ -22,13 +27,20 @@ const FormHeader = ({
   headerFile,
   setHeaderFile,
   error,
+  fields,
 }) => {
   const { control, watch, setValue } = useFormContext();
   const imageUrl = watch("image_url");
   const description = watch("description");
   const title = watch("title");
   const isInternal = watch("is_internal");
+  const isFinancial = watch("is_financial");
   const fileInputRef = useRef(null);
+
+  const currentFields = watch("fields") || [];
+  const receiptFields = currentFields.filter(
+    (f) => f.type === "image" || f.type === "file",
+  );
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -186,38 +198,108 @@ const FormHeader = ({
           />
         </div>
 
-        {/* Visibility & Type Switch */}
+        {/* Configuration Switches */}
         {isActive && (
-          <div className="flex flex-col sm:flex-row gap-4 p-6 bg-gray-50 rounded-[2rem] border border-gray-100 animate-in fade-in zoom-in-95 duration-300">
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center gap-2">
-                {isInternal ? (
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                ) : (
-                  <Globe className="w-4 h-4 text-blue-600" />
-                )}
-                <Label className="text-xs font-black uppercase tracking-widest text-gray-900">
-                  {isInternal ? "Formulario Interno (Staff)" : "Formulario Público"}
-                </Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-300">
+            {/* Internal Switch */}
+            <div className="flex flex-col gap-4 p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {isInternal ? (
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  ) : (
+                    <Globe className="w-4 h-4 text-blue-600" />
+                  )}
+                  <Label className="text-xs font-black uppercase tracking-widest text-gray-900">
+                    {isInternal ? "Uso Interno (Staff)" : "Acceso Público"}
+                  </Label>
+                </div>
+                <Controller
+                  control={control}
+                  name="is_internal"
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="data-[state=checked]:bg-emerald-600"
+                    />
+                  )}
+                />
               </div>
               <p className="text-[10px] text-gray-500 leading-relaxed">
-                {isInternal 
-                  ? "Este formulario solo será visible en la sección de Staff y sus respuestas están protegidas por permisos especiales." 
-                  : "Este formulario será accesible mediante un enlace público y cualquier administrador de formularios podrá ver las respuestas."}
+                {isInternal
+                  ? "Solo visible para staff autorizado."
+                  : "Accesible mediante enlace público."}
               </p>
             </div>
-            <div className="flex items-center">
-              <Controller
-                control={control}
-                name="is_internal"
-                render={({ field }) => (
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    className="data-[state=checked]:bg-emerald-600"
+
+            {/* Financial Switch */}
+            <div className="flex flex-col gap-4 p-6 bg-gray-50 rounded-[2rem] border border-gray-100 relative overflow-hidden">
+              <div className="flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-2">
+                  {isFinancial ? (
+                    <Banknote className="w-4 h-4 text-amber-600" />
+                  ) : (
+                    <Receipt className="w-4 h-4 text-gray-400" />
+                  )}
+                  <Label className="text-xs font-black uppercase tracking-widest text-gray-900">
+                    Conciliación Financiera
+                  </Label>
+                </div>
+                <Controller
+                  control={control}
+                  name="is_financial"
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={(val) => {
+                        field.onChange(val);
+                        if (!val) setValue("financial_field_label", "");
+                      }}
+                      className="data-[state=checked]:bg-amber-500"
+                    />
+                  )}
+                />
+              </div>
+
+              {isFinancial ? (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="text-[10px] font-bold text-amber-600/80 uppercase tracking-wide">
+                    Selecciona el comprobante
+                  </p>
+                  <Controller
+                    control={control}
+                    name="financial_field_label"
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || ""}
+                      >
+                        <SelectTrigger className="h-10 bg-white border-amber-200/50 text-xs font-medium rounded-xl">
+                          <SelectValue placeholder="Campo de la foto..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {receiptFields.length > 0 ? (
+                            receiptFields.map((f) => (
+                              <SelectItem key={f.id} value={f.label}>
+                                {f.label}
+                              </SelectItem>
+                            ))
+                          ) : (
+                            <div className="p-2 text-[10px] text-gray-400 text-center">
+                              No hay campos de imagen
+                            </div>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    )}
                   />
-                )}
-              />
+                </div>
+              ) : (
+                <p className="text-[10px] text-gray-500 leading-relaxed">
+                  Activa esto si el formulario recibe comprobantes de pago.
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -327,6 +409,7 @@ export default function FormCanvas({
         headerFile={headerFile}
         setHeaderFile={setHeaderFile}
         error={!!errors?.title}
+        fields={fields}
       />
 
       <SortableContext

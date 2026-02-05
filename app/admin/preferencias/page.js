@@ -150,6 +150,7 @@ export default function PreferenciasPage() {
       profile.perm_lom,
       profile.perm_comunidad,
       profile.perm_forms,
+      profile.perm_finanzas,
       profile.perm_internal_forms
     ];
     const hasAll = perms.every(p => p === true);
@@ -421,6 +422,7 @@ export default function PreferenciasPage() {
                                         { key: 'perm_lom', label: 'LOM' },
                                         { key: 'perm_comunidad', label: 'Comunidad' },
                                         { key: 'perm_forms', label: 'Forms' },
+                                        { key: 'perm_finanzas', label: 'Finanzas' },
                                         { key: 'perm_internal_forms', label: 'Internos' },
                                       ].map((perm) => (
                                         <div key={perm.key} className="flex flex-col items-center gap-3 p-4 bg-white rounded-2xl border border-gray-100 transition-all hover:shadow-md group">

@@ -38,7 +38,12 @@ import {
 } from "@/components/ui/dialog";
 import TurnstileCaptcha from "@/components/shared/TurnstileCaptcha";
 import { cn } from "@/lib/utils";
-import { verifyCaptcha, notifyFormSubmission } from "@/lib/actions";
+import {
+  verifyCaptcha,
+  notifyFormSubmission,
+  uploadReceipt,
+} from "@/lib/actions";
+import { compressImage } from "@/lib/image-compression";
 import { createClient } from "@/lib/supabase/client";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 
@@ -652,7 +657,9 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (needsCaptcha) {
         const { isValid } = await verifyCaptcha(captchaToken);
@@ -675,7 +682,35 @@ export default function FluentRenderer({ form, isPreview = false }) {
           continue;
 
         if (value instanceof FileList && value.length > 0) {
-          const file = value[0];
+          let file = value[0];
+
+          // 1. Compresión de imagen en el cliente
+          if (file.type.startsWith("image/")) {
+            try {
+              const compressed = await compressImage(file);
+              if (compressed) file = compressed;
+            } catch (err) {
+              console.warn("Error comprimiendo imagen:", err);
+            }
+          }
+
+          // 2. Subida para conciliación financiera (si aplica)
+          let financialReceiptPath = null;
+          if (form.is_financial && form.financial_field_label === key) {
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("formSlug", form.slug);
+
+            try {
+              const uploadRes = await uploadReceipt(formData);
+              if (uploadRes.success) {
+                financialReceiptPath = uploadRes.fullPath;
+              }
+            } catch (e) {
+              console.error("Error subiendo comprobante financiero:", e);
+            }
+          }
+
           const reader = new FileReader();
           const fileData = await new Promise((resolve) => {
             reader.onload = () =>
@@ -693,6 +728,9 @@ export default function FluentRenderer({ form, isPreview = false }) {
             _type: "file",
             name: file.name,
             info: "Archivo en Drive",
+            ...(financialReceiptPath
+              ? { financial_receipt_path: financialReceiptPath }
+              : {}),
           };
         } else if (typeof value === "object" && !Array.isArray(value)) {
           const fieldOptions =
@@ -812,7 +850,10 @@ export default function FluentRenderer({ form, isPreview = false }) {
     currentFields,
   ]);
 
-  const needsCaptcha = useMemo(() => !form.is_internal && !isPreview, [form.is_internal, isPreview]);
+  const needsCaptcha = useMemo(
+    () => !form.is_internal && !isPreview,
+    [form.is_internal, isPreview],
+  );
 
   return (
     <div className="w-full max-w-3xl mx-auto px-5 md:px-0 pb-32">
@@ -1031,10 +1072,10 @@ export default function FluentRenderer({ form, isPreview = false }) {
               {!form.is_internal && (
                 <div className="bg-white/50 backdrop-blur-sm p-6 rounded-[1.5rem] border border-gray-100 shadow-sm">
                   <p className="text-[10px] text-gray-500 leading-relaxed text-center font-medium">
-                    Al enviar este formulario, usted autoriza a la Iglesia Alianza
-                    Puembo el tratamiento de sus datos personales para fines de
-                    contacto y gestión eclesial, conforme a la Ley Orgánica de
-                    Protección de Datos Personales de Ecuador.
+                    Al enviar este formulario, usted autoriza a la Iglesia
+                    Alianza Puembo el tratamiento de sus datos personales para
+                    fines de contacto y gestión eclesial, conforme a la Ley
+                    Orgánica de Protección de Datos Personales de Ecuador.
                   </p>
                 </div>
               )}
@@ -1062,7 +1103,9 @@ export default function FluentRenderer({ form, isPreview = false }) {
             onClick={handleNext}
             type="button"
             disabled={
-              sending || (isLastStep && needsCaptcha && !captchaToken) || !isBranchingSelected
+              sending ||
+              (isLastStep && needsCaptcha && !captchaToken) ||
+              !isBranchingSelected
             }
             className={cn(
               "rounded-full h-12 md:h-14 px-6 md:px-10 text-[10px] md:text-[11px] font-black uppercase tracking-[0.1em] md:tracking-[0.2em] shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] min-w-[120px] md:min-w-[180px]",
@@ -1071,7 +1114,8 @@ export default function FluentRenderer({ form, isPreview = false }) {
                 ? "bg-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/90 text-white shadow-[var(--puembo-green)]/20"
                 : "bg-black text-white hover:bg-gray-800 shadow-black/10",
 
-              (!isBranchingSelected || (isLastStep && needsCaptcha && !captchaToken)) &&
+              (!isBranchingSelected ||
+                (isLastStep && needsCaptcha && !captchaToken)) &&
                 "opacity-50 grayscale cursor-not-allowed scale-100",
             )}
           >

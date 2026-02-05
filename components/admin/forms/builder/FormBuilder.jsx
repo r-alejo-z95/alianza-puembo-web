@@ -70,15 +70,26 @@ const formSchema = z.object({
   description: z.string().optional().nullable(),
   image_url: z.string().optional().nullable(),
   is_internal: z.boolean().default(false),
+  is_financial: z.boolean().default(false),
+  financial_field_label: z.string().optional().nullable(),
   fields: z.array(fieldSchema),
 });
 
 export default function FormBuilder({
-  form: initialForm,
+  form: initialForm = {
+    title: "",
+    description: "",
+    image_url: "",
+    is_internal: false,
+    is_financial: false,
+    financial_field_label: "",
+    fields: [],
+  },
   onSave,
   onCancel,
   isSaving,
 }) {
+
   const [activeFieldId, setActiveFieldId] = useState("header");
   const [headerFile, setHeaderFile] = useState(null);
   const [activeDragId, setActiveDragId] = useState(null);
@@ -164,6 +175,8 @@ export default function FormBuilder({
         description: initialForm.description || "",
         image_url: initialForm.image_url || "",
         is_internal: initialForm.is_internal || false,
+        is_financial: initialForm.is_financial || false,
+        financial_field_label: initialForm.financial_field_label || "",
         fields: preparedFields,
       });
     }

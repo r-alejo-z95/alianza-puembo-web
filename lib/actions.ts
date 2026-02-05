@@ -672,3 +672,44 @@ export async function initializeGoogleIntegration(
     return { error: "Ocurrió un error inesperado al conectar con Google." };
   }
 }
+
+/**
+ * Uploads a receipt image to the secure finance bucket.
+ * Intended for use with financial forms reconciliation.
+ */
+export async function uploadReceipt(formData: FormData) {
+  const file = formData.get("file") as File;
+  const formSlug = formData.get("formSlug") as string;
+  
+  if (!file || !formSlug) return { error: "Datos incompletos" };
+
+  try {
+    const supabase = await createClient();
+    
+    // Generate a secure unique path: form_slug/year/month/uuid.ext
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const ext = file.name.split('.').pop() || 'jpg';
+    const uniqueName = `${crypto.randomUUID()}.${ext}`;
+    const path = `${formSlug}/${year}/${month}/${uniqueName}`;
+
+    // Upload to 'finance_receipts' bucket
+    // Note: This bucket must exist and allow upsert/insert for authenticated service role
+    const { data, error } = await supabase.storage
+      .from("finance_receipts")
+      .upload(path, file, {
+        cacheControl: "3600",
+        upsert: false,
+      });
+
+    if (error) throw error;
+
+    // Return the path. The reconciliation process will sign it when needed.
+    return { success: true, path: data.path, fullPath: `finance_receipts/${data.path}` };
+
+  } catch (error) {
+    console.error("Error uploading receipt:", error);
+    return { error: "Error al guardar el comprobante" };
+  }
+}

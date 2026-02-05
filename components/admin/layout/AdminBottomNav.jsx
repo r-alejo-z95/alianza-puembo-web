@@ -9,6 +9,7 @@ import {
   Users,
   FileText,
   ClipboardList,
+  Banknote
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 
@@ -42,6 +43,12 @@ const navLinks = [
     label: "Forms",
     icon: FileText,
     permission: "perm_forms",
+  },
+  {
+    href: "/admin/finanzas",
+    label: "Finanzas",
+    icon: Banknote,
+    permission: "perm_finanzas",
   },
   {
     href: "/admin/staff",
