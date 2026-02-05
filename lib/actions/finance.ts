@@ -12,15 +12,26 @@ export async function parseBankReport(formData: FormData): Promise<{ reportId?: 
   const file = formData.get("file") as File;
   if (!file) return { error: "No se proporcionó archivo" };
 
+  // SECURITY: Limit file size to 5MB to prevent memory exhaustion
+  const MAX_SIZE = 5 * 1024 * 1024;
+  if (file.size > MAX_SIZE) return { error: "El archivo es demasiado grande (máx 5MB)" };
+
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    const buffer = await file.arrayBuffer();
+    let buffer: any = await file.arrayBuffer();
     const isCSV = file.name.toLowerCase().endsWith('.csv');
-    const workbook = XLSX.read(buffer, { type: "buffer", cellDates: true, raw: isCSV });
+    
+    let workbook: any = XLSX.read(buffer, { type: "buffer", cellDates: true, raw: isCSV });
+    if (!workbook.SheetNames.length) return { error: "Archivo Excel inválido" };
+
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
     const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+    
+    // MEMORY MANAGEMENT: Clear heavy objects after extraction
+    buffer = null;
+    workbook = null;
     
     const cleanRows = rawData.filter(row => row && row.length > 0 && row.some(cell => cell !== null && cell !== "" && cell !== undefined));
     if (cleanRows.length < 2) return { error: "Archivo sin datos legibles" };
@@ -41,7 +52,7 @@ export async function parseBankReport(formData: FormData): Promise<{ reportId?: 
       return { error: "La IA no detectó ingresos en este archivo." };
     }
 
-    // 1. Save Report Audit (Optional reference)
+    // 1. Save Report Audit
     const { data: report, error: reportErr } = await supabase
       .from("bank_reports")
       .insert([{ filename: file.name, created_by: user?.id }])
@@ -61,15 +72,12 @@ export async function parseBankReport(formData: FormData): Promise<{ reportId?: 
       bank_name: t.bank_name || "Desconocido"
     }));
 
-    // We use ON CONFLICT based on the global unique constraint: date, amount, description, reference
     const { error: batchErr } = await supabase.from("bank_transactions").upsert(dbTransactions, { 
       onConflict: 'date, amount, description, reference',
       ignoreDuplicates: true 
     });
 
-    if (batchErr) {
-      console.warn("[Finance] Dedup warning:", batchErr.message);
-    }
+    if (batchErr) console.warn("[Finance] Dedup warning:", batchErr.message);
 
     revalidatePath("/admin/finanzas");
     return { reportId: report.id };
@@ -80,15 +88,33 @@ export async function parseBankReport(formData: FormData): Promise<{ reportId?: 
 }
 
 /**
- * Gets the entire church-wide bank pool.
+ * Gets the entire church-wide bank pool, enhanced with global conciliation status.
  */
 export async function getGlobalTransactions() {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  
+  // 1. Get all transactions
+  const { data: transactions, error: txError } = await supabase
     .from("bank_transactions")
     .select("*")
     .order("date", { ascending: false });
-  return error ? { error: error.message } : { transactions: data };
+
+  if (txError) return { error: txError.message };
+
+  // 2. Get all reconciled IDs across ALL submissions in the database
+  const { data: reconciled, error: recError } = await supabase
+    .from("form_submissions")
+    .select("bank_transaction_id")
+    .not("bank_transaction_id", "is", null);
+
+  const reconciledIds = new Set(reconciled?.map(r => r.bank_transaction_id) || []);
+
+  const enhancedTransactions = transactions.map(tx => ({
+    ...tx,
+    is_reconciled: reconciledIds.has(tx.id)
+  }));
+
+  return { transactions: enhancedTransactions };
 }
 
 /**
@@ -115,11 +141,10 @@ export async function analyzeFormReceipts(formId: string) {
     if (subError) throw subError;
 
     for (const sub of submissions) {
-      // Skip if already has AI data or is verified
       if (sub.financial_data || sub.financial_status === 'verified') continue;
 
       const path = sub.data[form.financial_field_label]?.financial_receipt_path;
-      if (!path) continue;
+      if (!path || path.includes('..')) continue;
 
       const { data: fileBlob, error: dlErr } = await supabase.storage
         .from("finance_receipts")
@@ -139,7 +164,6 @@ export async function analyzeFormReceipts(formId: string) {
         .eq("id", sub.id);
     }
 
-    // Refetch final data
     const { data: updated } = await supabase
       .from("form_submissions")
       .select("*, profiles(full_name, email)")
@@ -159,26 +183,20 @@ export async function analyzeFormReceipts(formId: string) {
 export async function updateFinancialStatus(submissionId: string, status: string, notes?: string, matchId?: string) {
   const supabase = await createClient();
   const updateData: any = { financial_status: status, reconciliation_notes: notes };
-  
-  if (matchId) {
-    updateData.bank_transaction_id = matchId;
-  }
+  if (matchId) updateData.bank_transaction_id = matchId;
 
   const { error } = await supabase.from("form_submissions").update(updateData).eq("id", submissionId);
-  
   revalidatePath("/admin/finanzas");
   return error ? { error: error.message } : { success: true };
 }
 
 /**
  * Gets a summary of all events with financial forms for the dashboard.
- * Visible to all admins.
  */
 export async function getFinancialSummary() {
   const supabase = await createClient();
 
   try {
-    // 1. Get events that have a linked financial form
     const { data: events, error: eventsErr } = await supabase
       .from("events")
       .select(`
@@ -200,7 +218,9 @@ export async function getFinancialSummary() {
     const summary = [];
 
     for (const event of events) {
-      // 2. For each event/form, get submissions and linked bank data
+      const form = Array.isArray(event.forms) ? event.forms[0] : event.forms;
+      if (!form) continue;
+
       const { data: submissions, error: subErr } = await supabase
         .from("form_submissions")
         .select(`
@@ -210,7 +230,7 @@ export async function getFinancialSummary() {
             amount
           )
         `)
-        .eq("form_id", event.forms.id)
+        .eq("form_id", form.id)
         .eq("is_archived", false);
 
       if (subErr) continue;
@@ -218,13 +238,16 @@ export async function getFinancialSummary() {
       const totalInscribed = submissions.length;
       const verifiedAmount = submissions
         .filter(s => s.financial_status === 'verified' && s.bank_transactions)
-        .reduce((acc, curr) => acc + (curr.bank_transactions?.amount || 0), 0);
+        .reduce((acc, curr) => {
+          const tx = Array.isArray(curr.bank_transactions) ? curr.bank_transactions[0] : curr.bank_transactions;
+          return acc + (tx?.amount || 0);
+        }, 0);
 
       summary.push({
         eventId: event.id,
         eventTitle: event.title,
         startTime: event.start_time,
-        formId: event.forms.id,
+        formId: form.id,
         totalInscribed,
         verifiedAmount
       });
@@ -241,6 +264,7 @@ export async function getFinancialSummary() {
  * Gets temporary URL for visual audit.
  */
 export async function getReceiptSignedUrl(fullPath: string) {
+  if (fullPath.includes('..')) return { error: "Ruta inválida" };
   const supabase = await createClient();
   const path = fullPath.replace('finance_receipts/', '');
   const { data, error } = await supabase.storage.from("finance_receipts").createSignedUrl(path, 600);

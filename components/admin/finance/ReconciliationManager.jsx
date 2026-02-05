@@ -59,6 +59,8 @@ export function ReconciliationManager({ forms }) {
     try {
       const res = await analyzeFormReceipts(selectedFormId);
       if (res.submissions) setSubmissions(res.submissions);
+      // Also refresh the ledger to see which transactions are now "reconciled" globally
+      await loadGlobalLedger();
     } catch (e) { console.error(e); } finally { setIsLoadingContext(false); }
   };
 
