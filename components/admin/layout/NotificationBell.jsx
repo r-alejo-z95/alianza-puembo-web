@@ -113,7 +113,7 @@ export function NotificationBell({ userId }) {
       
       <DropdownMenuContent
         align="end"
-        className="w-[380px] rounded-[2.5rem] bg-white border-none shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-2 z-[100] mt-2 overflow-hidden animate-in slide-in-from-top-2 duration-300"
+        className="w-[calc(100vw-2rem)] sm:w-[380px] rounded-[2.5rem] bg-white border-none shadow-[0_20px_50px_rgba(0,0,0,0.15)] p-2 z-[100] mt-2 overflow-hidden animate-in slide-in-from-top-2 duration-300"
       >
         <div className="p-6 pb-4">
           <div className="flex items-center justify-between mb-1">
@@ -165,7 +165,7 @@ export function NotificationBell({ userId }) {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     {!notif.read && (
                       <Button
                         variant="ghost"
