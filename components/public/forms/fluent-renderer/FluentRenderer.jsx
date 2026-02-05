@@ -544,7 +544,8 @@ export default function FluentRenderer({ form, isPreview = false }) {
   const handleNext = async () => {
     const fieldLabels = currentFields.map((f) => f.label);
 
-    const isStepValid = await trigger(fieldLabels);
+    // Skip validation if in preview mode
+    const isStepValid = isPreview ? true : await trigger(fieldLabels);
 
     if (!isStepValid) {
       toast.error("Por favor completa los campos requeridos.");
@@ -585,7 +586,11 @@ export default function FluentRenderer({ form, isPreview = false }) {
     }
 
     if (jumpTargetId === "submit") {
-      handleSubmit(onSubmit)();
+      if (isPreview) {
+        onSubmit(values);
+      } else {
+        handleSubmit(onSubmit)();
+      }
 
       return;
     }
@@ -612,7 +617,11 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
       setCurrentStep(nextIndex);
     } else {
-      handleSubmit(onSubmit)();
+      if (isPreview) {
+        onSubmit(values);
+      } else {
+        handleSubmit(onSubmit)();
+      }
     }
   };
 
