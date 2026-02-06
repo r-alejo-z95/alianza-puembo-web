@@ -788,7 +788,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
       // 2. Ejecutamos tareas en PARALELO para máxima velocidad
       // Primero disparamos la integración de Google porque necesitamos sus links si los hay
       let googlePromise = Promise.resolve({ data: null, error: null });
-      const hasFiles = Object.values(formData).some(val => val && typeof val === 'object' && val.type === 'file');
+      const hasFiles = Object.values(processedData).some(val => val && typeof val === 'object' && val.type === 'file');
 
       if (!form.is_internal) {
         googlePromise = supabase.functions.invoke("sheets-drive-integration", {
