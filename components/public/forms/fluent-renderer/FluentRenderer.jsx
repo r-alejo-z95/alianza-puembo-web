@@ -788,29 +788,41 @@ export default function FluentRenderer({ form, isPreview = false }) {
       // 2. Ejecutamos tareas en PARALELO para máxima velocidad
       // Primero disparamos la integración de Google porque necesitamos sus links si los hay
       let googlePromise = Promise.resolve({ data: null, error: null });
+      const hasFiles = Object.values(formData).some(val => val && typeof val === 'object' && val.type === 'file');
+
       if (!form.is_internal) {
         googlePromise = supabase.functions.invoke("sheets-drive-integration", {
           body: { formId: form.id, formData: processedData },
         });
       }
 
-      // Esperamos a Google para tener los links de los archivos (es la tarea crítica)
-      const { data: googleRes, error: invokeError } = await googlePromise;
+      // Solo esperamos a Google si hay archivos (porque necesitamos sus links para guardarlos en Supabase)
+      // Si NO hay archivos, lanzamos Google "al aire" y seguimos con Supabase de inmediato
+      if (hasFiles) {
+        const { data: googleRes, error: invokeError } = await googlePromise;
 
-      if (!invokeError && googleRes?.fileUrls) {
-        Object.keys(googleRes.fileUrls).forEach(key => {
-          if (rawDataForDb[key] && typeof rawDataForDb[key] === 'object') {
-            rawDataForDb[key].url = googleRes.fileUrls[key];
-            rawDataForDb[key].webViewLink = googleRes.fileUrls[key];
-          }
-        });
+        if (!invokeError && googleRes?.fileUrls) {
+          Object.keys(googleRes.fileUrls).forEach(key => {
+            if (rawDataForDb[key] && typeof rawDataForDb[key] === 'object') {
+              rawDataForDb[key].url = googleRes.fileUrls[key];
+              rawDataForDb[key].webViewLink = googleRes.fileUrls[key];
+            }
+          });
+        }
       }
 
-      // Ahora que tenemos los links (si los hubo), disparamos el resto en paralelo sin bloquearnos entre sí
-      const [dbResponse] = await Promise.all([
+      // Ahora disparamos el resto en paralelo
+      const tasks = [
         supabase.from("form_submissions").insert([submissionData]),
         notifyFormSubmission(form.title, form.slug, form.user_id, user?.id)
-      ]);
+      ];
+
+      // Si no había archivos, añadimos Google al paralelo para no bloquear el éxito
+      if (!hasFiles && !form.is_internal) {
+        tasks.push(googlePromise);
+      }
+
+      const [dbResponse] = await Promise.all(tasks);
 
       if (dbResponse.error) throw dbResponse.error;
 

@@ -1,14 +1,13 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// --- NEW OAUTH 2.0 FLOW ---
+// --- NEW OAUTH 2.0 FLOW WITH CACHING ---
 
-// Function to get a new access token using the stored refresh token
 async function getAccessToken(supabase) {
-  // 1. Get the refresh token from the database
+  // 1. Intentar obtener el token cacheado
   const { data, error } = await supabase
     .from("google_integration")
-    .select("refresh_token")
+    .select("refresh_token, access_token, expires_at")
     .eq("id", 1)
     .single();
 
@@ -18,9 +17,15 @@ async function getAccessToken(supabase) {
     );
   }
 
-  const refreshToken = data.refresh_token;
+  // 2. Verificar si el token actual aún es válido (con margen de 5 min)
+  const now = new Date();
+  const bufferTime = 5 * 60 * 1000; // 5 minutos de seguridad
+  
+  if (data.access_token && data.expires_at && new Date(data.expires_at).getTime() > (now.getTime() + bufferTime)) {
+    return data.access_token;
+  }
 
-  // 2. Exchange the refresh token for a new access token
+  // 3. Si expiró o no existe, pedir uno nuevo
   const response = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: {
@@ -29,7 +34,7 @@ async function getAccessToken(supabase) {
     body: new URLSearchParams({
       client_id: Deno.env.get("GOOGLE_CLIENT_ID")!,
       client_secret: Deno.env.get("GOOGLE_CLIENT_SECRET")!,
-      refresh_token: refreshToken,
+      refresh_token: data.refresh_token,
       grant_type: "refresh_token",
     }),
   });
@@ -42,6 +47,17 @@ async function getAccessToken(supabase) {
       "Could not refresh Google access token. The integration might need to be re-authorized.",
     );
   }
+
+  // 4. Guardar el nuevo token en la base de datos para la siguiente persona
+  const expiresAt = new Date(now.getTime() + tokens.expires_in * 1000).toISOString();
+  await supabase
+    .from("google_integration")
+    .update({ 
+      access_token: tokens.access_token, 
+      expires_at: expiresAt,
+      updated_at: now.toISOString() 
+    })
+    .eq("id", 1);
 
   return tokens.access_token;
 }
@@ -194,7 +210,6 @@ async function uploadFileToDrive(
 }
 
 async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
-  // Mejoramos el formateo para que sea más robusto y cubra más columnas
   const response = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
     {
@@ -206,7 +221,6 @@ async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
       body: JSON.stringify({
         requests: [
           {
-            // 1. Estilo de Encabezados (Gris, Centrado, Negrita)
             repeatCell: {
               range: {
                 sheetId: sheetId,
@@ -219,7 +233,7 @@ async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
                   horizontalAlignment: "CENTER",
                   textFormat: {
                     bold: true,
-                    fontSize: 10
+                    fontSize: 10,
                   },
                 },
               },
@@ -228,7 +242,6 @@ async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
             },
           },
           {
-            // 2. Congelar la primera fila
             updateSheetProperties: {
               properties: {
                 sheetId: sheetId,
@@ -240,7 +253,6 @@ async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
             },
           },
           {
-            // 3. AUTO-AJUSTE de columnas (Aumentamos rango a 50 columnas)
             autoResizeDimensions: {
               dimensions: {
                 sheetId: sheetId,
@@ -340,9 +352,7 @@ const CORS_HEADERS = {
 
 serve(async (req) => {
   try {
-    console.log("Incoming request URL:", req.url);
     const url = new URL(req.url);
-    console.log("Parsed pathname:", url.pathname);
 
     if (req.method === "OPTIONS") {
       return new Response("ok", { headers: CORS_HEADERS });
@@ -357,7 +367,6 @@ serve(async (req) => {
       }
       try {
         const requestBody = await req.json();
-        console.log("Received request body:", requestBody);
         const {
           formId,
           formTitle,
@@ -404,7 +413,6 @@ serve(async (req) => {
               ...dbFields.map((f: any) => f.label || f.name || "Pregunta"),
             ];
           }
-          // If no fields found, it will just have "Timestamp" for now
         }
 
         // 2. Create Drive Folder and Sheet
@@ -415,9 +423,7 @@ serve(async (req) => {
 
         const sheetInfo = await getFirstSheetName(accessToken, sheetId);
 
-        // 3. Initialize headers and formatting (Run in parallel to save significant time)
-        // We don't strictly need to await all of these before responding to the user,
-        // but we await them here to ensure the sheet is ready.
+        // 3. Initialize headers and formatting
         await Promise.all([
           appendToSheet(accessToken, sheetId, [headers], sheetInfo.name),
           applyInitialFormatting(accessToken, sheetId, sheetInfo.id),
@@ -435,8 +441,6 @@ serve(async (req) => {
           .eq("id", formId);
 
         if (updateError) {
-          console.error("Error updating forms table in Supabase:", updateError);
-          // Even if DB update fails, we have the IDs, but we should throw to let the caller know
           throw new Error(
             `Sheet created but failed to update database: ${updateError.message}`,
           );
@@ -447,7 +451,6 @@ serve(async (req) => {
           headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });
       } catch (err) {
-        console.error("Error in /create-sheet edge function:", err);
         return new Response(
           JSON.stringify({ error: err.message, details: err.stack }),
           {
@@ -457,7 +460,6 @@ serve(async (req) => {
         );
       }
     } else if (url.pathname.endsWith("/sheets-drive-integration")) {
-      // Existing logic for form submission
       if (req.method !== "POST") {
         return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
           status: 405,
@@ -507,7 +509,6 @@ serve(async (req) => {
         let finalHeaders;
 
         if (!sheetId || !folderId) {
-          // Fallback creation
           folderId = await createDriveFolder(accessToken, form.title);
           sheetId = await createGoogleSheet(accessToken, form.title);
 
@@ -563,7 +564,6 @@ serve(async (req) => {
               1,
               finalHeaders,
             );
-            // If it was empty or newly created, apply initial formatting
             if (existingSheetHeaders.length === 0) {
               await applyInitialFormatting(accessToken, sheetId, sheetInfo.id);
             }
@@ -580,6 +580,7 @@ serve(async (req) => {
         };
 
         const fileUrls: Record<string, string> = {};
+        const uploadPromises: Promise<any>[] = [];
 
         for (const key in formData) {
           if (key === "Timestamp") continue;
@@ -591,44 +592,47 @@ serve(async (req) => {
             value.name &&
             value.data
           ) {
-            try {
-              const base64Data = value.data.includes(",")
-                ? value.data.split(",")[1]
-                : value.data;
-              const mimeType =
-                value.data.match(/data:(.*?);base64,/)?.[1] ||
-                "application/octet-stream";
-              const binaryString = atob(base64Data);
-              const binaryData = new Uint8Array(binaryString.length);
-              for (let i = 0; i < binaryString.length; i++) {
-                binaryData[i] = binaryString.charCodeAt(i);
+            const uploadTask = (async () => {
+              try {
+                const base64Data = value.data.includes(",")
+                  ? value.data.split(",")[1]
+                  : value.data;
+                const mimeType =
+                  value.mimeType || "application/octet-stream";
+                const binaryString = atob(base64Data);
+                const binaryData = new Uint8Array(binaryString.length);
+                for (let i = 0; i < binaryString.length; i++) {
+                  binaryData[i] = binaryString.charCodeAt(i);
+                }
+                const fileUrl = await uploadFileToDrive(
+                  accessToken,
+                  folderId,
+                  value.name,
+                  binaryData,
+                  mimeType,
+                );
+                rowData[key] = fileUrl;
+                fileUrls[key] = fileUrl;
+              } catch (fileError) {
+                console.error(`Error uploading file ${value.name}:`, fileError);
+                rowData[key] = `Error uploading file: ${value.name}`;
               }
-              const fileUrl = await uploadFileToDrive(
-                accessToken,
-                folderId,
-                value.name,
-                binaryData,
-                mimeType,
-              );
-              rowData[key] = fileUrl;
-              fileUrls[key] = fileUrl;
-            } catch (fileError) {
-              console.error(`Error uploading file ${value.name}:`, fileError);
-              rowData[key] = `Error uploading file: ${value.name}`;
-            }
+            })();
+            uploadPromises.push(uploadTask);
           } else if (value && typeof value === "object") {
-            // Fix: avoid [object Object] when files are missing or other objects are sent
             rowData[key] = "";
           } else {
             rowData[key] = String(value ?? "");
           }
         }
 
+        // Wait for all uploads in parallel
+        await Promise.all(uploadPromises);
+
         const values = finalHeaders.map((header) => rowData[header] || "");
         await appendToSheet(accessToken, sheetId, [values], sheetInfo.name);
 
-        // OPTIMIZACIÓN: No esperamos (no await) al formateo para responder más rápido.
-        // Google procesará esto en segundo plano mientras el usuario ya ve su mensaje de éxito.
+        // Async formatting - Fire and forget
         formatSheetHeaders(accessToken, sheetId, sheetInfo.id).catch(e => console.error("Formatting error:", e));
 
         return new Response(
