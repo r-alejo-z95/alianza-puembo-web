@@ -194,6 +194,7 @@ async function uploadFileToDrive(
 }
 
 async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
+  // Mejoramos el formateo para que sea más robusto y cubra más columnas
   const response = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
     {
@@ -205,6 +206,7 @@ async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
       body: JSON.stringify({
         requests: [
           {
+            // 1. Estilo de Encabezados (Gris, Centrado, Negrita)
             repeatCell: {
               range: {
                 sheetId: sheetId,
@@ -217,14 +219,16 @@ async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
                   horizontalAlignment: "CENTER",
                   textFormat: {
                     bold: true,
+                    fontSize: 10
                   },
                 },
               },
               fields:
-                "userEnteredFormat(backgroundColor,horizontalAlignment,textFormat.bold)",
+                "userEnteredFormat(backgroundColor,horizontalAlignment,textFormat)",
             },
           },
           {
+            // 2. Congelar la primera fila
             updateSheetProperties: {
               properties: {
                 sheetId: sheetId,
@@ -236,12 +240,13 @@ async function formatSheetHeaders(accessToken, spreadsheetId, sheetId) {
             },
           },
           {
+            // 3. AUTO-AJUSTE de columnas (Aumentamos rango a 50 columnas)
             autoResizeDimensions: {
               dimensions: {
                 sheetId: sheetId,
                 dimension: "COLUMNS",
                 startIndex: 0,
-                endIndex: 30,
+                endIndex: 50,
               },
             },
           },
@@ -622,8 +627,9 @@ serve(async (req) => {
         const values = finalHeaders.map((header) => rowData[header] || "");
         await appendToSheet(accessToken, sheetId, [values], sheetInfo.name);
 
-        // Auto-resize columns on every submission
-        await formatSheetHeaders(accessToken, sheetId, sheetInfo.id);
+        // OPTIMIZACIÓN: No esperamos (no await) al formateo para responder más rápido.
+        // Google procesará esto en segundo plano mientras el usuario ya ve su mensaje de éxito.
+        formatSheetHeaders(accessToken, sheetId, sheetInfo.id).catch(e => console.error("Formatting error:", e));
 
         return new Response(
           JSON.stringify({

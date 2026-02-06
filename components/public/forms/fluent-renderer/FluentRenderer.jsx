@@ -774,46 +774,45 @@ export default function FluentRenderer({ form, isPreview = false }) {
       );
       rawDataForDb.Timestamp = processedData.Timestamp;
 
-      // Solo llamar a la integración de Google si NO es interno
-      if (!form.is_internal) {
-        const { data: googleRes, error: invokeError } = await supabase.functions.invoke("sheets-drive-integration", {
-          body: { formId: form.id, formData: processedData },
-        });
-
-        if (!invokeError && googleRes?.fileUrls) {
-          // Actualizar rawDataForDb con los links reales de Drive antes de guardar en Supabase
-          Object.keys(googleRes.fileUrls).forEach(key => {
-            if (rawDataForDb[key] && typeof rawDataForDb[key] === 'object') {
-              rawDataForDb[key].url = googleRes.fileUrls[key];
-              rawDataForDb[key].webViewLink = googleRes.fileUrls[key];
-            }
-          });
-        }
-      }
-
+      // 1. Preparamos las tareas asíncronas
       const submissionData = {
         form_id: form.id,
         data: rawDataForDb,
         user_agent: navigator.userAgent,
       };
 
-      // Solo incluir user_id si el formulario es interno
       if (form.is_internal && user?.id) {
         submissionData.user_id = user.id;
       }
 
-      const { error } = await supabase
-        .from("form_submissions")
-        .insert([submissionData]);
-
-      if (error) {
-        console.error("Supabase Submission Error:", error);
-        throw error;
+      // 2. Ejecutamos tareas en PARALELO para máxima velocidad
+      // Primero disparamos la integración de Google porque necesitamos sus links si los hay
+      let googlePromise = Promise.resolve({ data: null, error: null });
+      if (!form.is_internal) {
+        googlePromise = supabase.functions.invoke("sheets-drive-integration", {
+          body: { formId: form.id, formData: processedData },
+        });
       }
 
-      // 3. Notificar al autor del formulario (Dashboard + Email)
-      // Pasamos el ID del usuario actual si es interno para personalizar el mensaje
-      await notifyFormSubmission(form.title, form.slug, form.user_id, user?.id);
+      // Esperamos a Google para tener los links de los archivos (es la tarea crítica)
+      const { data: googleRes, error: invokeError } = await googlePromise;
+
+      if (!invokeError && googleRes?.fileUrls) {
+        Object.keys(googleRes.fileUrls).forEach(key => {
+          if (rawDataForDb[key] && typeof rawDataForDb[key] === 'object') {
+            rawDataForDb[key].url = googleRes.fileUrls[key];
+            rawDataForDb[key].webViewLink = googleRes.fileUrls[key];
+          }
+        });
+      }
+
+      // Ahora que tenemos los links (si los hubo), disparamos el resto en paralelo sin bloquearnos entre sí
+      const [dbResponse] = await Promise.all([
+        supabase.from("form_submissions").insert([submissionData]),
+        notifyFormSubmission(form.title, form.slug, form.user_id, user?.id)
+      ]);
+
+      if (dbResponse.error) throw dbResponse.error;
 
       setSubmissionStatus("success");
       reset();
