@@ -59,7 +59,7 @@ export function IntroSection({
 
               <h2
                 className={cn(
-                  "text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gray-900 leading-tight tracking-tight",
+                  "text-3xl md:text-5xl lg:text-5xl font-serif font-bold text-gray-900 leading-tight tracking-tight",
                   titleColor
                 )}
               >
@@ -70,7 +70,7 @@ export function IntroSection({
                 {descriptionParagraphs.map((paragraph, index) => (
                   <p
                     key={index}
-                    className="text-lg md:text-xl text-gray-500 font-light leading-relaxed"
+                    className="text-base md:text-lg lg:text-xl text-gray-500 font-light leading-relaxed"
                   >
                     {paragraph}
                   </p>
@@ -110,7 +110,7 @@ export function IntroSection({
               transition={{ duration: 0.8 }}
               className="w-full md:w-1/2 relative group"
             >
-              <div className="relative aspect-[4/3] rounded-[2.5rem] overflow-hidden shadow-2xl z-10">
+              <div className="relative aspect-video rounded-[2.5rem] overflow-hidden shadow-2xl z-10">
                 <Image
                   src={imageUrl}
                   alt={imageAlt}

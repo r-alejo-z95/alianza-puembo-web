@@ -32,16 +32,11 @@ export function Navbar() {
     <>
       <nav
         className={cn(
-          "top-0 z-[100] w-full transition-all duration-500 ease-in-out max-w-[100vw]",
-          // Usamos fixed en la Home para que el contenido empiece desde arriba (detrás del nav)
-          // Usamos sticky en el resto para un flujo natural
-          isHomepage ? "fixed" : "sticky md:sticky",
-          // Fondo sólido en móvil siempre. En desktop transparencia condicional en Home.
-          "bg-black py-3 md:py-4 shadow-2xl border-transparent",
-          isHomepage &&
-            !scrolled &&
-            !activeMenu &&
-            "md:bg-transparent md:py-8 md:shadow-none"
+          "fixed top-0 z-[100] w-full transition-all duration-500 ease-in-out max-w-[100vw] border-transparent",
+          // Fondo y padding dinámico
+          !scrolled && !activeMenu && isHomepage
+            ? "bg-transparent py-4 md:py-6"
+            : "bg-black backdrop-blur-xl py-2.5 md:py-3 shadow-2x"
         )}
         onMouseLeave={() => setActiveMenu(null)}
       >
