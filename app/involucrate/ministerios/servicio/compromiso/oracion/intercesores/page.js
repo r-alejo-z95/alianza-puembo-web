@@ -56,6 +56,12 @@ export default function Intercesores() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Compromiso", href: "/ministerios/compromiso" },
+          { name: "Oración", href: "/ministerios/oracion" },
+        ]}
+        current="Intercesores"
         backLink="/ministerios/oracion" 
         backLabel="Volver a Oración" 
       />

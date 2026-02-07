@@ -55,7 +55,7 @@ export default function CuidadoPastoral() {
       imageAlt="Cuidado Pastoral"
       introSectionData={introSectionData}
     >
-      <MinistryNavigation />
+      <MinistryNavigation current="Cuidado Pastoral" />
       <MinistryContentSection {...careMinistriesData} />
     </PublicPageLayout>
   );

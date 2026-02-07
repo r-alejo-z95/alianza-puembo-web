@@ -55,7 +55,7 @@ export default function Servicio() {
       imageAlt="Ministerios de Servicio"
       introSectionData={introSectionData}
     >
-      <MinistryNavigation />
+      <MinistryNavigation current="Servicio" />
       <MinistryContentSection {...serviceAreasData} />
     </PublicPageLayout>
   );

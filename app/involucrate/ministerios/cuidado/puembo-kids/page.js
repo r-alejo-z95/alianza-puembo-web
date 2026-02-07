@@ -73,6 +73,8 @@ export default function PuemboKids() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[{ name: "Cuidado Pastoral", href: "/ministerios/cuidado" }]}
+        current="Puembo Kids"
         backLink="/ministerios/cuidado" 
         backLabel="Volver a Cuidado Pastoral" 
       />

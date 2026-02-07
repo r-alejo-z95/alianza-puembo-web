@@ -56,6 +56,12 @@ export default function CirculosDeOracion() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Compromiso", href: "/ministerios/compromiso" },
+          { name: "Oración", href: "/ministerios/oracion" }
+        ]}
+        current="Círculos de Oración"
         backLink="/ministerios/oracion" 
         backLabel="Volver a Oración" 
       />

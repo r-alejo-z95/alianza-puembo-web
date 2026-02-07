@@ -56,6 +56,12 @@ export default function Legado() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Conexión", href: "/ministerios/conexion" },
+          { name: "Eventos", href: "/ministerios/eventos-conexion" }
+        ]}
+        current="Legado"
         backLink="/ministerios/eventos-conexion" 
         backLabel="Volver a Eventos" 
       />

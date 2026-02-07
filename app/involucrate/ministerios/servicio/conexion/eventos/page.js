@@ -62,6 +62,11 @@ export default function Eventos() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Conexión", href: "/ministerios/conexion" }
+        ]}
+        current="Eventos"
         backLink="/ministerios/conexion" 
         backLabel="Volver a Conexión" 
       />

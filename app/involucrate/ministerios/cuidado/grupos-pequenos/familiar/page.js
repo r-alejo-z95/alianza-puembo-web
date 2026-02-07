@@ -56,6 +56,11 @@ export default function GPFamiliares() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Cuidado Pastoral", href: "/ministerios/cuidado" },
+          { name: "Grupos Pequeños", href: "/ministerios/grupos-pequenos" }
+        ]}
+        current="GP Familiares"
         backLink="/ministerios/grupos-pequenos" 
         backLabel="Volver a Grupos Pequeños" 
       />

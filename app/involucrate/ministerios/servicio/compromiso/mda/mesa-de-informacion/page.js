@@ -56,6 +56,12 @@ export default function MesaDeInformacion() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Compromiso", href: "/ministerios/compromiso" },
+          { name: "MDA", href: "/ministerios/mda" }
+        ]}
+        current="Punto de Información"
         backLink="/ministerios/mda" 
         backLabel="Volver a MDA" 
       />

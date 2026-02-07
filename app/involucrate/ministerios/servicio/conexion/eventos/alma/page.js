@@ -56,6 +56,12 @@ export default function Alma() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Conexión", href: "/ministerios/conexion" },
+          { name: "Eventos", href: "/ministerios/eventos-conexion" },
+        ]}
+        current="Alma"
         backLink="/ministerios/eventos-conexion" 
         backLabel="Volver a Eventos" 
       />

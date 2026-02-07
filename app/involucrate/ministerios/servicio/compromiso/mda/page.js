@@ -68,6 +68,11 @@ export default function MDA() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Compromiso", href: "/ministerios/compromiso" }
+        ]}
+        current="MDA"
         backLink="/ministerios/compromiso" 
         backLabel="Volver a Compromiso" 
       />

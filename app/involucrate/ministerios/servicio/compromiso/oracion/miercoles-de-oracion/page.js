@@ -56,6 +56,12 @@ export default function MiercolesDeOracion() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Compromiso", href: "/ministerios/compromiso" },
+          { name: "Oración", href: "/ministerios/oracion" }
+        ]}
+        current="Miércoles de Oración"
         backLink="/ministerios/oracion" 
         backLabel="Volver a Oración" 
       />

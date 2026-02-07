@@ -64,6 +64,8 @@ export default function GruposPequenos() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[{ name: "Cuidado Pastoral", href: "/ministerios/cuidado" }]}
+        current="Grupos Pequeños"
         backLink="/ministerios/cuidado" 
         backLabel="Volver a Cuidado Pastoral" 
       />

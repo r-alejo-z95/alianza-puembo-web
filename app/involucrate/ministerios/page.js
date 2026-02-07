@@ -1,5 +1,6 @@
 import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLayout";
 import { MinistryMap } from "@/components/public/layout/pages/involucrate/ministerios/MinistryMap";
+import { MinistryNavigation } from "@/components/public/layout/pages/involucrate/ministerios/MinistryNavigation";
 import { menuItems } from "@/components/public/layout/navbar/config";
 
 export const metadata = {
@@ -31,6 +32,9 @@ export default function Ministerios() {
       introSectionData={introSectionData}
     >
       <MinistryMap menuItems={menuItems} />
+      <div className="pb-12">
+        <MinistryNavigation current="Mapa de Ministerios" />
+      </div>
     </PublicPageLayout>
   );
 }

@@ -62,6 +62,8 @@ export default function Crecimiento() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[{ name: "Servicio", href: "/ministerios/servicio" }]}
+        current="Crecimiento"
         backLink="/ministerios/servicio" 
         backLabel="Volver a Servicio" 
       />

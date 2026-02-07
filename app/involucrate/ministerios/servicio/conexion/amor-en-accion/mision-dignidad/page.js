@@ -58,6 +58,12 @@ export default function MisionDignidad() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Conexión", href: "/ministerios/conexion" },
+          { name: "Amor en Acción", href: "/ministerios/amor-en-accion" },
+        ]}
+        current="Misión Dignidad"
         backLink="/ministerios/amor-en-accion" 
         backLabel="Volver a Amor en Acción" 
       />

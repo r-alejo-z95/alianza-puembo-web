@@ -56,6 +56,11 @@ export default function CulturaFinanciera() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Crecimiento", href: "/ministerios/crecimiento" }
+        ]}
+        current="Cultura Financiera"
         backLink="/ministerios/crecimiento" 
         backLabel="Volver a Crecimiento" 
       />

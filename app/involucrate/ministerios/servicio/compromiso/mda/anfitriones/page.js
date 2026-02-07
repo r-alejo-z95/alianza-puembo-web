@@ -56,6 +56,12 @@ export default function Anfitriones() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Compromiso", href: "/ministerios/compromiso" },
+          { name: "MDA", href: "/ministerios/mda" },
+        ]}
+        current="Anfitriones"
         backLink="/ministerios/mda" 
         backLabel="Volver a MDA" 
       />

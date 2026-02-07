@@ -56,6 +56,8 @@ export default function Compromiso() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[{ name: "Servicio", href: "/ministerios/servicio" }]}
+        current="Compromiso"
         backLink="/ministerios/servicio" 
         backLabel="Volver a Servicio" 
       />

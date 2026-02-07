@@ -56,6 +56,11 @@ export default function Oracion() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Compromiso", href: "/ministerios/compromiso" }
+        ]}
+        current="Oración"
         backLink="/ministerios/compromiso" 
         backLabel="Volver a Compromiso" 
       />

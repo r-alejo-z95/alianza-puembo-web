@@ -56,6 +56,8 @@ export default function Conexion() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[{ name: "Servicio", href: "/ministerios/servicio" }]}
+        current="Conexión"
         backLink="/ministerios/servicio" 
         backLabel="Volver a Servicio" 
       />

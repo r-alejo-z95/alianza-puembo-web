@@ -74,6 +74,11 @@ export default function AmorEnAccion() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Conexión", href: "/ministerios/conexion" }
+        ]}
+        current="Amor en Acción"
         backLink="/ministerios/conexion" 
         backLabel="Volver a Conexión" 
       />

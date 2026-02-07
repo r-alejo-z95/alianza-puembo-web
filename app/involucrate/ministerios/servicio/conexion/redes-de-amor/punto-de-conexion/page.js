@@ -56,6 +56,12 @@ export default function PuntoDeConexion() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Conexión", href: "/ministerios/conexion" },
+          { name: "Redes de Amor", href: "/ministerios/redes-de-amor" }
+        ]}
+        current="Punto Conexión"
         backLink="/ministerios/redes-de-amor" 
         backLabel="Volver a Redes de Amor" 
       />

@@ -56,6 +56,12 @@ export default function Pescadores() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Conexión", href: "/ministerios/conexion" },
+          { name: "Redes de Amor", href: "/ministerios/redes-de-amor" },
+        ]}
+        current="Pescadores"
         backLink="/ministerios/redes-de-amor" 
         backLabel="Volver a Redes de Amor" 
       />

@@ -50,6 +50,11 @@ export default function RedesDeAmor() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Conexión", href: "/ministerios/conexion" }
+        ]}
+        current="Redes de Amor"
         backLink="/ministerios/conexion" 
         backLabel="Volver a Conexión" 
       />

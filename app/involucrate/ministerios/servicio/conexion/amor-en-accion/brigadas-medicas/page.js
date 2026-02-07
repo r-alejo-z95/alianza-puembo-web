@@ -56,6 +56,12 @@ export default function BrigadasMedicas() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Conexión", href: "/ministerios/conexion" },
+          { name: "Amor en Acción", href: "/ministerios/amor-en-accion" }
+        ]}
+        current="Brigadas Médicas"
         backLink="/ministerios/amor-en-accion" 
         backLabel="Volver a Amor en Acción" 
       />

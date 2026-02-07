@@ -58,6 +58,11 @@ export default function Mat() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[
+          { name: "Servicio", href: "/ministerios/servicio" },
+          { name: "Compromiso", href: "/ministerios/compromiso" }
+        ]}
+        current="MAT"
         backLink="/ministerios/compromiso" 
         backLabel="Volver a Compromiso" 
       />

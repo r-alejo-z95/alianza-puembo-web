@@ -65,6 +65,8 @@ export default function Jovenes() {
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
+        hierarchy={[{ name: "Cuidado Pastoral", href: "/ministerios/cuidado" }]}
+        current="Jóvenes"
         backLink="/ministerios/cuidado" 
         backLabel="Volver a Cuidado Pastoral" 
       />
