@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils.ts";
 import { menuItems, socialLinks } from "./config";
-import { Menu, X, ArrowRight } from "lucide-react";
+import { Menu, X, ArrowRight, ChevronRight } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -180,37 +180,144 @@ export function Navbar() {
             className="fixed inset-0 z-[95] bg-black flex flex-col"
           >
             <div className="flex-grow overflow-y-auto px-8 pt-28 pb-12">
-              <div className="space-y-10">
-                {menuItems.map((item, idx) => (
-                  <motion.div
-                    key={item.name}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 + idx * 0.05 }}
-                  >
-                    <Link
-                      href={item.href || "#"}
-                      className="text-4xl font-serif font-bold text-white hover:text-[var(--puembo-green)] transition-colors block"
-                      onClick={() => setIsMobileMenuOpen(false)}
+              <div className="space-y-6">
+                {menuItems.map((item, idx) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <motion.div
+                      key={item.name}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 + idx * 0.05 }}
+                      className="border-b border-white/5 pb-6"
                     >
-                      {item.name}
-                    </Link>
-                    {item.subroutes && (
-                      <div className="mt-4 ml-2 space-y-4 border-l border-white/10 pl-6">
-                        {item.subroutes.slice(0, 4).map((sub) => (
-                          <Link
-                            key={sub.name}
-                            href={sub.href}
-                            className="block text-xl text-gray-500 hover:text-white transition-colors"
-                            onClick={() => setIsMobileMenuOpen(false)}
+                      <div className="flex items-center justify-between">
+                        {item.subroutes ? (
+                          <button
+                            onClick={() =>
+                              setActiveMenu(
+                                activeMenu === item.name ? null : item.name
+                              )
+                            }
+                            className={cn(
+                              "text-3xl font-serif font-bold transition-colors text-left",
+                              isActive
+                                ? "text-[var(--puembo-green)]"
+                                : "text-white hover:text-[var(--puembo-green)]"
+                            )}
                           >
-                            {sub.name}
+                            {item.name}
+                          </button>
+                        ) : (
+                          <Link
+                            href={item.href || "#"}
+                            className={cn(
+                              "text-3xl font-serif font-bold transition-colors",
+                              isActive
+                                ? "text-[var(--puembo-green)]"
+                                : "text-white hover:text-[var(--puembo-green)]"
+                            )}
+                            onClick={(e) => {
+                              if (pathname === item.href) {
+                                e.preventDefault();
+                                setIsMobileMenuOpen(false);
+                              }
+                              // Si es una ruta nueva, no cerramos aquí. 
+                              // El useEffect[pathname] lo hará al cargar.
+                            }}
+                          >
+                            {item.name}
                           </Link>
-                        ))}
+                        )}
+
+                        {item.subroutes && (
+                          <button
+                            onClick={() =>
+                              setActiveMenu(
+                                activeMenu === item.name ? null : item.name
+                              )
+                            }
+                            className="p-2 text-white/40 hover:text-[var(--puembo-green)] transition-colors"
+                          >
+                            <motion.div
+                              animate={{
+                                rotate: activeMenu === item.name ? 90 : 0,
+                              }}
+                              transition={{ duration: 0.3 }}
+                            >
+                              <ChevronRight className="w-6 h-6" />
+                            </motion.div>
+                          </button>
+                        )}
                       </div>
-                    )}
-                  </motion.div>
-                ))}
+
+                      <AnimatePresence>
+                        {item.subroutes && activeMenu === item.name && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.4, ease: "circOut" }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mt-6 ml-2 space-y-5 border-l border-[var(--puembo-green)]/20 pl-6">
+                              {item.subroutes.map((sub) => {
+                                const isSubActive = pathname === sub.href;
+                                return (
+                                  <div key={sub.name} className="space-y-2">
+                                    <Link
+                                      href={sub.href}
+                                      className={cn(
+                                        "block text-lg font-bold transition-colors",
+                                        isSubActive
+                                          ? "text-[var(--puembo-green)]"
+                                          : "text-white/80 hover:text-[var(--puembo-green)]"
+                                      )}
+                                      onClick={(e) => {
+                                        if (pathname === sub.href) {
+                                          e.preventDefault();
+                                          setIsMobileMenuOpen(false);
+                                        }
+                                      }}
+                                    >
+                                      {sub.name}
+                                    </Link>
+                                    {sub.description && (
+                                      <p className="text-[10px] text-gray-500 uppercase tracking-widest leading-relaxed">
+                                        {sub.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                              {/* Link directo a la página principal de la sección */}
+                              {item.href && (
+                                <Link
+                                  href={item.href}
+                                  className={cn(
+                                    "inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] pt-2 transition-colors",
+                                    isActive
+                                      ? "text-[var(--puembo-green)]"
+                                      : "text-white/40 hover:text-[var(--puembo-green)]"
+                                  )}
+                                  onClick={(e) => {
+                                    if (pathname === item.href) {
+                                      e.preventDefault();
+                                      setIsMobileMenuOpen(false);
+                                    }
+                                  }}
+                                >
+                                  Ver Todo {item.name}{" "}
+                                  <ArrowRight className="w-3 h-3" />
+                                </Link>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
 

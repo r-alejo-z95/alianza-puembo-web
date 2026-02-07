@@ -23,6 +23,7 @@ export const socialLinks = [
 export const menuItems = [
   {
     name: "Conócenos",
+    href: "/conocenos",
     subroutes: [
       {
         name: "Equipo",
@@ -38,6 +39,7 @@ export const menuItems = [
   },
   {
     name: "Eventos",
+    href: "/eventos",
     subroutes: [
       {
         name: "Próximos eventos",
@@ -53,6 +55,7 @@ export const menuItems = [
   },
   {
     name: "Involúcrate",
+    href: "/involucrate",
     subroutes: [
       {
         name: "Ruta",
@@ -298,6 +301,7 @@ export const menuItems = [
   },
   {
     name: "Recursos",
+    href: "/recursos",
     subroutes: [
       {
         name: "Prédicas",
