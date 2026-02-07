@@ -18,7 +18,7 @@ export default function Cautivante() {
       "Cautivante es un evento diseñado para inspirar y empoderar a las mujeres. Es un espacio donde cada mujer puede descubrir su verdadera belleza, valor y propósito en Dios, liberándose de las ataduras y viviendo una vida plena y cautivante.",
       "A través de mensajes inspiradores, tiempos de adoración y compañerismo, buscamos que cada mujer se sienta amada, restaurada y fortalecida en su identidad en Cristo.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/cautivante/Cautivante.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/cautivante/Cautivante.avif",
     imageAlt: "Mujeres adorando en un evento",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function Cautivante() {
     <PublicPageLayout
       title="Evento Cautivante"
       description="Descubre tu belleza, valor y propósito en Dios."
-      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/cautivante/Cautivante.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/cautivante/header.avif"
       imageAlt="Evento Cautivante"
       introSectionData={introSectionData}
     >

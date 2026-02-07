@@ -18,7 +18,7 @@ export default function CulturaFinanciera() {
       "El ministerio de Cultura Financiera te equipa con principios bíblicos y herramientas prácticas para administrar tus recursos de manera sabia y que honre a Dios. Creemos que la libertad financiera es posible cuando aplicamos la sabiduría divina a nuestras decisiones económicas.",
       "Aprende a presupuestar, ahorrar, invertir y dar con generosidad, transformando tu relación con el dinero y experimentando la bendición de Dios en tus finanzas.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/crecimiento/cultura-financiera/CulturaFinanciera.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/crecimiento/cultura-financiera/CulturaFinanciera.avif",
     imageAlt: "Persona revisando sus finanzas en una computadora",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function CulturaFinanciera() {
     <PublicPageLayout
       title="Cultura Financiera"
       description="Administrando tus finanzas con sabiduría y propósito."
-      imageUrl="/involucrate/ministerios/servicio/crecimiento/cultura-financiera/CulturaFinanciera.jpg"
+      imageUrl="/involucrate/ministerios/servicio/crecimiento/cultura-financiera/header.avif"
       imageAlt="Cultura Financiera"
       introSectionData={introSectionData}
     >

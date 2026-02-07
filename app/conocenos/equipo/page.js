@@ -14,7 +14,7 @@ export default function Equipo() {
     <PublicPageLayout
       title="Equipo Ministerial"
       description="Conoce al equipo que lidera nuestra Iglesia"
-      imageUrl="/conocenos/equipo/Equipo.jpg"
+      imageUrl="/conocenos/equipo/Equipo.avif"
       imageAlt="Equipo ministerial en el aniversario de la iglesia"
     >
       <TeamClient />

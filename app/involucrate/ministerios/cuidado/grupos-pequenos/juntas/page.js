@@ -18,7 +18,7 @@ export default function GPJuntas() {
       "Juntas es nuestro ministerio de grupos pequeños para mujeres. Ofrecemos un ambiente cálido y de apoyo donde las mujeres pueden conectar, compartir sus vidas, y crecer en su relación con Dios y entre ellas.",
       "Creemos que juntas somos más fuertes. Te invitamos a ser parte de esta comunidad de mujeres que se aman, se animan y sirven a Dios con pasión.",
     ],
-    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/juntas/Juntas.jpg",
+    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/juntas/Juntas.avif",
     imageAlt: "Mujeres compartiendo y riendo juntas",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function GPJuntas() {
     <PublicPageLayout
       title="GP Juntas (Mujeres)"
       description="Creciendo juntas en fe, amistad y propósito."
-      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/juntas/Juntas.jpg"
+      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/juntas/header.avif"
       imageAlt="GP Juntas"
       introSectionData={introSectionData}
     >

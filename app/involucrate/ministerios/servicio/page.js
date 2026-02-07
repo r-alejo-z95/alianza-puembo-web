@@ -18,7 +18,7 @@ export default function Servicio() {
       "En Alianza Puembo, el servicio es la expresión de nuestra gratitud. Tenemos diversas áreas donde puedes poner tus dones y talentos al servicio de los demás, impactando nuestra ciudad y extendiendo el Reino de Dios.",
       "Explora nuestras áreas de Conexión, Crecimiento y Compromiso para encontrar el equipo que mejor se alinee con tu corazón y pasión.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/Servicio.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/Servicio.avif",
     imageAlt: "Personas sirviendo juntas",
     imagePosition: "right",
   };
@@ -28,21 +28,21 @@ export default function Servicio() {
     items: [
       {
         type: "link",
-        href: "/ministerios/amor-en-accion",
-        itemTitle: "Conexión (Amor en Acción)",
-        itemDescription: "Proyectos sociales y de alcance comunitario.",
+        href: "/ministerios/conexion",
+        itemTitle: "Conexión",
+        itemDescription: "Alcanzando a nuestra comunidad a través de eventos, proyectos sociales y evangelismo.",
       },
       {
         type: "link",
         href: "/ministerios/crecimiento",
-        itemTitle: "Crecimiento Espiritual",
-        itemDescription: "Equipos de enseñanza, discipulado y sanidad.",
+        itemTitle: "Crecimiento",
+        itemDescription: "Fomentando la madurez espiritual, el discipulado y la sanidad interior.",
       },
       {
         type: "link",
-        href: "/ministerios/mda",
-        itemTitle: "Compromiso (MDA y Oración)",
-        itemDescription: "Ministerios de apoyo y el motor de la oración.",
+        href: "/ministerios/compromiso",
+        itemTitle: "Compromiso",
+        itemDescription: "Equipos dedicados a la adoración, el apoyo logístico y el motor de la oración.",
       },
     ],
   };
@@ -51,7 +51,7 @@ export default function Servicio() {
     <PublicPageLayout
       title="Servicio"
       description="Manos que transforman vidas."
-      imageUrl="/involucrate/ministerios/servicio/Servicio.jpg"
+      imageUrl="/involucrate/ministerios/servicio/header.avif"
       imageAlt="Ministerios de Servicio"
       introSectionData={introSectionData}
     >

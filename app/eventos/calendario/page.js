@@ -18,7 +18,7 @@ export default async function CalendarioPage() {
     <PublicPageLayout
       title="Calendario"
       description="Explora todas nuestras actividades y eventos programados."
-      imageUrl="/eventos/Calendario.jpg"
+      imageUrl="/eventos/Calendario.avif"
       imageAlt="Calendario de la iglesia"
     >
       <ClientEventsProvider initialEvents={initialEvents}>

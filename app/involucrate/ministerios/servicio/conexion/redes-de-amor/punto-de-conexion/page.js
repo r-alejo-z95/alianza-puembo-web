@@ -18,7 +18,7 @@ export default function PuntoDeConexion() {
       "Punto Conexión es el puente diseñado específicamente para que las personas nuevas se integren con facilidad a nuestra comunidad.",
       "Nuestra razón de ser es ayudarte a conocer nuestra visión, resolver tus dudas y facilitarte el camino para que te sientas parte de esta familia de familias desde el primer día.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion/PuntoDeConexion.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion/PuntoDeConexion.avif",
     imageAlt: "Punto Conexión",
     imagePosition: "right",
   };
@@ -51,12 +51,12 @@ export default function PuntoDeConexion() {
     <PublicPageLayout
       title="Punto Conexión"
       description="Conecta personas nuevas con la comunidad."
-      imageUrl="/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion/PuntoDeConexion.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion/header.avif"
       imageAlt="Punto Conexión"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
+        backLink="/ministerios/redes-de-amor" 
         backLabel="Volver a Redes de Amor" 
       />
       <MinistryContentSection {...programDetailsData} />

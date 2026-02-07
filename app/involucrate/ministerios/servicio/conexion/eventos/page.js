@@ -18,7 +18,7 @@ export default function Eventos() {
       "Nuestros eventos de conexión son oportunidades únicas para invitar a amigos y familiares, y para crecer en áreas específicas de tu vida. Cada evento está diseñado con un propósito claro y un ambiente inspirador.",
       "Explora nuestros eventos anuales y sé parte de estas experiencias transformadoras.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/Eventos.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/Eventos.avif",
     imageAlt: "Multitud en un evento de la iglesia",
     imagePosition: "right",
   };
@@ -57,13 +57,13 @@ export default function Eventos() {
     <PublicPageLayout
       title="Eventos de Conexión"
       description="Experiencias diseñadas para conectar y transformar."
-      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/Eventos.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/header.avif"
       imageAlt="Eventos de Conexión"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
-        backLabel="Volver a Servicio" 
+        backLink="/ministerios/conexion" 
+        backLabel="Volver a Conexión" 
       />
       <MinistryContentSection {...eventsListData} />
     </PublicPageLayout>

@@ -18,7 +18,7 @@ export default function AcademiaBiblica() {
       "La Academia Bíblica de Alianza Puembo es un espacio dedicado al estudio sistemático y profundo de la Palabra de Dios. Creemos que el conocimiento de las Escrituras es fundamental para el crecimiento espiritual y la formación de discípulos maduros.",
       "Ofrecemos una variedad de cursos y seminarios diseñados para equiparte con herramientas de interpretación bíblica, teología y aplicación práctica para tu vida diaria.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/crecimiento/academia-biblica/AcademiaBiblica.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/crecimiento/academia-biblica/AcademiaBiblica.avif",
     imageAlt: "Estudiantes en un aula de estudio bíblico",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function AcademiaBiblica() {
     <PublicPageLayout
       title="Academia Bíblica"
       description="Cursos y seminarios para profundizar en la Palabra de Dios."
-      imageUrl="/involucrate/ministerios/servicio/crecimiento/academia-biblica/AcademiaBiblica.jpg"
+      imageUrl="/involucrate/ministerios/servicio/crecimiento/academia-biblica/header.avif"
       imageAlt="Academia Bíblica"
       introSectionData={introSectionData}
     >

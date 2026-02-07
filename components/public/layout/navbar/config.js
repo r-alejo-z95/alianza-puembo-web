@@ -114,6 +114,7 @@ export const menuItems = [
             subroutes: [
               {
                 name: "Conexión",
+                href: "/ministerios/conexion",
                 subroutes: [
                   {
                     name: "Eventos",

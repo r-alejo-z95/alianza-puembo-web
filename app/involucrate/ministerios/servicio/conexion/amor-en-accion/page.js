@@ -18,7 +18,7 @@ export default function AmorEnAccion() {
       "Amor en Acción es el corazón de nuestro servicio a la comunidad. A través de diversos proyectos, buscamos llevar esperanza, ayuda y el amor de Cristo a quienes más lo necesitan, demostrando nuestra fe con obras concretas que honran a las personas.",
       "Te invitamos a unirte a nuestras iniciativas y ser parte de la transformación de vidas y comunidades a través de la generosidad radical.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/AmorEnAccion.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/AmorEnAccion.avif",
     imageAlt: "Voluntarios entregando ayuda a personas necesitadas",
     imagePosition: "right",
   };
@@ -69,13 +69,13 @@ export default function AmorEnAccion() {
     <PublicPageLayout
       title="Amor en Acción"
       description="Proyectos de servicio que demuestran el amor de Dios."
-      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/AmorEnAccion.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/header.avif"
       imageAlt="Amor en Acción"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
-        backLabel="Volver a Servicio" 
+        backLink="/ministerios/conexion" 
+        backLabel="Volver a Conexión" 
       />
       <MinistryContentSection {...projectsListData} />
     </PublicPageLayout>

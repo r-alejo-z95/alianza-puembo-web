@@ -18,7 +18,7 @@ export default function Intercesores() {
       "El ministerio de Intercesores es un equipo de creyentes dedicados a la intercesión profética por la iglesia, sus líderes, las familias y las necesidades de la comunidad. Creemos que la intercesión es una herramienta poderosa para desatar el poder de Dios y ver su voluntad manifestada en la tierra.",
       "Nos reunimos regularmente para orar con pasión y fe, creyendo que nuestras oraciones hacen una diferencia. Si tienes un corazón para la intercesión, te invitamos a unirte a este ejército de oración.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/intercesores/Intercesores.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/intercesores/Intercesores.avif",
     imageAlt: "Grupo de intercesores orando con fervor",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function Intercesores() {
     <PublicPageLayout
       title="Intercesores"
       description="Clamando por el Reino de Dios."
-      imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/intercesores/Intercesores.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/intercesores/header.avif"
       imageAlt="Intercesores"
       introSectionData={introSectionData}
     >

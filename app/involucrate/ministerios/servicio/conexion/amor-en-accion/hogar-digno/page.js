@@ -18,7 +18,7 @@ export default function HogarDigno() {
       "Hogar Digno es un proyecto que busca mejorar las condiciones de vivienda de familias en situación de vulnerabilidad. Creemos que un hogar seguro y digno es fundamental para el bienestar y el desarrollo de las personas.",
       "A través de reparaciones, adecuaciones y provisión de enseres básicos, transformamos espacios en hogares de esperanza, brindando un ambiente de paz y seguridad.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/hogar-digno/HogarDigno.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/hogar-digno/HogarDigno.avif",
     imageAlt: "Voluntarios trabajando en la mejora de una vivienda",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function HogarDigno() {
     <PublicPageLayout
       title="Hogar Digno"
       description="Transformando espacios en hogares de esperanza."
-      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/hogar-digno/HogarDigno.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/hogar-digno/header.avif"
       imageAlt="Hogar Digno"
       introSectionData={introSectionData}
     >

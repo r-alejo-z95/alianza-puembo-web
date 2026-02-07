@@ -18,7 +18,7 @@ export default function Oracion() {
       "Creemos que la oración no es solo una actividad, sino el aliento de vida de nuestra iglesia. En Alianza Puembo, buscamos el rostro de Dios de manera constante y apasionada, sabiendo que Él escucha y responde el clamor de Sus hijos.",
       "Te invitamos a sumarte a nuestros diversos espacios de intercesión, donde juntos levantamos nuestras peticiones y agradecimientos delante del Trono de la Gracia.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/Oracion.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/Oracion.avif",
     imageAlt: "Persona orando",
     imagePosition: "right",
   };
@@ -51,13 +51,13 @@ export default function Oracion() {
     <PublicPageLayout
       title="Oración"
       description="El motor espiritual de nuestra familia."
-      imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/Oracion.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/header.avif"
       imageAlt="Oración"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
-        backLabel="Volver a Servicio" 
+        backLink="/ministerios/compromiso" 
+        backLabel="Volver a Compromiso" 
       />
       <MinistryContentSection {...prayerGroupsData} />
     </PublicPageLayout>

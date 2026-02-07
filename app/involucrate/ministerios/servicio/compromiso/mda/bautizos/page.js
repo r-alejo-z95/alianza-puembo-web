@@ -18,7 +18,7 @@ export default function Bautizos() {
       "El ministerio de Bautizos tiene el honor de apoyar en la organización y desarrollo de las ceremonias de bautismo, un momento trascendental en la vida de un creyente. Nos aseguramos de que cada detalle esté cuidado para que sea una experiencia memorable y significativa para quienes dan este paso de fe.",
       "Si deseas ser parte de este hermoso ministerio que celebra la decisión de seguir a Cristo, te invitamos a unirte a nuestro equipo.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/bautizos/Bautizos.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/bautizos/Bautizos.avif",
     imageAlt: "Persona siendo bautizada en el agua",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function Bautizos() {
     <PublicPageLayout
       title="Bautizos"
       description="Celebrando un nuevo comienzo en Cristo."
-      imageUrl="/involucrate/ministerios/servicio/compromiso/mda/bautizos/Bautizos.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/mda/bautizos/header.avif"
       imageAlt="Bautizos"
       introSectionData={introSectionData}
     >

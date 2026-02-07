@@ -18,7 +18,7 @@ export default function Alma() {
       "Alma es nuestro evento anual para matrimonios. Es un tiempo especial, lejos de la rutina, para que las parejas puedan reconectar, fortalecer su relación y recibir herramientas prácticas para construir un matrimonio sólido y duradero.",
       "A través de conferencias, talleres y tiempos de calidad, buscamos equipar a los matrimonios para que reflejen el amor de Cristo.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/alma/Alma.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/alma/Alma.avif",
     imageAlt: "Pareja de esposos abrazados y sonriendo",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function Alma() {
     <PublicPageLayout
       title="Evento Alma"
       description="Fortaleciendo matrimonios para la gloria de Dios."
-      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/alma/Alma.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/alma/header.avif"
       imageAlt="Evento Alma"
       introSectionData={introSectionData}
     >

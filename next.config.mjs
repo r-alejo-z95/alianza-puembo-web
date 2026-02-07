@@ -14,6 +14,14 @@ const nextConfig = {
         source: "/ministerios/servicio",
         destination: "/involucrate/ministerios/servicio",
       },
+      {
+        source: "/ministerios/conexion",
+        destination: "/involucrate/ministerios/servicio/conexion",
+      },
+      {
+        source: "/ministerios/crecimiento",
+        destination: "/involucrate/ministerios/servicio/crecimiento",
+      },
 
       // Sub-Categorías
       {

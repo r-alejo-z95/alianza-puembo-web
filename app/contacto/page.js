@@ -20,7 +20,7 @@ export default function ContactPage() {
     <PublicPageLayout
       title="Contáctanos"
       description="Estamos aquí para servirte. Envíanos un mensaje y nos pondremos en contacto contigo."
-      imageUrl="/contacto/Contacto.jpg"
+      imageUrl="/contacto/Contacto.avif"
       imageAlt="Personas interactuando en un evento de la iglesia"
       introSectionData={introSectionData}
     >

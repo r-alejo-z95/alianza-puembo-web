@@ -17,7 +17,7 @@ export default function PuemboKids() {
       "Puembo Kids es un ministerio vibrante y seguro diseñado para que los niños de todas las edades aprendan sobre Jesús de una manera divertida y relevante. Creemos en la importancia de sembrar la semilla de la fe desde la infancia.",
       "A través de juegos, historias bíblicas, música y actividades creativas, buscamos ayudarles a crecer en su relación con Dios y a desarrollar valores cristianos. ¡Tus hijos amarán ser parte de Puembo Kids!",
     ],
-    imageUrl: "/involucrate/ministerios/puembo-kids/puembo-kids-intro.jpg",
+    imageUrl: "/involucrate/ministerios/cuidado/puembo-kids/Puembo-kids.avif",
     imageAlt: "Niños jugando y aprendiendo",
     imagePosition: "right",
   };
@@ -68,7 +68,7 @@ export default function PuemboKids() {
     <PublicPageLayout
       title="Puembo Kids"
       description="Un espacio divertido y seguro para que los más pequeños aprendan de Jesús."
-      imageUrl="/involucrate/ministerios/puembo-kids/Puembo-kids.jpg"
+      imageUrl="/involucrate/ministerios/cuidado/puembo-kids/header.avif"
       imageAlt="Celebración de Puembo Kids"
       introSectionData={introSectionData}
     >

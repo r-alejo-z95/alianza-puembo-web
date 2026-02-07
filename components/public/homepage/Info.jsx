@@ -24,7 +24,7 @@ export default function Info() {
           >
             <div className="relative aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl z-10">
               <Image
-                src="/homepage/Info-section.jpg"
+                src="/homepage/Info-section.avif"
                 alt="Comunidad Iglesia Alianza Puembo"
                 fill
                 sizes="(max-width: 768px) 768px, (max-width: 1200px) 600px, 960px"

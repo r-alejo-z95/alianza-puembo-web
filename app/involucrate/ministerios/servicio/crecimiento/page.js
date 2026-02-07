@@ -18,7 +18,7 @@ export default function Crecimiento() {
       "El crecimiento espiritual es un viaje continuo. Nuestros ministerios de Crecimiento están diseñados para equiparte con el conocimiento, las herramientas y el apoyo que necesitas para profundizar tu relación con Dios y vivir una vida plenamente transformada.",
       "Desde estudios bíblicos profundos hasta espacios de sanidad y restauración emocional, te ofrecemos un camino claro para tu desarrollo espiritual y personal.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/crecimiento/Crecimiento.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/crecimiento/Crecimiento.avif",
     imageAlt: "Persona estudiando la Biblia con atención",
     imagePosition: "right",
   };
@@ -57,7 +57,7 @@ export default function Crecimiento() {
     <PublicPageLayout
       title="Crecimiento"
       description="Fomentando la madurez espiritual y el discipulado."
-      imageUrl="/involucrate/ministerios/servicio/crecimiento/Crecimiento.jpg"
+      imageUrl="/involucrate/ministerios/servicio/crecimiento/header.avif"
       imageAlt="Ministerios de Crecimiento"
       introSectionData={introSectionData}
     >

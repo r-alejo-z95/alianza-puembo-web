@@ -59,11 +59,21 @@ export function MinistryMap({ menuItems }) {
     return (
       <div key={category.name} className="space-y-6">
         {/* Encabezado de Columna/Categoría */}
-        <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
+        <div className="flex items-center gap-3 pb-4 border-b border-gray-100 group/title">
           <div className="h-1.5 w-1.5 rounded-full bg-[var(--puembo-green)]" />
-          <h4 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400">
-            {category.name}
-          </h4>
+          {category.href ? (
+            <Link
+              href={category.href}
+              className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[var(--puembo-green)] transition-colors flex items-center gap-2"
+            >
+              {category.name}
+              <ArrowRight className="w-3 h-3 opacity-0 group-hover/title:opacity-100 group-hover/title:translate-x-1 transition-all" />
+            </Link>
+          ) : (
+            <h4 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400">
+              {category.name}
+            </h4>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-3">
@@ -73,9 +83,19 @@ export function MinistryMap({ menuItems }) {
                   // Si tiene sub-sub-categorías (ej: Amor en Acción o MDA)
                   return (
                     <div key={sub.name} className="space-y-3 pt-2">
-                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--puembo-green)] opacity-50 px-2">
-                        {sub.name}
-                      </p>
+                      {sub.href ? (
+                        <Link
+                          href={sub.href}
+                          className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--puembo-green)] opacity-50 px-2 hover:opacity-100 transition-opacity flex items-center gap-2 group/subtitle"
+                        >
+                          {sub.name}
+                          <ArrowRight className="w-2.5 h-2.5 opacity-0 group-hover/subtitle:opacity-100 group-hover/subtitle:translate-x-1 transition-all" />
+                        </Link>
+                      ) : (
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--puembo-green)] opacity-50 px-2">
+                          {sub.name}
+                        </p>
+                      )}
                       <div className="grid grid-cols-1 gap-2">
                         {sub.subroutes.map((leaf) => renderCardLink(leaf))}
                       </div>
@@ -133,15 +153,19 @@ export function MinistryMap({ menuItems }) {
         <motion.div {...fadeIn} className="space-y-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
             <div className="space-y-4 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-3">
-                <Heart className="w-6 h-6 text-[var(--puembo-green)]" />
-                <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight">
+              <Link
+                href={careSection?.href || "#"}
+                className="flex items-center justify-center md:justify-start gap-3 group/section"
+              >
+                <Heart className="w-6 h-6 text-[var(--puembo-green)] group-hover/section:scale-110 transition-transform" />
+                <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight group-hover/section:text-[var(--puembo-green)] transition-colors">
                   Cuidado{" "}
                   <span className="text-[var(--puembo-green)] italic">
                     Pastoral
                   </span>
                 </h2>
-              </div>
+                <ArrowRight className="w-6 h-6 text-[var(--puembo-green)] opacity-0 group-hover/section:opacity-100 group-hover/section:translate-x-2 transition-all" />
+              </Link>
               <p className="text-gray-500 font-light max-w-xl text-lg">
                 Ministerios enfocados en acompañarte, fortalecer tu fe y
                 brindarte comunidad en cada etapa.
@@ -173,15 +197,19 @@ export function MinistryMap({ menuItems }) {
         <motion.div {...fadeIn} className="space-y-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
             <div className="space-y-4 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-3">
-                <HandHelping className="w-6 h-6 text-[var(--puembo-green)]" />
-                <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight">
+              <Link
+                href={serviceSection?.href || "#"}
+                className="flex items-center justify-center md:justify-start gap-3 group/section"
+              >
+                <HandHelping className="w-6 h-6 text-[var(--puembo-green)] group-hover/section:scale-110 transition-transform" />
+                <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight group-hover/section:text-[var(--puembo-green)] transition-colors">
                   Manos al{" "}
                   <span className="text-[var(--puembo-green)] italic">
                     Servicio
                   </span>
                 </h2>
-              </div>
+                <ArrowRight className="w-6 h-6 text-[var(--puembo-green)] opacity-0 group-hover/section:opacity-100 group-hover/section:translate-x-2 transition-all" />
+              </Link>
               <p className="text-gray-500 font-light max-w-xl text-lg">
                 Oportunidades para poner tus dones en acción y transformar vidas
                 a través del servicio activo.

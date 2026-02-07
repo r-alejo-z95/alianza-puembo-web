@@ -18,7 +18,7 @@ export default function CuidadoPastoral() {
       "Creemos que somos una familia de familias; damos por gracia lo que recibimos al servir, pero también necesitamos ser cuidados para un crecimiento espiritual saludable.",
       "En Alianza Puembo, nuestro Cuidado Pastoral está diseñado para que te sientas visto, amado y acompañado en cada etapa de tu vida. Queremos caminar junto a ti, brindándote espacios de comunidad y apoyo genuino.",
     ],
-    imageUrl: "/involucrate/ministerios/cuidado/Cuidado.jpg",
+    imageUrl: "/involucrate/ministerios/cuidado/Cuidado.avif",
     imageAlt: "Personas conversando en comunidad",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function CuidadoPastoral() {
     <PublicPageLayout
       title="Cuidado Pastoral"
       description="Creemos que somos una familia de familias."
-      imageUrl="/involucrate/ministerios/cuidado/Cuidado.jpg"
+      imageUrl="/involucrate/ministerios/cuidado/header.avif"
       imageAlt="Cuidado Pastoral"
       introSectionData={introSectionData}
     >

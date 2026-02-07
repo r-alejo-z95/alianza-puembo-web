@@ -18,7 +18,7 @@ export default function GPMinisteriales() {
       "Los Grupos Pequeños Ministeriales están diseñados específicamente para aquellos que sirven activamente en los diferentes ministerios de la iglesia. Entendemos que para dar, primero hay que recibir.",
       "Estos grupos son un espacio vital de recarga espiritual, cuidado pastoral, formación y compañerismo entre líderes y servidores, para que puedan continuar su labor con pasión y fortaleza.",
     ],
-    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/ministeriales/Ministeriales.jpg",
+    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/ministeriales/Ministeriales.avif",
     imageAlt: "Líderes de ministerio reunidos en oración y planificación",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function GPMinisteriales() {
     <PublicPageLayout
       title="GP Ministeriales"
       description="Cuidando, formando y fortaleciendo a los que sirven."
-      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/ministeriales/Ministeriales.jpg"
+      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/ministeriales/header.avif"
       imageAlt="GP Ministeriales"
       introSectionData={introSectionData}
     >

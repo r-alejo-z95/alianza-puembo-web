@@ -18,7 +18,7 @@ export default function Conexion() {
       "Los ministerios de Conexión están diseñados para ser el primer punto de contacto para aquellos que buscan a Dios. Nuestro objetivo es crear puentes entre la iglesia y la comunidad, mostrando el amor de Cristo de maneras prácticas y relevantes.",
       "A través de eventos, proyectos de servicio y grupos de evangelismo, buscamos conectar a las personas con Dios y con nuestra comunidad de fe.",
     ],
-    imageUrl: "/involucrate/involucrate/ministerios/servicio/conexion/Conexion.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/Conexion.avif",
     imageAlt: "Personas dándose la bienvenida en la iglesia",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function Conexion() {
     <PublicPageLayout
       title="Conexión"
       description="Alcanzando a nuestra comunidad y conectando a las personas con Cristo."
-      imageUrl="/involucrate/involucrate/ministerios/servicio/conexion/Conexion.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/header.avif"
       imageAlt="Ministerios de Conexión"
       introSectionData={introSectionData}
     >

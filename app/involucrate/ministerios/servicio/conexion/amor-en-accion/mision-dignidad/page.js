@@ -17,7 +17,7 @@ export default function MisionDignidad() {
       "Misión Dignidad es el brazo social de Alianza Puembo, dedicado a extender el amor de Cristo a los más necesitados. Creemos que la fe se demuestra a través de obras de servicio y compasión, impactando positivamente a nuestra comunidad.",
       "Trabajamos en proyectos que abordan diversas necesidades, desde la alimentación y el vestuario hasta el apoyo educativo y emocional. ¡Únete a nosotros y sé parte de la transformación!",
     ],
-    imageUrl: "/involucrate/ministerios/mision-dignidad/mission-dignity-intro.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/mision-dignidad/Mision-dignidad.avif",
     imageAlt: "Miembros de la brigada médica internacional",
     imagePosition: "left",
   };
@@ -27,21 +27,21 @@ export default function MisionDignidad() {
     items: [
       {
         type: "image",
-        imageUrl: "/involucrate/ministerios/mision-dignidad/mission-dignity-project-1.jpg",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/mision-dignidad/mission-dignity-project-1.avif",
         imageAlt: "Atención a pacientes médicos en vulnerabilidad",
         itemTitle: "Brigadas Médicas",
         itemDescription: "Atendemos a cientos de personas de la comunidad que están en necesidad.",
       },
       {
         type: "image",
-        imageUrl: "/involucrate/ministerios/mision-dignidad/mission-dignity-project-2.jpg",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/mision-dignidad/mission-dignity-project-2.avif",
         imageAlt: "Donación de Ropa y Artículos",
         itemTitle: "Donación de Ropa y Artículos",
         itemDescription: "Recolección y distribución de ropa, calzado y artículos de primera necesidad.",
       },
       {
         type: "image",
-        imageUrl: "/involucrate/ministerios/mision-dignidad/mission-dignity-project-3.jpg",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/mision-dignidad/mission-dignity-project-3.avif",
         imageAlt: "Apoyo a ancianos",
         itemTitle: "Visitas a Abuelitos",
         itemDescription: "Apadrinamos a ancianos que viven en escasez.",
@@ -53,7 +53,7 @@ export default function MisionDignidad() {
     <PublicPageLayout
       title="Misión Dignidad"
       description="Extendiendo el amor de Cristo a los más necesitados."
-      imageUrl="/involucrate/ministerios/mision-dignidad/Mision-dignidad.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/mision-dignidad/header.avif"
       imageAlt="Personas ayudando a los necesitados"
       introSectionData={introSectionData}
     >

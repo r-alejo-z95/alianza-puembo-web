@@ -18,7 +18,7 @@ export default function Anfitriones() {
       "El equipo de Anfitriones es el primer rostro de Alianza Puembo. Son quienes reciben con una sonrisa y una palabra de bienvenida a cada persona que llega a nuestros servicios y eventos. Su calidez y disposición hacen que todos se sientan en casa desde el primer momento.",
       "Si te gusta interactuar con la gente, tienes una actitud de servicio y deseas hacer que cada visitante se sienta amado y valorado, este es tu lugar.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/anfitriones/Anfitriones.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/anfitriones/Anfitriones.avif",
     imageAlt: "Anfitriones dando la bienvenida a la iglesia",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function Anfitriones() {
     <PublicPageLayout
       title="Anfitriones"
       description="La primera impresión de Alianza Puembo."
-      imageUrl="/involucrate/ministerios/servicio/compromiso/mda/anfitriones/Anfitriones.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/mda/anfitriones/header.avif"
       imageAlt="Anfitriones"
       introSectionData={introSectionData}
     >

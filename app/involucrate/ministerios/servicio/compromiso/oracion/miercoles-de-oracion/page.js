@@ -18,7 +18,7 @@ export default function MiercolesDeOracion() {
       "Creemos en el poder de comenzar el día buscando el rostro de Dios. Cada miércoles a las 06h30, nos reunimos como familia para adorar, estudiar Su Palabra y levantar nuestras voces en un clamor unido por nuestra comunidad y necesidades personales.",
       "Es el motor espiritual que nos sostiene y nos prepara para caminar en Su voluntad durante el resto de la semana.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion/MiercolesDeOracion.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion/MiercolesDeOracion.avif",
     imageAlt: "Miércoles de Oración",
     imagePosition: "right",
   };
@@ -51,12 +51,12 @@ export default function MiercolesDeOracion() {
     <PublicPageLayout
       title="Miércoles de Oración"
       description="Cada miércoles a las 06h30."
-      imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion/MiercolesDeOracion.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion/header.avif"
       imageAlt="Miércoles de Oración"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
+        backLink="/ministerios/oracion" 
         backLabel="Volver a Oración" 
       />
       <MinistryContentSection {...serviceDetailsData} />

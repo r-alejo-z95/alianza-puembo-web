@@ -18,7 +18,7 @@ export default function Legado() {
       "Legado es un evento diseñado para desafiar e inspirar a los varones a vivir una vida de propósito, integridad y liderazgo. Creemos que cada hombre tiene el potencial de dejar un impacto duradero en su familia, iglesia y comunidad.",
       "A través de conferencias, testimonios y actividades dinámicas, buscamos equipar a los hombres para que asuman su rol con valentía y sabiduría.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/legado/Legado.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/legado/Legado.avif",
     imageAlt: "Grupo de hombres en una conferencia",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function Legado() {
     <PublicPageLayout
       title="Evento Legado"
       description="Forjando hombres de fe, liderazgo y propósito."
-      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/legado/Legado.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/legado/header.avif"
       imageAlt="Evento Legado"
       introSectionData={introSectionData}
     >

@@ -17,7 +17,7 @@ export default function GruposPequenos() {
       "Nuestros Grupos Pequeños son el corazón de nuestra comunidad. Son espacios íntimos donde puedes conectar con otros creyentes, estudiar la Palabra de Dios, compartir tus experiencias y recibir apoyo en tu caminar de fe.",
       "Creemos que la vida cristiana se vive mejor en comunidad. Por eso, te invitamos a unirte a un grupo pequeño cerca de ti y experimentar el crecimiento espiritual y la amistad que solo se encuentran en un ambiente de apoyo mutuo.",
     ],
-    imageUrl: "/involucrate/ministerios/gp/small-group-intro.jpg",
+    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/Gp.avif",
     imageAlt: "Personas en un grupo pequeño",
     imagePosition: "right",
     buttonText: "Encuentra un Grupo Pequeño",
@@ -59,7 +59,7 @@ export default function GruposPequenos() {
     <PublicPageLayout
       title="Grupos Pequeños"
       description="Crece en comunidad y fe a través de nuestros grupos pequeños."
-      imageUrl="/involucrate/ministerios/gp/Gp.jpg"
+      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/header.avif"
       imageAlt="Grupo pequeño"
       introSectionData={introSectionData}
     >

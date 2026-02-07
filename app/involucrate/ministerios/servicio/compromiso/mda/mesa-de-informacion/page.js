@@ -18,7 +18,7 @@ export default function MesaDeInformacion() {
       "El Punto de Información es el centro neurálgico para resolver dudas, obtener recursos y conocer de cerca las actividades de Alianza Puembo.",
       "Nuestro equipo está listo para brindarte la orientación que necesitas con eficacia, claridad y una cálida bienvenida, asegurando que tu experiencia en la iglesia sea fluida y enriquecedora.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/mesa-de-informacion/MesaDeInformacion.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/mesa-de-informacion/MesaDeInformacion.avif",
     imageAlt: "Punto de Información",
     imagePosition: "right",
   };
@@ -51,13 +51,13 @@ export default function MesaDeInformacion() {
     <PublicPageLayout
       title="Punto de Información"
       description="Eficacia y claridad en cada consulta."
-      imageUrl="/involucrate/ministerios/servicio/compromiso/mda/mesa-de-informacion/MesaDeInformacion.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/mda/mesa-de-informacion/header.avif"
       imageAlt="Punto de Información"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
-        backLabel="Volver a Compromiso" 
+        backLink="/ministerios/mda" 
+        backLabel="Volver a MDA" 
       />
       <MinistryContentSection {...servicesData} />
     </PublicPageLayout>

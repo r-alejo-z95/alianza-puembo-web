@@ -18,7 +18,7 @@ export default function GPFamiliares() {
       "Los Grupos Pequeños Familiares son el corazón de nuestra iglesia. Son espacios donde las familias y personas de todas las edades se reúnen para compartir la vida, estudiar la Palabra y apoyarse mutuamente.",
       "Creemos en un modelo de crecimiento integral que abarca tres áreas clave: Conexión, Crecimiento y Compromiso.",
     ],
-    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/familiar/Familiar.jpg",
+    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/familiar/Familiar.avif",
     imageAlt: "Familias compartiendo en un grupo pequeño",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function GPFamiliares() {
     <PublicPageLayout
       title="GP Familiares"
       description="Conéctate, crece y comprométete en comunidad."
-      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/familiar/Familiar.jpg"
+      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/familiar/header.avif"
       imageAlt="Grupos Pequeños Familiares"
       introSectionData={introSectionData}
     >

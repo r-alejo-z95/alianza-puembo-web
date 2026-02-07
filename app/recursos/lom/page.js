@@ -42,7 +42,7 @@ export default async function LomPage() {
     <PublicPageLayout
       title="LOM: Lee, ora, medita"
       description="Guías diarias para tu devocional personal."
-      imageUrl="/recursos/lom/Lom.png"
+      imageUrl="/recursos/lom/Lom.avif"
       imageAlt="Nubes en el cielo con luz del sol"
     >
       <Suspense fallback={<LoadingState />}>

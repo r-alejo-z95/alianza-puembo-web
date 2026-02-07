@@ -9,13 +9,13 @@ import Image from "next/image";
 import { Play, MapPin } from "lucide-react";
 
 const heroImages = [
-  "/homepage/hero/Hero1.jpg",
-  "/homepage/hero/Hero2.jpg",
-  "/homepage/hero/Hero3.jpg",
-  "/homepage/hero/Hero4.jpg",
-  "/homepage/hero/Hero5.jpg",
-  "/homepage/hero/Hero6.jpg",
-  "/homepage/hero/Hero7.jpg",
+  "/homepage/hero/Hero1.avif",
+  "/homepage/hero/Hero2.avif",
+  "/homepage/hero/Hero3.avif",
+  "/homepage/hero/Hero4.avif",
+  "/homepage/hero/Hero5.avif",
+  "/homepage/hero/Hero6.avif",
+  "/homepage/hero/Hero7.avif",
 ];
 
 export default function Hero({ youtubeStatus }) {

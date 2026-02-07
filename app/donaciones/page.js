@@ -22,7 +22,7 @@ export default function Donaciones() {
     <PublicPageLayout
       title="Donaciones"
       description="Tu generosidad nos ayuda a seguir extendiendo el Reino de Dios."
-      imageUrl="/donaciones/Donaciones.jpg"
+      imageUrl="/donaciones/Donaciones.avif"
       imageAlt="Gente adorando"
       introSectionData={introSectionData}
     >

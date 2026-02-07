@@ -37,7 +37,7 @@ export default async function Noticias({ searchParams }) {
     <PublicPageLayout
       title="Noticias"
       description="Historias que inspiran y nos mantienen unidos."
-      imageUrl="/noticias/Noticias.jpg"
+      imageUrl="/noticias/Noticias.avif"
       imageAlt="Personas compartiendo"
       introSectionData={introSectionData}
     >

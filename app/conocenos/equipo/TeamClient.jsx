@@ -52,19 +52,19 @@ const TEAM_MEMBERS = [
   {
     name: "Mateo Olivo",
     detail: "Coordinador Ministerios MAT",
-    image: "/conocenos/equipo/familia-mate.jpg",
+    image: "/conocenos/equipo/familia-mate.avif",
     bio: "Mateo lidera los Ministerios de Música, Artes y Tecnología, apoyado de un gran equipo que guía a la congregación a tener un encuentro con Dios a través del arte y la cultura.",
   },
   {
     name: "Alejandro Zambrano",
     detail: "Coordinador MAT Tecnología",
-    image: "/conocenos/equipo/familia-alejo.jpg",
+    image: "/conocenos/equipo/familia-alejo.avif",
     bio: "Alejandro coordina los Ministerios de Sonido, Multimedia, Iluminación, Transmisión y Producción, utilizando la tecnología como herramienta para el Evangelio.",
   },
   {
     name: "Andrea Quiroga",
     detail: "Coordinadora de Comunicaciones",
-    image: "/conocenos/equipo/familia-andre.jpg",
+    image: "/conocenos/equipo/familia-andre.avif",
     bio: "Andrea gestiona la comunicación y diseño, asegurando que el mensaje de la Iglesia Alianza Puembo llegue de manera clara y creativa.",
   },
 ];

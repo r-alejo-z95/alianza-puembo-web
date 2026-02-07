@@ -16,8 +16,8 @@ const beliefs = [
     verse:
       "¡En ningún otro hay salvación! Dios no ha dado ningún otro nombre bajo el cielo, mediante el cual podamos ser salvos.",
     citation: "Hechos 4:12",
-    image: "/conocenos/que-creemos/savior-tomb.png",
-    symbol: "/conocenos/que-creemos/Cross.png",
+    image: "/conocenos/que-creemos/savior-tomb.avif",
+    symbol: "/conocenos/que-creemos/Cross.avif",
   },
   {
     name: "Cristo nuestro Santificador",
@@ -26,8 +26,8 @@ const beliefs = [
     verse:
       "Cristo nos hizo justos ante Dios; nos hizo puros y santos y nos liberó del pecado.",
     citation: "1 Corintios 1:30",
-    image: "/conocenos/que-creemos/sanctifier-potter.png",
-    symbol: "/conocenos/que-creemos/Laver.png",
+    image: "/conocenos/que-creemos/sanctifier-potter.avif",
+    symbol: "/conocenos/que-creemos/Laver.avif",
   },
   {
     name: "Cristo nuestro Sanador",
@@ -36,8 +36,8 @@ const beliefs = [
     verse:
       "Una oración ofrecida con fe sanará al enfermo, y el Señor hará que se recupere; y si ha cometido pecados, será perdonado.",
     citation: "Santiago 5:15",
-    image: "/conocenos/que-creemos/healer-prayer.png",
-    symbol: "/conocenos/que-creemos/Pitcher.png",
+    image: "/conocenos/que-creemos/healer-prayer.avif",
+    symbol: "/conocenos/que-creemos/Pitcher.avif",
   },
   {
     name: "Cristo nuestro Rey que Viene",
@@ -46,8 +46,8 @@ const beliefs = [
     verse:
       "Y ustedes verán al Hijo del Hombre sentado en el lugar de poder, a la derecha de Dios, y viniendo en las nubes del cielo.",
     citation: "Marcos 14:62",
-    image: "/conocenos/que-creemos/coming-king-sky.png",
-    symbol: "/conocenos/que-creemos/Crown.png",
+    image: "/conocenos/que-creemos/coming-king-sky.avif",
+    symbol: "/conocenos/que-creemos/Crown.avif",
   },
   {
     name: "La Gran Comisión",
@@ -56,8 +56,8 @@ const beliefs = [
     verse:
       "Por lo tanto, vayan y hagan discípulos de todas las naciones, bautizándolos en el nombre del Padre y del Hijo y del Espíritu Santo.",
     citation: "Mateo 28:19",
-    image: "/conocenos/que-creemos/great-commission.png",
-    symbol: "/conocenos/que-creemos/Globe.png",
+    image: "/conocenos/que-creemos/great-commission.avif",
+    symbol: "/conocenos/que-creemos/Globe.avif",
   },
 ];
 
@@ -269,7 +269,7 @@ export function QueCreemosClient() {
           <motion.div {...fadeIn} className="flex justify-center mb-8">
             <div className="relative h-20 w-64 md:h-24 md:w-80">
               <Image
-                src="/conocenos/que-creemos/The Alliance_Logo_Spanish_Horiz_White.png"
+                src="/conocenos/que-creemos/The Alliance_Logo_Spanish_Horiz_White.avif"
                 alt="Logo Alianza Cristiana y Misionera"
                 fill
                 className="object-contain"

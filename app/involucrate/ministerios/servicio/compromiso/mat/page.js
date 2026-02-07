@@ -17,7 +17,7 @@ export default function Mat() {
       "El Ministerio de Música, Artes y Tecnología (MAT) es un espacio donde la creatividad se une a la fe para glorificar a Dios. Creemos que el arte y la tecnología son herramientas poderosas para expresar nuestra adoración y comunicar el mensaje del evangelio.",
       "Si tienes talentos en música, canto, teatro, producción audiovisual, sonido, iluminación o cualquier otra forma de expresión artística, te invitamos a unirte a nuestro equipo y servir con excelencia.",
     ],
-    imageUrl: "/involucrate/ministerios/mat/mat-intro.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/mat/Mat.avif",
     imageAlt: "Personas adorando",
     imagePosition: "right",
   };
@@ -27,21 +27,21 @@ export default function Mat() {
     items: [
       {
         type: "image",
-        imageUrl: "/involucrate/ministerios/mat/mat-activity-1.jpg",
+        imageUrl: "/involucrate/ministerios/servicio/compromiso/mat/mat-activity-1.avif",
         imageAlt: "Música y Canto",
         itemTitle: "Música y Canto",
         itemDescription: "Equipos de alabanza que lideran la congregación en la adoración a través de la música.",
       },
       {
         type: "image",
-        imageUrl: "/involucrate/ministerios/mat/mat-activity-2.jpg",
+        imageUrl: "/involucrate/ministerios/servicio/compromiso/mat/mat-activity-2.avif",
         imageAlt: "Producción Audiovisual",
         itemTitle: "Producción Audiovisual",
         itemDescription: "Creación de contenido visual, videos y transmisiones en vivo para alcanzar a más personas.",
       },
       {
         type: "image",
-        imageUrl: "/involucrate/ministerios/mat/mat-activity-3.jpg",
+        imageUrl: "/involucrate/ministerios/servicio/compromiso/mat/mat-activity-3.avif",
         imageAlt: "Teatro",
         itemTitle: "Teatro",
         itemDescription: "Producción de obras de teatro para eventos especiales en la iglesia.",
@@ -53,13 +53,13 @@ export default function Mat() {
     <PublicPageLayout
       title="Ministerio de Música, Artes y Tecnología"
       description="Un ministerio dedicado a la adoración y el servicio a través de la música y las artes."
-      imageUrl="/involucrate/ministerios/mat/Mat.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/mat/Mat.avif"
       imageAlt="Cantantes adorando"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
-        backLabel="Volver a Servicio" 
+        backLink="/ministerios/compromiso" 
+        backLabel="Volver a Compromiso" 
       />
       <MinistryContentSection {...activitiesData} />
     </PublicPageLayout>

@@ -18,7 +18,7 @@ export default function SantaCena() {
       "El ministerio de Santa Cena tiene el privilegio de preparar y servir en uno de los momentos más sagrados de nuestra fe: la conmemoración del sacrificio de Jesús. Con reverencia y dedicación, nos aseguramos de que cada elemento esté listo para que la congregación pueda participar plenamente de este acto de recuerdo y comunión.",
       "Si tienes un corazón sensible y deseas servir en un ambiente de profunda significancia espiritual, te invitamos a unirte a este equipo.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/santa-cena/SantaCena.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/santa-cena/SantaCena.avif",
     imageAlt: "Elementos de la Santa Cena sobre una mesa",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function SantaCena() {
     <PublicPageLayout
       title="Santa Cena"
       description="Un servicio de reverencia y comunión."
-      imageUrl="/involucrate/ministerios/servicio/compromiso/mda/santa-cena/SantaCena.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/mda/santa-cena/header.avif"
       imageAlt="Santa Cena"
       introSectionData={introSectionData}
     >

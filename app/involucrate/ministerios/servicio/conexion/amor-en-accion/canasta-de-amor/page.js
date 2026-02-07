@@ -18,7 +18,7 @@ export default function CanastaDeAmor() {
       "La Canasta de Amor es un programa de apoyo solidario y provisión, dedicado exclusivamente a los miembros de nuestra familia de fe.",
       "Como comunidad, nos cuidamos unos a otros, asegurando que ninguna familia de nuestra iglesia carezca de lo esencial para su sustento diario.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor/CanastaDeAmor.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor/CanastaDeAmor.avif",
     imageAlt: "Canasta de Amor",
     imagePosition: "right",
   };
@@ -51,12 +51,12 @@ export default function CanastaDeAmor() {
     <PublicPageLayout
       title="Canasta de Amor"
       description="Exclusivo para miembros de la iglesia."
-      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor/CanastaDeAmor.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/canasta-de-amor/header.avif"
       imageAlt="Canasta de Amor"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
+        backLink="/ministerios/amor-en-accion" 
         backLabel="Volver a Amor en Acción" 
       />
       <MinistryContentSection {...projectDetailsData} />

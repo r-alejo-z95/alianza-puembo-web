@@ -18,7 +18,7 @@ export default function BoutiqueModaCircular() {
       "Nuestra Boutique de Moda Circular es mucho más que un lugar de donación; es un espacio diseñado para honrar a las personas.",
       "Bajo un enfoque de sostenibilidad y dignidad, recolectamos y distribuimos prendas de vestir de alta calidad, promoviendo la generosidad y el cuidado de los recursos que Dios nos ha dado.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero/Ropero.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero/Ropero.avif",
     imageAlt: "Boutique de Moda Circular",
     imagePosition: "right",
   };
@@ -51,12 +51,12 @@ export default function BoutiqueModaCircular() {
     <PublicPageLayout
       title="Boutique de Moda Circular"
       description="Vistiendo con dignidad y sostenibilidad."
-      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero/Ropero.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/ropero/header.avif"
       imageAlt="Boutique de Moda Circular"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
+        backLink="/ministerios/amor-en-accion" 
         backLabel="Volver a Amor en Acción" 
       />
       <MinistryContentSection {...projectDetailsData} />

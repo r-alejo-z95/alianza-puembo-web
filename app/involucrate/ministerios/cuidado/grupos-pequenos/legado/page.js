@@ -18,7 +18,7 @@ export default function GPLegado() {
       "Legado es nuestro ministerio de grupos pequeños para varones. Es un espacio de confianza y camaradería donde los hombres son desafiados a crecer en su fe, liderar a sus familias y dejar un legado de integridad.",
       "Nos reunimos para estudiar la Palabra, orar unos por otros y animarnos a vivir como hombres conforme al corazón de Dios.",
     ],
-    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/legado/Legado.jpg",
+    imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/legado/Legado.avif",
     imageAlt: "Hombres orando juntos",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function GPLegado() {
     <PublicPageLayout
       title="GP Legado (Varones)"
       description="Forjando un legado de fe, integridad y liderazgo."
-      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/legado/Legado.jpg"
+      imageUrl="/involucrate/ministerios/cuidado/grupos-pequenos/legado/header.avif"
       imageAlt="GP Legado"
       introSectionData={introSectionData}
     >

@@ -18,7 +18,7 @@ export default function CirculosDeOracion() {
       "Los Círculos de Oración tienen como espíritu la intercesión comunitaria. Son grupos donde nos unimos para clamar con fe, creyendo que la oración persistente transforma vidas y circunstancias.",
       "Nuestras reuniones se realizan de manera virtual vía Zoom, permitiendo que todos se sumen desde donde estén para unir nuestras peticiones en un solo clamor.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion/CirculosDeOracion.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion/CirculosDeOracion.avif",
     imageAlt: "Círculos de Oración",
     imagePosition: "right",
   };
@@ -51,12 +51,12 @@ export default function CirculosDeOracion() {
     <PublicPageLayout
       title="Círculos de Oración"
       description="Intercesión comunitaria vía Zoom."
-      imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion/CirculosDeOracion.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion/header.avif"
       imageAlt="Círculos de Oración"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
+        backLink="/ministerios/oracion" 
         backLabel="Volver a Oración" 
       />
       <MinistryContentSection {...programDetailsData} />

@@ -18,7 +18,7 @@ export default function Sanidad() {
       "Nuestros Encuentros de Sanidad son espacios seguros y confidenciales diseñados tanto para hombres como para mujeres que buscan restauración y plenitud.",
       "Creemos en el poder transformador de Dios para sanar las heridas del pasado, brindar libertad emocional y fortalecer nuestra identidad en Cristo.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/crecimiento/sanidad/Sanidad.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/crecimiento/sanidad/Sanidad.avif",
     imageAlt: "Encuentros de Sanidad",
     imagePosition: "right",
   };
@@ -51,12 +51,12 @@ export default function Sanidad() {
     <PublicPageLayout
       title="Encuentros de Sanidad para hombres y mujeres"
       description="Restaurando el corazón a través del amor de Dios."
-      imageUrl="/involucrate/ministerios/servicio/crecimiento/sanidad/Sanidad.jpg"
+      imageUrl="/involucrate/ministerios/servicio/crecimiento/sanidad/header.avif"
       imageAlt="Encuentros de Sanidad"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
+        backLink="/ministerios/crecimiento" 
         backLabel="Volver a Crecimiento" 
       />
       <MinistryContentSection {...programDetailsData} />

@@ -33,7 +33,7 @@ export default async function OracionPage() {
     <PublicPageLayout
       title="Muro de Oración"
       description="Unámonos en oración. Aquí puedes compartir tus peticiones y orar por las de otros."
-      imageUrl="/oracion/Oracion.jpg"
+      imageUrl="/oracion/Oracion.avif"
       imageAlt="Personas orando"
       introSectionData={introSectionData}
     >

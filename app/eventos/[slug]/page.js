@@ -43,7 +43,7 @@ export default async function EventPage({ params }) {
     <PublicPageLayout
       title={event.title}
       description={dateDisplay}
-      imageUrl={event.poster_url || "/eventos/Eventos.jpg"}
+      imageUrl={event.poster_url || "/eventos/Eventos.avif"}
       imageAlt={event.title}
     >
       <div className={cn(contentSection, "bg-gray-50/50 pt-12 pb-24")}>
@@ -86,7 +86,7 @@ export default async function EventPage({ params }) {
               <div className="md:hidden">
                 <div className="relative aspect-video w-full rounded-2xl overflow-hidden shadow-2xl">
                   <Image
-                    src={event.poster_url || "/eventos/Eventos.jpg"}
+                    src={event.poster_url || "/eventos/Eventos.avif"}
                     alt={event.title}
                     fill
                     className="object-cover"
@@ -152,7 +152,7 @@ export default async function EventPage({ params }) {
               <div className="hidden md:block sticky top-28 space-y-8">
                 <div className="relative aspect-video w-full rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5">
                   <Image
-                    src={event.poster_url || "/eventos/Eventos.jpg"}
+                    src={event.poster_url || "/eventos/Eventos.avif"}
                     alt={event.title}
                     fill
                     className="object-cover"

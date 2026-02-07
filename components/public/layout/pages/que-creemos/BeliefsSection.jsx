@@ -9,7 +9,7 @@ const beliefs = [
     verse:
       "¡En ningún otro hay salvación! Dios no ha dado ningún otro nombre bajo el cielo, mediante el cual podamos ser salvos.",
     citation: "Hechos 4:12",
-    image: "/conocenos/que-creemos/savior-tomb.png",
+    image: "/conocenos/que-creemos/savior-tomb.avif",
   },
   {
     name: "Cristo nuestro Santificador",
@@ -18,7 +18,7 @@ const beliefs = [
     verse:
       "Cristo nos hizo justos ante Dios; nos hizo puros y santos y nos liberó del pecado.",
     citation: "1 Corintios 1:30",
-    image: "/conocenos/que-creemos/sanctifier-potter.png",
+    image: "/conocenos/que-creemos/sanctifier-potter.avif",
   },
   {
     name: "Cristo nuestro Sanador",
@@ -27,7 +27,7 @@ const beliefs = [
     verse:
       "Una oración ofrecida con fe sanará al enfermo, y el Señor hará que se recupere; y si ha cometido pecados, será perdonado.",
     citation: "Santiago 5:15",
-    image: "/conocenos/que-creemos/healer-prayer.png",
+    image: "/conocenos/que-creemos/healer-prayer.avif",
   },
   {
     name: "Cristo nuestro Rey que Viene",
@@ -36,7 +36,7 @@ const beliefs = [
     verse:
       "Y ustedes verán al Hijo del Hombre sentado en el lugar de poder, a la derecha de Dios, y viniendo en las nubes del cielo.",
     citation: "Marcos 14:62",
-    image: "/conocenos/que-creemos/coming-king-sky.png",
+    image: "/conocenos/que-creemos/coming-king-sky.avif",
   },
 ];
 

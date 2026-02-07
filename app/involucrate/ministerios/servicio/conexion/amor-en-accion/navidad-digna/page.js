@@ -18,7 +18,7 @@ export default function NavidadDigna() {
       "Navidad Digna es nuestra celebración especial de generosidad que une a la iglesia una vez al año para bendecir a otros.",
       "Es un proyecto de amor donde buscamos llevar el verdadero significado de la Navidad a niños y familias en situación de vulnerabilidad, demostrando que en Cristo siempre hay esperanza.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna/NavidadDigna.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna/NavidadDigna.avif",
     imageAlt: "Navidad Digna",
     imagePosition: "right",
   };
@@ -51,12 +51,12 @@ export default function NavidadDigna() {
     <PublicPageLayout
       title="Navidad Digna"
       description="Ocurre una vez al año."
-      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna/NavidadDigna.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/amor-en-accion/navidad-digna/header.avif"
       imageAlt="Navidad Digna"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
+        backLink="/ministerios/amor-en-accion" 
         backLabel="Volver a Amor en Acción" 
       />
       <MinistryContentSection {...projectDetailsData} />

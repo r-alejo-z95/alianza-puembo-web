@@ -18,7 +18,7 @@ export default function Decisiones() {
       "Decisiones es un ministerio enfocado en el paso de fe más importante: elegir la libertad que solo Cristo ofrece.",
       "Es un espacio diseñado para aquellos que buscan restaurar su vida de adicciones, hábitos destructivos o heridas emocionales, tomando la decisión valiente de caminar hacia una plenitud espiritual.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/crecimiento/celebra/Celebra.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/crecimiento/celebra/Celebra.avif",
     imageAlt: "Decisiones",
     imagePosition: "right",
   };
@@ -51,12 +51,12 @@ export default function Decisiones() {
     <PublicPageLayout
       title="Decisiones"
       description="El paso de fe para una vida restaurada."
-      imageUrl="/involucrate/ministerios/servicio/crecimiento/celebra/Celebra.jpg"
+      imageUrl="/involucrate/ministerios/servicio/crecimiento/celebra/header.avif"
       imageAlt="Decisiones"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
+        backLink="/ministerios/crecimiento" 
         backLabel="Volver a Crecimiento" 
       />
       <MinistryContentSection {...programDetailsData} />

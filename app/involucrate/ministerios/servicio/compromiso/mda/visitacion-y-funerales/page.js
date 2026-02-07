@@ -18,7 +18,7 @@ export default function Acompañamiento() {
       "El ministerio de Acompañamiento extiende el amor y la compasión de Cristo a aquellos que atraviesan momentos difíciles y de vulnerabilidad.",
       "Nuestra misión es brindar presencia, consuelo y apoyo espiritual en tiempos de duelo y pérdida, recordando que como familia de familias, nunca caminamos solos.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/visitacion-y-funerales/VisitacionYFunerales.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/visitacion-y-funerales/VisitacionYFunerales.avif",
     imageAlt: "Acompañamiento",
     imagePosition: "right",
   };
@@ -51,13 +51,13 @@ export default function Acompañamiento() {
     <PublicPageLayout
       title="Acompañamiento"
       description="Empatía y consuelo en momentos difíciles."
-      imageUrl="/involucrate/ministerios/servicio/compromiso/mda/visitacion-y-funerales/VisitacionYFunerales.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/mda/visitacion-y-funerales/header.avif"
       imageAlt="Acompañamiento"
       introSectionData={introSectionData}
     >
       <MinistryNavigation 
-        backLink="/ministerios/servicio" 
-        backLabel="Volver a Compromiso" 
+        backLink="/ministerios/mda" 
+        backLabel="Volver a MDA" 
       />
       <MinistryContentSection {...rolesData} />
     </PublicPageLayout>

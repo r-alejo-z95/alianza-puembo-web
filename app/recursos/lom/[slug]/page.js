@@ -57,7 +57,7 @@ export default async function LomPostPage({ params }) {
       {/* Cinematic Full-Height Background */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <Image
-          src="/recursos/lom/Lom.png"
+          src="/recursos/lom/Lom.avif"
           alt="Background"
           fill
           priority

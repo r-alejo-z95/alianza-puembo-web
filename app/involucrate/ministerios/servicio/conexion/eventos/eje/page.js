@@ -18,7 +18,7 @@ export default function Eje() {
       "Eje es el evento juvenil más esperado del año. Es un espacio diseñado para que los jóvenes experimenten la presencia de Dios de una manera poderosa, se conecten con otros jóvenes y sean desafiados a vivir una vida con propósito.",
       "Con música en vivo, oradores inspiradores y un ambiente lleno de energía, Eje es el lugar donde la fe cobra vida para la nueva generación.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/eje/Eje.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/eje/Eje.avif",
     imageAlt: "Jóvenes en un concierto de adoración",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function Eje() {
     <PublicPageLayout
       title="Evento Eje"
       description="El evento juvenil del año."
-      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/eje/Eje.jpg"
+      imageUrl="/involucrate/ministerios/servicio/conexion/eventos/eje/header.avif"
       imageAlt="Evento Eje"
       introSectionData={introSectionData}
     >

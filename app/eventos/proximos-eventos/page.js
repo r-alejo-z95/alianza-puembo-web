@@ -35,7 +35,7 @@ export default async function ProximosEventos() {
     <PublicPageLayout
       title="Próximos Eventos"
       description="Mantente al tanto de lo que viene en nuestra comunidad."
-      imageUrl="/eventos/Eventos.jpg"
+      imageUrl="/eventos/proximos-eventos/Proximos-Eventos.avif"
       imageAlt="Personas en un evento de la iglesia"
       introSectionData={introSectionData}
     >

@@ -18,7 +18,7 @@ export default function Compromiso() {
       "El compromiso con el servicio es una marca de madurez cristiana. Nuestros ministerios de Compromiso están diseñados para equipar, apoyar y coordinar a todos aquellos que han decidido dar un paso al frente y servir activamente en la iglesia.",
       "Si ya estás sirviendo o deseas hacerlo, aquí encontrarás los recursos y la comunidad que necesitas para hacerlo con excelencia y pasión.",
     ],
-    imageUrl: "/involucrate/ministerios/servicio/compromiso/Compromiso.jpg",
+    imageUrl: "/involucrate/ministerios/servicio/compromiso/Compromiso.avif",
     imageAlt: "Equipo de voluntarios orando juntos antes de un servicio",
     imagePosition: "right",
   };
@@ -51,7 +51,7 @@ export default function Compromiso() {
     <PublicPageLayout
       title="Compromiso"
       description="Equipando y apoyando a quienes sirven en la iglesia."
-      imageUrl="/involucrate/ministerios/servicio/compromiso/Compromiso.jpg"
+      imageUrl="/involucrate/ministerios/servicio/compromiso/header.avif"
       imageAlt="Ministerios de Compromiso"
       introSectionData={introSectionData}
     >
