@@ -27,25 +27,29 @@ export default function Eventos() {
     title: "Nuestros Eventos Anuales",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/alma/header.avif",
         href: "/ministerios/alma",
         itemTitle: "Alma (para Matrimonios)",
         itemDescription: "Un evento para fortalecer la conexión y el propósito en el matrimonio.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/legado/header.avif",
         href: "/ministerios/legado",
         itemTitle: "Legado (para Varones)",
         itemDescription: "Un tiempo para desafiar a los hombres a vivir un legado de fe e integridad.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/cautivante/header.avif",
         href: "/ministerios/cautivante",
         itemTitle: "Cautivante (para Mujeres)",
         itemDescription: "Un encuentro para que las mujeres descubran su belleza, valor y propósito en Dios.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/eje/header.avif",
         href: "/ministerios/eje",
         itemTitle: "Eje (para Jóvenes)",
         itemDescription: "El evento juvenil del año, lleno de energía, adoración y un mensaje que marca vidas.",

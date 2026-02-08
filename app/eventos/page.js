@@ -14,13 +14,15 @@ export default function EventosRaiz() {
     title: "Nuestras Actividades",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/eventos/proximos-eventos/Proximos-Eventos.avif",
         href: "/eventos/proximos-eventos",
         itemTitle: "Próximos Eventos",
         itemDescription: "Consulta lo que viene pronto en nuestra iglesia.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/eventos/Calendario.avif",
         href: "/eventos/calendario",
         itemTitle: "Calendario",
         itemDescription: "Explora todas las fechas y actividades programadas.",

@@ -14,13 +14,15 @@ export default function InvolucrateRaiz() {
     title: "Tus Siguientes Pasos",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ruta.avif",
         href: "/involucrate/ruta",
         itemTitle: "Nuestra Ruta",
         itemDescription: "El camino diseñado para conocer nuestra familia, crecer en fe y encontrar tu propósito.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/header.avif",
         href: "/involucrate/ministerios",
         itemTitle: "Ministerios",
         itemDescription: "Encuentra tu lugar para crecer y servir en nuestras áreas de Cuidado y Servicio.",

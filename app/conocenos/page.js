@@ -14,13 +14,15 @@ export default function Conocenos() {
     title: "Nuestra Identidad",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/conocenos/equipo/Equipo.avif",
         href: "/conocenos/equipo",
         itemTitle: "Nuestro Equipo",
         itemDescription: "Pastores y líderes que te acompañan en tu caminar de fe.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/conocenos/que-creemos/savior-tomb.avif",
         href: "/conocenos/que-creemos",
         itemTitle: "¿En qué creemos?",
         itemDescription: "Nuestras creencias fundamentales y pilares espirituales.",

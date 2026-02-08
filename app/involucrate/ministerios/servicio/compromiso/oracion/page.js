@@ -27,19 +27,22 @@ export default function Oracion() {
     title: "Espacios de Oración",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/circulos-de-oracion/header.avif",
         href: "/ministerios/circulos-oracion",
         itemTitle: "Círculos de Oración",
         itemDescription: "Intercesión comunitaria vía Zoom por propósitos específicos.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/intercesores/header.avif",
         href: "/ministerios/intercesores",
         itemTitle: "Intercesores",
         itemDescription: "Clamando por la visión, el liderazgo y el avance del Reino.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/miercoles-de-oracion/header.avif",
         href: "/ministerios/miercoles-oracion",
         itemTitle: "Miércoles de Oración",
         itemDescription: "Nuestro servicio semanal de búsqueda y adoración a las 06h30.",

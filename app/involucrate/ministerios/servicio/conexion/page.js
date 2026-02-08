@@ -27,19 +27,22 @@ export default function Conexion() {
     title: "Áreas de Conexión",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/eventos/header.avif",
         href: "/ministerios/eventos-conexion",
         itemTitle: "Eventos",
         itemDescription: "Eventos especiales diseñados para alcanzar a diferentes grupos de personas.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/amor-en-accion/header.avif",
         href: "/ministerios/amor-en-accion",
         itemTitle: "Amor en Acción",
         itemDescription: "Proyectos de servicio que demuestran el amor de Dios a través de obras.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/redes-de-amor/header.avif",
         href: "/ministerios/redes-de-amor",
         itemTitle: "Redes de Amor (Evangelismo)",
         itemDescription: "Grupos dedicados a compartir el evangelio de manera personal y creativa.",

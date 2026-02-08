@@ -14,19 +14,22 @@ export default function RecursosRaiz() {
     title: "Herramientas para Crecer",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/recursos/lom/Lom.avif",
         href: "https://www.youtube.com/@IglesiaAlianzaPuembo/playlists",
         itemTitle: "Prédicas",
         itemDescription: "Escucha mensajes que transforman vidas a través de nuestro canal de YouTube.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/recursos/lom/Lom.avif",
         href: "/recursos/lom",
         itemTitle: "LOM: Lee, Ora, Medita",
         itemDescription: "Nuestra guía devocional diaria para profundizar en la Palabra.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/recursos/lom/Lom.avif",
         href: "https://iglesiaalianzapuembo.pixieset.com/",
         itemTitle: "Galería",
         itemDescription: "Revive los mejores momentos de nuestra familia en imágenes.",

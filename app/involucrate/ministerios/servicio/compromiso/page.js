@@ -27,19 +27,22 @@ export default function Compromiso() {
     title: "Áreas de Compromiso",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/compromiso/mat/Mat.avif",
         href: "/ministerios/mat",
         itemTitle: "MAT (Música, Artes y Tecnología)",
         itemDescription: "Adoración, creatividad y excelencia técnica al servicio de Dios.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/compromiso/mda/header.avif",
         href: "/ministerios/mda",
         itemTitle: "MDA (Ministerios de Apoyo)",
         itemDescription: "Equipos que hacen posible el funcionamiento de nuestros servicios y eventos.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/compromiso/oracion/header.avif",
         href: "/ministerios/oracion",
         itemTitle: "Oración",
         itemDescription: "El motor espiritual de nuestra iglesia, intercediendo y buscando a Dios.",

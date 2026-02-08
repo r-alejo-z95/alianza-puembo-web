@@ -29,25 +29,29 @@ export default function GruposPequenos() {
     title: "Grupos Pequeños",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/familiar/header.avif",
         href: "/ministerios/gp-familiar",
         itemTitle: "GP Familiares",
         itemDescription: "Creciendo juntos en familia",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/legado/header.avif",
         href: "/ministerios/gp-legado",
         itemTitle: "GP Legado (Varones)",
         itemDescription: "Forjando hombres de valor",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/juntas/header.avif",
         href: "/ministerios/gp-juntas",
         itemTitle: "GP Juntas (Mujeres)",
         itemDescription: "Creciendo en comunidad femenina",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/ministeriales/header.avif",
         href: "/ministerios/gp-ministeriales",
         itemTitle: "GP Ministeriales",
         itemDescription: "Cuidando a los que cuidan",

@@ -27,13 +27,15 @@ export default function RedesDeAmor() {
     title: "Nuestras Redes",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/redes-de-amor/pescadores/header.avif",
         href: "/ministerios/pescadores",
         itemTitle: "Pescadores",
         itemDescription: "Grupos de evangelismo personal y relacional en diferentes contextos.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion/header.avif",
         href: "/ministerios/punto-conexion",
         itemTitle: "Punto de Conexión",
         itemDescription: "Eventos y actividades diseñadas para crear oportunidades de evangelismo.",

@@ -27,19 +27,22 @@ export default function CuidadoPastoral() {
     title: "Nuestros Espacios de Cuidado",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/cuidado/grupos-pequenos/header.avif",
         href: "/ministerios/grupos-pequenos",
         itemTitle: "Grupos Pequeños",
         itemDescription: "Comunidad auténtica y crecimiento relacional.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/cuidado/jovenes/Header.avif",
         href: "/ministerios/jovenes",
         itemTitle: "Jóvenes",
         itemDescription: "Acompañando a la nueva generación en su fe.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/cuidado/puembo-kids/header.avif",
         href: "/ministerios/puembo-kids",
         itemTitle: "Puembo Kids",
         itemDescription: "Sembrando el amor de Dios en el corazón de los niños.",

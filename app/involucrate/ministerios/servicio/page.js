@@ -27,19 +27,22 @@ export default function Servicio() {
     title: "Áreas de Servicio",
     items: [
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/conexion/header.avif",
         href: "/ministerios/conexion",
         itemTitle: "Conexión",
         itemDescription: "Alcanzando a nuestra comunidad a través de eventos, proyectos sociales y evangelismo.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/crecimiento/header.avif",
         href: "/ministerios/crecimiento",
         itemTitle: "Crecimiento",
         itemDescription: "Fomentando la madurez espiritual, el discipulado y la sanidad interior.",
       },
       {
-        type: "link",
+        type: "image",
+        imageUrl: "/involucrate/ministerios/servicio/compromiso/header.avif",
         href: "/ministerios/compromiso",
         itemTitle: "Compromiso",
         itemDescription: "Equipos dedicados a la adoración, el apoyo logístico y el motor de la oración.",
