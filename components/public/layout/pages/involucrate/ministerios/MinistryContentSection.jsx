@@ -110,7 +110,7 @@ export function MinistryContentSection({ title, items }) {
   };
 
   return (
-    <section className="bg-gray-50/50 py-16 md:py-20 overflow-hidden border-t border-gray-100">
+    <section className="py-12 md:py-16 overflow-hidden">
       <div className={cn(contentSection, "max-w-7xl mx-auto space-y-16 md:space-y-24")}>
         {/* Separador Visual Estándar */}
         <div className="flex items-center gap-6 px-4">
