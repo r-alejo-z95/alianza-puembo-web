@@ -2,6 +2,7 @@ import { PublicPageLayout } from "@/components/public/layout/pages/PublicPageLay
 import { ZoomableImage } from "@/components/public/layout/pages/involucrate/ruta/ZoomableImage";
 import { cn } from "@/lib/utils.ts";
 import { contentSection } from "@/lib/styles";
+import { Search } from "lucide-react";
 
 export const metadata = {
   title: "Ruta de la Fe",
@@ -43,16 +44,24 @@ export default function Ruta() {
 
           {/* Interactive Image Area */}
           <div className="relative group px-2 md:px-0">
-            <div className="relative aspect-[16/11] md:aspect-[3/2] rounded-2xl md:rounded-[3rem] overflow-hidden shadow-2xl bg-white p-3 md:p-8 border border-gray-100">
+            <div className="relative aspect-[3/4] md:aspect-[3/2] rounded-2xl md:rounded-[3rem] overflow-hidden shadow-2xl bg-white p-2 md:p-8 border border-gray-100">
               <ZoomableImage
                 src="/involucrate/ruta.avif"
                 alt="Mapa detallado de la Ruta de la Fe"
                 width={3508}
                 height={2481}
-                sizes="(max-width: 768px) 100vw, 100vw"
-                className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-[1.02]"
+                sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
+                className="w-full h-full object-cover md:object-contain transition-transform duration-700 group-hover:scale-[1.02]"
                 quality={100}
               />
+              
+              {/* Mobile Overlay Hint */}
+              <div className="absolute inset-0 bg-black/5 flex items-end justify-center pb-6 md:hidden pointer-events-none">
+                <div className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-gray-100 flex items-center gap-2">
+                  <Search className="w-3 h-3 text-[var(--puembo-green)]" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-600">Ver mapa completo</span>
+                </div>
+              </div>
             </div>
 
             {/* Decorative accent */}
