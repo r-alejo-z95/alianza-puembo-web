@@ -143,6 +143,7 @@ export function PublicPageLayout({
                     src={introSectionData.imageUrl}
                     alt={introSectionData.imageAlt || ""}
                     fill
+                    sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
                     className="object-cover transition-transform duration-1000 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
