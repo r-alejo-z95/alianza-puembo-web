@@ -958,7 +958,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className="border-b border-(--puembo-green) p-6 md:p-8 prose prose-base md:prose-lg mx-auto text-gray-800 font-medium leading-relaxed"
+                  className="border-b border-(--puembo-green) p-6 md:p-8 prose prose-base md:prose-lg mx-auto text-gray-800 font-medium leading-relaxed whitespace-pre-wrap tiptap-content"
                   dangerouslySetInnerHTML={{ __html: form.description }}
                 />
               )}

@@ -275,13 +275,13 @@ const FormHeader = ({
                         onValueChange={field.onChange}
                         value={field.value || ""}
                       >
-                        <SelectTrigger className="h-10 bg-white border-amber-200/50 text-xs font-medium rounded-xl">
+                        <SelectTrigger className="h-10 overflow-clip whitespace-nowrap w-full bg-white border-amber-200/50 text-xs font-medium rounded-xl">
                           <SelectValue placeholder="Campo de la foto..." />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent align="left">
                           {receiptFields.length > 0 ? (
                             receiptFields.map((f) => (
-                              <SelectItem key={f.id} value={f.label}>
+                              <SelectItem key={f.id} value={f.label} className="h-10 text-ellipsis overflow-hidden whitespace-nowrap w-full bg-white border-amber-200/50 text-xs font-medium rounded-xl">
                                 {f.label}
                               </SelectItem>
                             ))
@@ -328,7 +328,7 @@ const FormHeader = ({
           ) : (
             <div
               className={cn(
-                "prose prose-sm max-w-none text-gray-600 font-light min-h-[40px] leading-relaxed",
+                "prose prose-sm max-w-none text-gray-600 font-light min-h-[40px] leading-relaxed whitespace-pre-wrap tiptap-content",
                 !description && "text-gray-300 italic",
               )}
               dangerouslySetInnerHTML={{
