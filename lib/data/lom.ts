@@ -1,78 +1,69 @@
-import { createClient } from "@/lib/supabase/server";
-import { unstable_noStore as noStore } from "next/cache";
+import { createAdminClient } from "@/lib/supabase/server";
+import { unstable_cache } from "next/cache";
 import { getTodayEcuadorDateLiteral } from "@/lib/date-utils";
+
+/**
+ * @description Cached fetch of LOM posts.
+ */
+export const getCachedLomPosts = (includeFuture = false) => {
+  return unstable_cache(
+    async () => {
+      const supabase = createAdminClient();
+      const today = getTodayEcuadorDateLiteral();
+
+      let query = supabase
+        .from("lom_posts")
+        .select("*, profiles(full_name, email)")
+        .eq("is_archived", false);
+
+      if (!includeFuture) {
+        query = query.lte("publication_date", today);
+      }
+
+      const { data, error } = await query.order("publication_date", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching cached LOM posts:", error);
+        return [];
+      }
+      return data;
+    },
+    ['lom-posts-list', includeFuture ? 'admin' : 'public'],
+    {
+      tags: ['lom'],
+      revalidate: 3600
+    }
+  )();
+};
 
 /**
  * @description Obtiene todos los devocionales LOM publicados hasta hoy (Ecuador).
  */
 export async function getLomPosts() {
-  noStore();
-  const supabase = await createClient();
+  return await getCachedLomPosts(false);
+}
 
-  // Fecha literal YYYY-MM-DD en Ecuador
-  const today = getTodayEcuadorDateLiteral();
-
-  const { data, error } = await supabase
-    .from("lom_posts")
-    .select("*")
-    .eq("is_archived", false)
-    .lte("publication_date", today) // 👈 DATE vs DATE (correcto)
-    .order("publication_date", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching LOM posts:", error);
-    return [];
-  }
-
-  return data ?? [];
+/**
+ * @description Obtiene todos los devocionales LOM (incluyendo futuros) para Admin.
+ */
+export async function getAllLomPostsForAdmin() {
+  return await getCachedLomPosts(true);
 }
 
 /**
  * @description Obtiene el devocional LOM más reciente (publicado).
  */
 export async function getLatestLomPost(): Promise<{ slug: string } | null> {
-  noStore();
-  const supabase = await createClient();
-
-  const today = getTodayEcuadorDateLiteral();
-
-  const { data, error } = await supabase
-    .from("lom_posts")
-    .select("slug")
-    .eq("is_archived", false)
-    .lte("publication_date", today)
-    .order("publication_date", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error || !data) {
-    console.error("Error fetching latest LOM post:", error);
-    return null;
-  }
-
-  return data;
+  const posts = await getCachedLomPosts(false);
+  return posts.length > 0 ? { slug: posts[0].slug } : null;
 }
 
 /**
  * @description Obtiene un devocional LOM por su slug.
  */
 export async function getLomPostBySlug(slug: string): Promise<any | null> {
-  noStore();
-  const supabase = await createClient();
-
-  const { data, error } = await supabase
-    .from("lom_posts")
-    .select("*")
-    .eq("slug", slug)
-    .eq("is_archived", false)
-    .single();
-
-  if (error) {
-    console.error(`Error fetching LOM post with slug ${slug}:`, error);
-    return null;
-  }
-
-  return data;
+  const posts = await getCachedLomPosts(false);
+  return posts.find(post => post.slug === slug) || null;
 }
 
 /**
@@ -83,29 +74,21 @@ export async function getLomNavigationPosts(currentPostDate: string): Promise<{
   prevPost: { slug: string; publication_date: string } | null;
   nextPost: { slug: string; publication_date: string } | null;
 }> {
-  noStore();
-  const supabase = await createClient();
+  const posts = await getCachedLomPosts(false);
+  
+  // Assuming posts are ordered descending by publication_date
+  const currentIndex = posts.findIndex(p => p.publication_date === currentPostDate);
+  
+  if (currentIndex === -1) return { prevPost: null, nextPost: null };
 
-  const { data: prevPost } = await supabase
-    .from("lom_posts")
-    .select("slug, publication_date")
-    .eq("is_archived", false)
-    .lt("publication_date", currentPostDate)
-    .order("publication_date", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  const { data: nextPost } = await supabase
-    .from("lom_posts")
-    .select("slug, publication_date")
-    .eq("is_archived", false)
-    .gt("publication_date", currentPostDate)
-    .order("publication_date", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  // Next post in time (future relative to current) -> previous in array (since desc sort)
+  const nextPost = currentIndex > 0 ? posts[currentIndex - 1] : null;
+  
+  // Prev post in time (past relative to current) -> next in array
+  const prevPost = currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
 
   return {
-    prevPost: prevPost || null,
-    nextPost: nextPost || null,
+    prevPost: prevPost ? { slug: prevPost.slug, publication_date: prevPost.publication_date } : null,
+    nextPost: nextPost ? { slug: nextPost.slug, publication_date: nextPost.publication_date } : null,
   };
 }

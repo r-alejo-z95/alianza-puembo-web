@@ -8,6 +8,7 @@ import {
   adminPageDescription,
 } from "@/lib/styles.ts";
 import { createClient } from "@/lib/supabase/server";
+import { getCachedForms } from "@/lib/data/forms";
 import { CheckCircle2, Globe, ExternalLink, Database } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 
@@ -25,12 +26,12 @@ export default async function FormulariosAdminPage() {
   await verifyPermission("perm_forms");
 
   const supabase = await createClient();
-  const { data: googleConn } = await supabase
-    .from("google_integration")
-    .select("account_name, account_email")
-    .eq("id", 1)
-    .single();
+  const [googleConnResult, initialForms] = await Promise.all([
+    supabase.from("google_integration").select("account_name, account_email").eq("id", 1).single(),
+    getCachedForms(false) // Public forms
+  ]);
 
+  const googleConn = googleConnResult.data;
   const isConnected = !!googleConn;
 
   return (
@@ -86,7 +87,7 @@ export default async function FormulariosAdminPage() {
         )}
       </div>
 
-      <FormManager />
+      <FormManager initialForms={initialForms} isInternal={false} />
     </section>
   );
 }

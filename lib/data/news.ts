@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
+import { unstable_cache } from "next/cache";
 
 interface NewsItem {
   id: string;
@@ -10,9 +11,50 @@ interface NewsItem {
   image_w?: number;
   image_h?: number;
   created_at: string;
+  is_archived?: boolean;
+  profiles?: {
+    full_name: string;
+    email: string;
+  };
 }
 
 const NEWS_PER_PAGE = 4;
+
+/**
+ * @description Cached fetch of news.
+ * @param includeScheduled If true, returns all non-archived news (for Admin).
+ * If false, returns only news where publish_at <= now (for Public).
+ */
+export const getCachedNews = (includeScheduled = false) => {
+  return unstable_cache(
+    async () => {
+      const supabase = createAdminClient();
+      const nowStr = new Date().toISOString();
+
+      let query = supabase
+        .from("news")
+        .select("*, profiles(full_name, email)")
+        .eq("is_archived", false);
+
+      if (!includeScheduled) {
+        query = query.lte("publish_at", nowStr);
+      }
+
+      const { data, error } = await query.order("publish_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching cached news:", error);
+        return [];
+      }
+      return data as NewsItem[];
+    },
+    ['news-list', includeScheduled ? 'admin' : 'public'],
+    {
+      tags: ['news'],
+      revalidate: 3600
+    }
+  )();
+};
 
 /**
  * @description Obtiene las noticias paginadas y filtradas por fecha de publicación programada.
@@ -25,23 +67,9 @@ export async function getNews(
   totalPages: number;
   hasNextPage: boolean;
 }> {
-  const supabase = await createClient();
-  const nowStr = new Date().toISOString(); // UTC real para comparar con TIMESTAMPTZ
+  const news = await getCachedNews(false); // Public only
 
-  // Filtrar directamente en la consulta de Supabase para mayor eficiencia
-  const { data: news, error } = await supabase
-    .from("news")
-    .select("*")
-    .eq("is_archived", false)
-    .lte("publish_at", nowStr) // Solo publicadas (ahora o en el pasado UTC)
-    .order("publish_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching news:", error);
-    return { paginatedNews: [], totalPages: 0, hasNextPage: false };
-  }
-
-  const newsWithPage = (news as NewsItem[]).map((item, index) => ({
+  const newsWithPage = news.map((item, index) => ({
     ...item,
     page: Math.floor(index / newsPerPage) + 1,
   }));
@@ -61,20 +89,12 @@ export async function getNews(
  * @description Obtiene todas las noticias publicadas sin paginar.
  */
 export async function getAllNews(): Promise<NewsItem[]> {
-  const supabase = await createClient();
-  const nowStr = new Date().toISOString();
+  return await getCachedNews(false);
+}
 
-  const { data: news, error } = await supabase
-    .from("news")
-    .select("*")
-    .eq("is_archived", false)
-    .lte("publish_at", nowStr)
-    .order("publish_at", { ascending: false });
-
-  if (error) {
-    console.error("Error fetching all news:", error);
-    return [];
-  }
-
-  return news as NewsItem[];
+/**
+ * @description Obtiene todas las noticias (incluyendo programadas) para el panel admin.
+ */
+export async function getAllNewsForAdmin(): Promise<NewsItem[]> {
+  return await getCachedNews(true);
 }

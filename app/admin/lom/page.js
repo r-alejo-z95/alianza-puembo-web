@@ -3,6 +3,8 @@ import PassageManager from '@/components/admin/managers/PassageManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { verifyPermission } from "@/lib/auth/guards";
 import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles.ts";
+import { getAllLomPostsForAdmin } from '@/lib/data/lom';
+import { getPassages } from '@/lib/data/passages';
 import { BookOpen, Calendar } from 'lucide-react';
 
 export const metadata = {
@@ -16,6 +18,10 @@ export const metadata = {
 
 export default async function LomPage() {
   await verifyPermission("perm_lom");
+  const [initialPosts, initialPassages] = await Promise.all([
+    getAllLomPostsForAdmin(),
+    getPassages()
+  ]);
 
   return (
     <section className={adminPageSection}>
@@ -55,10 +61,10 @@ export default async function LomPage() {
         </div>
         
         <TabsContent value="lom" className="mt-0 focus-visible:outline-none">
-          <LomManager />
+          <LomManager initialItems={initialPosts} />
         </TabsContent>
         <TabsContent value="passages" className="mt-0 focus-visible:outline-none">
-          <PassageManager />
+          <PassageManager initialItems={initialPassages} />
         </TabsContent>
       </Tabs>
     </section>

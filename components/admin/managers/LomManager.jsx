@@ -71,7 +71,7 @@ const lomSchema = z.object({
   publication_date: z.string().min(1, "La fecha de publicación es requerida."),
 });
 
-export default function LomManager() {
+export default function LomManager({ initialItems = [] }) {
   const {
     items: posts,
     archivedItems: archivedPosts,
@@ -86,7 +86,7 @@ export default function LomManager() {
     emptyRecycleBin,
     fetchArchivedItems,
     refetchItems,
-  } = useLom({ type: "posts" });
+  } = useLom({ type: "posts", initialItems });
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);

@@ -52,7 +52,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const daysOfWeek = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 
-export default function PassageManager() {
+export default function PassageManager({ initialItems = [] }) {
   const {
     items: passages,
     archivedItems: archivedPassages,
@@ -67,7 +67,7 @@ export default function PassageManager() {
     emptyRecycleBin,
     fetchArchivedItems,
     refetchItems,
-  } = useLom({ type: "passages" });
+  } = useLom({ type: "passages", initialItems });
 
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);

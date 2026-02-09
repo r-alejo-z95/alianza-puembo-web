@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils.ts";
 import { sectionPx } from "@/lib/styles.ts";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { Play, MapPin } from "lucide-react";
+import { Play, MapPin, ArrowRight } from "lucide-react";
 
 const heroImages = [
   "/homepage/hero/Hero1.avif",
@@ -18,7 +18,7 @@ const heroImages = [
   "/homepage/hero/Hero7.avif",
 ];
 
-export default function Hero({ youtubeStatus }) {
+export default function Hero({ youtubeStatus, announcementBar }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
@@ -38,6 +38,23 @@ export default function Hero({ youtubeStatus }) {
 
   return (
     <section className="relative w-full h-screen min-h-[600px] md:h-screen overflow-hidden bg-black">
+      {/* Announcement Bar */}
+      {announcementBar?.enabled && (
+        <div className="absolute top-0 left-0 w-full z-50 bg-[var(--puembo-green)] text-white text-center py-2 px-4 text-xs md:text-sm font-medium">
+          <div className="flex items-center justify-center gap-2">
+            <span>{announcementBar.text}</span>
+            {announcementBar.link && (
+              <Link 
+                href={announcementBar.link} 
+                className="underline hover:text-white/80 flex items-center gap-1"
+              >
+                Ver más <ArrowRight className="w-3 h-3" />
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+
       <AnimatePresence mode="wait">
         <motion.div
           key={currentImageIndex}

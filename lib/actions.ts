@@ -5,11 +5,12 @@
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { loginSchema } from "@/lib/schemas";
 import { sendSystemNotification } from "@/lib/services/notifications";
 import { headers } from "next/headers";
+import { revalidateForms } from "./actions/cache";
 
 /**
  * Verifica un token de Cloudflare Turnstile.
@@ -494,6 +495,7 @@ export async function createFormAndSheet(formTitle: string) {
     }
 
     revalidatePath("/admin/formularios");
+    await revalidateForms(); // Revalidate cached forms
 
     return {
       success: true,
@@ -586,6 +588,7 @@ export async function regenerateFormAndSheet(
     }
 
     revalidatePath("/admin/formularios");
+    await revalidateForms();
 
     return { success: true, formId, formUrl: `/formularios/${formSlug}` };
   } catch (error) {
@@ -662,6 +665,7 @@ export async function initializeGoogleIntegration(
     }
 
     revalidatePath("/admin/formularios");
+    await revalidateForms();
     return { success: true };
   } catch (error: any) {
     console.error("Unexpected error in initializeGoogleIntegration:", error);

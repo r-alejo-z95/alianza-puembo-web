@@ -47,7 +47,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { replyToContactMessage } from "@/lib/actions";
 
-export default function ContactManager() {
+export default function ContactManager({ initialMessages = [] }) {
   const {
     messages,
     archivedMessages,
@@ -59,7 +59,7 @@ export default function ContactManager() {
     deleteMessagePermanently,
     refetchMessages,
     fetchArchivedMessages,
-  } = useContactMessages();
+  } = useContactMessages({ initialMessages });
 
   const [isPanelOpen, setIsFormOpen] = useState(false);
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);

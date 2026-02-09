@@ -6,6 +6,7 @@ import {
   adminPageTitle,
   adminPageDescription,
 } from "@/lib/styles.ts";
+import { getCachedForms } from "@/lib/data/forms";
 import { ClipboardList, ShieldCheck } from "lucide-react";
 
 export const metadata = {
@@ -20,6 +21,7 @@ export const metadata = {
 export default async function StaffAdminPage() {
   // Verificar permiso de internos
   await verifyPermission("perm_internal_forms");
+  const initialForms = await getCachedForms(true); // Internal forms
 
   return (
     <section className={adminPageSection}>
@@ -57,7 +59,7 @@ export default async function StaffAdminPage() {
       </div>
 
       {/* Renderizar el manager filtrando por internos */}
-      <FormManager isInternal={true} />
+      <FormManager initialForms={initialForms} isInternal={true} />
     </section>
   );
 }

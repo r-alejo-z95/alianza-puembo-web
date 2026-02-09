@@ -1,16 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
+import { getFormBySlug } from "@/lib/data/forms";
 import FormClient, { ErrorState } from "./FormClient";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const supabase = await createClient();
-
-  const { data: form } = await supabase
-    .from("forms")
-    .select("title, description, image_url")
-    .eq("slug", slug)
-    .eq("is_archived", false)
-    .single();
+  const form = await getFormBySlug(slug);
 
   if (!form) return { title: "Formulario no encontrado" };
 
@@ -37,16 +30,9 @@ export async function generateMetadata({ params }) {
 
 export default async function PublicFormPage({ params }) {
   const { slug } = await params;
-  const supabase = await createClient();
+  const form = await getFormBySlug(slug);
 
-  const { data: form, error } = await supabase
-    .from("forms")
-    .select("*, form_fields(*)")
-    .eq("slug", slug)
-    .eq("is_archived", false)
-    .single();
-
-  if (error || !form) {
+  if (!form) {
     return <ErrorState type="not_found" />;
   }
 
@@ -58,11 +44,8 @@ export default async function PublicFormPage({ params }) {
     return <FormClient form={form} errorType="inactive" />;
   }
 
-  if (form.form_fields) {
-    form.form_fields.sort(
-      (a, b) => (a.order_index ?? 0) - (b.order_index ?? 0),
-    );
-  }
+  // Fields are already sorted in getFormBySlug, but just in case or if client relies on it being array
+  // getFormBySlug returns form_fields sorted.
 
   return <FormClient form={form} />;
 }
