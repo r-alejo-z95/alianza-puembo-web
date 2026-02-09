@@ -44,6 +44,7 @@ export function PublicPageLayout({
             alt={imageAlt || title}
             fill
             priority
+            sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
             className="object-cover object-[center_35%] brightness-[0.65] contrast-[1.05]"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/70" />
