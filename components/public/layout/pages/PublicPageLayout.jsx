@@ -108,7 +108,7 @@ export function PublicPageLayout({
                 <div className="space-y-6 md:space-y-8">
                   <div className={cn("flex items-center gap-4", !introSectionData.imageUrl && "justify-center")}>
                     <div className="h-px w-8 md:w-10 bg-[var(--puembo-green)]" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)] opacity-70">Contexto</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)] opacity-70">{title}</span>
                     {!introSectionData.imageUrl && <div className="h-px w-8 md:w-10 bg-[var(--puembo-green)]" />}
                   </div>
                   <h2 className="text-2xl md:text-5xl font-serif font-bold text-gray-900 leading-tight tracking-tight">
