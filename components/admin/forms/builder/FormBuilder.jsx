@@ -70,7 +70,7 @@ const formSchema = z.object({
   description: z.string().optional().nullable(),
   image_url: z.string().optional().nullable(),
   is_internal: z.boolean().default(false),
-  is_financial: z.boolean().default(false),
+  is_financial: z.boolean().default(true),
   financial_field_label: z.string().optional().nullable(),
   fields: z.array(fieldSchema),
 });
@@ -81,7 +81,7 @@ export default function FormBuilder({
     description: "",
     image_url: "",
     is_internal: false,
-    is_financial: false,
+    is_financial: true,
     financial_field_label: "",
     fields: [],
   },
@@ -139,6 +139,7 @@ export default function FormBuilder({
       description: "",
       image_url: "",
       is_internal: false,
+      is_financial: true,
       fields: [],
     },
     mode: "onBlur",
@@ -175,7 +176,7 @@ export default function FormBuilder({
         description: initialForm.description || "",
         image_url: initialForm.image_url || "",
         is_internal: initialForm.is_internal || false,
-        is_financial: initialForm.is_financial || false,
+        is_financial: initialForm.is_financial ?? true,
         financial_field_label: initialForm.financial_field_label || "",
         fields: preparedFields,
       });
@@ -422,7 +423,14 @@ export default function FormBuilder({
     [fields, move],
   );
 
-  const handlePreview = () => {
+  const handlePreview = async () => {
+    const isValid = await form.trigger();
+    if (!isValid) {
+      // Forzamos el scroll y el toast usando los errores actuales
+      onInvalid(form.getValues().title ? form.formState.errors : { ...form.formState.errors, title: { message: "Título requerido" } });
+      return;
+    }
+
     // Preparar los datos actuales (watch captura todo el estado del formulario)
     const currentData = {
       ...form.getValues(),

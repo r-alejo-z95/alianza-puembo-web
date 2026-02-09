@@ -52,10 +52,11 @@ function BuilderContent() {
       };
       fetchForm();
     } else {
-      // Si es nuevo y viene con el param internal, preparamos un objeto parcial
-      if (isInternalParam) {
-        setForm({ is_internal: true });
-      }
+      // Si es nuevo, preparamos un objeto con valores por defecto
+      setForm({ 
+        is_internal: isInternalParam,
+        is_financial: true 
+      });
     }
   }, [formSlug, formId, isInternalParam, router]);
 

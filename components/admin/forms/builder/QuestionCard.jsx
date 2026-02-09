@@ -96,7 +96,7 @@ function QuestionCard({
   hasInternalBranching,
   error,
 }) {
-  const { control, setValue, getValues, watch } = useFormContext();
+  const { control, setValue, getValues, watch, clearErrors } = useFormContext();
   const {
     attributes,
     listeners,
@@ -132,6 +132,16 @@ function QuestionCard({
         URL.revokeObjectURL(attachmentUrl);
     };
   }, [attachmentUrl]);
+
+  // Limpiar error al cerrar si no hay contenido
+  useEffect(() => {
+    if (!isActive && error) {
+      const currentLabel = getValues(`fields.${index}.label`);
+      if (!currentLabel || currentLabel.trim() === "") {
+        clearErrors(`fields.${index}.label`);
+      }
+    }
+  }, [isActive, error, index, clearErrors, getValues]);
 
   const handleTypeChange = (newType) => {
     setValue(`fields.${index}.type`, newType);
