@@ -40,7 +40,7 @@ const donationSections = [
   },
   {
     title: "Pago Eventos",
-    description: "Exclusivo para inscripciones a retiros y actividades.",
+    description: "Inscripciones a retiros y actividades.",
     accounts: [
       {
         bank: "Banco del Pichincha",
@@ -55,10 +55,37 @@ const donationSections = [
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    toast.success("Copiado al portapapeles");
+  const handleCopy = async () => {
+    try {
+      // Intentar usar la API moderna de portapapeles
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        toast.success("Copiado al portapapeles");
+      } else {
+        // Fallback para contextos no seguros o navegadores antiguos
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        textArea.style.top = "0";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        if (successful) {
+          setCopied(true);
+          toast.success("Copiado al portapapeles");
+        } else {
+          throw new Error('Fallback copy failed');
+        }
+      }
+    } catch (err) {
+      console.error("Error al copiar:", err);
+      toast.error("No se pudo copiar automáticamente");
+    }
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -77,7 +104,7 @@ function CopyButton({ text }) {
             )}
           </button>
         </TooltipTrigger>
-        <TooltipContent side="top">
+        <TooltipContent side="top" className="hidden lg:block">
           <p>{copied ? "Copiado" : "Copiar"}</p>
         </TooltipContent>
       </Tooltip>
@@ -178,9 +205,6 @@ export function DonacionesClient() {
                             {account.bank}
                           </CardTitle>
                         </div>
-                        <span className="text-[9px] font-black uppercase tracking-tighter text-gray-300 group-hover:text-[var(--puembo-green)]/20 transition-colors">
-                          Digital
-                        </span>
                       </CardHeader>
                       <CardContent className="p-5 md:p-6 space-y-4">
                         <div className="space-y-1">
