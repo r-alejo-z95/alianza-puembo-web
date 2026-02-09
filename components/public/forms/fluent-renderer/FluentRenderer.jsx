@@ -379,44 +379,44 @@ const FieldInput = ({
 
           {!fileName ? (
             <Label htmlFor={fieldId} className="cursor-pointer block">
-              <div className="border-2 border-dashed border-gray-200 rounded-[2rem] p-12 flex flex-col items-center justify-center gap-5 text-gray-400 group-hover:border-[var(--puembo-green)] group-hover:bg-[var(--puembo-green)]/5 transition-all bg-white/50 backdrop-blur-sm shadow-sm">
-                <div className="p-5 bg-gray-50 rounded-2xl group-hover:bg-white group-hover:shadow-md transition-all">
-                  <Upload className="w-8 h-8 text-gray-400 group-hover:text-[var(--puembo-green)]" />
+              <div className="border-2 border-dashed border-gray-200 rounded-[1.5rem] md:rounded-[2rem] p-8 md:p-12 flex flex-col items-center justify-center gap-4 md:gap-5 text-gray-400 group-hover:border-[var(--puembo-green)] group-hover:bg-[var(--puembo-green)]/5 transition-all bg-white/50 backdrop-blur-sm shadow-sm">
+                <div className="p-4 md:p-5 bg-gray-50 rounded-xl md:rounded-2xl group-hover:bg-white group-hover:shadow-md transition-all">
+                  <Upload className="w-6 h-6 md:w-8 md:h-8 text-gray-400 group-hover:text-[var(--puembo-green)]" />
                 </div>
 
-                <div className="text-center space-y-2">
-                  <p className="font-black text-[11px] uppercase tracking-[0.25em] text-gray-600 group-hover:text-[var(--puembo-green)]">
+                <div className="text-center space-y-1 md:space-y-2">
+                  <p className="font-black text-[10px] md:text-[11px] uppercase tracking-[0.2em] md:tracking-[0.25em] text-gray-600 group-hover:text-[var(--puembo-green)]">
                     Haz clic para subir{" "}
                     {field.type === "image" ? "una foto" : "un archivo"}
                   </p>
 
-                  <p className="text-[10px] font-medium opacity-60">
+                  <p className="text-[9px] md:text-[10px] font-medium opacity-60">
                     Soporta archivos de hasta 5MB
                   </p>
                 </div>
               </div>
             </Label>
           ) : (
-            <div className="border-2 border-[var(--puembo-green)] bg-[var(--puembo-green)]/5 rounded-[2rem] p-8 flex flex-col items-center gap-6 animate-in zoom-in-95 duration-300">
-              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-[var(--puembo-green)] shadow-lg ring-4 ring-[var(--puembo-green)]/5">
-                <CheckCircle2 className="w-8 h-8" />
+            <div className="border-2 border-[var(--puembo-green)] bg-[var(--puembo-green)]/5 rounded-[1.5rem] md:rounded-[2rem] p-6 md:p-8 flex flex-col items-center gap-4 md:gap-6 animate-in zoom-in-95 duration-300">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-xl md:rounded-2xl flex items-center justify-center text-[var(--puembo-green)] shadow-lg ring-4 ring-[var(--puembo-green)]/5">
+                <CheckCircle2 className="w-6 h-6 md:w-8 md:h-8" />
               </div>
 
               <div className="text-center space-y-1">
-                <p className="text-base font-bold text-gray-800 line-clamp-1 max-w-[300px]">
+                <p className="text-sm md:text-base font-bold text-gray-800 line-clamp-1 max-w-[250px] md:max-w-[300px]">
                   {fileName}
                 </p>
 
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--puembo-green)]">
+                <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-[var(--puembo-green)]">
                   ¡Archivo listo para enviar!
                 </p>
               </div>
 
-              <div className="flex gap-3 w-full max-w-[320px]">
+              <div className="flex gap-2 md:gap-3 w-full max-w-[320px]">
                 <Button
                   type="button"
                   variant="outline"
-                  className="flex-1 rounded-xl h-12 text-[10px] font-black uppercase tracking-widest border-2 hover:bg-white"
+                  className="flex-1 rounded-xl h-10 md:h-12 text-[9px] md:text-[10px] font-black uppercase tracking-widest border-2 hover:bg-white"
                   onClick={() => document.getElementById(fieldId).click()}
                 >
                   Cambiar
@@ -425,7 +425,7 @@ const FieldInput = ({
                 <Button
                   type="button"
                   variant="ghost"
-                  className="flex-1 rounded-xl h-12 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 hover:text-red-600"
+                  className="flex-1 rounded-xl h-10 md:h-12 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 hover:text-red-600"
                   onClick={() => setValue(field.label, null)}
                 >
                   Eliminar
@@ -914,12 +914,12 @@ export default function FluentRenderer({ form, isPreview = false }) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -30, scale: 0.98 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="space-y-12"
+          className="space-y-8 md:space-y-12"
         >
           {currentStep === 0 && (
-            <div className="space-y-8 mb-16">
+            <div className="space-y-6 md:space-y-8 mb-10 md:mb-16">
               {form.image_url && (
-                <div className="relative w-full aspect-[21/9] rounded-[3rem] overflow-hidden shadow-2xl mb-12 group">
+                <div className="relative w-full aspect-[21/9] rounded-[1.5rem] md:rounded-[3rem] overflow-hidden shadow-2xl mb-8 md:mb-12 group">
                   <Image
                     src={form.image_url}
                     fill
@@ -930,12 +930,12 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                  <div className="absolute bottom-0 left-0 p-10 md:p-14 text-left w-full">
+                  <div className="absolute bottom-0 left-0 p-6 md:p-14 text-left w-full">
                     <motion.h1
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="text-3xl md:text-5xl font-black font-serif text-white drop-shadow-xl leading-tight"
+                      className="text-2xl md:text-5xl font-black font-serif text-white drop-shadow-xl leading-tight"
                     >
                       {form.title}
                     </motion.h1>
@@ -947,7 +947,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
                 <motion.h1
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-4xl md:text-6xl font-black font-serif text-gray-900 leading-tight"
+                  className="text-3xl md:text-6xl font-black font-serif text-gray-900 leading-tight"
                 >
                   {form.title}
                 </motion.h1>
@@ -958,24 +958,24 @@ export default function FluentRenderer({ form, isPreview = false }) {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
-                  className="border-b-1 border-(--puembo-green) p-8 prose prose-lg mx-auto text-gray-800 font-medium leading-relaxed"
+                  className="border-b border-(--puembo-green) p-6 md:p-8 prose prose-base md:prose-lg mx-auto text-gray-800 font-medium leading-relaxed"
                   dangerouslySetInnerHTML={{ __html: form.description }}
                 />
               )}
             </div>
           )}
 
-          <div className="space-y-14">
+          <div className="space-y-10 md:space-y-14">
             {currentSection && (
-              <div className="mb-10 relative">
+              <div className="mb-8 md:mb-10 relative">
                 <div className="absolute -left-6 top-0 bottom-0 w-1 bg-[var(--puembo-green)] rounded-full hidden md:block" />
 
-                <h2 className="text-3xl md:text-4xl font-serif font-black text-gray-900 leading-tight">
+                <h2 className="text-2xl md:text-4xl font-serif font-black text-gray-900 leading-tight">
                   {currentSection.label || "Información"}
                 </h2>
 
                 {currentSection.help_text && (
-                  <p className="text-gray-500 mt-4 text-lg font-medium leading-relaxed italic opacity-80">
+                  <p className="text-gray-500 mt-3 md:mt-4 text-base md:text-lg font-medium leading-relaxed italic opacity-80">
                     {currentSection.help_text}
                   </p>
                 )}

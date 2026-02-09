@@ -46,7 +46,7 @@ export const sectionText: string = "text-sm md:text-base lg:text-lg text-gray-60
 export const paginationContainer: string = "flex justify-center items-center gap-4 mt-8";
 export const paginationButton: string = "p-2 bg-(--puembo-green) text-white rounded-sm hover:bg-[hsl(92,45.9%,40%)] disabled:opacity-50 disabled:cursor-not-allowed";
 
-export const contentSection: string = "flex flex-col gap-10 md:gap-16 w-full mx-auto px-8 md:px-28 pt-8 md:pt-16 pb-16 md:pb-24";
+export const contentSection: string = "flex flex-col gap-10 md:gap-16 w-full mx-auto px-5 md:px-28 pt-8 md:pt-16 pb-16 md:pb-24";
 
 export const notAvailableText: string = "flex items-center justify-center text-2xl text-gray-500 min-h-[60vh]";
 export const notAvailableDevotional: string = "flex items-start justify-left text-2xl text-gray-500";

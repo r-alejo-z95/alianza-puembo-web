@@ -9,40 +9,40 @@ export default function NotFound() {
   const router = useRouter();
 
   return (
-    <main className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center overflow-hidden relative">
+    <main id="not-found-page" className="min-h-screen flex flex-col items-center justify-center p-6 text-center overflow-hidden relative bg-white z-[200]">
       {/* Background Decorative Element */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--puembo-green)] opacity-[0.03] blur-[120px] -z-10" />
 
-      <div className="max-w-xl w-full space-y-10 animate-in fade-in zoom-in duration-1000">
+      <div className="max-w-xl w-full space-y-8 md:space-y-10 animate-in fade-in zoom-in duration-1000">
         {/* Icon/Visual */}
-        <div className="relative mx-auto w-32 h-32 md:w-40 md:h-40">
-          <div className="absolute inset-0 bg-[var(--puembo-green)] opacity-10 rounded-[3rem] rotate-12 animate-pulse" />
-          <div className="absolute inset-0 bg-gray-50 rounded-[3rem] -rotate-6 border border-gray-100 flex items-center justify-center shadow-inner">
-            <Search className="w-12 h-12 md:w-16 md:h-16 text-gray-300" />
+        <div className="relative mx-auto w-28 h-28 md:w-40 md:h-40">
+          <div className="absolute inset-0 bg-[var(--puembo-green)] opacity-10 rounded-2xl md:rounded-[3rem] rotate-12 animate-pulse" />
+          <div className="absolute inset-0 bg-gray-50 rounded-2xl md:rounded-[3rem] -rotate-6 border border-gray-100 flex items-center justify-center shadow-inner">
+            <Search className="w-10 h-10 md:w-16 md:h-16 text-gray-300" />
           </div>
-          <div className="absolute -bottom-2 -right-2 bg-white p-4 rounded-2xl shadow-xl border border-gray-50 flex items-center justify-center">
-            <span className="text-2xl md:text-3xl font-black font-serif text-[var(--puembo-green)]">
+          <div className="absolute -bottom-1 -right-1 bg-white p-3 md:p-4 rounded-xl md:rounded-2xl shadow-xl border border-gray-50 flex items-center justify-center">
+            <span className="text-xl md:text-3xl font-black font-serif text-[var(--puembo-green)]">
               404
             </span>
           </div>
         </div>
 
         {/* Text Content */}
-        <div className="space-y-4">
-          <h1 className="text-4xl md:text-6xl font-serif font-black text-gray-900 leading-tight">
+        <div className="space-y-3 md:space-y-4 px-4">
+          <h1 className="text-3xl md:text-6xl font-serif font-black text-gray-900 leading-tight">
             Página no <br />
             <span className="text-[var(--puembo-green)] italic">
               encontrada.
             </span>
           </h1>
-          <p className="text-gray-500 text-lg md:text-xl font-light leading-relaxed max-w-md mx-auto">
+          <p className="text-gray-500 text-base md:text-xl font-light leading-relaxed max-w-md mx-auto">
             Lo sentimos, el camino que buscas parece no existir o ha sido
             movido.
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+        <div className="flex md:flex-col flex-row items-center justify-center gap-4 pt-4">
           <Button
             variant="ghost"
             onClick={() => router.back()}

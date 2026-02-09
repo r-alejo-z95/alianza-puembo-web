@@ -341,7 +341,7 @@ export default function PublicFormRenderer({ form }) {
         )}
       </div>
 
-      <Card className="overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white relative">
+      <Card className="overflow-hidden border-none shadow-2xl rounded-[1.5rem] md:rounded-[2.5rem] bg-white relative mx-2 md:mx-0">
         {sending && (
           <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex items-center justify-center flex-col gap-4 animate-in fade-in">
             <Loader2 className="w-12 h-12 text-[var(--puembo-green)] animate-spin" />
@@ -362,8 +362,8 @@ export default function PublicFormRenderer({ form }) {
               priority
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-0 left-0 p-8 md:p-12 w-full">
-              <h1 className="text-3xl md:text-4xl font-bold font-serif text-white shadow-black/20 drop-shadow-lg leading-tight">
+            <div className="absolute bottom-0 left-0 p-6 md:p-12 w-full">
+              <h1 className="text-2xl md:text-4xl font-bold font-serif text-white shadow-black/20 drop-shadow-lg leading-tight">
                 {form.title}
               </h1>
             </div>
@@ -372,15 +372,15 @@ export default function PublicFormRenderer({ form }) {
 
         <CardHeader
           className={cn(
-            "px-8 md:px-12 space-y-6 pb-4",
-            currentStep === 0 && form.image_url ? "pt-6" : "pt-12",
+            "px-6 md:px-12 space-y-4 md:space-y-6 pb-4",
+            currentStep === 0 && form.image_url ? "pt-6" : "pt-8 md:pt-12",
           )}
         >
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {/* Section Label */}
             <div className="flex items-center gap-3">
-              <div className="h-px w-8 bg-[var(--puembo-green)]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+              <div className="h-px w-6 md:w-8 bg-[var(--puembo-green)]" />
+              <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-[var(--puembo-green)]">
                 {currentStep === 0
                   ? "Información"
                   : currentSection?.label || "Continuación"}
@@ -389,7 +389,7 @@ export default function PublicFormRenderer({ form }) {
 
             {/* Dynamic Title (If not on Cover) */}
             {(!form.image_url || currentStep > 0) && (
-              <CardTitle className="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 leading-tight font-serif">
+              <CardTitle className="text-2xl md:text-4xl font-bold tracking-tight text-gray-900 leading-tight font-serif">
                 {currentStep === 0
                   ? form.title
                   : currentSection?.label || "Sección"}
@@ -399,21 +399,21 @@ export default function PublicFormRenderer({ form }) {
             {/* Description / Help Text */}
             {currentStep === 0 && form.description && (
               <div
-                className="tiptap-content text-gray-600 text-base leading-relaxed"
+                className="tiptap-content text-gray-600 text-sm md:text-base leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: form.description }}
               />
             )}
             {currentStep > 0 && currentSection?.help_text && (
-              <p className="text-sm text-gray-500 font-light leading-relaxed whitespace-pre-line">
+              <p className="text-xs md:text-sm text-gray-500 font-light leading-relaxed whitespace-pre-line">
                 {currentSection.help_text}
               </p>
             )}
           </div>
         </CardHeader>
 
-        <CardContent className="px-8 md:px-12 pt-8 pb-12">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
-            <div className="space-y-10 min-h-[100px]">
+        <CardContent className="px-6 md:px-12 pt-6 md:pt-8 pb-10 md:pb-12">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 md:space-y-12">
+            <div className="space-y-8 md:space-y-10 min-h-[100px]">
               {currentFields.map((field) => {
                 const fieldId = `field-${field.id}`;
                 const isRequired = field.required ?? field.is_required;
@@ -422,12 +422,12 @@ export default function PublicFormRenderer({ form }) {
                 return (
                   <div
                     key={field.id}
-                    className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500"
+                    className="space-y-3 md:space-y-4 animate-in fade-in slide-in-from-right-4 duration-500"
                   >
                     <Label
                       htmlFor={fieldId}
                       className={cn(
-                        "text-base font-bold block ml-1 uppercase tracking-widest",
+                        "text-sm md:text-base font-bold block ml-1 uppercase tracking-widest",
                         hasError ? "text-red-500" : "text-gray-700",
                       )}
                     >

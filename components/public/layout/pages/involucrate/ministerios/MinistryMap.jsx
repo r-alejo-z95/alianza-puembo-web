@@ -113,67 +113,67 @@ export function MinistryMap({ menuItems }) {
   };
 
   return (
-    <section className="bg-gray-50/50 py-16 border-t border-gray-100 overflow-hidden">
-      <div className={cn(contentSection, "max-w-7xl mx-auto space-y-32")}>
+    <section className="bg-gray-50/50 py-12 md:py-16 border-t border-gray-100 overflow-hidden">
+      <div className={cn(contentSection, "max-w-7xl mx-auto space-y-16 md:space-y-32 px-4 md:px-12")}>
         {/* Sección de Ruta (Acceso Rápido) */}
         {rutaItem && (
           <motion.div
             {...fadeIn}
-            className="bg-[var(--puembo-green)] rounded-[3rem] p-8 md:p-12 text-white shadow-2xl relative overflow-hidden group"
+            className="bg-[var(--puembo-green)] rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 text-white shadow-2xl relative overflow-hidden group mx-2 md:mx-0"
           >
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:scale-110 transition-transform duration-700" />
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="space-y-4 text-center md:text-left">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-md border border-white/10">
-                  <Compass className="w-4 h-4" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8">
+              <div className="space-y-3 md:space-y-4 text-center md:text-left">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/10">
+                  <Compass className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">
                     Punto de Partida
                   </span>
                 </div>
-                <h2 className="text-3xl md:text-5xl font-serif font-bold tracking-tight">
+                <h2 className="text-2xl md:text-5xl font-serif font-bold tracking-tight leading-tight">
                   Descubre tu <span className="italic opacity-80">Ruta</span>
                 </h2>
-                <p className="text-green-50 max-w-xl text-lg font-light leading-relaxed">
+                <p className="text-green-50 max-w-xl text-base md:text-lg font-light leading-relaxed">
                   {rutaItem.description}. El camino diseñado para conocer
                   nuestra familia, crecer en fe y encontrar tu propósito.
                 </p>
               </div>
               <Link
                 href={rutaItem.href}
-                className="bg-white text-[var(--puembo-green)] px-10 py-5 rounded-2xl font-bold shadow-xl hover:bg-green-50 transition-all flex items-center gap-3 group/btn whitespace-nowrap"
+                className="bg-white text-[var(--puembo-green)] px-8 md:px-10 py-4 md:py-5 rounded-xl md:rounded-2xl font-bold shadow-xl hover:bg-green-50 transition-all flex items-center gap-2.5 md:gap-3 group/btn whitespace-nowrap text-sm md:text-base w-full md:w-auto justify-center"
               >
                 Comenzar mi Ruta{" "}
-                <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform" />
+                <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover/btn:translate-x-2 transition-transform" />
               </Link>
             </div>
           </motion.div>
         )}
 
         {/* Cuidado Pastoral */}
-        <motion.div {...fadeIn} className="space-y-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
-            <div className="space-y-4 text-center md:text-left">
+        <motion.div {...fadeIn} className="space-y-6 md:space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 px-2 md:px-4">
+            <div className="space-y-3 md:space-y-4 text-center md:text-left">
               <Link
                 href={careSection?.href || "#"}
-                className="flex items-center justify-center md:justify-start gap-3 group/section"
+                className="flex items-center justify-center md:justify-start gap-2.5 md:gap-3 group/section"
               >
-                <Heart className="w-6 h-6 text-[var(--puembo-green)] group-hover/section:scale-110 transition-transform" />
-                <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight group-hover/section:text-[var(--puembo-green)] transition-colors">
+                <Heart className="w-5 h-5 md:w-6 md:h-6 text-[var(--puembo-green)] group-hover/section:scale-110 transition-transform" />
+                <h2 className="text-2xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight group-hover/section:text-[var(--puembo-green)] transition-colors">
                   Cuidado{" "}
                   <span className="text-[var(--puembo-green)] italic">
                     Pastoral
                   </span>
                 </h2>
-                <ArrowRight className="w-6 h-6 text-[var(--puembo-green)] opacity-0 group-hover/section:opacity-100 group-hover/section:translate-x-2 transition-all" />
+                <ArrowRight className="w-5 h-5 md:w-6 md:h-6 text-[var(--puembo-green)] opacity-0 group-hover/section:opacity-100 group-hover/section:translate-x-2 transition-all" />
               </Link>
-              <p className="text-gray-500 font-light max-w-xl text-lg">
+              <p className="text-gray-500 font-light max-w-xl text-sm md:text-lg leading-relaxed">
                 Ministerios enfocados en acompañarte, fortalecer tu fe y
                 brindarte comunidad en cada etapa.
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12 px-2 md:px-0">
             {careSection?.subroutes.map((cat) => renderCategory(cat))}
           </div>
         </motion.div>
@@ -187,37 +187,37 @@ export function MinistryMap({ menuItems }) {
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-gray-50 px-8 text-[10px] font-black uppercase tracking-[0.6em] text-gray-300">
+            <span className="bg-gray-50 px-4 md:px-8 text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-gray-300">
               Estructura Ministerial
             </span>
           </div>
         </div>
 
         {/* Servicio */}
-        <motion.div {...fadeIn} className="space-y-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-4">
-            <div className="space-y-4 text-center md:text-left">
+        <motion.div {...fadeIn} className="space-y-6 md:space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 px-2 md:px-4">
+            <div className="space-y-3 md:space-y-4 text-center md:text-left">
               <Link
                 href={serviceSection?.href || "#"}
-                className="flex items-center justify-center md:justify-start gap-3 group/section"
+                className="flex items-center justify-center md:justify-start gap-2.5 md:gap-3 group/section"
               >
-                <HandHelping className="w-6 h-6 text-[var(--puembo-green)] group-hover/section:scale-110 transition-transform" />
-                <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight group-hover/section:text-[var(--puembo-green)] transition-colors">
+                <HandHelping className="w-5 h-5 md:w-6 md:h-6 text-[var(--puembo-green)] group-hover/section:scale-110 transition-transform" />
+                <h2 className="text-2xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight group-hover/section:text-[var(--puembo-green)] transition-colors">
                   Manos al{" "}
                   <span className="text-[var(--puembo-green)] italic">
                     Servicio
                   </span>
                 </h2>
-                <ArrowRight className="w-6 h-6 text-[var(--puembo-green)] opacity-0 group-hover/section:opacity-100 group-hover/section:translate-x-2 transition-all" />
+                <ArrowRight className="w-5 h-5 md:w-6 md:h-6 text-[var(--puembo-green)] opacity-0 group-hover/section:opacity-100 group-hover/section:translate-x-2 transition-all" />
               </Link>
-              <p className="text-gray-500 font-light max-w-xl text-lg">
+              <p className="text-gray-500 font-light max-w-xl text-sm md:text-lg leading-relaxed">
                 Oportunidades para poner tus dones en acción y transformar vidas
                 a través del servicio activo.
               </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 md:gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-12 md:gap-16 px-2 md:px-0">
             {serviceSection?.subroutes.map((cat) => renderCategory(cat))}
           </div>
         </motion.div>

@@ -37,45 +37,45 @@ export const LoadingState = () => (
 );
 
 export const ErrorState = ({ type = "not_found" }) => (
-  <div className="fixed inset-0 bg-[#FAFAFA] flex flex-col items-center justify-center p-8 text-center overflow-hidden">
+  <div className="fixed inset-0 bg-[#FAFAFA] flex flex-col items-center justify-center p-6 md:p-8 text-center overflow-hidden">
     <div className="absolute top-[-10%] right-[-10%] w-[40%] aspect-square bg-[var(--puembo-green)]/5 rounded-full blur-3xl" />
     <div className="absolute bottom-[-10%] left-[-10%] w-[40%] aspect-square bg-[var(--puembo-green)]/5 rounded-full blur-3xl" />
 
-    <div className="relative z-10 max-w-md w-full">
+    <div className="relative z-10 max-w-md w-full px-2">
       <div
         className={cn(
-          "w-32 h-32 rounded-[2.5rem] flex items-center justify-center mb-8 mx-auto shadow-xl rotate-3",
+          "w-24 h-24 md:w-32 md:h-32 rounded-2xl md:rounded-[2.5rem] flex items-center justify-center mb-6 md:mb-8 mx-auto shadow-xl rotate-3",
           type === "inactive"
             ? "bg-amber-50 text-amber-500"
             : "bg-red-50 text-red-500",
         )}
       >
         {type === "inactive" ? (
-          <Clock className="w-12 h-12 -rotate-3" />
+          <Clock className="w-10 h-10 md:w-12 md:h-12 -rotate-3" />
         ) : (
-          <AlertTriangle className="w-12 h-12 -rotate-3" />
+          <AlertTriangle className="w-10 h-10 md:w-12 md:h-12 -rotate-3" />
         )}
       </div>
-      <h1 className="text-3xl font-serif font-black text-gray-900 mb-4 leading-tight">
+      <h1 className="text-2xl md:text-3xl font-serif font-black text-gray-900 mb-3 md:mb-4 leading-tight">
         {type === "inactive"
           ? "Este formulario ha cerrado sus puertas"
           : "Ups, no encontramos lo que buscas"}
       </h1>
-      <p className="text-gray-500 text-lg font-light leading-relaxed mb-10">
+      <p className="text-gray-500 text-base md:text-lg font-light leading-relaxed mb-8 md:mb-10 px-2">
         {type === "inactive"
           ? "Por el momento ya no recibimos más respuestas. Si necesitas ayuda, no dudes en contactarnos."
           : "Parece que el enlace es incorrecto o el formulario ya no está disponible."}
       </p>
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
         <Button
-          className="rounded-full px-10 h-14 bg-black text-white hover:bg-gray-800 transition-all hover:scale-105 active:scale-95 shadow-lg"
+          className="rounded-full px-8 md:px-10 h-12 md:h-14 bg-black text-white hover:bg-gray-800 transition-all hover:scale-105 active:scale-95 shadow-lg font-bold"
           onClick={() => (window.location.href = "/")}
         >
           Ir al inicio
         </Button>
         <Button
           variant="outline"
-          className="rounded-full px-10 h-14 border-2 transition-all hover:bg-gray-50"
+          className="rounded-full px-8 md:px-10 h-12 md:h-14 border-2 transition-all hover:bg-gray-50 font-bold"
           onClick={() => window.history.back()}
         >
           Volver atrás

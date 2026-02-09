@@ -15,12 +15,12 @@ export default function Grupos() {
   };
 
   return (
-    <section className="relative w-full h-[80vh] min-h-[600px] flex flex-col overflow-hidden bg-black">
+    <section className="relative w-full h-screen min-h-[500px] md:h-[80vh] flex flex-col overflow-hidden bg-black">
       <Image
         src="/homepage/Group-section.webp"
         alt="Grupos Pequeños en Alianza Puembo"
         fill
-        sizes="(max-width: 768px) 768px, (max-width: 1200px) 1200px, 1920px"
+        sizes="(max-width: 768px) 100vw, 1200px"
         className="object-cover object-center scale-105"
         quality={90}
       />
@@ -30,32 +30,32 @@ export default function Grupos() {
       <div
         className={cn(
           sectionPx,
-          "relative z-10 w-full h-full flex items-center"
+          "relative z-10 w-full h-full flex items-center pt-10 md:pt-0"
         )}
       >
-        <div className="max-w-2xl space-y-10">
+        <div className="max-w-2xl space-y-8 md:space-y-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="space-y-6"
+            className="space-y-4 md:space-y-6"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
               <Users className="w-5 h-5 text-[var(--puembo-green)]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--puembo-green)]">
+              <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.5em] text-[var(--puembo-green)]">
                 Vida en Comunidad
               </span>
             </div>
 
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-white leading-[1.1] tracking-tight">
+            <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold text-white leading-[1.1] tracking-tight">
               Grupos <br />
               <span className="italic text-[var(--puembo-green)] font-medium">
                 Pequeños
               </span>
             </h2>
 
-            <p className="text-lg md:text-xl text-gray-200/90 font-light leading-relaxed max-w-lg">
+            <p className="text-base md:text-xl text-gray-200/90 font-light leading-relaxed max-w-sm md:max-w-lg">
               No fuimos creados para caminar solos. Encuentra un espacio donde
               puedas ser tú mismo, compartir la vida y crecer en tu relación con
               Dios.
@@ -67,10 +67,11 @@ export default function Grupos() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.2 }}
+            className="w-full sm:w-auto"
           >
             <Button
               variant="green"
-              className="rounded-full px-7 py-3.5 text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 h-auto shadow-lg shadow-[var(--puembo-green)]/20 group"
+              className="rounded-full px-8 py-4 md:px-7 md:py-3.5 text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 h-auto shadow-lg shadow-[var(--puembo-green)]/20 group w-full sm:w-auto"
               onClick={handleButtonClick}
             >
               Encuentra tu lugar
@@ -84,7 +85,7 @@ export default function Grupos() {
         <div className="flex items-center gap-6">
           <div className="h-px w-24 bg-white/20" />
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">
-            GP Alianza Puembo
+            GPs Alianza Puembo
           </span>
         </div>
       </div>

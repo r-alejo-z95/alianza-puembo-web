@@ -52,25 +52,25 @@ export function PublicPageLayout({
       </motion.div>
 
       {/* 2. THE TYPOGRAPHY LAYER: Professional scale title */}
-      <div className="relative z-10 h-[70vh] md:h-[80vh] flex flex-col justify-center items-center px-6">
+      <div className="relative z-10 h-[60vh] md:h-[80vh] flex flex-col justify-center items-center px-5 md:px-6">
         <motion.div
           style={{ opacity: contentOpacity, y: contentY }}
-          className="text-center space-y-8 w-full max-w-5xl"
+          className="text-center space-y-6 md:space-y-8 w-full max-w-5xl"
         >
-          <div className="flex items-center justify-center gap-6 mb-2">
-            <div className="h-px w-16 bg-[var(--puembo-green)] opacity-60" />
-            <span className="text-[9px] font-black uppercase tracking-[0.6em] text-[var(--puembo-green)]">
+          <div className="flex items-center justify-center gap-4 md:gap-6 mb-2">
+            <div className="h-px w-8 md:w-16 bg-[var(--puembo-green)] opacity-60" />
+            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] text-[var(--puembo-green)]">
               Alianza Puembo
             </span>
-            <div className="h-px w-16 bg-[var(--puembo-green)] opacity-60" />
+            <div className="h-px w-8 md:w-16 bg-[var(--puembo-green)] opacity-60" />
           </div>
           
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold text-white leading-tight tracking-tight drop-shadow-xl">
+          <h1 className="text-3xl md:text-6xl lg:text-7xl font-serif font-bold text-white leading-tight tracking-tight drop-shadow-xl px-2">
             {title}
           </h1>
           
           {description && (
-            <p className="text-lg md:text-xl text-gray-100 font-light max-w-3xl mx-auto leading-relaxed italic opacity-90">
+            <p className="text-base md:text-xl text-gray-100 font-light max-w-3xl mx-auto leading-relaxed italic opacity-90 px-4">
               {description}
             </p>
           )}
@@ -79,9 +79,9 @@ export function PublicPageLayout({
         {/* Minimal Scroll Prompt */}
         <motion.div 
           style={{ opacity: contentOpacity }}
-          className="absolute bottom-12 flex flex-col items-center gap-4"
+          className="absolute bottom-10 md:bottom-12 flex flex-col items-center gap-4"
         >
-          <div className="w-[1px] h-16 bg-gradient-to-b from-[var(--puembo-green)] to-transparent" />
+          <div className="w-[1px] h-12 md:h-16 bg-gradient-to-b from-[var(--puembo-green)] to-transparent" />
         </motion.div>
       </div>
 
@@ -90,10 +90,10 @@ export function PublicPageLayout({
         
         {/* Intro Section: Overlapping card */}
         {introSectionData && (
-          <section className="px-4 pb-24 -mt-16 md:-mt-24 lg:-mt-32 relative z-30">
+          <section className="px-4 pb-16 md:pb-24 -mt-8 md:-mt-24 lg:-mt-32 relative z-30">
             <div className={cn(
               "max-w-7xl mx-auto flex flex-col items-center",
-              introSectionData.imageUrl ? "lg:flex-row gap-12 lg:gap-0" : "justify-center"
+              introSectionData.imageUrl ? "lg:flex-row gap-8 md:gap-12 lg:gap-0" : "justify-center"
             )}>
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -101,29 +101,29 @@ export function PublicPageLayout({
                 viewport={{ once: true }}
                 transition={{ duration: 1, ease: "easeOut" }}
                 className={cn(
-                  "bg-white p-10 md:p-16 lg:p-20 rounded-[3rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)] border border-gray-100 z-10",
+                  "bg-white p-8 md:p-16 lg:p-20 rounded-[2rem] md:rounded-[3rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)] border border-gray-100 z-10",
                   introSectionData.imageUrl ? "w-full lg:w-[60%]" : "w-full max-w-4xl text-center mx-auto"
                 )}
               >
-                <div className="space-y-8">
+                <div className="space-y-6 md:space-y-8">
                   <div className={cn("flex items-center gap-4", !introSectionData.imageUrl && "justify-center")}>
-                    <div className="h-px w-10 bg-[var(--puembo-green)]" />
+                    <div className="h-px w-8 md:w-10 bg-[var(--puembo-green)]" />
                     <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)] opacity-70">Contexto</span>
-                    {!introSectionData.imageUrl && <div className="h-px w-10 bg-[var(--puembo-green)]" />}
+                    {!introSectionData.imageUrl && <div className="h-px w-8 md:w-10 bg-[var(--puembo-green)]" />}
                   </div>
-                  <h2 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 leading-tight tracking-tight">
+                  <h2 className="text-2xl md:text-5xl font-serif font-bold text-gray-900 leading-tight tracking-tight">
                     {introSectionData.title}
                   </h2>
-                  <div className="space-y-6">
+                  <div className="space-y-4 md:space-y-6">
                     {(Array.isArray(introSectionData.description) ? introSectionData.description : [introSectionData.description]).map((p, i) => (
-                      <p key={i} className="text-base md:text-lg text-gray-600 font-light leading-relaxed">
+                      <p key={i} className="text-sm md:text-lg text-gray-600 font-light leading-relaxed">
                         {p}
                       </p>
                     ))}
                   </div>
                   {introSectionData.buttonText && (
                     <div className={cn("pt-4", !introSectionData.imageUrl && "flex justify-center")}>
-                      <a href={introSectionData.buttonLink} className="inline-block px-10 py-5 bg-[var(--puembo-green)] text-white rounded-full font-bold uppercase tracking-widest text-[10px] hover:scale-105 transition-all shadow-lg">
+                      <a href={introSectionData.buttonLink} className="inline-block px-8 md:px-10 py-4 md:py-5 bg-[var(--puembo-green)] text-white rounded-full font-bold uppercase tracking-widest text-[9px] md:text-[10px] hover:scale-105 transition-all shadow-lg">
                         {introSectionData.buttonText}
                       </a>
                     </div>
@@ -138,7 +138,7 @@ export function PublicPageLayout({
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
                   transition={{ duration: 1.2, delay: 0.2 }}
-                  className="w-full lg:w-[45%] lg:-ml-16 relative aspect-video lg:aspect-[4/3] z-20 shadow-2xl rounded-[2.5rem] overflow-hidden group"
+                  className="w-full lg:w-[45%] lg:-ml-16 relative aspect-video lg:aspect-[4/3] z-20 shadow-2xl rounded-[1.5rem] md:rounded-[2.5rem] overflow-hidden group"
                 >
                   <Image
                     src={introSectionData.imageUrl}
@@ -155,9 +155,9 @@ export function PublicPageLayout({
         )}
 
         {/* Core Page Data: Rising Block */}
-        <section className={cn("relative z-40 rounded-t-[3rem] md:rounded-t-[5rem]", contentClassName)}>
-          <div className="pt-16 pb-24 md:pt-20 md:pb-32">
-            <div className="max-w-7xl mx-auto px-6">
+        <section className={cn("relative z-40 rounded-t-[2rem] md:rounded-t-[5rem]", contentClassName)}>
+          <div className="pt-12 pb-20 md:pt-20 md:pb-32">
+            <div className="max-w-7xl mx-auto px-2 md:px-6">
               {children}
             </div>
           </div>

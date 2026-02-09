@@ -30,26 +30,26 @@ export default function Ruta() {
         description: pageDescription,
       }}
     >
-      <section className="bg-gray-50/50 py-24 md:py-32 overflow-hidden border-t border-gray-100">
-        <div className={cn(contentSection, "max-w-7xl mx-auto space-y-16")}>
+      <section className="bg-gray-50/50 py-16 md:py-32 overflow-hidden border-t border-gray-100">
+        <div className={cn(contentSection, "max-w-7xl mx-auto space-y-10 md:space-y-16")}>
           {/* Visual Separator & Title */}
-          <div className="flex items-center gap-6 px-4">
-            <h2 className="text-2xl md:text-4xl font-serif font-bold text-gray-900 whitespace-nowrap">
+          <div className="flex items-center gap-4 md:gap-6 px-2 md:px-4">
+            <h2 className="text-xl md:text-4xl font-serif font-bold text-gray-900 whitespace-nowrap">
               Mapa de la Ruta
             </h2>
-            <div className="h-1.5 bg-[var(--puembo-green)]/20 grow rounded-full" />
-            <div className="h-1.5 w-12 bg-[var(--puembo-green)] rounded-full" />
+            <div className="h-1 bg-[var(--puembo-green)]/20 grow rounded-full" />
+            <div className="h-1 w-8 md:w-12 bg-[var(--puembo-green)] rounded-full" />
           </div>
 
           {/* Interactive Image Area */}
-          <div className="relative group">
-            <div className="relative aspect-[16/11] md:aspect-[3/2] rounded-[3rem] overflow-hidden shadow-2xl bg-white p-4 md:p-8 border border-gray-100">
+          <div className="relative group px-2 md:px-0">
+            <div className="relative aspect-[16/11] md:aspect-[3/2] rounded-2xl md:rounded-[3rem] overflow-hidden shadow-2xl bg-white p-3 md:p-8 border border-gray-100">
               <ZoomableImage
                 src="/involucrate/ruta.avif"
                 alt="Mapa detallado de la Ruta de la Fe"
                 width={3508}
                 height={2481}
-                sizes="(max-width: 768px) 768px, 100vw"
+                sizes="(max-width: 768px) 100vw, 100vw"
                 className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-[1.02]"
                 quality={100}
               />
@@ -60,8 +60,8 @@ export default function Ruta() {
           </div>
 
           {/* Footer Guide - Only visible on mobile */}
-          <div className="max-w-2xl mx-auto text-center pt-12 md:hidden">
-            <p className="text-sm text-gray-400 font-light italic">
+          <div className="max-w-2xl mx-auto text-center pt-8 md:hidden px-4">
+            <p className="text-xs text-gray-400 font-light italic leading-relaxed">
               * Toca la imagen para ampliar y explorar los detalles de cada
               etapa.
             </p>

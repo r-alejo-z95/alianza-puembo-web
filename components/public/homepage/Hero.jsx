@@ -37,7 +37,7 @@ export default function Hero({ youtubeStatus }) {
     "rounded-full px-7 py-3.5 text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2.5 h-auto shadow-lg";
 
   return (
-    <section className="relative w-full h-screen overflow-hidden bg-black">
+    <section className="relative w-full h-screen min-h-[600px] md:h-screen overflow-hidden bg-black">
       <AnimatePresence mode="wait">
         <motion.div
           key={currentImageIndex}
@@ -63,31 +63,31 @@ export default function Hero({ youtubeStatus }) {
       <div
         className={cn(
           sectionPx,
-          "relative z-10 w-full h-full flex flex-col justify-center items-start text-white"
+          "relative z-10 w-full h-full flex flex-col justify-center items-start text-white pt-20 md:pt-0"
         )}
       >
-        <div className="max-w-4xl space-y-8">
+        <div className="max-w-4xl space-y-6 md:space-y-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.5 }}
-            className="space-y-6"
+            className="space-y-4 md:space-y-6"
           >
-            <div className="flex items-center gap-4">
-              <div className="h-0.5 w-12 bg-[var(--puembo-green)]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[var(--puembo-green)]">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="h-0.5 w-8 md:w-12 bg-[var(--puembo-green)]" />
+              <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.5em] text-[var(--puembo-green)]">
                 Iglesia Alianza Puembo
               </span>
             </div>
 
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-bold leading-[1.1] tracking-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-bold leading-[1.1] tracking-tight">
               Bienvenido <br />
               <span className="text-[var(--puembo-green)] italic font-medium">
                 a casa
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-gray-200/90 font-light leading-relaxed max-w-xl">
+            <p className="text-base md:text-xl text-gray-200/90 font-light leading-relaxed max-w-sm md:max-w-xl">
               Somos una familia de familias experimentando la presencia de Dios
               y caminando juntos en fe.
             </p>
@@ -97,11 +97,11 @@ export default function Hero({ youtubeStatus }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="flex flex-wrap gap-4 pt-4"
+            className="flex flex-col sm:flex-row gap-4 pt-2 md:pt-4 w-full sm:w-auto"
           >
             <Button
               variant="green"
-              className={cn(premiumBtnClass, "shadow-[var(--puembo-green)]/20")}
+              className={cn(premiumBtnClass, "shadow-[var(--puembo-green)]/20 w-full sm:w-auto")}
               onClick={() => {
                 const ubicacion = document.getElementById("ubicacion");
                 ubicacion?.scrollIntoView({ behavior: "smooth" });
@@ -111,12 +111,12 @@ export default function Hero({ youtubeStatus }) {
               Visítanos
             </Button>
 
-            <Link href={videoUrl} target="_blank" rel="noopener noreferrer">
+            <Link href={videoUrl} target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
               <Button
                 variant="outline"
                 className={cn(
                   premiumBtnClass,
-                  "bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white hover:text-black"
+                  "bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white hover:text-black w-full"
                 )}
               >
                 <Play

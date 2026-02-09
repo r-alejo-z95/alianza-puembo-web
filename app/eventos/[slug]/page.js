@@ -46,35 +46,35 @@ export default async function EventPage({ params }) {
       imageUrl={event.poster_url || "/eventos/Eventos.avif"}
       imageAlt={event.title}
     >
-      <div className={cn(contentSection, "bg-gray-50/50 pt-12 pb-24")}>
-        <div className="max-w-4xl mx-auto w-full space-y-12">
+      <div className={cn(contentSection, "bg-gray-50/50 pt-10 md:pt-12 pb-24")}>
+        <div className="max-w-4xl mx-auto w-full space-y-8 md:space-y-12">
           {/* Back Button */}
           <Link
             href="/eventos/proximos-eventos"
-            className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-[var(--puembo-green)] transition-colors group"
+            className="inline-flex items-center gap-2 text-xs md:text-sm font-medium text-gray-500 hover:text-[var(--puembo-green)] transition-colors group px-2 md:px-0"
           >
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Volver a eventos
           </Link>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-12">
             {/* Left Column: Details */}
-            <div className="md:col-span-2 space-y-8">
+            <div className="md:col-span-2 space-y-8 md:space-y-10">
               {event.description && (
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6 px-2 md:px-0">
                   <h2
                     className={cn(
                       sectionTitle,
-                      "text-3xl md:text-4xl text-gray-900",
+                      "text-2xl md:text-4xl text-gray-900",
                     )}
                   >
                     Sobre el Evento
                   </h2>
-                  <div className="h-1.5 w-20 bg-[var(--puembo-green)] rounded-full" />
+                  <div className="h-1 md:h-1.5 w-16 md:w-20 bg-[var(--puembo-green)] rounded-full" />
                   <p
                     className={cn(
                       sectionText,
-                      "text-lg text-gray-700 whitespace-pre-wrap leading-relaxed",
+                      "text-base md:text-lg text-gray-700 whitespace-pre-wrap leading-relaxed",
                     )}
                   >
                     {event.description}
@@ -83,8 +83,8 @@ export default async function EventPage({ params }) {
               )}
 
               {/* Mobile Only Poster */}
-              <div className="md:hidden">
-                <div className="relative aspect-video w-full rounded-2xl overflow-hidden shadow-2xl">
+              <div className="md:hidden px-2">
+                <div className="relative aspect-video w-full rounded-2xl overflow-hidden shadow-xl">
                   <Image
                     src={event.poster_url || "/eventos/Eventos.avif"}
                     alt={event.title}
@@ -94,22 +94,22 @@ export default async function EventPage({ params }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-8 border-t border-gray-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-8 border-t border-gray-200 px-2 md:px-0">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-green-50 rounded-xl text-[var(--puembo-green)]">
-                    <Calendar className="w-6 h-6" />
+                  <div className="p-2.5 md:p-3 bg-green-50 rounded-xl text-[var(--puembo-green)]">
+                    <Calendar className="w-5 h-5 md:w-6 md:h-6" />
                   </div>
                   <div>
                     {event.is_recurring ? (
-                      <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                      <p className="text-xs md:text-sm font-bold text-gray-900 uppercase tracking-wider">
                         {dateDisplay}
                       </p>
                     ) : (
                       <>
-                        <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                        <p className="text-[10px] md:text-sm font-bold text-gray-900 uppercase tracking-wider">
                           Fecha
                         </p>
-                        <p className="text-gray-600">{dateDisplay}</p>
+                        <p className="text-sm md:text-base text-gray-600">{dateDisplay}</p>
                       </>
                     )}
                   </div>
@@ -117,14 +117,14 @@ export default async function EventPage({ params }) {
 
                 {!(event.is_multi_day || event.all_day) && (
                   <div className="flex items-start gap-4">
-                    <div className="p-3 bg-green-50 rounded-xl text-[var(--puembo-green)]">
-                      <Clock className="w-6 h-6" />
+                    <div className="p-2.5 md:p-3 bg-green-50 rounded-xl text-[var(--puembo-green)]">
+                      <Clock className="w-5 h-5 md:w-6 md:h-6" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                      <p className="text-[10px] md:text-sm font-bold text-gray-900 uppercase tracking-wider">
                         Hora
                       </p>
-                      <p className="text-gray-600">
+                      <p className="text-sm md:text-base text-gray-600">
                         {formatInEcuador(event.start_time, "HH:mm")}
                       </p>
                     </div>
@@ -133,14 +133,14 @@ export default async function EventPage({ params }) {
 
                 {event.location && (
                   <div className="flex items-start gap-4">
-                    <div className="p-3 bg-green-50 rounded-xl text-[var(--puembo-green)]">
-                      <MapPin className="w-6 h-6" />
+                    <div className="p-2.5 md:p-3 bg-green-50 rounded-xl text-[var(--puembo-green)]">
+                      <MapPin className="w-5 h-5 md:w-6 md:h-6" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                      <p className="text-[10px] md:text-sm font-bold text-gray-900 uppercase tracking-wider">
                         Lugar
                       </p>
-                      <p className="text-gray-600">{event.location}</p>
+                      <p className="text-sm md:text-base text-gray-600">{event.location}</p>
                     </div>
                   </div>
                 )}
@@ -148,7 +148,7 @@ export default async function EventPage({ params }) {
             </div>
 
             {/* Right Column: Actions / Sticky Poster */}
-            <div className="space-y-8">
+            <div className="space-y-8 px-2 md:px-0">
               <div className="hidden md:block sticky top-28 space-y-8">
                 <div className="relative aspect-video w-full rounded-2xl overflow-hidden shadow-2xl ring-1 ring-black/5">
                   <Image
@@ -201,14 +201,14 @@ export default async function EventPage({ params }) {
               </div>
 
               {/* Mobile Registration */}
-              <div className="md:hidden pt-4">
+              <div className="md:hidden pt-2">
                 {event.registration_link &&
                   (registrationOpen ? (
                     event.registration_link.startsWith("/") ? (
                       <Link href={event.registration_link} className="block">
                         <Button
                           variant="green"
-                          className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg shadow-green-200"
+                          className="w-full h-14 text-base font-bold rounded-xl shadow-lg shadow-green-200"
                         >
                           Registrarse Ahora
                         </Button>
@@ -222,7 +222,7 @@ export default async function EventPage({ params }) {
                       >
                         <Button
                           variant="green"
-                          className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg shadow-green-200"
+                          className="w-full h-14 text-base font-bold rounded-xl shadow-lg shadow-green-200"
                         >
                           Registrarse Ahora
                         </Button>
@@ -232,7 +232,7 @@ export default async function EventPage({ params }) {
                     <Button
                       disabled
                       variant="outline"
-                      className="w-full h-14 rounded-xl text-gray-400"
+                      className="w-full h-14 rounded-xl text-gray-400 font-bold"
                     >
                       Inscripciones Cerradas
                     </Button>

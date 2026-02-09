@@ -80,14 +80,14 @@ export default function PrayerRequestForm({ action }) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleFormSubmit)}
-        className="space-y-8"
+        className="space-y-6 md:space-y-8 px-2 md:px-0"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <FormField
             control={form.control}
             name="is_public"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 transition-colors hover:bg-white hover:border-green-100">
+              <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-2xl border border-gray-100 bg-gray-50/50 p-3 md:p-4 transition-colors hover:bg-white hover:border-green-100">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -96,10 +96,10 @@ export default function PrayerRequestForm({ action }) {
                   />
                 </FormControl>
                 <div className="space-y-0.5">
-                  <FormLabel className="text-sm font-bold text-gray-900 cursor-pointer">
+                  <FormLabel className="text-xs md:text-sm font-bold text-gray-900 cursor-pointer">
                     ¿Petición Pública?
                   </FormLabel>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-tight">
+                  <p className="text-[9px] md:text-[10px] text-gray-500 uppercase tracking-tight">
                     Visible en cartelera
                   </p>
                 </div>
@@ -110,7 +110,7 @@ export default function PrayerRequestForm({ action }) {
             control={form.control}
             name="is_anonymous"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 transition-colors hover:bg-white hover:border-green-100">
+              <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-2xl border border-gray-100 bg-gray-50/50 p-3 md:p-4 transition-colors hover:bg-white hover:border-green-100">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
@@ -119,10 +119,10 @@ export default function PrayerRequestForm({ action }) {
                   />
                 </FormControl>
                 <div className="space-y-0.5">
-                  <FormLabel className="text-sm font-bold text-gray-900 cursor-pointer">
+                  <FormLabel className="text-xs md:text-sm font-bold text-gray-900 cursor-pointer">
                     ¿Petición Anónima?
                   </FormLabel>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-tight">
+                  <p className="text-[9px] md:text-[10px] text-gray-500 uppercase tracking-tight">
                     Tu nombre no será visible
                   </p>
                 </div>
@@ -131,7 +131,7 @@ export default function PrayerRequestForm({ action }) {
           />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {!isAnonymous && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -143,13 +143,13 @@ export default function PrayerRequestForm({ action }) {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-bold text-gray-700 uppercase tracking-widest ml-1">
+                    <FormLabel className="text-[10px] md:text-sm font-bold text-gray-700 uppercase tracking-widest ml-1">
                       Tu Nombre
                     </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Escribe tu nombre..."
-                        className="h-12 rounded-xl bg-gray-50/30 border-gray-200 focus:bg-white transition-all"
+                        className="h-12 rounded-xl bg-gray-50/30 border-gray-200 focus:bg-white transition-all text-base"
                         {...field}
                       />
                     </FormControl>
@@ -166,12 +166,12 @@ export default function PrayerRequestForm({ action }) {
             render={({ field }) => (
               <FormItem className="w-full">
                 <div className="flex justify-between items-end mb-1 ml-1">
-                  <FormLabel className="text-sm font-bold text-gray-700 uppercase tracking-widest">
+                  <FormLabel className="text-[10px] md:text-sm font-bold text-gray-700 uppercase tracking-widest">
                     Tu Petición
                   </FormLabel>
                   <span
                     className={cn(
-                      "text-[10px] font-bold tracking-tighter",
+                      "text-[9px] md:text-[10px] font-bold tracking-tighter",
                       requestText?.length > 450
                         ? "text-red-500"
                         : "text-gray-400",
@@ -182,8 +182,8 @@ export default function PrayerRequestForm({ action }) {
                 </div>
                 <FormControl>
                   <Textarea
-                    placeholder="Escribe aquí tu petición. Confiamos en que Dios escucha y obra."
-                    className="min-h-[160px] rounded-2xl bg-gray-50/30 border-gray-200 focus:bg-white transition-all resize-none p-4 text-base"
+                    placeholder="Escribe aquí tu petición..."
+                    className="min-h-[140px] md:min-h-[160px] rounded-2xl bg-gray-50/30 border-gray-200 focus:bg-white transition-all resize-none p-4 text-base"
                     {...field}
                   />
                 </FormControl>

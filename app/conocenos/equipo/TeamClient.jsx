@@ -80,7 +80,7 @@ const MemberCard = ({ member, index, prominent = false }) => (
   >
     <Card
       className={cn(
-        "flex flex-col h-full transition-all duration-300 hover:shadow-2xl border-none bg-white overflow-hidden group rounded-xl",
+        "flex flex-col h-full transition-all duration-300 hover:shadow-2xl border-none bg-white overflow-hidden group rounded-2xl md:rounded-xl",
         prominent
           ? "max-w-2xl mx-auto ring-1 ring-black/5 shadow-xl"
           : "max-w-md mx-auto shadow-lg"
@@ -97,25 +97,25 @@ const MemberCard = ({ member, index, prominent = false }) => (
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       </div>
-      <CardContent className="flex flex-col gap-2 p-6 text-center grow bg-white">
+      <CardContent className="flex flex-col gap-2 p-5 md:p-6 text-center grow bg-white">
         <div>
           <CardTitle
             className={cn(
               sectionTitle,
               "text-gray-900",
-              prominent ? "text-2xl md:text-3xl" : "text-xl"
+              prominent ? "text-xl md:text-3xl" : "text-lg md:text-xl"
             )}
           >
             {member.name}
           </CardTitle>
-          <CardDescription className="text-[var(--puembo-green)] font-semibold tracking-wide uppercase text-xs mt-1">
+          <CardDescription className="text-[var(--puembo-green)] font-semibold tracking-wide uppercase text-[10px] md:text-xs mt-1">
             {member.detail}
           </CardDescription>
         </div>
         <p
           className={cn(
             "text-gray-600 mt-2 leading-relaxed italic",
-            prominent ? "text-base md:text-lg" : "text-sm"
+            prominent ? "text-sm md:text-lg" : "text-xs md:text-sm"
           )}
         >
           "{member.bio}"
@@ -134,25 +134,25 @@ export function TeamClient() {
   };
 
   return (
-    <div className={cn(contentSection, "bg-gray-50/50 pt-12 pb-24 space-y-20")}>
+    <div className={cn(contentSection, "bg-gray-50/50 pt-10 md:pt-12 pb-24 space-y-16 md:space-y-20")}>
       {/* Pastor Principal */}
-      <div className="w-full">
+      <div className="w-full px-2 md:px-0">
         <MemberCard member={leadPastor} index={0} prominent={true} />
       </div>
 
       {/* Equipo Section */}
       <section className="max-w-7xl mx-auto w-full">
         {/* Separador Visual */}
-        <div className="flex items-center gap-6 mb-16 px-4">
-          <h2 className="text-2xl md:text-4xl font-serif font-bold text-gray-900 whitespace-nowrap">
+        <div className="flex items-center gap-4 md:gap-6 mb-10 md:mb-16 px-2 md:px-4">
+          <h2 className="text-xl md:text-4xl font-serif font-bold text-gray-900 whitespace-nowrap">
             Equipo Ministerial
           </h2>
-          <div className="h-1.5 bg-[var(--puembo-green)]/20 grow rounded-full" />
-          <div className="h-1.5 w-12 bg-[var(--puembo-green)] rounded-full" />
+          <div className="h-1 bg-[var(--puembo-green)]/20 grow rounded-full" />
+          <div className="h-1 w-8 md:w-12 bg-[var(--puembo-green)] rounded-full" />
         </div>
 
         {/* Grid de Equipo */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 w-full mx-auto px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-10 w-full mx-auto px-2 md:px-4">
           {TEAM_MEMBERS.map((member, index) => (
             <MemberCard key={member.name} member={member} index={index + 1} />
           ))}

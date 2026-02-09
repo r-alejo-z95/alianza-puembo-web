@@ -2,9 +2,6 @@ import RootLayoutClient from "@/components/public/layout/RootLayoutClient";
 import "@/app/globals.css";
 import { poppins, merriweather } from '@/lib/fonts';
 
-
-
-
 export const metadata = {
   metadataBase: new URL("https://www.alianzapuembo.org"),
   title: {

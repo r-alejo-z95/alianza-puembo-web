@@ -139,21 +139,21 @@ export function QueCreemosClient() {
           <div className="h-1.5 w-12 bg-[var(--puembo-green)] rounded-full" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 lg:gap-12">
           {missionVision.map((item, index) => (
             <motion.div
               key={item.name}
               {...fadeIn}
               transition={{ ...fadeIn.transition, delay: index * 0.2 }}
-              className="group relative h-full"
+              className="group relative h-full px-2 md:px-0"
             >
-              <div className="h-full bg-white p-10 md:p-14 rounded-[2.5rem] md:rounded-[3.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] border border-gray-50 hover:border-[var(--puembo-green)]/20 transition-all duration-700 relative overflow-hidden flex flex-col justify-between">
+              <div className="h-full bg-white p-8 md:p-14 rounded-[2rem] md:rounded-[3.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] border border-gray-50 hover:border-[var(--puembo-green)]/20 transition-all duration-700 relative overflow-hidden flex flex-col justify-between">
                 {/* Decorative background element */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gray-50 rounded-full translate-x-16 -translate-y-16 group-hover:bg-green-50 transition-colors duration-700" />
                 
-                <div className="relative z-10 space-y-8">
-                  <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-[var(--puembo-green)] group-hover:bg-[var(--puembo-green)] group-hover:text-white transition-all duration-700">
-                    <item.icon className="w-7 h-7" strokeWidth={1.5} />
+                <div className="relative z-10 space-y-6 md:space-y-8">
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gray-50 flex items-center justify-center text-[var(--puembo-green)] group-hover:bg-[var(--puembo-green)] group-hover:text-white transition-all duration-700">
+                    <item.icon className="w-6 h-6 md:w-7 md:h-7" strokeWidth={1.5} />
                   </div>
 
                   <h3 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 tracking-tight leading-tight">
@@ -161,13 +161,13 @@ export function QueCreemosClient() {
                   </h3>
 
                   {Array.isArray(item.detail) ? (
-                    <ul className="space-y-5">
+                    <ul className="space-y-4 md:space-y-5">
                       {item.detail.map((li, i) => (
                         <li
                           key={i}
-                          className="flex items-center gap-4 group/item"
+                          className="flex items-center gap-3 md:gap-4 group/item"
                         >
-                          <div className="h-2 w-2 rounded-full bg-[var(--puembo-green)] group-hover/item:scale-150 transition-transform shrink-0" />
+                          <div className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-[var(--puembo-green)] group-hover/item:scale-150 transition-transform shrink-0" />
                           <span className="text-gray-600 text-base md:text-lg font-light leading-relaxed">
                             {li}
                           </span>
@@ -176,14 +176,14 @@ export function QueCreemosClient() {
                     </ul>
                   ) : (
                     <div className="relative">
-                      <p className="text-xl md:text-2xl text-gray-500 leading-relaxed font-light italic">
+                      <p className="text-lg md:text-2xl text-gray-500 leading-relaxed font-light italic">
                         &quot;{item.detail}&quot;
                       </p>
                     </div>
                   )}
                 </div>
 
-                <div className="mt-12 h-1 w-12 bg-gray-100 group-hover:w-full group-hover:bg-[var(--puembo-green)]/20 transition-all duration-700 rounded-full" />
+                <div className="mt-8 md:mt-12 h-1 w-12 bg-gray-100 group-hover:w-full group-hover:bg-[var(--puembo-green)]/20 transition-all duration-700 rounded-full" />
               </div>
             </motion.div>
           ))}
@@ -191,8 +191,8 @@ export function QueCreemosClient() {
       </section>
 
       {/* Valores, Medibles y Estrategia Section (KEEPING PREMIUM STYLE) */}
-      <section className="max-w-7xl mx-auto w-full px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <section className="max-w-7xl mx-auto w-full px-2 md:px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           {coreValues.map((value, index) => (
             <motion.div
               key={value.name}
@@ -200,24 +200,24 @@ export function QueCreemosClient() {
               transition={{ delay: index * 0.15 }}
               className="group relative"
             >
-              <div className="bg-white p-10 md:p-12 rounded-[2.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] border border-gray-50 hover:border-[var(--puembo-green)]/20 transition-all duration-700 h-full flex flex-col space-y-8">
+              <div className="bg-white p-8 md:p-12 rounded-[2rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.06)] border border-gray-50 hover:border-[var(--puembo-green)]/20 transition-all duration-700 h-full flex flex-col space-y-6 md:space-y-8">
                 <div className="flex justify-between items-start">
-                  <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center text-[var(--puembo-green)] group-hover:bg-[var(--puembo-green)] group-hover:text-white transition-all duration-700">
-                    <value.icon className="w-7 h-7" strokeWidth={1.5} />
+                  <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gray-50 flex items-center justify-center text-[var(--puembo-green)] group-hover:bg-[var(--puembo-green)] group-hover:text-white transition-all duration-700">
+                    <value.icon className="w-6 h-6 md:w-7 md:h-7" strokeWidth={1.5} />
                   </div>
                 </div>
 
-                <div className="space-y-4 grow">
+                <div className="space-y-3 md:space-y-4 grow">
                   <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)] opacity-70">
+                    <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-[var(--puembo-green)] opacity-70">
                       {value.subtitle}
                     </p>
-                    <h3 className="text-3xl font-serif font-bold text-gray-900 tracking-tight">
+                    <h3 className="text-2xl md:text-3xl font-serif font-bold text-gray-900 tracking-tight">
                       {value.name}
                     </h3>
                   </div>
                   {Array.isArray(value.detail) ? (
-                    <ul className="space-y-3">
+                    <ul className="space-y-2 md:space-y-3">
                       {value.detail.map((li, i) => {
                         const isObject = typeof li === "object" && li !== null;
                         return (
@@ -225,13 +225,13 @@ export function QueCreemosClient() {
                             key={i}
                             className="flex items-start gap-3 group/item"
                           >
-                            <div className="h-1.5 w-1.5 rounded-full bg-[var(--puembo-green)] group-hover/item:scale-150 transition-transform shrink-0 mt-2.5" />
+                            <div className="h-1.5 w-1.5 rounded-full bg-[var(--puembo-green)] group-hover/item:scale-150 transition-transform shrink-0 mt-2 md:mt-2.5" />
                             <div className="flex flex-col">
-                              <span className="text-gray-500 text-base md:text-lg leading-relaxed font-light">
+                              <span className="text-gray-500 text-sm md:text-lg leading-relaxed font-light">
                                 {isObject ? li.text : li}
                               </span>
                               {isObject && li.sub && (
-                                <span className="text-xs md:text-sm text-gray-400 font-medium">
+                                <span className="text-[10px] md:text-sm text-gray-400 font-medium">
                                   {li.sub}
                                 </span>
                               )}
@@ -241,7 +241,7 @@ export function QueCreemosClient() {
                       })}
                     </ul>
                   ) : (
-                    <p className="text-gray-500 text-base md:text-lg leading-relaxed font-light">
+                    <p className="text-gray-500 text-sm md:text-lg leading-relaxed font-light">
                       {value.detail}
                     </p>
                   )}
@@ -259,15 +259,15 @@ export function QueCreemosClient() {
         initial={{ opacity: 0, scale: 0.98 }}
         whileInView={{ opacity: 1, scale: 1 }}
         viewport={{ once: true }}
-        className="bg-(--puembo-green) text-white overflow-hidden relative rounded-3xl shadow-2xl mx-auto max-w-6xl"
+        className="bg-(--puembo-green) text-white overflow-hidden relative rounded-2xl md:rounded-3xl shadow-2xl mx-2 md:mx-auto max-w-6xl"
       >
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 left-0 w-64 h-64 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full translate-x-1/2 translate-y-1/2 blur-3xl" />
         </div>
-        <div className="container mx-auto px-8 py-16 text-center relative z-10">
-          <motion.div {...fadeIn} className="flex justify-center mb-8">
-            <div className="relative h-20 w-64 md:h-24 md:w-80">
+        <div className="container mx-auto px-6 md:px-8 py-12 md:py-16 text-center relative z-10">
+          <motion.div {...fadeIn} className="flex justify-center mb-6 md:mb-8">
+            <div className="relative h-16 w-56 md:h-24 md:w-80">
               <Image
                 src="/conocenos/que-creemos/The Alliance_Logo_Spanish_Horiz_White.avif"
                 alt="Logo Alianza Cristiana y Misionera"
@@ -279,14 +279,14 @@ export function QueCreemosClient() {
           <motion.h2
             {...fadeIn}
             transition={{ delay: 0.1 }}
-            className={cn(sectionTitle, "mb-6 text-white text-2xl md:text-3xl")}
+            className={cn(sectionTitle, "mb-4 md:mb-6 text-white text-xl md:text-3xl")}
           >
             Parte de un Movimiento Mayor
           </motion.h2>
           <motion.p
             {...fadeIn}
             transition={{ delay: 0.2 }}
-            className="text-base md:text-lg max-w-3xl mx-auto leading-relaxed text-green-50 font-medium italic"
+            className="text-sm md:text-lg max-w-3xl mx-auto leading-relaxed text-green-50 font-medium italic"
           >
             "Formamos parte de la Alianza Cristiana y Misionera, un movimiento
             enfocado en vivir y proclamar el evangelio de Jesucristo al mundo,
@@ -296,14 +296,14 @@ export function QueCreemosClient() {
       </motion.section>
 
       {/* Lo que Creemos Section */}
-      <section className="max-w-7xl mx-auto w-full">
+      <section className="max-w-7xl mx-auto w-full px-2 md:px-4">
         {/* Separador Visual idéntico al de Equipo */}
-        <div className="flex items-center gap-6 mb-16 px-4">
-          <h2 className="text-2xl md:text-4xl font-serif font-bold text-gray-900 whitespace-nowrap">
+        <div className="flex items-center gap-4 md:gap-6 mb-10 md:mb-16">
+          <h2 className="text-xl md:text-4xl font-serif font-bold text-gray-900 whitespace-nowrap">
             Lo que Creemos
           </h2>
-          <div className="h-1.5 bg-[var(--puembo-green)]/20 grow rounded-full" />
-          <div className="h-1.5 w-12 bg-[var(--puembo-green)] rounded-full" />
+          <div className="h-1 bg-[var(--puembo-green)]/20 grow rounded-full" />
+          <div className="h-1 w-8 md:w-12 bg-[var(--puembo-green)] rounded-full" />
         </div>
 
         <div className="space-y-0">

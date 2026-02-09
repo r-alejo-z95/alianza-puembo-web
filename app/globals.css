@@ -250,6 +250,12 @@
   --shadow-2xl: var(--shadow-2xl);
 }
 
+/* Not Found page specific overrides to hide layout */
+body:has(#not-found-page) nav,
+body:has(#not-found-page) footer {
+  display: none !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -14,7 +14,7 @@ export default function UserCalendar({ events }) {
   return (
     <div className="w-full lg:w-[75vw] mx-auto">
       <FullCalendar
-        height="85vh"
+        height="auto"
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         headerToolbar={{
           left: 'title',

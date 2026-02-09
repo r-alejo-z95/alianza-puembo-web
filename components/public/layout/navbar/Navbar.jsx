@@ -174,8 +174,8 @@ export function Navbar() {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="fixed inset-0 z-[95] bg-black flex flex-col"
           >
-            <div className="flex-grow overflow-y-auto px-8 pt-28 pb-12">
-              <div className="space-y-6">
+            <div className="flex-grow overflow-y-auto px-6 pt-24 pb-12 md:px-8 md:pt-28">
+              <div className="space-y-4 md:space-y-6">
                 {menuItems.map((item, idx) => {
                   const isActive = pathname === item.href;
                   return (
@@ -184,7 +184,7 @@ export function Navbar() {
                       initial={{ opacity: 0, x: 20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1 + idx * 0.05 }}
-                      className="border-b border-white/5 pb-6"
+                      className="border-b border-white/5 pb-4 md:pb-6"
                     >
                       <div className="flex items-center justify-between">
                         {item.subroutes ? (
@@ -195,7 +195,7 @@ export function Navbar() {
                               )
                             }
                             className={cn(
-                              "text-3xl font-serif font-bold transition-colors text-left",
+                              "text-2xl md:text-3xl font-serif font-bold transition-colors text-left",
                               isActive
                                 ? "text-[var(--puembo-green)]"
                                 : "text-white hover:text-[var(--puembo-green)]"
@@ -207,7 +207,7 @@ export function Navbar() {
                           <Link
                             href={item.href || "#"}
                             className={cn(
-                              "text-3xl font-serif font-bold transition-colors",
+                              "text-2xl md:text-3xl font-serif font-bold transition-colors",
                               isActive
                                 ? "text-[var(--puembo-green)]"
                                 : "text-white hover:text-[var(--puembo-green)]"
@@ -217,8 +217,6 @@ export function Navbar() {
                                 e.preventDefault();
                                 setIsMobileMenuOpen(false);
                               }
-                              // Si es una ruta nueva, no cerramos aquí. 
-                              // El useEffect[pathname] lo hará al cargar.
                             }}
                           >
                             {item.name}
@@ -240,7 +238,7 @@ export function Navbar() {
                               }}
                               transition={{ duration: 0.3 }}
                             >
-                              <ChevronRight className="w-6 h-6" />
+                              <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
                             </motion.div>
                           </button>
                         )}
@@ -255,15 +253,15 @@ export function Navbar() {
                             transition={{ duration: 0.4, ease: "circOut" }}
                             className="overflow-hidden"
                           >
-                            <div className="mt-6 ml-2 space-y-5 border-l border-[var(--puembo-green)]/20 pl-6">
+                            <div className="mt-4 md:mt-6 ml-1 space-y-4 md:space-y-5 border-l border-[var(--puembo-green)]/20 pl-5 md:pl-6">
                               {item.subroutes.map((sub) => {
                                 const isSubActive = pathname === sub.href;
                                 return (
-                                  <div key={sub.name} className="space-y-2">
+                                  <div key={sub.name} className="space-y-1 md:space-y-2">
                                     <Link
                                       href={sub.href}
                                       className={cn(
-                                        "block text-lg font-bold transition-colors",
+                                        "block text-base md:text-lg font-bold transition-colors",
                                         isSubActive
                                           ? "text-[var(--puembo-green)]"
                                           : "text-white/80 hover:text-[var(--puembo-green)]"
@@ -278,7 +276,7 @@ export function Navbar() {
                                       {sub.name}
                                     </Link>
                                     {sub.description && (
-                                      <p className="text-[10px] text-gray-500 uppercase tracking-widest leading-relaxed">
+                                      <p className="text-[9px] md:text-[10px] text-gray-500 uppercase tracking-widest leading-relaxed">
                                         {sub.description}
                                       </p>
                                     )}
@@ -290,7 +288,7 @@ export function Navbar() {
                                 <Link
                                   href={item.href}
                                   className={cn(
-                                    "inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] pt-2 transition-colors",
+                                    "inline-flex items-center gap-2 text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] pt-1 md:pt-2 transition-colors",
                                     isActive
                                       ? "text-[var(--puembo-green)]"
                                       : "text-white/40 hover:text-[var(--puembo-green)]"
@@ -316,9 +314,9 @@ export function Navbar() {
               </div>
             </div>
 
-            <div className="p-8 border-t border-white/10 bg-white/[0.02]">
+            <div className="p-6 md:p-8 border-t border-white/10 bg-white/[0.02]">
               <div className="flex justify-between items-center">
-                <div className="flex gap-6">
+                <div className="flex gap-4 md:gap-6">
                   {socialLinks.map((s) => (
                     <a
                       key={s.name}

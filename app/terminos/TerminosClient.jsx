@@ -46,22 +46,22 @@ export function TerminosClient() {
   ];
 
   return (
-    <div className="bg-white min-h-screen pt-32 pb-24">
+    <div className="bg-white min-h-screen pt-24 md:pt-32 pb-20 md:pb-24">
       <div className="max-w-4xl mx-auto px-6 md:px-12">
-        <motion.div {...fadeIn} className="space-y-16">
-          <header className="space-y-4 border-b border-gray-100 pb-12">
-            <h1 className="text-4xl md:text-5xl font-serif font-bold text-gray-900">
+        <motion.div {...fadeIn} className="space-y-10 md:space-y-16">
+          <header className="space-y-3 md:space-y-4 border-b border-gray-100 pb-8 md:pb-12">
+            <h1 className="text-3xl md:text-5xl font-serif font-bold text-gray-900 leading-tight">
               Términos de Servicio
             </h1>
-            <p className="text-gray-500 font-light text-lg">
+            <p className="text-gray-400 font-light text-base md:text-lg">
               Última actualización: 22 de enero de 2026
             </p>
           </header>
 
-          <div className="space-y-12">
+          <div className="space-y-10 md:space-y-12">
             {sections.map((section, index) => (
-              <section key={index} className="space-y-4">
-                <h2 className="text-xl md:text-2xl font-serif font-bold text-gray-900 uppercase tracking-tight">
+              <section key={index} className="space-y-3 md:space-y-4">
+                <h2 className="text-lg md:text-2xl font-serif font-bold text-gray-900 uppercase tracking-tight">
                   {section.title}
                 </h2>
                 <p className="text-gray-600 leading-relaxed font-light text-base md:text-lg">
