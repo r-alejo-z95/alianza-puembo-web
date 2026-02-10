@@ -333,6 +333,43 @@ export default function PreferenciasPage() {
                       </div>
 
                       <div className="space-y-6">
+                        <div className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 space-y-6">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <Globe className="w-4 h-4 text-[var(--puembo-green)]" />
+                                <h4 className="text-xs font-black uppercase tracking-widest text-gray-900">Barra de Anuncios</h4>
+                              </div>
+                              <p className="text-[10px] text-gray-500">Muestra un mensaje importante en la parte superior del Home.</p>
+                            </div>
+                            <Switch 
+                              checked={siteSettings?.announcement_enabled || false} 
+                              onCheckedChange={(val) => updateSiteSettings({ announcement_enabled: val })}
+                            />
+                          </div>
+                          
+                          <div className="space-y-4 pt-4 border-t border-gray-200/50">
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-bold text-gray-400 uppercase">Texto del Anuncio</Label>
+                              <Input 
+                                defaultValue={siteSettings?.announcement_text} 
+                                placeholder="Ej: ¡Nuevo horario de servicios este domingo!"
+                                className="h-11 rounded-xl bg-white border-gray-200"
+                                onBlur={(e) => updateSiteSettings({ announcement_text: e.target.value })}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-[10px] font-bold text-gray-400 uppercase">Link (Opcional)</Label>
+                              <Input 
+                                defaultValue={siteSettings?.announcement_link} 
+                                placeholder="Ej: /eventos/proximos-eventos"
+                                className="h-11 rounded-xl bg-white border-gray-200"
+                                onBlur={(e) => updateSiteSettings({ announcement_link: e.target.value })}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
                         <div className="flex items-center justify-between p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">

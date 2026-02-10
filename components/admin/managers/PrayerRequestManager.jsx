@@ -39,7 +39,7 @@ import { es } from "date-fns/locale";
 
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function PrayerRequestManager() {
+export default function PrayerRequestManager({ initialRequests = [] }) {
   const {
     requests,
     archivedRequests,
@@ -54,7 +54,7 @@ export default function PrayerRequestManager() {
     permanentlyDeleteManyRequests,
     emptyRecycleBin,
     fetchArchivedRequests,
-  } = usePrayerRequests();
+  } = usePrayerRequests({ initialRequests });
 
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);

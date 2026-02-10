@@ -2,6 +2,7 @@ import NewsManager from '@/components/admin/managers/NewsManager';
 import { NewsProvider } from '@/components/providers/NewsProvider';
 import { verifyPermission } from "@/lib/auth/guards";
 import { adminPageSection, adminPageHeaderContainer, adminPageTitle, adminPageDescription } from "@/lib/styles.ts";
+import { getAllNewsForAdmin } from '@/lib/data/news';
 
 export const metadata = {
   title: "Gestionar Noticias",
@@ -14,9 +15,10 @@ export const metadata = {
 
 export default async function NoticiasAdminPage() {
   await verifyPermission("perm_news");
+  const initialNews = await getAllNewsForAdmin();
 
   return (
-    <NewsProvider>
+    <NewsProvider initialNews={initialNews}>
       <section className={adminPageSection}>
         <header className={adminPageHeaderContainer}>
           <div className="flex items-center gap-4 mb-6">

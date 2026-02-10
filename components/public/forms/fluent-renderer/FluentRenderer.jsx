@@ -43,6 +43,7 @@ import {
   notifyFormSubmission,
   uploadReceipt,
 } from "@/lib/actions";
+import { revalidateFormSubmissions } from "@/lib/actions/cache";
 import { compressImage } from "@/lib/image-compression";
 import { createClient } from "@/lib/supabase/client";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
@@ -946,6 +947,8 @@ export default function FluentRenderer({ form, isPreview = false }) {
       const [dbResponse] = await Promise.all(tasks);
 
       if (dbResponse.error) throw dbResponse.error;
+
+      await revalidateFormSubmissions(form.id);
 
       setSubmissionStatus("success");
       reset();

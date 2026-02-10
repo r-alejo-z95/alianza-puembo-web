@@ -9,6 +9,7 @@ import {
   adminPageDescription,
 } from "@/lib/styles.ts";
 import { getFinancialSummary } from "@/lib/actions/finance";
+import { getCachedEvents } from "@/lib/data/events";
 import { TrendingUp, Users, Wallet, Target } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
@@ -25,10 +26,13 @@ export const metadata = {
 
 export default async function EventosPage() {
   await verifyPermission("perm_events");
-  const { summary } = await getFinancialSummary();
+  const [{ summary }, initialEvents] = await Promise.all([
+    getFinancialSummary(),
+    getCachedEvents()
+  ]);
 
   return (
-    <EventsProvider>
+    <EventsProvider initialEvents={initialEvents}>
       <section className={adminPageSection}>
         <header className={adminPageHeaderContainer}>
           <div className="flex items-center gap-4 mb-6">

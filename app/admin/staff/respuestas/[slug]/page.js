@@ -1,6 +1,5 @@
 import InternalResponseManager from "@/components/admin/managers/InternalResponseManager";
 import { verifyPermission } from "@/lib/auth/guards";
-import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import {
   adminPageSection,
@@ -11,6 +10,7 @@ import {
 import { ShieldCheck, ArrowLeft, Lock } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getFormBySlug, getCachedFormSubmissions } from "@/lib/data/forms";
 
 export const metadata = {
   title: "Respuestas de Formularios Internos - Staff",
@@ -48,37 +48,16 @@ export default async function StaffFormResponsesPage({ params }) {
   }
 
   const { slug } = await params;
-  const supabase = await createClient();
   
-  // 1. Obtener el formulario y sus campos
-  const { data: form, error: formError } = await supabase
-    .from("forms")
-    .select("*, form_fields(*), profiles(full_name)")
-    .eq("slug", slug)
-    .eq("is_internal", true)
-    .single();
+  // 1. Obtener el formulario y sus campos (Cached)
+  const form = await getFormBySlug(slug);
 
-  if (formError || !form) {
+  if (!form || !form.is_internal) {
     return notFound();
   }
 
-  // 2. Obtener todas las respuestas (incluyendo las archivadas para la papelera interna del manager)
-  const { data: submissions, error: submissionsError } = await supabase
-    .from("form_submissions")
-    .select("*, profiles(*)")
-    .eq("form_id", form.id)
-    .order("created_at", { ascending: false });
-
-  if (submissionsError) {
-    console.error("Error fetching submissions:", submissionsError);
-  }
-
-  // Ordenar campos por order_index
-  if (form.form_fields) {
-    form.form_fields.sort(
-      (a, b) => (a.order_index ?? 0) - (b.order_index ?? b.order ?? 0)
-    );
-  }
+  // 2. Obtener todas las respuestas (Cached)
+  const submissions = await getCachedFormSubmissions(form.id);
 
   return (
     <section className={adminPageSection}>

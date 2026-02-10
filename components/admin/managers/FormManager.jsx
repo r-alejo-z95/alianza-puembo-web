@@ -44,7 +44,7 @@ import { cn } from "@/lib/utils";
 
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function FormManager({ isInternal = false }) {
+export default function FormManager({ initialForms = [], isInternal = false }) {
   const {
     forms,
     archivedForms,
@@ -59,7 +59,7 @@ export default function FormManager({ isInternal = false }) {
     emptyRecycleBin,
     fetchArchivedForms,
     refetchForms,
-  } = useForms({ isInternal });
+  } = useForms({ initialForms, isInternal });
 
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
