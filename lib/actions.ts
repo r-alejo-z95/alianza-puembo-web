@@ -363,7 +363,7 @@ export async function addPrayerRequest(formData: FormData) {
       <p><strong>Petición:</strong><br/>${request_text.substring(0, 100)}...</p>
     `,
     meta: {
-      link: "/admin/oracion",
+      link: `/admin/comunidad?tab=peticiones&id=${data[0]?.id}`,
     },
   });
 
