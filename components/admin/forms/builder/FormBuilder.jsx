@@ -19,6 +19,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   DndContext,
   closestCenter,
   KeyboardSensor,
@@ -142,7 +148,7 @@ export default function FormBuilder({
       is_financial: true,
       fields: [],
     },
-    mode: "onBlur",
+    mode: "onChange",
   });
 
   const { fields, append, move, remove, insert } = useFieldArray({
@@ -151,7 +157,7 @@ export default function FormBuilder({
     keyName: "rhf_id", // Prevenir que RHF sobrescriba nuestro 'id' de base de datos
   });
 
-  const { errors } = form.formState;
+  const { errors, isValid } = form.formState;
 
   // Sync initial data
   useEffect(() => {
@@ -426,8 +432,7 @@ export default function FormBuilder({
   const handlePreview = async () => {
     const isValid = await form.trigger();
     if (!isValid) {
-      // Forzamos el scroll y el toast usando los errores actuales
-      onInvalid(form.getValues().title ? form.formState.errors : { ...form.formState.errors, title: { message: "Título requerido" } });
+      onInvalid(form.formState.errors);
       return;
     }
 
@@ -450,6 +455,7 @@ export default function FormBuilder({
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#F8F9FA] pb-32">
+      <TooltipProvider>
       {/* Premium Header */}
       <div
         className={cn(
@@ -485,28 +491,53 @@ export default function FormBuilder({
         </div>
 
         <div className="flex items-center justify-around gap-3">
-          <Button
-            variant="ghost"
-            className="rounded-2xl px-6 py-6 font-bold border border-white/10 hover:bg-white/5 h-12 transition-all flex uppercase tracking-widest text-[10px] text-gray-400 hover:text-white"
-            onClick={handlePreview}
-          >
-            <Eye className="w-4 h-4 mr-2" /> Vista Previa
-          </Button>
-          <Button
-            variant="green"
-            className="rounded-2xl px-8 py-6 font-bold shadow-[0_0_30px_rgba(var(--puembo-green-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--puembo-green-rgb),0.5)] transition-all hover:scale-[1.02] active:scale-95 h-12 uppercase tracking-widest text-[10px]"
-            onClick={form.handleSubmit(handleSave, onInvalid)}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button
+                  variant="ghost"
+                  className="rounded-2xl px-6 py-6 font-bold border border-white/10 hover:bg-white/5 h-12 transition-all flex uppercase tracking-widest text-[10px] text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={handlePreview}
+                  disabled={!isValid}
+                >
+                  <Eye className="w-4 h-4 mr-2" /> Vista Previa
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!isValid && (
+              <TooltipContent className="rounded-xl bg-black text-white border-white/10 text-[10px] p-4">
+                Completa todos los campos antes de hacer vista previa
+              </TooltipContent>
             )}
-            <span>{isSaving ? "Guardando..." : "Guardar"}</span>
-          </Button>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button
+                  variant="green"
+                  className="rounded-2xl px-8 py-6 font-bold shadow-[0_0_30px_rgba(var(--puembo-green-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--puembo-green-rgb),0.5)] transition-all hover:scale-[1.02] active:scale-95 h-12 uppercase tracking-widest text-[10px] disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"
+                  onClick={form.handleSubmit(handleSave, onInvalid)}
+                  disabled={isSaving || !isValid}
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
+                  <span>{isSaving ? "Guardando..." : "Guardar"}</span>
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {!isValid && (
+              <TooltipContent className="rounded-xl bg-black text-white border-white/10 text-[10px] p-4">
+                Completa todos los campos antes de guardar
+              </TooltipContent>
+            )}
+          </Tooltip>
         </div>
       </div>
+      </TooltipProvider>
 
       {/* Main Content */}
       <div className="max-w-5xl mx-auto py-12 px-4">
