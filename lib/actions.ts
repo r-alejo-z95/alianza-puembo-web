@@ -417,8 +417,8 @@ export async function notifyFormSubmission(
     }
 
     await sendSystemNotification({
-      type: "form",
-      target: { userId: authorId },
+      type: isInternal ? "internal" : "form",
+      target: isInternal ? "permitted_admins" : { userId: authorId },
       title: isInternal 
         ? `Nuevo registro operativo: ${formTitle}`
         : `Nueva respuesta recibida: ${formTitle}`,

@@ -15,7 +15,7 @@ const supabaseAdmin = createClient(
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-type NotificationType = "contact" | "prayer" | "form";
+type NotificationType = "contact" | "prayer" | "form" | "internal";
 
 interface NotificationParams {
   type: NotificationType;
@@ -47,7 +47,7 @@ export async function sendSystemNotification({
 
     const fallbackEmail =
       settings?.notification_email || "info@alianzapuembo.org";
-    const multiNotifyEmail = "no-reply@alianzapuembo.org"; // Email genérico para múltiples destinatarios
+    const multiNotifyEmail = "notifications-noreply@alianzapuembo.org"; // Email genérico para múltiples destinatarios
 
     // ---------------------------------------------------------
     // PASO 1: Resolver Destinatarios (Granular)
@@ -71,6 +71,7 @@ export async function sendSystemNotification({
           if (p[dashField]) dashRecipientIds.push(p.id);
         });
       }
+      console.log(`Resolved ${emailRecipients.length} email recipients for type ${type}`);
     } else if (typeof target === "object" && "userId" in target) {
       // Caso directo (Formularios): El autor recibe ambos siempre
       const { data: p } = await supabaseAdmin
@@ -123,6 +124,7 @@ export async function sendSystemNotification({
         prayer: { color: "#0284c7", label: "Nueva Petición de Oración" },
         contact: { color: "#ea580c", label: "Nuevo Mensaje de Contacto" },
         form: { color: "#7c3aed", label: "Respuesta en Formulario" },
+        internal: { color: "#059669", label: "Registro Operativo" },
       }[type] || { color: "#059669", label: "Notificación" };
 
       const fromEmail =
