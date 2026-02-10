@@ -104,3 +104,49 @@ export async function getFormBySlug(slug: string): Promise<Form | null> {
 
   return fetchForm(slug);
 }
+
+export interface FormSubmission {
+  id: string;
+  form_id: string;
+  data: any; // JSONb
+  created_at: string;
+  user_id?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  notes?: string;
+  profiles?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string;
+  };
+}
+
+/**
+ * @description Cached fetch of all submissions for a specific form.
+ * Revalidate using revalidateTag('form-submissions') or revalidateTag(`form-submissions-${formId}`).
+ */
+export const getCachedFormSubmissions = async (formId: string) => {
+  const fetchSubmissions = unstable_cache(
+    async (id: string) => {
+      const supabase = createAdminClient();
+      const { data, error } = await supabase
+        .from("form_submissions")
+        .select("*, profiles(*)") // Fetch all profile data to match original query
+        .eq("form_id", id)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error(`Error fetching cached submissions for form ${id}:`, error);
+        return [];
+      }
+
+      return data as FormSubmission[];
+    },
+    [`form-submissions-${formId}`],
+    {
+      tags: ['form-submissions', `form-submissions-${formId}`],
+      revalidate: 3600
+    }
+  );
+
+  return fetchSubmissions(formId);
+};

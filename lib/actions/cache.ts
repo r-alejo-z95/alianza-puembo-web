@@ -22,6 +22,13 @@ export async function revalidateForms() {
   revalidateTag('forms');
 }
 
+export async function revalidateFormSubmissions(formId?: string) {
+  revalidateTag('form-submissions');
+  if (formId) {
+    revalidateTag(`form-submissions-${formId}`);
+  }
+}
+
 export async function revalidateProfiles() {
   revalidateTag('profiles');
 }

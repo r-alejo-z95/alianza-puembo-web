@@ -39,6 +39,7 @@ import {
 import TurnstileCaptcha from "@/components/shared/TurnstileCaptcha";
 import { cn } from "@/lib/utils";
 import { verifyCaptcha } from "@/lib/actions";
+import { revalidateFormSubmissions } from "@/lib/actions/cache";
 import { createClient } from "@/lib/supabase/client";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 
@@ -303,6 +304,8 @@ export default function PublicFormRenderer({ form }) {
       ]);
 
       if (insErr) throw insErr;
+
+      await revalidateFormSubmissions(form.id);
 
       setSubmissionStatus("success");
       reset();

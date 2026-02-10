@@ -36,3 +36,37 @@ export const getCachedSettings = unstable_cache(
     revalidate: 3600
   }
 );
+
+export interface GoogleIntegration {
+  id: number;
+  account_name: string;
+  account_email: string;
+  refresh_token?: string;
+  access_token?: string;
+  expires_at?: number;
+}
+
+/**
+ * @description Cached fetch of Google Integration settings (safe fields only).
+ */
+export const getCachedGoogleSettings = unstable_cache(
+  async () => {
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from("google_integration")
+      .select("account_name, account_email") // Only fetch public-safe info for UI
+      .eq("id", 1)
+      .single();
+
+    if (error) {
+      // It's common to not have integration set up yet
+      return null;
+    }
+    return data as GoogleIntegration;
+  },
+  ['google-settings'],
+  {
+    tags: ['settings', 'google-integration'],
+    revalidate: 3600
+  }
+);
