@@ -483,12 +483,51 @@ export default function InternalResponseManager({ form, initialSubmissions = [] 
                       {sortedFields.map(f => {
                         const val = (selectedSubmission.answers || selectedSubmission.data || {})[f.label];
                         if (val === undefined) return null;
+                        
+                        const type = f.type || f.field_type;
+                        const isLongText = type === 'textarea';
+                        const isMedia = type === 'image' || type === 'file';
+                        
                         return (
-                          <div key={f.id} className="space-y-2">
+                          <div key={f.id} className={cn("space-y-2", isLongText || isMedia ? "md:col-span-2" : "")}>
                             <p className="text-[9px] font-black uppercase text-gray-400 tracking-wider">{f.label}</p>
-                            <p className="text-sm font-medium text-gray-700 bg-white/50 p-4 rounded-2xl border border-gray-100/50 leading-relaxed">
-                              {Array.isArray(val) ? val.join(", ") : String(val)}
-                            </p>
+                            <div className={cn(
+                              "text-sm font-medium text-gray-700 bg-white/50 p-4 rounded-2xl border border-gray-100/50 leading-relaxed",
+                              isLongText && "whitespace-pre-wrap"
+                            )}>
+                              {(() => {
+                                if (type === 'image' && typeof val === 'string' && val.includes('http')) {
+                                  return (
+                                    <div className="group/img relative w-fit">
+                                      <img src={val} alt={f.label} className="max-h-64 rounded-xl border shadow-sm" />
+                                      <a href={val} target="_blank" rel="noreferrer" className="absolute top-2 right-2 p-2 bg-black/50 text-white rounded-full opacity-0 group-hover/img:opacity-100 transition-all hover:scale-110">
+                                        <ArrowRight className="w-4 h-4" />
+                                      </a>
+                                    </div>
+                                  );
+                                }
+                                if (type === 'file' && typeof val === 'string' && val.includes('http')) {
+                                  return (
+                                    <a href={val} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-blue-600 hover:text-blue-700 font-bold decoration-2 underline-offset-4 hover:underline">
+                                      <div className="p-2 bg-blue-50 rounded-lg"><ClipboardList className="w-5 h-5" /></div>
+                                      Ver Documento Adjunto
+                                    </a>
+                                  );
+                                }
+                                if (Array.isArray(val)) {
+                                  return (
+                                    <div className="flex flex-wrap gap-2">
+                                      {val.map((v, i) => (
+                                        <Badge key={i} variant="outline" className="bg-white border-gray-200 text-gray-600 font-bold text-[10px] uppercase px-3 py-1">
+                                          {v}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  );
+                                }
+                                return String(val || "—");
+                              })()}
+                            </div>
                           </div>
                         );
                       })}
