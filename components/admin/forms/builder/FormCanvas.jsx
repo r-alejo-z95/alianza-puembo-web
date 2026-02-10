@@ -2,8 +2,9 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useFormContext, Controller } from "react-hook-form";
+import { useFormContext, Controller, useWatch } from "react-hook-form";
 import { cn } from "@/lib/utils";
+import { useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { ImageIcon, Trash2, Layout, Plus, ShieldCheck, Globe, Receipt, Banknote } from "lucide-react";
 import QuestionCard from "./QuestionCard";
-import { useRef, useCallback, useMemo } from "react";
+import { useRef, useMemo } from "react";
 import RichTextEditor from "../RichTextEditor";
 import { toast } from "sonner";
 
@@ -359,23 +360,45 @@ export default function FormCanvas({
   onDelete,
   errors,
 }) {
+  const { control } = useFormContext();
+  // Use useWatch for much better performance and real-time updates of nested fields
+  const watchedFields = useWatch({
+    control,
+    name: "fields",
+    defaultValue: fields
+  });
+
   // Analizar qué secciones tienen preguntas con saltos lógicos internos
   const sections = useMemo(() => {
     const groups = [];
     let currentSectionBranching = false;
     let currentSectionId = null;
 
-    // Solo nos interesan las secciones para el mapeo de destinos
-    const sectionList = fields
+    // Siempre usar campos observados para capturar cambios en tiempo real
+    const fieldsToUse = watchedFields || [];
+
+    // Lista de secciones para destinos
+    const sectionList = fieldsToUse
       .filter((f) => f.type === "section")
-      .map((f) => ({ id: f.id, label: f.label || "Sección sin título" }));
+      .map((f) => ({ id: f.id, label: f.label || "Sección sin título", type: "section" }));
+
+    // Lista de preguntas para destinos (excluyendo secciones)
+    const questionList = fieldsToUse
+      .filter((f) => f.type !== "section")
+      .map((f) => ({ id: f.id, label: f.label || "Pregunta sin título", type: "field" }));
+
+    // Combinar ambas listas ordenadas
+    const destinationList = [
+      ...sectionList,
+      ...questionList,
+    ];
 
     // Analizar la estructura para detectar bifurcaciones por sección
-    fields.forEach((f) => {
+    fieldsToUse.forEach((f) => {
       if (f.type === "section") {
         currentSectionId = f.id;
         currentSectionBranching = false;
-      } else if (f.type === "radio") {
+      } else if (["radio", "checkbox", "select"].includes(f.type)) {
         const hasJumps = f.options?.some(
           (opt) => opt.next_section_id && opt.next_section_id !== "default",
         );
@@ -398,8 +421,8 @@ export default function FormCanvas({
       }
     });
 
-    return { sectionList, groupsMeta: groups };
-  }, [fields]);
+    return { sectionList, destinationList, groupsMeta: groups };
+  }, [watchedFields]);
 
   return (
     <div className="w-full max-w-3xl mx-auto pt-4 md:pt-10">
@@ -430,7 +453,7 @@ export default function FormCanvas({
                 onActivate={() => onActivateField(field.id)}
                 onDuplicate={onDuplicate}
                 onDelete={onDelete}
-                sections={sections.sectionList}
+                sections={sections.destinationList}
                 hasInternalBranching={sectionMeta?.hasInternalBranching}
                 error={errors?.fields?.[index]?.label}
               />

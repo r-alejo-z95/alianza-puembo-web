@@ -50,7 +50,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { v4 as uuidv4 } from "uuid";
-import { useRef, useEffect, memo } from "react";
+import { useRef, useEffect, memo, useMemo } from "react";
 import { toast } from "sonner";
 
 const FIELD_GROUPS = [
@@ -248,16 +248,17 @@ function QuestionCard({
                 </span>
               </div>
 
-              {type === "radio" &&
-                opt.next_section_id &&
-                opt.next_section_id !== "default" && (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] rounded-full border border-[var(--puembo-green)]/20 shrink-0 shadow-sm animate-in fade-in slide-in-from-right-2 duration-500 max-w-[100px] sm:max-w-none">
-                    <GitBranch className="w-3 h-3 shrink-0" />
+                              {["radio", "select"].includes(type) &&
+                              opt.next_section_id &&
+                              opt.next_section_id !== "default" && (
+                                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] rounded-full border border-[var(--puembo-green)]/20 shrink-0 shadow-sm animate-in fade-in slide-in-from-right-2 duration-500 max-w-[120px] sm:max-w-none">                    <GitBranch className="w-3 h-3 shrink-0" />
                     <span className="text-[9px] font-black uppercase tracking-tight truncate">
                       {opt.next_section_id === "submit"
-                        ? "Finalizar"
-                        : sections?.find((s) => s.id === opt.next_section_id)
-                            ?.label || "Sección"}
+                        ? "✓ Finalizar"
+                        : (() => {
+                            const dest = sections?.find((s) => s.id === opt.next_section_id);
+                            return dest ? `${dest.type === "section" ? "📑" : "❓"} ${dest.label}` : "Destino";
+                          })()}
                     </span>
                   </div>
                 )}
@@ -456,12 +457,22 @@ function QuestionCard({
 
         {["radio", "checkbox", "select"].includes(type) && (
           <div className="space-y-3 p-6 rounded-[2rem] bg-[#FDFDFD] border border-gray-100 shadow-inner">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-4">
               <span className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
                 Opciones de Respuesta
               </span>
               <div className="h-px flex-grow mx-4 bg-gray-50" />
             </div>
+            
+            {sections?.length > 0 && (
+              <div className="p-3 bg-[var(--puembo-green)]/5 border border-[var(--puembo-green)]/10 rounded-xl mb-3">
+                <p className="text-[9px] font-semibold text-[var(--puembo-green)] flex items-center gap-2">
+                  <GitBranch className="w-3 h-3" />
+                  💡 Tip: Establece un flujo condicional para cada opción usando el selector "Flujo"
+                </p>
+              </div>
+            )}
+            
             <div className="space-y-2">
               {options?.map((opt, optIdx) => (
                 <div
@@ -484,7 +495,7 @@ function QuestionCard({
                     )}
                   />
 
-                  {type === "radio" && sections?.length > 0 && (
+                  {["radio", "select"].includes(type) && sections?.length > 0 && (
                     <div className="flex items-center gap-2 min-w-[140px]">
                       <div className="h-4 w-px bg-gray-100 mx-1" />
                       <Controller
@@ -508,22 +519,50 @@ function QuestionCard({
                               <GitBranch className="w-3 h-3" />
                               <SelectValue placeholder="Flujo" />
                             </SelectTrigger>
-                            <SelectContent className="rounded-2xl border-none shadow-2xl">
+                            <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
                               <SelectItem
                                 value="default"
                                 className="text-[10px] font-bold uppercase"
                               >
                                 → Siguiente
                               </SelectItem>
-                              {sections.map((s) => (
-                                <SelectItem
-                                  key={s.id}
-                                  value={s.id}
-                                  className="text-[10px] font-bold uppercase"
-                                >
-                                  → {s.label || "Sección"}
-                                </SelectItem>
-                              ))}
+                              
+                              {/* Secciones */}
+                              {sections?.some(s => s.type === "section") && (
+                                <>
+                                  <div className="px-3 py-2 text-[8px] font-black uppercase tracking-widest text-gray-400">
+                                    📑 Secciones
+                                  </div>
+                                  {sections.filter(s => s.type === "section").map((s) => (
+                                    <SelectItem
+                                      key={s.id}
+                                      value={s.id}
+                                      className="text-[10px] font-bold uppercase ml-2"
+                                    >
+                                      📑 {s.label}
+                                    </SelectItem>
+                                  ))}
+                                </>
+                              )}
+
+                              {/* Preguntas */}
+                              {sections?.some(s => s.type === "field") && (
+                                <>
+                                  <div className="px-3 py-2 text-[8px] font-black uppercase tracking-widest text-gray-400">
+                                    ❓ Preguntas
+                                  </div>
+                                  {sections.filter(s => s.type === "field").map((s) => (
+                                    <SelectItem
+                                      key={s.id}
+                                      value={s.id}
+                                      className="text-[10px] font-bold uppercase ml-2"
+                                    >
+                                      ❓ {s.label}
+                                    </SelectItem>
+                                  ))}
+                                </>
+                              )}
+                              
                               <SelectItem
                                 value="submit"
                                 className="text-[10px] font-black text-red-500 uppercase"

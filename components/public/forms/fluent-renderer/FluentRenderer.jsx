@@ -47,10 +47,36 @@ import { compressImage } from "@/lib/image-compression";
 import { createClient } from "@/lib/supabase/client";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 
+// --- Helpers ---
+
+const getJumpTarget = (field, values) => {
+  const val = values[field.label];
+  if (!val) {
+    // Si no hay valor pero el campo tiene un salto por defecto (field-level)
+    if (field.next_section_id && field.next_section_id !== "default") {
+      return field.next_section_id;
+    }
+    return null;
+  }
+
+  if (["radio", "select"].includes(field.type)) {
+    const selectedOption = field.options?.find((opt) => opt.value === val);
+    if (selectedOption?.next_section_id && selectedOption.next_section_id !== "default") {
+      return selectedOption.next_section_id;
+    }
+  }
+
+  if (field.next_section_id && field.next_section_id !== "default") {
+    return field.next_section_id;
+  }
+
+  return null;
+};
+
 // --- Logic Hook ---
 function useFormLogic(form) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [stepHistory, setStepHistory] = useState([0]);
+  const [stepHistory, setStepHistory] = useState([{ index: 0, startFieldId: null }]);
 
   const steps = useMemo(() => {
     if (!form?.form_fields) return [];
@@ -98,8 +124,13 @@ function useFormLogic(form) {
 
   const jumpTargets = useMemo(() => {
     const targets = new Set();
-    steps.forEach((step) => {
+    const fieldIndexMap = {}; // Mapeo de fieldId -> stepIndex para saltos a preguntas
+
+    steps.forEach((step, stepIndex) => {
+      // Mapear campos individuales
       step.fields.forEach((f) => {
+        fieldIndexMap[f.id] = stepIndex;
+
         f.options?.forEach((o) => {
           if (
             o.next_section_id &&
@@ -118,7 +149,7 @@ function useFormLogic(form) {
         }
       });
     });
-    return targets;
+    return { targets, fieldIndexMap };
   }, [steps]);
 
   return {
@@ -127,7 +158,8 @@ function useFormLogic(form) {
     setCurrentStep,
     stepHistory,
     setStepHistory,
-    jumpTargets,
+    jumpTargets: jumpTargets.targets,
+    fieldIndexMap: jumpTargets.fieldIndexMap,
   };
 }
 
@@ -454,7 +486,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
     trigger,
     getValues,
     setValue,
-  } = useForm({ mode: "onChange" });
+  } = useForm({ mode: "onChange", shouldUnregister: true });
 
   const {
     steps,
@@ -463,6 +495,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
     stepHistory,
     setStepHistory,
     jumpTargets,
+    fieldIndexMap,
   } = useFormLogic(form);
 
   const [sending, setSending] = useState(false);
@@ -484,51 +517,96 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
   const currentFields = steps[currentStep]?.fields || [];
 
+  const currentHistoryEntry = stepHistory[stepHistory.length - 1];
+  const startFieldId = currentHistoryEntry?.startFieldId;
+
+  // Calculate which fields should be visible based on conditional jumps
+  const visibleFields = useMemo(() => {
+    const fieldsToShow = [];
+    let currentIndex = 0;
+
+    // Si entramos a esta sección por un salto a una pregunta específica, empezamos ahí
+    if (startFieldId) {
+      const startIdx = currentFields.findIndex((f) => f.id === startFieldId);
+      if (startIdx !== -1) currentIndex = startIdx;
+    }
+
+    let jumpedToInLoop = null;
+
+    while (currentIndex < currentFields.length) {
+      const field = currentFields[currentIndex];
+
+      // EXCLUSIVIDAD DE FLUJO:
+      // Si esta pregunta es un objetivo de salto, solo mostrarla si:
+      // 1. Fue el punto de entrada a esta sección (startFieldId)
+      // 2. Acabamos de saltar a ella dentro de este mismo bucle (jumpedToInLoop)
+      if (
+        jumpTargets.has(field.id) &&
+        startFieldId !== field.id &&
+        jumpedToInLoop !== field.id
+      ) {
+        currentIndex++;
+        continue;
+      }
+
+      fieldsToShow.push(field);
+
+      const jumpToId = getJumpTarget(field, watchedValues);
+
+      if (jumpToId) {
+        const targetFieldIndex = currentFields.findIndex(
+          (f) => f.id === jumpToId,
+        );
+        if (targetFieldIndex > currentIndex) {
+          currentIndex = targetFieldIndex;
+          jumpedToInLoop = jumpToId;
+          continue;
+        } else if (targetFieldIndex === -1) {
+          // Si el salto es fuera de esta sección, dejamos de mostrar más campos aquí
+          break;
+        }
+      }
+
+      currentIndex++;
+    }
+
+    return fieldsToShow;
+  }, [currentFields, watchedValues, startFieldId, jumpTargets]);
+
   const hasBranchingRadio = useMemo(() => {
-    return currentFields.some(
+    return visibleFields.some(
       (field) =>
-        field.type === "radio" &&
+        ["radio", "select"].includes(field.type) &&
         field.options?.some(
           (opt) => opt.next_section_id && opt.next_section_id !== "default",
         ),
     );
-  }, [currentFields]);
+  }, [visibleFields]);
 
   const isBranchingSelected = useMemo(() => {
     if (!hasBranchingRadio) return true;
 
-    const branchingRadios = currentFields.filter(
+    const branchingFields = visibleFields.filter(
       (field) =>
-        field.type === "radio" &&
+        ["radio", "select"].includes(field.type) &&
         field.options?.some(
           (opt) => opt.next_section_id && opt.next_section_id !== "default",
         ),
     );
 
-    return branchingRadios.every((field) => !!watchedValues[field.label]);
-  }, [hasBranchingRadio, currentFields, watchedValues]);
+    return branchingFields.every((field) => !!watchedValues[field.label]);
+  }, [hasBranchingRadio, visibleFields, watchedValues]);
 
   const isLastStep = useMemo(() => {
-    const branchingField = currentFields.find(
-      (f) =>
-        f.type === "radio" &&
-        f.options?.some(
-          (o) => o.next_section_id && o.next_section_id !== "default",
-        ),
-    );
+    if (visibleFields.length === 0) return currentStep === steps.length - 1;
 
-    const val = branchingField ? watchedValues[branchingField.label] : null;
+    const lastVisibleField = visibleFields[visibleFields.length - 1];
+    const jumpToId = getJumpTarget(lastVisibleField, watchedValues);
 
-    if (branchingField && !val) return false;
+    if (jumpToId === "submit") return true;
 
-    if (val) {
-      const opt = branchingField.options.find((o) => o.value === val);
-
-      if (opt?.next_section_id === "submit") return true;
-
-      if (opt?.next_section_id && opt.next_section_id !== "default")
-        return false;
-    }
+    // Si hay un salto explícito a otra parte, no es el último paso "natural"
+    if (jumpToId && jumpToId !== "default") return false;
 
     const nextStep = steps[currentStep + 1];
 
@@ -539,73 +617,84 @@ export default function FluentRenderer({ form, isPreview = false }) {
     }
 
     return currentStep === steps.length - 1;
-  }, [currentStep, steps, currentFields, watchedValues, jumpTargets]);
+  }, [currentStep, steps, visibleFields, watchedValues, jumpTargets]);
 
   const handleNext = async () => {
-    const fieldLabels = currentFields.map((f) => f.label);
+    const fieldLabels = [];
+    visibleFields.forEach((f) => {
+      if (f.type === "checkbox") {
+        f.options?.forEach((opt) => fieldLabels.push(`${f.label}.${opt.value}`));
+      } else {
+        fieldLabels.push(f.label);
+      }
+    });
 
-    // Skip validation if in preview mode
+    // Validar con trigger
     const isStepValid = isPreview ? true : await trigger(fieldLabels);
 
     if (!isStepValid) {
       toast.error("Por favor completa los campos requeridos.");
-
       return;
     }
 
     const values = getValues();
 
-    let jumpTargetId = null;
-
-    for (const field of currentFields) {
-      const val = values[field.label];
-
-      if (field.type === "radio" && val) {
-        const selectedOption = field.options?.find((opt) => opt.value === val);
-
-        if (
-          selectedOption?.next_section_id &&
-          selectedOption.next_section_id !== "default"
-        ) {
-          jumpTargetId = selectedOption.next_section_id;
-
-          break;
-        }
+    // Validación manual para checkboxes (al menos uno)
+    const missingRequiredCheckbox = visibleFields.some((f) => {
+      if (f.required && f.type === "checkbox") {
+        const val = values[f.label];
+        return !val || !Object.values(val).some((v) => v === true);
       }
+      return false;
+    });
+
+    if (missingRequiredCheckbox) {
+      toast.error("Por favor selecciona al menos una opción.");
+      return;
     }
 
-    if (!jumpTargetId && currentFields.length > 0) {
-      const lastField = currentFields[currentFields.length - 1];
+    let jumpTargetId = null;
 
-      if (
-        lastField.next_section_id &&
-        lastField.next_section_id !== "default"
-      ) {
-        jumpTargetId = lastField.next_section_id;
-      }
+    for (const field of visibleFields) {
+      jumpTargetId = getJumpTarget(field, values);
+      if (jumpTargetId) break;
     }
 
     if (jumpTargetId === "submit") {
-      if (isPreview) {
-        onSubmit(values);
-      } else {
-        handleSubmit(onSubmit)();
-      }
+      onSubmit(values);
 
       return;
     }
 
     if (jumpTargetId) {
-      const targetIndex = steps.findIndex(
+      // Primero verificar si es un salto a una pregunta específica
+      const fieldStepIndex = fieldIndexMap?.[jumpTargetId];
+
+      if (fieldStepIndex !== undefined) {
+        // SOLO SALTAR SI ES UN STEP DIFERENTE. 
+        // Si es el mismo, ya se mostró en el flujo actual de visibleFields.
+        if (fieldStepIndex !== currentStep) {
+          setStepHistory((prev) => [
+            ...prev,
+            { index: fieldStepIndex, startFieldId: jumpTargetId },
+          ]);
+          setCurrentStep(fieldStepIndex);
+          return;
+        }
+      }
+
+      // Si no es pregunta, verificar si es salto a sección
+      const sectionTargetIndex = steps.findIndex(
         (s) =>
           s.section?.id === jumpTargetId || s.section?._id === jumpTargetId,
       );
 
-      if (targetIndex !== -1) {
-        setStepHistory((prev) => [...prev, targetIndex]);
-
-        setCurrentStep(targetIndex);
-
+      if (sectionTargetIndex !== -1) {
+        setStepHistory((prev) => [
+          ...prev,
+          { index: sectionTargetIndex, startFieldId: null },
+        ]);
+        setCurrentStep(sectionTargetIndex);
         return;
       }
     }
@@ -613,15 +702,11 @@ export default function FluentRenderer({ form, isPreview = false }) {
     if (!isLastStep) {
       const nextIndex = currentStep + 1;
 
-      setStepHistory((prev) => [...prev, nextIndex]);
+      setStepHistory((prev) => [...prev, { index: nextIndex, startFieldId: null }]);
 
       setCurrentStep(nextIndex);
     } else {
-      if (isPreview) {
-        onSubmit(values);
-      } else {
-        handleSubmit(onSubmit)();
-      }
+      onSubmit(values);
     }
   };
 
@@ -635,7 +720,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
       setStepHistory(newHistory);
 
-      setCurrentStep(previousStep);
+      setCurrentStep(previousStep.index);
     }
   };
 
@@ -664,6 +749,40 @@ export default function FluentRenderer({ form, isPreview = false }) {
     setSending(true);
 
     try {
+      // Filtrar datos para incluir solo los campos que fueron visibles en el flujo
+      const visibleFieldLabels = new Set();
+      stepHistory.forEach((entry) => {
+        const stepFields = steps[entry.index]?.fields || [];
+        let idx = 0;
+        if (entry.startFieldId) {
+          const sIdx = stepFields.findIndex((f) => f.id === entry.startFieldId);
+          if (sIdx !== -1) idx = sIdx;
+        }
+        let loopJump = null;
+        while (idx < stepFields.length) {
+          const field = stepFields[idx];
+          if (
+            jumpTargets.has(field.id) &&
+            entry.startFieldId !== field.id &&
+            loopJump !== field.id
+          ) {
+            idx++;
+            continue;
+          }
+          visibleFieldLabels.add(field.label);
+          const jId = getJumpTarget(field, data);
+          if (jId) {
+            const tIdx = stepFields.findIndex((f) => f.id === jId);
+            if (tIdx > idx) {
+              idx = tIdx;
+              loopJump = jId;
+              continue;
+            } else if (tIdx === -1) break;
+          }
+          idx++;
+        }
+      });
+
       const supabase = createClient();
       const {
         data: { user },
@@ -683,6 +802,8 @@ export default function FluentRenderer({ form, isPreview = false }) {
       const rawDataForDb = {};
 
       for (const key in data) {
+        if (!visibleFieldLabels.has(key)) continue;
+
         const value = data[key];
         const fieldDef = form.form_fields.find((f) => f.label === key);
 
@@ -845,7 +966,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
     let remainingSteps = steps.length - currentStep;
 
-    const branchingField = currentFields.find((f) => f.type === "radio");
+    const branchingField = visibleFields.find((f) => f.type === "radio");
 
     const val = branchingField ? watchedValues[branchingField.label] : null;
 
@@ -983,7 +1104,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
             )}
 
             <div className="space-y-10 pb-12">
-              {currentFields.map((field, idx) => (
+              {visibleFields.map((field, idx) => (
                 <motion.div
                   key={field.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -1024,7 +1145,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
                         <a
                           href={field.attachment_url}
                           target="_blank"
-                          className="block p-5 bg-white hover:bg-gray-50 text-[var(--puembo-green)] font-black text-[11px] uppercase tracking-widest flex items-center gap-3 transition-colors"
+                          className="flex p-5 bg-white hover:bg-gray-50 text-[var(--puembo-green)] font-black text-[11px] uppercase tracking-widest items-center gap-3 transition-colors"
                         >
                           <div className="w-8 h-8 rounded-full bg-[var(--puembo-green)]/10 flex items-center justify-center">
                             <FileText className="w-4 h-4" />
