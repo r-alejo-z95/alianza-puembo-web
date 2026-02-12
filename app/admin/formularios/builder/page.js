@@ -7,6 +7,7 @@ import FormBuilder from "@/components/admin/forms/builder/FormBuilder";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { initializeGoogleIntegration } from "@/lib/actions";
+import { revalidateForms } from "@/lib/actions/cache";
 import { slugify } from "@/lib/utils";
 
 function sanitizeFileName(name) {
@@ -208,6 +209,7 @@ function BuilderContent() {
       }
 
       toast.success("Formulario guardado correctamente.");
+      await revalidateForms();
       // Redirigir según el estado final del toggle
       router.push(is_internal ? "/admin/staff" : "/admin/formularios");
     } catch (e) {

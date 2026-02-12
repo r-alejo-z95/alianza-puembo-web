@@ -35,6 +35,7 @@ import { Switch } from "@/components/ui/switch";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { revalidateForms } from "@/lib/actions/cache";
 
 export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect, isInternalView }) {
   const [isEnabled, setEnabled] = useState(form.enabled ?? true);
@@ -53,6 +54,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
       console.error(error);
     } else {
       setEnabled(checked);
+      await revalidateForms();
       toast.success(
         checked ? "Formulario habilitado" : "Formulario deshabilitado"
       );

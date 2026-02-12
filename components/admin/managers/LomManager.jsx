@@ -60,6 +60,7 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { AdminEditorPanel } from "../layout/AdminEditorPanel";
 import { AdminFAB } from "../layout/AdminFAB";
+import { revalidateLom } from "@/lib/actions/cache";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -184,6 +185,7 @@ export default function LomManager({ initialItems = [] }) {
         toast.success("Devocional creado.");
       }
 
+      await revalidateLom();
       setIsFormOpen(false);
       setSelectedPost(null);
       form.reset({ title: "", content: "", publication_date: "" });

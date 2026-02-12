@@ -47,6 +47,7 @@ import RecycleBin from "./RecycleBin";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { revalidateLom } from "@/lib/actions/cache";
 
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -168,7 +169,10 @@ export default function PassageManager({ initialItems = [] }) {
         .from("lom_passages")
         .insert(passagesToSave);
       if (error) toast.error("Error al guardar.");
-      else toast.success("Semana programada.");
+      else {
+        toast.success("Semana programada.");
+        await revalidateLom();
+      }
     }
     setIsFormOpen(false);
     refetchItems();

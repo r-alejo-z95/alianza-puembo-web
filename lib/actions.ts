@@ -10,7 +10,7 @@ import { redirect } from "next/navigation";
 import { loginSchema } from "@/lib/schemas";
 import { sendSystemNotification } from "@/lib/services/notifications";
 import { headers } from "next/headers";
-import { revalidateForms } from "./actions/cache";
+import { revalidateForms, revalidateFormSubmissions } from "./actions/cache";
 import { extractReceiptData } from "@/lib/services/ai-reconciliation";
 import crypto from "crypto";
 
@@ -764,6 +764,9 @@ export async function submitFormAction(payload: {
       throw dbError;
     }
     console.log(`[Submit] Éxito: Registro guardado ID ${submission.id}`);
+
+    // Revalidar para que el admin vea la nueva respuesta inmediatamente
+    revalidateFormSubmissions(formId).catch(err => console.error("[Revalidate Error]:", err));
 
     // 4. TAREAS EN BACKGROUND (No bloquean la respuesta al usuario)
     if (!isInternal) {
