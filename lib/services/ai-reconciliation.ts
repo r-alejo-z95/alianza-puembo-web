@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const genAI = new GoogleGenerativeAI(process.env.PROJECT_GEMINI_API_KEY || "");
 
 /**
  * Interface for the structured data extracted from a receipt.
