@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, BookOpen, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, BookOpen, Clock, Home } from "lucide-react";
 import { getLomPostBySlug, getLomNavigationPosts } from "@/lib/data/lom.ts";
 import {
   formatEcuadorDateForInput,
@@ -53,114 +53,157 @@ export default async function LomPostPage({ params }) {
   );
 
   return (
-    <div className="relative min-h-screen w-full bg-[#FDFDFD]">
-      {/* Cinematic Full-Height Background */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+    <div className="relative min-h-screen w-full bg-[#0A0A0A] selection:bg-[var(--puembo-green)]/30 overflow-x-hidden flex flex-col">
+      {/* Cinematic Sticky Background - Fully Immersive */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
         <Image
           src="/recursos/lom/Lom.avif"
           alt="Background"
           fill
           priority
-          className="object-cover object-center brightness-[0.7]"
+          className="object-cover object-center brightness-[0.35] scale-105"
         />
+        {/* Continuous Depth Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)]" />
       </div>
 
-      <main className="relative z-10 w-full pt-28 pb-20 md:pb-32 px-3 md:px-8">
-        <div className="max-w-4xl mx-auto space-y-8 md:space-y-12">
-          {/* Top Navigation Bar */}
-          <div className="flex items-center justify-between px-2 md:px-4">
-            <Link
-              href="/recursos/lom"
-              className="inline-flex items-center gap-2 md:gap-3 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-white/70 hover:text-white transition-all group"
-            >
-              <ChevronLeft className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover:-translate-x-1 transition-transform text-[var(--puembo-green)]" />
-              Regresar al Índice
-            </Link>
+      {/* Standalone Navigation Bar */}
+      <nav className="fixed top-0 z-50 w-full bg-black/20 backdrop-blur-md border-b border-white/5 py-4 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <Link
+            href="/recursos/lom"
+            className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-white transition-all group"
+          >
+            <div className="p-2 rounded-full bg-white/5 border border-white/10 group-hover:bg-[var(--puembo-green)]/20 group-hover:border-[var(--puembo-green)]/30 transition-all">
+              <ChevronLeft className="w-4 h-4 text-[var(--puembo-green)] group-hover:-translate-x-0.5 transition-transform" />
+            </div>
+            <span>Volver al Índice</span>
+          </Link>
 
-            <div className="hidden md:flex items-center gap-4 text-white/40">
-              <BookOpen className="w-4 h-4" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em]">
-                Lee, Ora y Medita
-              </span>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-white/60 hover:text-white transition-all group"
+          >
+            <span>Ir al Inicio</span>
+            <div className="p-2 rounded-full bg-white/5 border border-white/10 group-hover:bg-[var(--puembo-green)]/20 group-hover:border-[var(--puembo-green)]/30 transition-all">
+              <Home className="w-4 h-4 text-[var(--puembo-green)] group-hover:scale-110 transition-transform" />
+            </div>
+          </Link>
+        </div>
+      </nav>
+
+      {/* Main Content Scroll Container */}
+      <main className="relative z-10 w-full flex-grow pt-24 pb-32 px-4 md:px-8 bg-transparent">
+        <div className="max-w-5xl mx-auto space-y-12 md:space-y-16">
+          {/* LOM Branding Badge */}
+          <div className="flex items-center justify-center px-2">
+            <div className="flex items-center gap-6 text-white/30">
+              <div className="h-[1px] w-8 md:w-16 bg-white/10 hidden sm:block" />
+              <div className="flex items-center gap-3">
+                <BookOpen className="w-4 h-4" />
+                <span className="text-[10px] font-black uppercase tracking-[0.5em]">
+                  LOM
+                </span>
+              </div>
+              <div className="h-[1px] w-8 md:w-16 bg-white/10 hidden sm:block" />
             </div>
           </div>
 
-          {/* Solid Editorial Article Card */}
-          <article className="bg-white rounded-[2rem] md:rounded-[3rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.14)] overflow-hidden animate-in fade-in slide-in-from-bottom-12 duration-1000">
-            <div className="p-6 md:p-20 lg:p-24">
-              {/* Refined Header */}
-              <header className="pb-10 md:pb-16 text-center space-y-6 md:space-y-10 border-b border-gray-50 mb-10 md:mb-16">
-                <div className="flex flex-col items-center gap-4 md:gap-6">
-                  <div className="h-1 w-10 md:w-12 bg-[var(--puembo-green)] rounded-full" />
-                  <p className="text-[9px] md:text-[10px] font-black text-[var(--puembo-green)] uppercase tracking-[0.4em] md:tracking-[0.5em] ml-2">
-                    Devocional Diario
+          {/* Immersive Dark Content Area */}
+          <article className="animate-in fade-in slide-in-from-bottom-16 duration-1000 ease-out">
+            {/* Refined Header */}
+            <header className="pb-16 md:pb-28 text-center space-y-10 md:space-y-16">
+              <div className="flex flex-col items-center gap-8">
+                <div className="flex items-center gap-4">
+                  <div className="h-[2px] w-8 bg-[var(--puembo-green)]/40 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.5)]" />
+                  <p className="text-[11px] font-black text-[var(--puembo-green)] uppercase tracking-[0.7em] [text-shadow:0_0_20px_rgba(74,222,128,0.3)]">
+                    Devocional
                   </p>
+                  <div className="h-[2px] w-8 bg-[var(--puembo-green)]/40 rounded-full shadow-[0_0_10px_rgba(74,222,128,0.5)]" />
                 </div>
+              </div>
 
-                <h1 className="text-3xl md:text-7xl font-serif font-bold text-gray-900 leading-[1.2] md:leading-[1.1] tracking-tight max-w-3xl mx-auto">
-                  {post.title}
-                </h1>
+              <h1 className="text-5xl md:text-9xl font-serif font-bold text-white leading-[1] md:leading-[0.95] tracking-tighter max-w-5xl mx-auto balance-text drop-shadow-2xl">
+                {post.title}
+              </h1>
 
-                <div className="flex items-center justify-center gap-4 md:gap-6 text-gray-400 font-bold text-[9px] md:text-[10px] uppercase tracking-[0.15em] md:tracking-[0.2em]">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-3 md:w-3.5 h-3 md:h-3.5 text-[var(--puembo-green)]" />
-                    <span>{publicationDate}</span>
-                  </div>
+              <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 text-white/50 font-bold text-[11px] uppercase tracking-[0.3em]">
+                <div className="flex items-center gap-4 px-6 py-3 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                  <Clock className="w-4 h-4 text-[var(--puembo-green)]" />
+                  <span className="text-white/70">{publicationDate}</span>
                 </div>
-              </header>
+              </div>
+            </header>
 
-              {/* Premium Content Area */}
-              <div
-                className="text-gray-700 tiptap prose prose-neutral max-w-none prose-base md:prose-xl
-                  prose-p:leading-[1.8] md:prose-p:leading-[2] prose-p:text-gray-600 prose-p:mb-6 md:prose-p:mb-10 prose-p:font-light
-                  prose-headings:font-serif prose-headings:font-bold prose-headings:text-gray-900 prose-headings:mt-10 md:prose-headings:mt-16
-                  prose-blockquote:border-l-0 prose-blockquote:bg-gray-50 prose-blockquote:py-8 md:prose-blockquote:py-12 prose-blockquote:px-6 md:prose-blockquote:px-12 prose-blockquote:rounded-[1.5rem] md:prose-blockquote:rounded-[2.5rem] prose-blockquote:italic prose-blockquote:text-gray-500 prose-blockquote:text-center prose-blockquote:font-serif prose-blockquote:text-xl md:prose-blockquote:text-2xl
-                  prose-strong:text-gray-900 prose-strong:font-black
-                  prose-img:rounded-[1.5rem] md:prose-img:rounded-[3rem] prose-img:shadow-2xl prose-img:my-10 md:prose-img:my-20
-                  prose-li:text-gray-600 prose-li:marker:text-[var(--puembo-green)]
-                  prose-a:text-[var(--puembo-green)] prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-                  overflow-hidden wrap-anywhere"
-                dangerouslySetInnerHTML={{ __html: post.content }}
-              />
+            {/* Content Area - White text directly on background */}
+            <div
+              className="text-white/90 tiptap prose prose-invert max-w-none prose-base md:prose-2xl
+                prose-p:leading-[1.9] md:prose-p:leading-[2.2] prose-p:text-white/80 prose-p:mb-10 md:prose-p:mb-16 prose-p:font-light
+                prose-headings:font-serif prose-headings:font-bold prose-headings:text-white prose-headings:mt-16 md:prose-headings:mt-24
+                prose-blockquote:border-l-0 prose-blockquote:bg-white/5 prose-blockquote:backdrop-blur-sm prose-blockquote:py-12 md:prose-blockquote:py-20 prose-blockquote:px-10 md:prose-blockquote:px-20 prose-blockquote:rounded-[2.5rem] md:prose-blockquote:rounded-[4rem] prose-blockquote:italic prose-blockquote:text-white/70 prose-blockquote:text-center prose-blockquote:font-serif prose-blockquote:text-2xl md:prose-blockquote:text-4xl prose-blockquote:border prose-blockquote:border-white/10 prose-blockquote:my-16 md:prose-blockquote:my-28
+                prose-strong:text-white prose-strong:font-black
+                prose-img:rounded-[2.5rem] md:prose-img:rounded-[4.5rem] prose-img:shadow-[0_0_80px_rgba(0,0,0,0.6)] prose-img:my-16 md:prose-img:my-32 prose-img:border prose-img:border-white/10
+                prose-li:text-white/80 prose-li:marker:text-[var(--puembo-green)]
+                prose-a:text-[var(--puembo-green)] prose-a:font-bold prose-a:no-underline hover:prose-a:underline decoration-2 underline-offset-8
+                overflow-hidden wrap-anywhere"
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
 
-              {/* Enhanced Navigation Footer */}
-              <footer className="mt-16 md:mt-24 pt-10 md:pt-16 border-t border-gray-50 flex flex-row items-center justify-between gap-6 md:gap-8">
+            {/* Navigation Footer - Matching Top Bar Style */}
+            <footer className="mt-18 md:mt-36 pt-12 md:pt-24 border-t border-white/10">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-8 md:gap-12">
                 {prevPost ? (
                   <Link
                     href={`/recursos/lom/${prevPost.slug}`}
-                    className="inline-flex items-center gap-2 md:gap-3 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-gray-400 hover:text-[var(--puembo-green)] transition-all group w-full sm:w-auto justify-center sm:justify-start"
+                    className="inline-flex items-center gap-4 text-[11px] font-black uppercase tracking-[0.4em] text-white/60 hover:text-white transition-all group py-4 w-full sm:w-auto"
                   >
-                    <ChevronLeft className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover:-translate-x-1 transition-transform text-[var(--puembo-green)]" />
-                    Lectura Anterior
+                    <div className="p-4 rounded-full bg-white/5 border border-white/10 group-hover:bg-[var(--puembo-green)]/20 group-hover:border-[var(--puembo-green)]/30 transition-all flex-shrink-0">
+                      <ChevronLeft className="w-6 h-6 text-[var(--puembo-green)] group-hover:-translate-x-1 transition-transform" />
+                    </div>
+                    <div className="flex flex-col gap-1 overflow-hidden">
+                      <span className="text-[9px] text-white/30 tracking-[0.5em]">Anterior</span>
+                      <span className="text-sm md:text-lg font-serif font-bold text-white truncate max-w-[200px] md:max-w-xs">{prevPost.title}</span>
+                    </div>
                   </Link>
                 ) : (
-                  <div className="hidden sm:block w-32" />
+                  <div className="hidden sm:block" />
                 )}
 
                 {showNext ? (
                   <Link
                     href={`/recursos/lom/${nextPost.slug}`}
-                    className="inline-flex items-center gap-2 md:gap-3 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] md:tracking-[0.3em] text-gray-400 hover:text-[var(--puembo-green)] transition-all group text-right w-full sm:w-auto justify-center sm:justify-end"
+                    className="inline-flex items-center gap-4 text-[11px] font-black uppercase tracking-[0.4em] text-white/60 hover:text-white transition-all group py-4 text-right w-full sm:w-auto justify-end"
                   >
-                    Lectura Siguiente
-                    <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover:translate-x-1 transition-transform text-[var(--puembo-green)]" />
+                    <div className="flex flex-col gap-1 overflow-hidden">
+                      <span className="text-[9px] text-white/30 tracking-[0.5em]">Siguiente</span>
+                      <span className="text-sm md:text-lg font-serif font-bold text-white truncate max-w-[200px] md:max-w-xs">{nextPost.title}</span>
+                    </div>
+                    <div className="p-4 rounded-full bg-white/5 border border-white/10 group-hover:bg-[var(--puembo-green)]/20 group-hover:border-[var(--puembo-green)]/30 transition-all flex-shrink-0">
+                      <ChevronRight className="w-6 h-6 text-[var(--puembo-green)] group-hover:translate-x-1 transition-transform" />
+                    </div>
                   </Link>
                 ) : (
-                  <div className="hidden sm:block w-32" />
+                  <div className="hidden sm:block" />
                 )}
-              </footer>
+              </div>
+            </footer>
 
-              <div className="mt-16 md:mt-24 flex flex-col items-center gap-4 md:gap-6 text-center">
-                <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.5em] text-gray-300">
+            <div className="mt-18 md:mt-32 flex flex-col items-center gap-12 text-center w-full pb-40">
+              <div className="h-[1px] w-32 bg-gradient-to-r from-transparent via-white/10 to-transparent mx-auto" />
+              <div className="space-y-6 flex flex-col items-center w-full">
+                <p className="text-[11px] font-black uppercase tracking-[0.8em] text-white/20">
                   Iglesia Alianza Puembo
                 </p>
-                <Image
-                  src="/brand/logo-puembo.png"
-                  alt="Logo"
-                  width={80}
-                  height={32}
-                  className="md:w-[100px] md:h-[40px]"
-                />
+                <div className="brightness-0 invert opacity-30 hover:opacity-60 transition-opacity flex justify-center w-full">
+                  <Image
+                    src="/brand/logo-puembo.png"
+                    alt="Logo"
+                    width={160}
+                    height={64}
+                    className="object-contain"
+                  />
+                </div>
               </div>
             </div>
           </article>
