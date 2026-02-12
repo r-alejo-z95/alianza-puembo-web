@@ -3,7 +3,7 @@
 "use server";
 
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
@@ -11,6 +11,8 @@ import { loginSchema } from "@/lib/schemas";
 import { sendSystemNotification } from "@/lib/services/notifications";
 import { headers } from "next/headers";
 import { revalidateForms } from "./actions/cache";
+import { extractReceiptData } from "@/lib/services/ai-reconciliation";
+import crypto from "crypto";
 
 /**
  * Verifica un token de Cloudflare Turnstile.
@@ -278,11 +280,6 @@ export async function replyToContactMessage(messageId: string, content: string) 
 }
 
 // Login Action
-type LoginInput = {
-  email: string;
-  password: string;
-};
-
 export async function login(formData: FormData) {
   const email = formData.get("email");
   const password = formData.get("password");
@@ -299,7 +296,7 @@ export async function login(formData: FormData) {
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(
-    parsed.data as LoginInput,
+    parsed.data as any,
   );
 
   if (error) {
@@ -674,8 +671,129 @@ export async function initializeGoogleIntegration(
 }
 
 /**
- * Uploads a receipt image to the secure finance bucket.
- * Intended for use with financial forms reconciliation.
+ * Acción centralizada para enviar respuestas de formularios.
+ * Procesa archivos, extrae info con AI y guarda en DB de forma atómica en el servidor.
+ */
+export async function submitFormAction(payload: {
+  formId: string;
+  rawData: any;
+  processedDataForGoogle: any;
+  userAgent: string;
+  isInternal: boolean;
+}) {
+  const { formId, rawData, processedDataForGoogle, userAgent, isInternal } = payload;
+  console.log(`[Submit] Iniciando procesamiento para formulario: ${formId}`);
+
+  try {
+    const supabaseAdmin = createAdminClient();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
+    const { data: form, error: formErr } = await supabaseAdmin
+      .from("forms")
+      .select("id, title, slug, is_financial, financial_field_label, user_id")
+      .eq("id", formId)
+      .single();
+
+    if (formErr || !form) throw new Error("Formulario no encontrado");
+    console.log(`[Submit] Form: ${form.slug}, Is Financial: ${form.is_financial}, Target Label: "${form.financial_field_label}"`);
+
+    let aiExtractedData = null;
+
+    // 2. Si el formulario es financiero, procesar con IA
+    if (form.is_financial && form.financial_field_label) {
+      // Buscamos el campo ignorando espacios extras
+      const targetLabel = form.financial_field_label.trim();
+      const actualKey = Object.keys(rawData).find(k => k.trim() === targetLabel);
+      const receiptInfo = actualKey ? rawData[actualKey] : null;
+      
+      console.log(`[Submit] Buscando comprobante en key: "${actualKey}"`);
+
+      if (receiptInfo?.financial_receipt_path) {
+        const path = receiptInfo.financial_receipt_path.replace('finance_receipts/', '');
+        console.log(`[AI-Process] Descargando de: ${path}`);
+        
+        // Descargar con Admin para asegurar acceso al bucket privado
+        const { data: fileBlob, error: dlErr } = await supabaseAdmin.storage
+          .from("finance_receipts")
+          .download(path);
+
+        if (!dlErr && fileBlob) {
+          try {
+            console.log(`[AI-Process] Archivo descargado. Enviando a Gemini...`);
+            const buffer = await fileBlob.arrayBuffer();
+            aiExtractedData = await extractReceiptData(
+              Buffer.from(buffer).toString('base64'), 
+              fileBlob.type
+            );
+            console.log(`[AI-Process] Gemini respondió con éxito.`);
+          } catch (aiErr) {
+            console.error("[AI-Process] Error en Gemini:", aiErr);
+          }
+        } else if (dlErr) {
+          console.error(`[AI-Process] Error descarga: ${dlErr.message}`);
+        }
+      } else {
+        console.log("[Submit] No se encontró 'financial_receipt_path' en los datos recibidos.");
+      }
+    }
+
+    // 3. Insertar en DB (Usamos Admin para bypass de RLS en formularios públicos)
+    const submissionData: any = {
+      form_id: formId,
+      data: rawData,
+      user_agent: userAgent,
+      financial_data: aiExtractedData,
+      financial_status: aiExtractedData?.is_valid_receipt ? 'pending' : (aiExtractedData ? 'manual_review' : null)
+    };
+
+    if (isInternal && user?.id) {
+      submissionData.user_id = user.id;
+    }
+
+    console.log(`[Submit] Guardando en DB...`);
+    const { data: submission, error: dbError } = await supabaseAdmin
+      .from("form_submissions")
+      .insert([submissionData])
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error(`[Submit] Error insertando en DB: ${dbError.message}`);
+      throw dbError;
+    }
+    console.log(`[Submit] Éxito: Registro guardado ID ${submission.id}`);
+
+    // 4. TAREAS EN BACKGROUND (No bloquean la respuesta al usuario)
+    if (!isInternal) {
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/sheets-drive-integration`;
+      
+      console.log(`[Submit] Disparando integración con Google Sheets (background)...`);
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${serviceKey}`
+        },
+        body: JSON.stringify({ formId: form.id, formData: processedDataForGoogle })
+      }).catch(err => console.error("[Google Integration Error]:", err));
+    }
+
+    notifyFormSubmission(form.title, form.slug, form.user_id, user?.id)
+      .catch(err => console.error("[Notification Error]:", err));
+
+    return { success: true, submissionId: submission.id };
+
+  } catch (error: any) {
+    console.error("Error crítico en submitFormAction:", error);
+    return { error: error.message || "Error al procesar el envío" };
+  }
+}
+
+/**
+ * Subida de archivos usando el cliente administrativo para asegurar permisos.
  */
 export async function uploadReceipt(formData: FormData) {
   const file = formData.get("file") as File;
@@ -684,32 +802,25 @@ export async function uploadReceipt(formData: FormData) {
   if (!file || !formSlug) return { error: "Datos incompletos" };
 
   try {
-    const supabase = await createClient();
-    
-    // Generate a secure unique path: form_slug/year/month/uuid.ext
+    const supabaseAdmin = createAdminClient();
     const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const ext = file.name.split('.').pop() || 'jpg';
-    const uniqueName = `${crypto.randomUUID()}.${ext}`;
-    const path = `${formSlug}/${year}/${month}/${uniqueName}`;
+    const path = `${formSlug}/${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${crypto.randomUUID()}.${file.name.split('.').pop() || 'jpg'}`;
 
-    // Upload to 'finance_receipts' bucket
-    // Note: This bucket must exist and allow upsert/insert for authenticated service role
-    const { data, error } = await supabase.storage
+    console.log(`[Bucket-Upload] Intentando subir a: finance_receipts/${path}`);
+
+    const { data, error } = await supabaseAdmin.storage
       .from("finance_receipts")
-      .upload(path, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+      .upload(path, file, { cacheControl: "3600", upsert: false });
 
-    if (error) throw error;
-
-    // Return the path. The reconciliation process will sign it when needed.
+    if (error) {
+      console.error(`[Bucket-Upload] Error Supabase: ${error.message}`);
+      throw error;
+    }
+    
+    console.log(`[Bucket-Upload] Éxito: ${data.path}`);
     return { success: true, path: data.path, fullPath: `finance_receipts/${data.path}` };
-
-  } catch (error) {
-    console.error("Error uploading receipt:", error);
-    return { error: "Error al guardar el comprobante" };
+  } catch (error: any) {
+    console.error("[Bucket-Upload] Excepción:", error.message);
+    return { error: `No se pudo guardar la imagen: ${error.message}` };
   }
 }

@@ -42,6 +42,7 @@ import {
   verifyCaptcha,
   notifyFormSubmission,
   uploadReceipt,
+  submitFormAction,
 } from "@/lib/actions";
 import { revalidateFormSubmissions } from "@/lib/actions/cache";
 import { compressImage } from "@/lib/image-compression";
@@ -727,10 +728,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
   const onSubmit = async (data) => {
     if (isPreview) {
-      toast.success("Vista previa: Formulario válido", {
-        description:
-          "En el sitio real, esta respuesta se guardaría en la base de datos.",
-      });
+      toast.success("Vista previa: Formulario válido");
       return;
     }
 
@@ -739,9 +737,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
       return;
     }
 
-    // El CAPTCHA solo es requerido si NO es interno y NO es preview
     const needsCaptcha = !form.is_internal && !isPreview;
-
     if (needsCaptcha && !captchaToken) {
       toast.error("Verificación de seguridad requerida.");
       return;
@@ -750,7 +746,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
     setSending(true);
 
     try {
-      // Filtrar datos para incluir solo los campos que fueron visibles en el flujo
+      // 1. Identificar campos visibles en este envío específico
       const visibleFieldLabels = new Set();
       stepHistory.forEach((entry) => {
         const stepFields = steps[entry.index]?.fields || [];
@@ -762,204 +758,145 @@ export default function FluentRenderer({ form, isPreview = false }) {
         let loopJump = null;
         while (idx < stepFields.length) {
           const field = stepFields[idx];
-          if (
-            jumpTargets.has(field.id) &&
-            entry.startFieldId !== field.id &&
-            loopJump !== field.id
-          ) {
-            idx++;
-            continue;
+          if (jumpTargets.has(field.id) && entry.startFieldId !== field.id && loopJump !== field.id) {
+            idx++; continue;
           }
           visibleFieldLabels.add(field.label);
           const jId = getJumpTarget(field, data);
           if (jId) {
             const tIdx = stepFields.findIndex((f) => f.id === jId);
-            if (tIdx > idx) {
-              idx = tIdx;
-              loopJump = jId;
-              continue;
-            } else if (tIdx === -1) break;
+            if (tIdx > idx) { idx = tIdx; loopJump = jId; continue; }
+            else if (tIdx === -1) break;
           }
           idx++;
         }
       });
 
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (needsCaptcha) {
-        const { isValid } = await verifyCaptcha(captchaToken);
-        if (!isValid) {
-          toast.error("Captcha inválido.");
-          setCaptchaKey((p) => p + 1);
-          setSending(false);
-          return;
-        }
-      }
-
-      const processedData = {};
+      const processedDataForGoogle = {};
       const rawDataForDb = {};
 
-      for (const key in data) {
-        if (!visibleFieldLabels.has(key)) continue;
+      // 2. Procesar todos los campos en paralelo
+      const processingPromises = Object.keys(data).map(async (key) => {
+        if (!visibleFieldLabels.has(key)) return;
 
         const value = data[key];
         const fieldDef = form.form_fields.find((f) => f.label === key);
+        if (!fieldDef || (fieldDef.type || fieldDef.field_type) === "section") return;
 
-        if (!fieldDef || (fieldDef.type || fieldDef.field_type) === "section")
-          continue;
-
+        // MANEJO DE ARCHIVOS
         if (value instanceof FileList && value.length > 0) {
           let file = value[0];
+          console.log(`[Form] Procesando archivo para: ${key}`);
 
-          // 1. Compresión de imagen en el cliente
           if (file.type.startsWith("image/")) {
             try {
               const compressed = await compressImage(file);
               if (compressed) file = compressed;
             } catch (err) {
-              console.warn("Error comprimiendo imagen:", err);
+              console.warn("Error compresión:", err);
             }
           }
 
-          // 2. Subida para conciliación financiera (si aplica)
+          // 2. Subida para conciliación financiera
           let financialReceiptPath = null;
-          if (form.is_financial && form.financial_field_label === key) {
+          
+          // Comparación robusta: ignorar mayúsculas y espacios
+          const normalizedKey = key.trim().toLowerCase();
+          const normalizedLabel = form.financial_field_label?.trim().toLowerCase() || "";
+          
+          const isFinancialField = form.is_financial && normalizedKey === normalizedLabel;
+          
+          if (isFinancialField) {
+            console.log(`[Form] Subiendo comprobante financiero: "${file.name}"`);
             const formData = new FormData();
             formData.append("file", file);
             formData.append("formSlug", form.slug);
 
             try {
               const uploadRes = await uploadReceipt(formData);
-              if (uploadRes.success) {
+              if (uploadRes?.success) {
                 financialReceiptPath = uploadRes.fullPath;
+                console.log(`[Form] Subida OK: ${financialReceiptPath}`);
+              } else {
+                console.error(`[Form] Error subida:`, uploadRes?.error);
+                // No detenemos el envío, pero lo logueamos
               }
             } catch (e) {
-              console.error("Error subiendo comprobante financiero:", e);
+              console.error("[Form] Excepción subida:", e);
             }
+          } else if (form.is_financial) {
+             console.log(`[Form Debug] Campo "${key}" NO coincide con "${form.financial_field_label}"`);
           }
 
           const reader = new FileReader();
-          const fileData = await new Promise((resolve) => {
-            reader.onload = () =>
-              resolve({
-                type: "file",
-                name: file.name,
-                data: reader.result.split(",")[1],
-                mimeType: file.type,
-              });
+          const fileDataBase64 = await new Promise((resolve) => {
+            reader.onload = () => resolve(reader.result.split(",")[1]);
             reader.readAsDataURL(file);
           });
 
-          processedData[key] = fileData;
+          processedDataForGoogle[key] = {
+            type: "file",
+            name: file.name,
+            data: fileDataBase64,
+            mimeType: file.type,
+          };
+
           rawDataForDb[key] = {
             _type: "file",
             name: file.name,
             info: "Archivo en Drive",
-            ...(financialReceiptPath
-              ? { financial_receipt_path: financialReceiptPath }
-              : {}),
+            ...(financialReceiptPath ? { financial_receipt_path: financialReceiptPath } : {}),
           };
-        } else if (typeof value === "object" && !Array.isArray(value)) {
-          const fieldOptions =
-            typeof fieldDef.options === "string"
-              ? JSON.parse(fieldDef.options)
-              : fieldDef.options || [];
-
-          const selected = Object.keys(value)
-            .filter((k) => value[k])
-            .map((k) => fieldOptions.find((o) => o.value === k)?.label || k);
-
-          processedData[key] = selected.join("\n");
+        } 
+        // OTROS CAMPOS (Radio, Select, Checkbox, Text)
+        else if (typeof value === "object" && !Array.isArray(value)) {
+          const fieldOptions = typeof fieldDef.options === "string" ? JSON.parse(fieldDef.options) : fieldDef.options || [];
+          const selected = Object.keys(value).filter((k) => value[k]).map((k) => fieldOptions.find((o) => o.value === k)?.label || k);
+          processedDataForGoogle[key] = selected.join("\n");
           rawDataForDb[key] = selected;
         } else if (fieldDef.options) {
-          const fieldOptions =
-            typeof fieldDef.options === "string"
-              ? JSON.parse(fieldDef.options)
-              : fieldDef.options || [];
-
+          const fieldOptions = typeof fieldDef.options === "string" ? JSON.parse(fieldDef.options) : fieldDef.options || [];
           const opt = fieldOptions.find((o) => o.value === value);
           const label = opt ? opt.label : value;
-          processedData[key] = label;
+          processedDataForGoogle[key] = label;
           rawDataForDb[key] = label;
         } else {
-          processedData[key] = value;
+          processedDataForGoogle[key] = value;
           rawDataForDb[key] = value;
         }
-      }
+      });
 
-      processedData.Timestamp = formatInEcuador(
-        getNowInEcuador(),
-        "d/M/yyyy HH:mm:ss",
-      );
-      rawDataForDb.Timestamp = processedData.Timestamp;
+      await Promise.all(processingPromises);
 
-      // 1. Preparamos las tareas asíncronas
-      const submissionData = {
-        form_id: form.id,
-        data: rawDataForDb,
-        user_agent: navigator.userAgent,
-      };
+      processedDataForGoogle.Timestamp = formatInEcuador(getNowInEcuador(), "d/M/yyyy HH:mm:ss");
+      rawDataForDb.Timestamp = processedDataForGoogle.Timestamp;
 
-      if (form.is_internal && user?.id) {
-        submissionData.user_id = user.id;
-      }
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
 
-      // 2. Ejecutamos tareas en PARALELO para máxima velocidad
-      // Primero disparamos la integración de Google porque necesitamos sus links si los hay
-      let googlePromise = Promise.resolve({ data: null, error: null });
-      const hasFiles = Object.values(processedData).some(val => val && typeof val === 'object' && val.type === 'file');
+      const result = await submitFormAction({
+        formId: form.id,
+        rawData: rawDataForDb,
+        processedDataForGoogle: processedDataForGoogle,
+        userAgent: navigator.userAgent,
+        isInternal: form.is_internal && !!user?.id
+      });
 
-      if (!form.is_internal) {
-        googlePromise = supabase.functions.invoke("sheets-drive-integration", {
-          body: { formId: form.id, formData: processedData },
-        });
-      }
-
-      // Solo esperamos a Google si hay archivos (porque necesitamos sus links para guardarlos en Supabase)
-      // Si NO hay archivos, lanzamos Google "al aire" y seguimos con Supabase de inmediato
-      if (hasFiles) {
-        const { data: googleRes, error: invokeError } = await googlePromise;
-
-        if (!invokeError && googleRes?.fileUrls) {
-          Object.keys(googleRes.fileUrls).forEach(key => {
-            if (rawDataForDb[key] && typeof rawDataForDb[key] === 'object') {
-              rawDataForDb[key].url = googleRes.fileUrls[key];
-              rawDataForDb[key].webViewLink = googleRes.fileUrls[key];
-            }
-          });
-        }
-      }
-
-      // Ahora disparamos el resto en paralelo
-      const tasks = [
-        supabase.from("form_submissions").insert([submissionData]),
-        notifyFormSubmission(form.title, form.slug, form.user_id, user?.id)
-      ];
-
-      // Si no había archivos, añadimos Google al paralelo para no bloquear el éxito
-      if (!hasFiles && !form.is_internal) {
-        tasks.push(googlePromise);
-      }
-
-      const [dbResponse] = await Promise.all(tasks);
-
-      if (dbResponse.error) throw dbResponse.error;
+      if (result.error) throw new Error(result.error);
 
       await revalidateFormSubmissions(form.id);
-
       setSubmissionStatus("success");
       reset();
       setCaptchaToken(null);
       setCaptchaKey((p) => p + 1);
-    } catch (e) {
-      console.error("Form Submission detailed error:", e);
-      setSubmissionStatus("error");
-    }
 
-    setSending(false);
+    } catch (e) {
+      console.error("Submission Error:", e);
+      toast.error(e.message || "Error al enviar el formulario");
+      setSubmissionStatus("error");
+    } finally {
+      setSending(false);
+    }
   };
 
   const progress = useMemo(() => {
