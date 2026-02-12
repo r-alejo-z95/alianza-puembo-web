@@ -487,7 +487,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
     trigger,
     getValues,
     setValue,
-  } = useForm({ mode: "onChange", shouldUnregister: true });
+  } = useForm({ mode: "onChange" });
 
   const {
     steps,
