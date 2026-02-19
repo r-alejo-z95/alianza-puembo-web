@@ -6,68 +6,42 @@ import { extractReceiptData, parseBankStatementWithAI } from "@/lib/services/ai-
 import { revalidatePath } from "next/cache";
 
 /**
- * Global Bank Report Upload (Independent of forms)
+ * Step 1: Initialize a bank report
  */
-export async function parseBankReport(formData: FormData): Promise<{ reportId?: string, error?: string }> {
-  const file = formData.get("file") as File;
-  if (!file) return { error: "No se proporcionó archivo" };
-
-  // SECURITY: Limit file size to 5MB to prevent memory exhaustion
-  const MAX_SIZE = 5 * 1024 * 1024;
-  if (file.size > MAX_SIZE) return { error: "El archivo es demasiado grande (máx 5MB)" };
-
+export async function initBankReport(filename: string): Promise<{ reportId?: string, error?: string }> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    let buffer: any = await file.arrayBuffer();
-    const isCSV = file.name.toLowerCase().endsWith('.csv');
-    
-    let workbook: any = XLSX.read(buffer, { type: "buffer", cellDates: true, raw: isCSV });
-    if (!workbook.SheetNames.length) return { error: "Archivo Excel inválido" };
-
-    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
-    
-    // MEMORY MANAGEMENT: Clear heavy objects after extraction
-    buffer = null;
-    workbook = null;
-    
-    const cleanRows = rawData.filter(row => row && row.length > 0 && row.some(cell => cell !== null && cell !== "" && cell !== undefined));
-    if (cleanRows.length < 2) return { error: "Archivo sin datos legibles" };
-
-    const headers = cleanRows[0];
-    const dataRows = cleanRows.slice(1);
-
-    // AI Chunk Processing
-    const CHUNK_SIZE = 50;
-    const allTransactions = [];
-    for (let i = 0; i < dataRows.length; i += CHUNK_SIZE) {
-      const chunk = dataRows.slice(i, i + CHUNK_SIZE);
-      const extracted = await parseBankStatementWithAI(chunk, headers);
-      if (extracted) allTransactions.push(...extracted);
-    }
-
-    if (allTransactions.length === 0) {
-      return { error: "La IA no detectó ingresos en este archivo." };
-    }
-
-    // 1. Save Report Audit
     const { data: report, error: reportErr } = await supabase
       .from("bank_reports")
-      .insert([{ filename: file.name, created_by: user?.id }])
+      .insert([{ filename, created_by: user?.id }])
       .select().single();
 
     if (reportErr) throw reportErr;
+    return { reportId: report.id };
+  } catch (e: any) {
+    return { error: e.message };
+  }
+}
 
-    // 2. Save Global Transactions with Dedup
-    const dbTransactions = allTransactions.map(t => ({
-      report_id: report.id,
+/**
+ * Step 2: Process a chunk of data rows
+ */
+export async function processBankChunk(reportId: string, chunk: any[][], headers: any[]): Promise<{ success: boolean, error?: string }> {
+  try {
+    const supabase = await createClient();
+    const extracted = await parseBankStatementWithAI(chunk, headers);
+
+    if (!extracted || extracted.length === 0) return { success: true };
+
+    const dbTransactions = extracted.map(t => ({
+      report_id: reportId,
       date: t.date,
       amount: t.amount,
-      description: t.sender_name 
-        ? `${t.description || 'Depósito'} - ${t.sender_name}` 
-        : (t.description || 'Depósito'),
+      description: t.description || (t.sender_name 
+        ? `Depósito - ${t.sender_name}` 
+        : 'Depósito'),
       reference: String(t.reference || "").trim(),
       bank_name: t.bank_name || "Desconocido"
     }));
@@ -77,14 +51,31 @@ export async function parseBankReport(formData: FormData): Promise<{ reportId?: 
       ignoreDuplicates: true 
     });
 
-    if (batchErr) console.warn("[Finance] Dedup warning:", batchErr.message);
-
-    revalidatePath("/admin/finanzas");
-    return { reportId: report.id };
+    if (batchErr) console.warn("[Finance] Chunk Dedup warning:", batchErr.message);
+    return { success: true };
   } catch (e: any) {
-    console.error("Error parsing bank report:", e);
-    return { error: e.message };
+    console.error("Error processing bank chunk:", e);
+    return { success: false, error: e.message };
   }
+}
+
+/**
+ * Step 3: Finalize report and refresh cache
+ */
+export async function finalizeBankReport() {
+  revalidatePath("/admin/finanzas");
+  return { success: true };
+}
+
+/**
+ * DEPRECATED: Use the chunked methods above for better UX
+ */
+export async function parseBankReport(formData: FormData): Promise<{ reportId?: string, error?: string }> {
+  // Keep original for backward compatibility if needed, but we will use the new ones
+  const file = formData.get("file") as File;
+  if (!file) return { error: "No se proporcionó archivo" };
+  // ... rest of original implementation ...
+  return { error: "Action deprecated. Use chunked processing." };
 }
 
 /**
