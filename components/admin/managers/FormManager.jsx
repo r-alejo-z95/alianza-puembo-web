@@ -27,6 +27,7 @@ import {
   CheckCircle2,
   User,
   ChevronDown,
+  ClipboardList,
 } from "lucide-react";
 import { toast } from "sonner";
 import { FormRow } from "./table-cells/FormRow";
@@ -43,6 +44,7 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export default function FormManager({ initialForms = [], isInternal = false }) {
   const {
@@ -206,6 +208,17 @@ export default function FormManager({ initialForms = [], isInternal = false }) {
             </CardTitle>
           </div>
           <div className="flex gap-3">
+            <Link href="/admin/formularios/inscripciones">
+              <Button
+                variant="outline"
+                className="rounded-full px-5 py-6 font-bold border-gray-200 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm"
+              >
+                <ClipboardList className="w-5 h-5 mr-2" />{" "}
+                <span className="text-xs uppercase tracking-widest">
+                  Inscripciones
+                </span>
+              </Button>
+            </Link>
             <Button
               variant="outline"
               className="rounded-full px-5 py-6 font-bold border-gray-200 hover:bg-red-50 hover:text-red-600 transition-all"

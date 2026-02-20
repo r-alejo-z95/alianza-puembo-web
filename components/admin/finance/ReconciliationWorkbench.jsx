@@ -54,40 +54,7 @@ import { reconcilePayment, getReceiptSignedUrl } from "@/lib/actions/finance";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-/**
- * Advanced name finder: strictly filters out numbers, emails, and meta-data.
- */
-function findNameInSubmission(data) {
-  if (!data) return null;
-  
-  const allKeys = Object.keys(data);
-  const cleanEntries = allKeys.map(k => ({
-    key: k,
-    cleanKey: k.toLowerCase().replace(/_/g, ' ').replace(/[^a-z0-9 ]/g, '').trim(),
-    value: String(data[k] || '').trim()
-  })).filter(e => e.value.length > 2);
-
-  const isLikelyName = (val) => {
-    if (!val || val.includes('@') || val.includes('http')) return false;
-    const digits = val.replace(/\D/g, '');
-    if (digits.length > val.length * 0.5) return false;
-    return val.split(' ').length >= 1; 
-  };
-
-  const identityPatterns = ["nombre completo", "nombres y apellidos", "nombre del participante", "nombre del inscrito", "participante", "inscrito", "full name"];
-  for (const p of identityPatterns) {
-    const found = cleanEntries.find(e => (e.cleanKey === p || e.cleanKey.includes(p)) && isLikelyName(e.value));
-    if (found) return found.value;
-  }
-
-  const genericFound = cleanEntries.find(e => 
-    e.cleanKey.includes("nombre") && 
-    !["emergencia", "contacto", "padre", "madre", "representante", "cedula", "email", "banco", "oficina"].some(noise => e.cleanKey.includes(noise)) &&
-    isLikelyName(e.value)
-  );
-
-  return genericFound ? genericFound.value : "No identificado";
-}
+import { findNameInSubmission } from "@/lib/form-utils";
 
 function displayDate(dateStr) {
   if (!dateStr) return 'No detectada';
