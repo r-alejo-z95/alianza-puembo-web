@@ -139,9 +139,11 @@ export function ReconciliationManager({ forms }) {
     }
   };
 
-  const confirmedAmount = submissions
-    .filter(s => s.financial_status === 'verified')
-    .reduce((acc, curr) => acc + Number(curr.financial_data?.amount || 0), 0);
+  const confirmedAmount = submissions.reduce((acc, sub) => {
+    const verifiedPayments = (sub.form_submission_payments || []).filter(p => p.status === 'verified');
+    const subTotal = verifiedPayments.reduce((pAcc, pCurr) => pAcc + Number(pCurr.extracted_data?.amount || 0), 0);
+    return acc + subTotal;
+  }, 0);
 
   return (
     <div className="space-y-6 md:space-y-10 animate-in fade-in duration-700">
@@ -303,6 +305,7 @@ export function ReconciliationManager({ forms }) {
           submissions={submissions}
           onRefresh={loadFormData}
           isFormSelected={!!selectedFormId}
+          selectedFormId={selectedFormId}
         />
       </div>
 

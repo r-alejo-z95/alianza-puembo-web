@@ -187,3 +187,54 @@ export async function sendSystemNotification({
     return { success: false, error: "Internal service error" };
   }
 }
+
+/**
+ * Envía el email de confirmación y seguimiento al usuario que se inscribe.
+ */
+export async function sendConfirmationEmail(email: string, formTitle: string, accessToken: string) {
+  try {
+    const trackingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://alianzapuembo.org'}/inscripcion/${accessToken}`;
+    
+    await resend.emails.send({
+      from: "Iglesia Alianza Puembo <notificaciones@alianzapuembo.org>",
+      to: [email],
+      subject: `Seguimiento de Inscripción: ${formTitle}`,
+      html: `
+        <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
+          <div style="background-color: #000; padding: 20px; text-align: center;">
+            <img src="https://alianzapuembo.org/brand/logo-puembo-white.png" alt="Alianza Puembo" style="height: 40px;">
+          </div>
+          <div style="padding: 40px;">
+            <h2 style="color: #8fc641;">¡Hola!</h2>
+            <p>Hemos recibido correctamente tu inscripción para <strong>${formTitle}</strong>.</p>
+            
+            <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <p style="margin: 0; font-weight: bold; color: #666;">Tu código de seguimiento:</p>
+              <p style="font-size: 24px; font-weight: bold; color: #000; margin: 10px 0;">${accessToken}</p>
+            </div>
+
+            <p>Si necesitas realizar pagos parciales o subir comprobantes adicionales, puedes hacerlo desde nuestro portal de seguimiento:</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${trackingUrl}" style="background-color: #8fc641; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                Ir a mi Inscripción
+              </a>
+            </div>
+
+            <p style="font-size: 14px; color: #666;">Nota: Si ya has completado el pago total, puedes ignorar este mensaje. Este enlace es principalmente para quienes realizan pagos en cuotas o necesitan validar abonos pendientes.</p>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
+            <p style="font-size: 14px; color: #666;">
+              Atentamente,<br/>
+              <strong>Equipo Alianza Puembo</strong>
+            </p>
+          </div>
+        </div>
+      `,
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Error sending confirmation email:", error);
+    return { success: false, error };
+  }
+}
