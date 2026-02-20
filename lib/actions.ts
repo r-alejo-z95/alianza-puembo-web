@@ -8,7 +8,7 @@ import { slugify } from "@/lib/utils";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { loginSchema } from "@/lib/schemas";
-import { sendSystemNotification } from "@/lib/services/notifications";
+import { sendSystemNotification, sendConfirmationEmail } from "@/lib/services/notifications";
 import { headers } from "next/headers";
 import { revalidateForms, revalidateFormSubmissions } from "./actions/cache";
 import { extractReceiptData } from "@/lib/services/ai-reconciliation";
@@ -680,8 +680,9 @@ export async function submitFormAction(payload: {
   processedDataForGoogle: any;
   userAgent: string;
   isInternal: boolean;
+  notificationEmail?: string;
 }) {
-  const { formId, rawData, processedDataForGoogle, userAgent, isInternal } = payload;
+  const { formId, rawData, processedDataForGoogle, userAgent, isInternal, notificationEmail } = payload;
   console.log(`[Submit] Iniciando procesamiento para formulario: ${formId}`);
 
   try {
@@ -700,6 +701,7 @@ export async function submitFormAction(payload: {
     console.log(`[Submit] Form: ${form.slug}, Is Financial: ${form.is_financial}, Target Label: "${form.financial_field_label}"`);
 
     let aiExtractedData = null;
+    let receiptPath = null;
 
     // 2. Si el formulario es financiero, procesar con IA
     if (form.is_financial && form.financial_field_label) {
@@ -711,7 +713,8 @@ export async function submitFormAction(payload: {
       console.log(`[Submit] Buscando comprobante en key: "${actualKey}"`);
 
       if (receiptInfo?.financial_receipt_path) {
-        const path = receiptInfo.financial_receipt_path.replace('finance_receipts/', '');
+        receiptPath = receiptInfo.financial_receipt_path;
+        const path = receiptPath.replace('finance_receipts/', '');
         console.log(`[AI-Process] Descargando de: ${path}`);
         
         // Descargar con Admin para asegurar acceso al bucket privado
@@ -744,8 +747,7 @@ export async function submitFormAction(payload: {
       form_id: formId,
       data: rawData,
       user_agent: userAgent,
-      financial_data: aiExtractedData,
-      financial_status: aiExtractedData?.is_valid_receipt ? 'pending' : (aiExtractedData ? 'manual_review' : null)
+      notification_email: notificationEmail,
     };
 
     if (isInternal && user?.id) {
@@ -765,10 +767,22 @@ export async function submitFormAction(payload: {
     }
     console.log(`[Submit] Éxito: Registro guardado ID ${submission.id}`);
 
-    // Revalidar para que el admin vea la nueva respuesta inmediatamente
-    revalidateFormSubmissions(formId).catch(err => console.error("[Revalidate Error]:", err));
+    // 3.1. Si es financiero y hay recibo, guardar en la nueva tabla de pagos
+    if (form.is_financial && receiptPath) {
+      await supabaseAdmin.from("form_submission_payments").insert([{
+        submission_id: submission.id,
+        receipt_path: receiptPath,
+        extracted_data: aiExtractedData,
+        status: aiExtractedData?.is_valid_receipt ? 'pending' : 'manual_review'
+      }]);
+    }
 
     // 4. TAREAS EN BACKGROUND (No bloquean la respuesta al usuario)
+    if (notificationEmail && form.is_financial) {
+       sendConfirmationEmail(notificationEmail, form.title, submission.access_token)
+         .catch(err => console.error("[Confirmation Email Error]:", err));
+    }
+
     if (!isInternal) {
       const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
       const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/sheets-drive-integration`;
@@ -786,6 +800,9 @@ export async function submitFormAction(payload: {
 
     notifyFormSubmission(form.title, form.slug, form.user_id, user?.id)
       .catch(err => console.error("[Notification Error]:", err));
+
+    // Revalidar para que el admin vea la nueva respuesta inmediatamente
+    revalidateFormSubmissions(formId).catch(err => console.error("[Revalidate Error]:", err));
 
     return { success: true, submissionId: submission.id };
 

@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import * as XLSX from "xlsx";
 import { extractReceiptData, parseBankStatementWithAI } from "@/lib/services/ai-reconciliation";
 import { revalidatePath } from "next/cache";
@@ -92,9 +92,9 @@ export async function getGlobalTransactions() {
 
   if (txError) return { error: txError.message };
 
-  // 2. Get all reconciled IDs across ALL submissions in the database
+  // 2. Get all reconciled IDs across ALL payments in the database
   const { data: reconciled, error: recError } = await supabase
-    .from("form_submissions")
+    .from("form_submission_payments")
     .select("bank_transaction_id")
     .not("bank_transaction_id", "is", null);
 
@@ -113,6 +113,7 @@ export async function getGlobalTransactions() {
  */
 export async function analyzeFormReceipts(formId: string) {
   const supabase = await createClient();
+  const supabaseAdmin = createAdminClient();
 
   try {
     const { data: form } = await supabase
@@ -125,45 +126,146 @@ export async function analyzeFormReceipts(formId: string) {
 
     const { data: submissions, error: subError } = await supabase
       .from("form_submissions")
-      .select("*, profiles(full_name, email)")
+      .select("*, profiles(full_name, email), form_submission_payments(id, receipt_path, extracted_data, status)")
       .eq("form_id", formId)
       .eq("is_archived", false);
 
     if (subError) throw subError;
 
     for (const sub of submissions) {
-      if (sub.financial_data || sub.financial_status === 'verified') continue;
+      const targetLabel = form.financial_field_label.trim();
+      const actualKey = Object.keys(sub.data || {}).find(k => k.trim() === targetLabel);
+      const mainPath = actualKey ? sub.data[actualKey]?.financial_receipt_path : null;
 
-      const path = sub.data[form.financial_field_label]?.financial_receipt_path;
-      if (!path || path.includes('..')) continue;
+      // Unificar rutas para procesar (evitar duplicados si mainPath también está en form_submission_payments)
+      const pathsToProcess = new Set<string>();
+      if (mainPath && !mainPath.includes('..')) {
+         pathsToProcess.add(mainPath);
+      }
+      
+      const paymentRecords = Array.isArray(sub.form_submission_payments) ? sub.form_submission_payments : [];
+      paymentRecords.forEach(p => {
+          if (p.receipt_path && !p.receipt_path.includes('..')) {
+              pathsToProcess.add(p.receipt_path);
+          }
+      });
 
-      const { data: fileBlob, error: dlErr } = await supabase.storage
-        .from("finance_receipts")
-        .download(path.replace('finance_receipts/', ''));
+      for (const path of Array.from(pathsToProcess)) {
+          // Revisar si ya existe un registro de pago y si ya fue procesado por la IA
+          const existingPayment = paymentRecords.find(p => p.receipt_path === path);
+          
+          let aiData = existingPayment?.extracted_data;
+          
+          // Si el recibo principal coincide con sub.financial_data y aún no hay existingPayment con datos
+          if (path === mainPath && !aiData && sub.financial_data && Object.keys(sub.financial_data).length > 0) {
+              aiData = sub.financial_data;
+          }
 
-      if (dlErr) continue;
+          // Si no hay datos extraídos o están vacíos, mandamos a procesar la imagen
+          if (!aiData || Object.keys(aiData).length === 0) {
+              console.log(`[analyzeFormReceipts] Iniciando proceso de IA para: ${path}`);
+              const { data: fileBlob, error: dlErr } = await supabaseAdmin.storage
+                .from("finance_receipts")
+                .download(path.replace('finance_receipts/', ''));
 
-      const buffer = await fileBlob.arrayBuffer();
-      const aiData = await extractReceiptData(Buffer.from(buffer).toString('base64'), fileBlob.type);
+              if (dlErr) {
+                  console.error(`[analyzeFormReceipts] Error al descargar ${path}:`, dlErr);
+              }
 
-      await supabase
-        .from("form_submissions")
-        .update({
-          financial_data: aiData,
-          financial_status: aiData.is_valid_receipt ? 'pending' : 'manual_review',
-        })
-        .eq("id", sub.id);
+              if (!dlErr && fileBlob) {
+                  try {
+                      const buffer = await fileBlob.arrayBuffer();
+                      aiData = await extractReceiptData(Buffer.from(buffer).toString('base64'), fileBlob.type);
+                      console.log(`[analyzeFormReceipts] IA procesó correctamente: ${path}`);
+                  } catch (e) {
+                      console.error(`[analyzeFormReceipts] Error en extractReceiptData para ${path}:`, e);
+                      // Fallback: leave it as is if AI fails, but try to create the row
+                  }
+              }
+          }
+
+          // Solo insertamos/actualizamos si logramos obtener aiData (ya sea de DB o recién procesado)
+          // O si es la primera vez que vemos este path y queremos dejar un registro 'pending'
+          if (aiData && Object.keys(aiData).length > 0) {
+               const payload = {
+                  submission_id: sub.id,
+                  receipt_path: path,
+                  extracted_data: aiData,
+                  status: existingPayment?.status || (aiData.is_valid_receipt ? 'pending' : 'manual_review'),
+               };
+
+               let dbErr;
+               if (existingPayment?.id) {
+                   const { error } = await supabaseAdmin.from("form_submission_payments").update(payload).eq("id", existingPayment.id);
+                   dbErr = error;
+               } else {
+                   const { error } = await supabaseAdmin.from("form_submission_payments").insert([payload]);
+                   dbErr = error;
+               }
+                
+               if (dbErr) {
+                   console.error(`[analyzeFormReceipts] DB Error guardando AI para ${path}:`, dbErr.message);
+               }
+          } else if (!existingPayment) {
+               // Crear el registro aunque la IA haya fallado para no perderlo
+               const { error: dbErr2 } = await supabaseAdmin
+                .from("form_submission_payments")
+                .insert([{
+                  submission_id: sub.id,
+                  receipt_path: path,
+                  extracted_data: null,
+                  status: 'manual_review',
+                }]);
+                
+               if (dbErr2) {
+                   console.error(`[analyzeFormReceipts] DB Error creando registro vacío para ${path}:`, dbErr2.message);
+               }
+          }
+      }
     }
 
     const { data: updated } = await supabase
       .from("form_submissions")
-      .select("*, profiles(full_name, email)")
+      .select("*, profiles(full_name, email), form_submission_payments(*)")
       .eq("form_id", formId)
       .eq("is_archived", false)
       .order("created_at", { ascending: false });
 
     return { success: true, submissions: updated };
   } catch (error: any) {
+    return { error: error.message };
+  }
+}
+
+/**
+ * Concilia un abono específico con una transacción bancaria.
+ */
+export async function reconcilePayment(paymentId: string, transactionId: string, notes?: string) {
+  const supabase = await createClient();
+  
+  try {
+    // 1. Actualizar el abono
+    const { data: payment, error: payErr } = await supabase
+      .from("form_submission_payments")
+      .update({
+        bank_transaction_id: transactionId,
+        status: 'verified',
+        reconciliation_notes: notes || `Conciliado manualmente el ${new Date().toISOString()}`
+      })
+      .eq("id", paymentId)
+      .select("submission_id")
+      .single();
+
+    if (payErr) throw payErr;
+
+    // 2. Verificar si todos los abonos de esta inscripción están verificados
+    // (Opcional: podrías querer cambiar el status global de la inscripción a 'verified'
+    // si consideras que ya se completó el pago, pero por ahora lo dejamos granular)
+    
+    revalidatePath("/admin/finanzas");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error en reconcilePayment:", error);
     return { error: error.message };
   }
 }
@@ -212,13 +314,15 @@ export async function getFinancialSummary() {
       const form = Array.isArray(event.forms) ? event.forms[0] : event.forms;
       if (!form) continue;
 
+      // Fetch submissions with their associated payments
       const { data: submissions, error: subErr } = await supabase
         .from("form_submissions")
         .select(`
           id,
-          financial_status,
-          bank_transactions (
-            amount
+          form_submission_payments (
+            amount_claimed,
+            extracted_data,
+            status
           )
         `)
         .eq("form_id", form.id)
@@ -227,12 +331,12 @@ export async function getFinancialSummary() {
       if (subErr) continue;
 
       const totalInscribed = submissions.length;
-      const verifiedAmount = submissions
-        .filter(s => s.financial_status === 'verified' && s.bank_transactions)
-        .reduce((acc, curr) => {
-          const tx = Array.isArray(curr.bank_transactions) ? curr.bank_transactions[0] : curr.bank_transactions;
-          return acc + (tx?.amount || 0);
-        }, 0);
+      const verifiedAmount = submissions.reduce((acc, submission) => {
+        const payments = submission.form_submission_payments || [];
+        return acc + payments
+          .filter(p => p.status === 'verified')
+          .reduce((paymentAcc, p) => paymentAcc + Number(p.extracted_data?.amount || p.amount_claimed || 0), 0);
+      }, 0);
 
       summary.push({
         eventId: event.id,
@@ -260,4 +364,74 @@ export async function getReceiptSignedUrl(fullPath: string) {
   const path = fullPath.replace('finance_receipts/', '');
   const { data, error } = await supabase.storage.from("finance_receipts").createSignedUrl(path, 600);
   return error ? { error: error.message } : { url: data.signedUrl };
+}
+
+/**
+ * Agrega un nuevo abono (pago parcial) a una inscripción existente.
+ * Verificado mediante access_token para seguridad de usuarios anónimos.
+ */
+export async function addMultipartPayment(payload: {
+  submissionId: string;
+  accessToken: string;
+  receiptPath: string;
+  amountClaimed?: number;
+}) {
+  const { submissionId, accessToken, receiptPath, amountClaimed } = payload;
+  const supabase = await createClient();
+  const supabaseAdmin = createAdminClient();
+
+  try {
+    // 1. Verificar token y pertenencia (Seguridad)
+    const { data: submission, error: subError } = await supabase
+      .from("form_submissions")
+      .select("id")
+      .eq("id", submissionId)
+      .eq("access_token", accessToken)
+      .single();
+
+    if (subError || !submission) {
+        console.error("addMultipartPayment subError:", subError);
+        throw new Error("Acceso no autorizado o inscripción no encontrada.");
+    }
+
+    // 2. Procesar con AI (Gemini)
+    console.log(`[Multipart-Payment] Iniciando procesamiento AI para: ${receiptPath}`);
+    let aiData = null;
+    const path = receiptPath.replace('finance_receipts/', '');
+    
+    const { data: fileBlob, error: dlErr } = await supabaseAdmin.storage
+      .from("finance_receipts")
+      .download(path);
+
+    if (!dlErr && fileBlob) {
+      try {
+        const buffer = await fileBlob.arrayBuffer();
+        aiData = await extractReceiptData(Buffer.from(buffer).toString('base64'), fileBlob.type);
+      } catch (aiErr) {
+        console.error("[Multipart-AI] Error Gemini:", aiErr);
+      }
+    }
+
+    // 3. Insertar en la tabla de abonos
+    const { data: payment, error: payErr } = await supabaseAdmin
+      .from("form_submission_payments")
+      .insert([{
+        submission_id: submissionId,
+        receipt_path: receiptPath,
+        extracted_data: aiData,
+        amount_claimed: amountClaimed || 0,
+        status: aiData?.is_valid_receipt ? 'pending' : 'manual_review'
+      }])
+      .select()
+      .single();
+
+    if (payErr) throw payErr;
+
+    revalidatePath(`/inscripcion/${accessToken}`);
+    return { success: true, payment };
+
+  } catch (error: any) {
+    console.error("Error en addMultipartPayment:", error);
+    return { error: error.message || "Error al registrar el pago" };
+  }
 }

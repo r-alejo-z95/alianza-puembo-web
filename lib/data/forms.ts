@@ -113,11 +113,35 @@ export interface FormSubmission {
   user_id?: string;
   status: 'pending' | 'approved' | 'rejected';
   notes?: string;
+  access_token?: string;
+  notification_email?: string;
   profiles?: {
     full_name: string;
     email: string;
     avatar_url?: string;
   };
+  forms?: Form;
+  form_submission_payments?: any[];
+}
+
+/**
+ * @description Obtiene una sumisión por su access_token secreto.
+ * No usamos caché agresiva aquí porque el usuario querrá ver sus cambios de estado inmediatamente.
+ */
+export async function getSubmissionByToken(token: string): Promise<FormSubmission | null> {
+  const supabase = createAdminClient();
+  
+  const { data, error } = await supabase
+    .from("form_submissions")
+    .select("*, forms(*), form_submission_payments(*)")
+    .eq("access_token", token)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data as FormSubmission;
 }
 
 /**

@@ -121,6 +121,28 @@ function useFormLogic(form) {
     if (currentGroup.fields.length > 0 || currentGroup.section) {
       groups.push(currentGroup);
     }
+
+    // Paso Virtual de Notificación para formularios públicos
+    if (!form.is_internal) {
+      groups.push({
+        section: {
+          id: "virtual-notification",
+          label: "Contacto de Seguimiento",
+          help_text: form.is_financial 
+            ? "Para procesar tu pago y enviarte tu código de seguimiento, necesitamos un correo electrónico de contacto."
+            : "Indica un correo electrónico donde podamos enviarte actualizaciones sobre tu inscripción."
+        },
+        fields: [{
+          id: "notification-email-field",
+          type: "email",
+          label: "Correo para Notificaciones",
+          placeholder: "ejemplo@correo.com",
+          required: true,
+          is_virtual: true // Flag para no guardarlo en el JSONB principal si no queremos, o manejarlo aparte
+        }]
+      });
+    }
+
     return groups;
   }, [form]);
 
@@ -780,8 +802,17 @@ export default function FluentRenderer({ form, isPreview = false }) {
         if (!visibleFieldLabels.has(key)) return;
 
         const value = data[key];
-        const fieldDef = form.form_fields.find((f) => f.label === key);
+        
+        // Buscar definición del campo, incluyendo el virtual
+        const virtualField = !form.is_internal && key === "Correo para Notificaciones";
+        const fieldDef = virtualField 
+          ? { label: key, type: "email", is_virtual: true }
+          : form.form_fields.find((f) => f.label === key);
+
         if (!fieldDef || (fieldDef.type || fieldDef.field_type) === "section") return;
+
+        // Si es virtual, no lo guardamos en rawData para la DB (según requerimiento)
+        if (fieldDef.is_virtual) return;
 
         // MANEJO DE ARCHIVOS
         if (value instanceof FileList && value.length > 0) {
@@ -818,7 +849,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
                 financialReceiptPath = uploadRes.fullPath;
                 console.log(`[Form] Subida OK: ${financialReceiptPath}`);
               } else {
-                console.error(`[Form] Error subida:`, uploadRes?.error);
+                console.error(`[Form] Error suvida:`, uploadRes?.error);
                 // No detenemos el envío, pero lo logueamos
               }
             } catch (e) {
@@ -879,7 +910,8 @@ export default function FluentRenderer({ form, isPreview = false }) {
         rawData: rawDataForDb,
         processedDataForGoogle: processedDataForGoogle,
         userAgent: navigator.userAgent,
-        isInternal: form.is_internal && !!user?.id
+        isInternal: form.is_internal && !!user?.id,
+        notificationEmail: data["Correo para Notificaciones"]
       });
 
       if (result.error) throw new Error(result.error);
