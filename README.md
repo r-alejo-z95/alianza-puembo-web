@@ -1,3 +1,5 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/r-alejo-z95/alianza-puembo-web)
+
 # 📘 Project: Alianza Puembo Web
 
 This is the official website of *Alianza Puembo*, a church committed to community engagement. The platform provides centralized access to church information, ministries, events, devotionals, donations, prayer requests, and contact forms.
