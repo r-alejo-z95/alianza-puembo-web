@@ -174,3 +174,25 @@ export const getCachedFormSubmissions = async (formId: string) => {
 
   return fetchSubmissions(formId);
 };
+
+/**
+ * @description Obtiene todas las sumisiones de formularios financieros activos.
+ * Utilizado por administradores para búsqueda global de inscripciones que requieren pago.
+ */
+export async function getAllSubmissions() {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("form_submissions")
+    .select("*, forms!inner(*), profiles(*)")
+    .eq("is_archived", false)
+    .eq("forms.is_internal", false)
+    .eq("forms.is_financial", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching all submissions:", error);
+    return [];
+  }
+
+  return data as FormSubmission[];
+}
