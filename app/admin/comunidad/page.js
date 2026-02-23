@@ -8,6 +8,7 @@ import {
 import { getCachedContactMessages } from "@/lib/data/contact";
 import { getCachedAllPrayerRequestsForAdmin } from "@/lib/data/prayer";
 import ComunidadHubClient from "./ComunidadHubClient";
+import { verifyPermission } from "@/lib/auth/guards";
 
 export const metadata = {
   title: "Gestión de Comunidad",
@@ -15,6 +16,8 @@ export const metadata = {
 };
 
 export default async function ComunidadHubPage() {
+  await verifyPermission("perm_comunidad");
+
   const [initialMessages, initialRequests] = await Promise.all([
     getCachedContactMessages(),
     getCachedAllPrayerRequestsForAdmin()
