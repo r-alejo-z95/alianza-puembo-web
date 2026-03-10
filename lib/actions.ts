@@ -7,6 +7,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { loginSchema } from "@/lib/schemas";
 import { sendSystemNotification, sendConfirmationEmail } from "@/lib/services/notifications";
 import { headers } from "next/headers";
@@ -693,7 +694,7 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_financial, financial_field_label, user_id")
+      .select("id, title, slug, is_financial, financial_field_label, user_id, google_sheet_id")
       .eq("id", formId)
       .single();
 
@@ -788,6 +789,23 @@ export async function submitFormAction(payload: {
 
     // Revalidar para que el admin vea la nueva respuesta inmediatamente
     revalidateFormSubmissions(formId).catch(err => console.error("[Revalidate Error]:", err));
+
+    // Auto-sync Google Sheet after response is sent (zero latency for the user)
+    if (!isInternal && form.google_sheet_id) {
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+      const syncUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/sheets-drive-integration/sync-sheet`;
+      after(async () => {
+        try {
+          await fetch(syncUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}` },
+            body: JSON.stringify({ formId: form.id }),
+          });
+        } catch (err) {
+          console.error("[Auto-sync Sheet Error]:", err);
+        }
+      });
+    }
 
     return { success: true, submissionId: submission.id };
 

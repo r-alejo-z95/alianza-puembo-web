@@ -353,6 +353,18 @@ function columnIndexToLetter(index: number): string {
   return letter;
 }
 
+function getMimeTypeFromName(name: string): string {
+  const ext = name.split(".").pop()?.toLowerCase() ?? "";
+  const map: Record<string, string> = {
+    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+    gif: "image/gif", webp: "image/webp", heic: "image/heic",
+    pdf: "application/pdf",
+    doc: "application/msword",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  };
+  return map[ext] ?? "application/octet-stream";
+}
+
 // --- MAIN SERVER ---
 
 const CORS_HEADERS = {
@@ -696,7 +708,7 @@ serve(async (req) => {
         // 1. Obtener datos del formulario
         const { data: form, error: formError } = await supabase
           .from("forms")
-          .select("google_sheet_id, title")
+          .select("google_sheet_id, google_drive_folder_id, title")
           .eq("id", formId)
           .single();
 
@@ -750,7 +762,6 @@ serve(async (req) => {
           // Agregar columna "ID" al final del header
           sheetHeaders = [...sheetHeaders, "ID"];
           idColIndex = sheetHeaders.length - 1;
-          // Actualizar fila 1 en el sheet con el nuevo header "ID"
           const colLetter = columnIndexToLetter(idColIndex);
           await fetch(
             `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(sheetName)}!${colLetter}1?valueInputOption=RAW`,
@@ -760,6 +771,23 @@ serve(async (req) => {
               body: JSON.stringify({ values: [["ID"]] }),
             },
           );
+          // Ocultar la columna ID (solo la primera vez que se crea)
+          fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}:batchUpdate`,
+            {
+              method: "POST",
+              headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+              body: JSON.stringify({
+                requests: [{
+                  updateDimensionProperties: {
+                    range: { sheetId: sheetInfo.id, dimension: "COLUMNS", startIndex: idColIndex, endIndex: idColIndex + 1 },
+                    properties: { hiddenByUser: true },
+                    fields: "hiddenByUser",
+                  },
+                }],
+              }),
+            },
+          ).catch((e) => console.error("[Sync] Hide ID column error:", e));
         }
 
         // 4. Leer columna ID completa → Set de IDs ya en el sheet
@@ -807,9 +835,10 @@ serve(async (req) => {
           if (val === undefined || val === null || val === "") return "";
           if (Array.isArray(val)) return val.join(", ");
           if (typeof val === "object") {
-            if (val.financial_receipt_path) {
-              return val.name ? `[Recibo] ${val.name}` : "Recibo financiero";
-            }
+            // drive_url: link permanente de Drive (mejor para el sheet)
+            if (val.drive_url) return val.drive_url;
+            // Sin Drive todavía: mostrar indicador (se llenará en el próximo sync)
+            if (val.financial_receipt_path) return val.name ? `[Recibo] ${val.name}` : "Recibo financiero";
             return val.url || val.webViewLink || val.name || "";
           }
           return String(val);
@@ -833,6 +862,60 @@ serve(async (req) => {
           idColIndex = sheetHeaders.length - 1;
           // Actualizar toda la fila 1
           await updateSheetRow(accessToken, sheetId, sheetName, 1, sheetHeaders);
+        }
+
+        // 7.5. Subir archivos de recibos a Drive (para submissions nuevas sin drive_url)
+        if (form.google_drive_folder_id && submissions.length > 0) {
+          const modifiedIds = new Set<string>();
+          const driveUploadTasks: Promise<void>[] = [];
+
+          for (const s of submissions) {
+            // Solo procesar submissions que se van a agregar al sheet
+            const ts = new Date(s.created_at).toLocaleString("es-EC", { timeZone: "America/Guayaquil" });
+            if (existingIds.has(s.id) || existingTimestamps.has(ts)) continue;
+
+            for (const [key, val] of Object.entries(s.data || {})) {
+              const v = val as any;
+              if (!v || typeof v !== "object" || !v.financial_receipt_path || v.drive_url) continue;
+
+              const task = (async () => {
+                try {
+                  const storagePath = v.financial_receipt_path.replace("finance_receipts/", "");
+                  const { data: fileBlob, error: dlError } = await supabase.storage
+                    .from("finance_receipts")
+                    .download(storagePath);
+                  if (dlError || !fileBlob) {
+                    console.error(`[Sync] Download error for ${storagePath}:`, dlError?.message);
+                    return;
+                  }
+                  const mimeType = getMimeTypeFromName(v.name || storagePath.split("/").pop() || "file");
+                  const arrayBuffer = await fileBlob.arrayBuffer();
+                  const driveUrl = await uploadFileToDrive(
+                    accessToken,
+                    form.google_drive_folder_id,
+                    v.name || storagePath.split("/").pop() || "receipt",
+                    new Uint8Array(arrayBuffer),
+                    mimeType,
+                  );
+                  // Update in-memory data so serializeValue picks up drive_url
+                  (s.data as any)[key] = { ...v, drive_url: driveUrl };
+                  modifiedIds.add(s.id);
+                } catch (err) {
+                  console.error(`[Sync] Drive upload error for key "${key}":`, err);
+                }
+              })();
+              driveUploadTasks.push(task);
+            }
+          }
+
+          await Promise.all(driveUploadTasks);
+
+          // Persist drive_url back to DB (fire-and-forget, does not block sync response)
+          for (const s of submissions) {
+            if (!modifiedIds.has(s.id)) continue;
+            supabase.from("form_submissions").update({ data: s.data }).eq("id", s.id)
+              .then(() => {}).catch((e: unknown) => console.error("[Sync] DB drive_url update error:", e));
+          }
         }
 
         // 8. Filtrar y construir filas nuevas
