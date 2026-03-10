@@ -168,7 +168,7 @@ const FormHeader = ({
       </div>
 
       {/* Header Info Section */}
-      <div className="py-10 px-4 md:p-14 space-y-8">
+      <div className="p-5 sm:p-8 md:p-14 space-y-6 md:space-y-8">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <div
@@ -201,7 +201,7 @@ const FormHeader = ({
                 value={field.value || ""}
                 placeholder="Título del Formulario"
                 className={cn(
-                  "text-3xl md:text-5xl font-serif font-bold border-none shadow-none px-0 focus-visible:ring-0 rounded-none h-auto py-2 transition-all bg-transparent placeholder:text-gray-200",
+                  "text-2xl md:text-5xl font-serif font-bold border-none shadow-none px-0 focus-visible:ring-0 rounded-none h-auto py-2 transition-all bg-transparent placeholder:text-gray-200",
                   isActive ? "border-b border-gray-100" : "pointer-events-none",
                   error && "text-red-500",
                 )}
@@ -212,20 +212,20 @@ const FormHeader = ({
 
         {/* Configuration Switches */}
         {isActive && (
-          <div className="flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-300">
+          <div className="flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-300">
             {/* Row 1: Access + Max Responses */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Internal Switch */}
-              <div className="flex flex-col gap-4 p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
-                <div className="flex items-center justify-between">
+              <div className="bg-gray-50 rounded-2xl md:rounded-[2rem] border border-gray-100 overflow-hidden">
+                <div className="flex items-center justify-between p-4 md:p-6">
                   <div className="flex items-center gap-2">
                     {isInternal ? (
-                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                     ) : (
-                      <Globe className="w-4 h-4 text-blue-600" />
+                      <Globe className="w-4 h-4 text-blue-600 shrink-0" />
                     )}
                     <Label className="text-xs font-black uppercase tracking-widest text-gray-900">
-                      {isInternal ? "Uso Interno (Staff)" : "Acceso Público"}
+                      {isInternal ? "Uso Interno" : "Acceso Público"}
                     </Label>
                   </div>
                   <Controller
@@ -240,7 +240,7 @@ const FormHeader = ({
                     )}
                   />
                 </div>
-                <p className="text-[10px] text-gray-500 leading-relaxed">
+                <p className="hidden md:block text-[10px] text-gray-500 leading-relaxed px-6 pb-6 -mt-2">
                   {isInternal
                     ? "Solo visible para staff autorizado."
                     : "Accesible mediante enlace público."}
@@ -249,23 +249,23 @@ const FormHeader = ({
 
               {/* Max Responses */}
               <div className={cn(
-                "flex flex-col gap-3 p-6 bg-gray-50 rounded-[2rem] border transition-colors",
-                errors?.max_responses ? "border-red-300 bg-red-50/30" : "border-gray-100"
+                "rounded-2xl md:rounded-[2rem] border transition-colors overflow-hidden",
+                errors?.max_responses ? "border-red-300 bg-red-50/30" : "bg-gray-50 border-gray-100"
               )}>
-                <div className="flex items-center gap-2">
-                  <Hash className={cn("w-4 h-4", errors?.max_responses ? "text-red-500" : "text-violet-600")} />
-                  <Label className={cn("text-xs font-black uppercase tracking-widest", errors?.max_responses ? "text-red-600" : "text-gray-900")}>
-                    Límite de Respuestas
-                  </Label>
-                  <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide", errors?.max_responses ? "bg-red-100 text-red-600" : "bg-violet-100 text-violet-700")}>
-                    Requerido
-                  </span>
-                </div>
-                <Controller
-                  control={control}
-                  name="max_responses"
-                  render={({ field }) => (
-                    <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-3 p-4 md:p-6">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Hash className={cn("w-4 h-4 shrink-0", errors?.max_responses ? "text-red-500" : "text-violet-600")} />
+                    <Label className={cn("text-xs font-black uppercase tracking-widest truncate", errors?.max_responses ? "text-red-600" : "text-gray-900")}>
+                      Límite
+                    </Label>
+                    <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide shrink-0", errors?.max_responses ? "bg-red-100 text-red-600" : "bg-violet-100 text-violet-700")}>
+                      Req.
+                    </span>
+                  </div>
+                  <Controller
+                    control={control}
+                    name="max_responses"
+                    render={({ field }) => (
                       <Input
                         type="number"
                         min={1}
@@ -276,20 +276,19 @@ const FormHeader = ({
                           field.onChange(val === "" ? null : parseInt(val, 10));
                         }}
                         className={cn(
-                          "h-10 text-sm font-bold rounded-xl bg-white w-32",
+                          "h-9 text-sm font-bold rounded-xl bg-white w-24 shrink-0",
                           errors?.max_responses ? "border-red-300 focus-visible:ring-red-300" : "border-gray-200"
                         )}
                       />
-                      <span className="text-[10px] text-gray-500 font-medium">respuestas máximo</span>
-                    </div>
-                  )}
-                />
+                    )}
+                  />
+                </div>
                 {errors?.max_responses ? (
-                  <p className="text-[10px] text-red-500 font-medium flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" /> {errors.max_responses.message}
+                  <p className="text-[10px] text-red-500 font-medium flex items-center gap-1 px-4 md:px-6 pb-4 -mt-2">
+                    <AlertCircle className="w-3 h-3 shrink-0" /> {errors.max_responses.message}
                   </p>
                 ) : (
-                  <p className="text-[10px] text-gray-500 leading-relaxed">
+                  <p className="hidden md:block text-[10px] text-gray-500 leading-relaxed px-6 pb-6 -mt-2">
                     El formulario se cerrará automáticamente al alcanzar este límite.
                   </p>
                 )}
@@ -298,18 +297,18 @@ const FormHeader = ({
 
             {/* Row 2: Financial Switch (full width) */}
             <div className={cn(
-              "flex flex-col gap-4 p-6 bg-gray-50 rounded-[2rem] border transition-colors relative overflow-hidden",
-              errors?.financial_field_label ? "border-red-300 bg-red-50/30" : "border-gray-100"
+              "rounded-2xl md:rounded-[2rem] border transition-colors overflow-hidden",
+              errors?.financial_field_label ? "border-red-300 bg-red-50/30" : "bg-gray-50 border-gray-100"
             )}>
-              <div className="flex items-center justify-between relative z-10">
+              <div className="flex items-center justify-between gap-3 p-4 md:p-6">
                 <div className="flex items-center gap-2">
                   {isFinancial ? (
-                    <Banknote className={cn("w-4 h-4", errors?.financial_field_label ? "text-red-500" : "text-amber-600")} />
+                    <Banknote className={cn("w-4 h-4 shrink-0", errors?.financial_field_label ? "text-red-500" : "text-amber-600")} />
                   ) : (
-                    <Receipt className="w-4 h-4 text-gray-400" />
+                    <Receipt className="w-4 h-4 text-gray-400 shrink-0" />
                   )}
                   <Label className={cn("text-xs font-black uppercase tracking-widest", errors?.financial_field_label ? "text-red-600" : "text-gray-900")}>
-                    Conciliación Financiera
+                    Financiero
                   </Label>
                 </div>
                 <Controller
@@ -329,7 +328,7 @@ const FormHeader = ({
               </div>
 
               {isFinancial ? (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="px-4 md:px-6 pb-4 md:pb-6 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300 -mt-1">
                   <p className={cn("text-[10px] font-bold uppercase tracking-wide", errors?.financial_field_label ? "text-red-500" : "text-amber-600/80")}>
                     {errors?.financial_field_label ? "⚠ Debes seleccionar el campo del comprobante" : "Selecciona el comprobante"}
                   </p>
@@ -366,12 +365,12 @@ const FormHeader = ({
                   />
                   {errors?.financial_field_label && (
                     <p className="text-[10px] text-red-500 font-medium flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" /> {errors.financial_field_label.message}
+                      <AlertCircle className="w-3 h-3 shrink-0" /> {errors.financial_field_label.message}
                     </p>
                   )}
                 </div>
               ) : (
-                <p className="text-[10px] text-gray-500 leading-relaxed">
+                <p className="hidden md:block text-[10px] text-gray-500 leading-relaxed px-6 pb-6 -mt-2">
                   Activa esto si el formulario recibe comprobantes de pago para procesarlos con IA.
                 </p>
               )}

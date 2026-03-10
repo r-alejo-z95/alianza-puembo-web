@@ -598,23 +598,23 @@ export default function FormBuilder({
       {/* Premium Header */}
       <div
         className={cn(
-          "sticky top-5 md:top-0 z-[100] w-full rounded-3xl bg-black text-white px-6 md:px-12 py-5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md bg-black/95 transition-all duration-300 ease-in-out",
+          "sticky top-5 md:top-0 z-[100] w-full rounded-3xl bg-black text-white px-4 md:px-12 py-3 md:py-5 flex flex-row items-center justify-between gap-3 md:gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md bg-black/95 transition-all duration-300 ease-in-out",
           !isHeaderVisible
             ? "-translate-y-full opacity-0 pointer-events-none md:translate-y-0 md:opacity-100 md:pointer-events-auto"
             : "translate-y-0 opacity-100",
         )}
       >
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 md:gap-6 min-w-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={onCancel}
-            className="rounded-2xl text-white/60 hover:bg-[var(--puembo-green)] hover:text-black transition-all duration-300 h-12 w-12 shrink-0 border border-white/10 hover:border-transparent group"
+            className="rounded-2xl text-white/60 hover:bg-[var(--puembo-green)] hover:text-black transition-all duration-300 h-10 w-10 md:h-12 md:w-12 shrink-0 border border-white/10 hover:border-transparent group"
           >
-            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
           </Button>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
+          <div className="space-y-0.5 md:space-y-1 min-w-0">
+            <div className="hidden md:flex items-center gap-2">
               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
                 Editor
               </span>
@@ -623,23 +623,24 @@ export default function FormBuilder({
                 Builder
               </span>
             </div>
-            <CardTitle className="text-xl md:text-2xl font-serif font-bold text-white truncate max-w-xs md:max-w-md lg:max-w-2xl tracking-tight">
+            <CardTitle className="text-base md:text-2xl font-serif font-bold text-white truncate max-w-[160px] sm:max-w-xs md:max-w-md lg:max-w-2xl tracking-tight">
               {formTitle}
             </CardTitle>
           </div>
         </div>
 
-        <div className="flex items-center justify-around gap-3">
+        <div className="flex items-center gap-2 md:gap-3 shrink-0">
           <Tooltip>
             <TooltipTrigger asChild>
               <span>
                 <Button
                   variant="ghost"
-                  className="rounded-2xl px-6 py-6 font-bold border border-white/10 hover:bg-white/5 h-12 transition-all flex uppercase tracking-widest text-[10px] text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-2xl px-3 md:px-6 font-bold border border-white/10 hover:bg-white/5 h-10 md:h-12 transition-all flex uppercase tracking-widest text-[10px] text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handlePreview}
                   disabled={!isValid}
                 >
-                  <Eye className="w-4 h-4 mr-2" /> Vista Previa
+                  <Eye className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Vista Previa</span>
                 </Button>
               </span>
             </TooltipTrigger>
@@ -655,16 +656,16 @@ export default function FormBuilder({
               <span>
                 <Button
                   variant="green"
-                  className="rounded-2xl px-8 py-6 font-bold shadow-[0_0_30px_rgba(var(--puembo-green-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--puembo-green-rgb),0.5)] transition-all hover:scale-[1.02] active:scale-95 h-12 uppercase tracking-widest text-[10px] disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"
+                  className="rounded-2xl px-4 md:px-8 font-bold shadow-[0_0_30px_rgba(var(--puembo-green-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--puembo-green-rgb),0.5)] transition-all hover:scale-[1.02] active:scale-95 h-10 md:h-12 uppercase tracking-widest text-[10px] disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"
                   onClick={form.handleSubmit(handleSave, onInvalid)}
                   disabled={isSaving || !isValid}
                 >
                   {isSaving ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <Loader2 className="w-4 h-4 animate-spin md:mr-2" />
                   ) : (
-                    <Save className="w-4 h-4 mr-2" />
+                    <Save className="w-4 h-4 md:mr-2" />
                   )}
-                  <span>{isSaving ? "Guardando..." : "Guardar"}</span>
+                  <span className="hidden md:inline">{isSaving ? "Guardando..." : "Guardar"}</span>
                 </Button>
               </span>
             </TooltipTrigger>
