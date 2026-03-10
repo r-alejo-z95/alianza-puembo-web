@@ -783,21 +783,6 @@ export async function submitFormAction(payload: {
          .catch(err => console.error("[Confirmation Email Error]:", err));
     }
 
-    if (!isInternal) {
-      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/sheets-drive-integration`;
-      
-      console.log(`[Submit] Disparando integración con Google Sheets (background)...`);
-      fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${serviceKey}`
-        },
-        body: JSON.stringify({ formId: form.id, formData: processedDataForGoogle })
-      }).catch(err => console.error("[Google Integration Error]:", err));
-    }
-
     notifyFormSubmission(form.title, form.slug, form.user_id, user?.id)
       .catch(err => console.error("[Notification Error]:", err));
 
@@ -810,6 +795,65 @@ export async function submitFormAction(payload: {
     console.error("Error crítico en submitFormAction:", error);
     return { error: error.message || "Error al procesar el envío" };
   }
+}
+
+/**
+ * Sincroniza el Google Sheet de un formulario desde la base de datos.
+ * Solo agrega respuestas que faltan (no elimina ni modifica las existentes).
+ * Las anotaciones del equipo en el sheet se preservan.
+ */
+export async function syncFormToSheets(formId: string): Promise<{
+  added?: number;
+  total?: number;
+  error?: string;
+}> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autorizado" };
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/sheets-drive-integration/sync-sheet`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({ formId }),
+      },
+    );
+
+    const result = await response.json();
+    if (!response.ok) {
+      return { error: result.error || "La sincronización con Google Sheets falló." };
+    }
+    return { added: result.added, total: result.total };
+  } catch (error: any) {
+    console.error("[syncFormToSheets] Error:", error);
+    return { error: error.message || "Error inesperado al sincronizar." };
+  }
+}
+
+/**
+ * Genera una URL firmada temporal (1 hora) para un recibo en el bucket finance_receipts.
+ */
+export async function getFileSignedUrl(
+  path: string,
+): Promise<{ url?: string; error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "No autorizado" };
+
+  const supabaseAdmin = createAdminClient();
+  // financial_receipt_path se guarda con el prefijo "finance_receipts/" — quitarlo antes de createSignedUrl
+  const storagePath = path.replace("finance_receipts/", "");
+  const { data, error } = await supabaseAdmin.storage
+    .from("finance_receipts")
+    .createSignedUrl(storagePath, 3600);
+
+  if (error) return { error: error.message };
+  return { url: data.signedUrl };
 }
 
 /**

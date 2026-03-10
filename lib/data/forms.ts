@@ -24,6 +24,8 @@ export interface Form {
   is_archived: boolean;
   enabled: boolean;
   google_sheet_id?: string;
+  google_sheet_url?: string;
+  last_synced_at?: string;
   created_at: string;
   user_id: string;
   form_fields?: FormField[];

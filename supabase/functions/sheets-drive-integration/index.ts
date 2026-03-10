@@ -341,6 +341,18 @@ async function getSheetHeaders(accessToken, spreadsheetId, sheetName) {
   return data.values ? data.values[0] : [];
 }
 
+// Convierte índice de columna (0-based) a letra(s) de columna de Sheets (A, B, ..., Z, AA, ...)
+function columnIndexToLetter(index: number): string {
+  let letter = "";
+  let n = index + 1;
+  while (n > 0) {
+    const rem = (n - 1) % 26;
+    letter = String.fromCharCode(65 + rem) + letter;
+    n = Math.floor((n - 1) / 26);
+  }
+  return letter;
+}
+
 // --- MAIN SERVER ---
 
 const CORS_HEADERS = {
@@ -655,6 +667,216 @@ serve(async (req) => {
             status: 500,
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
           },
+        );
+      }
+    } else if (url.pathname === "/sheets-drive-integration/sync-sheet") {
+      // --- SYNC FROM DB: header-aware + ID-based dedup, preserves team annotations ---
+      if (req.method !== "POST") {
+        return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
+          status: 405,
+          headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+        });
+      }
+
+      try {
+        const { formId } = await req.json();
+        if (!formId) {
+          return new Response(
+            JSON.stringify({ error: "Missing formId" }),
+            { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
+          );
+        }
+
+        const supabase = createClient(
+          Deno.env.get("SUPABASE_URL")!,
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+          { auth: { persistSession: false } },
+        );
+
+        // 1. Obtener datos del formulario
+        const { data: form, error: formError } = await supabase
+          .from("forms")
+          .select("google_sheet_id, title")
+          .eq("id", formId)
+          .single();
+
+        if (formError || !form) {
+          return new Response(JSON.stringify({ error: "Formulario no encontrado" }), {
+            status: 404,
+            headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+          });
+        }
+
+        if (!form.google_sheet_id) {
+          return new Response(
+            JSON.stringify({ error: "Este formulario no tiene un Google Sheet vinculado." }),
+            { status: 400, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
+          );
+        }
+
+        const sheetId = form.google_sheet_id;
+        const accessToken = await getAccessToken(supabase);
+        const sheetInfo = await getFirstSheetName(accessToken, sheetId);
+        const sheetName = sheetInfo.name;
+
+        // 2. Leer fila 1 completa (headers) y columna A (timestamps, para fallback)
+        const [headersResp, timestampsResp] = await Promise.all([
+          fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(sheetName)}!1:1`,
+            { headers: { Authorization: `Bearer ${accessToken}` } },
+          ),
+          fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(sheetName)}!A:A`,
+            { headers: { Authorization: `Bearer ${accessToken}` } },
+          ),
+        ]);
+
+        const headersData = await headersResp.json();
+        const timestampsData = await timestampsResp.json();
+
+        let sheetHeaders: string[] = (headersData.values?.[0] ?? []) as string[];
+
+        // Timestamps existentes como fallback (para filas antiguas sin columna ID)
+        const existingTimestamps = new Set<string>(
+          (timestampsData.values ?? [])
+            .flat()
+            .map((v: string) => v.trim())
+            .filter(Boolean),
+        );
+
+        // 3. Detectar/agregar columna "ID" al final de los headers
+        let idColIndex = sheetHeaders.indexOf("ID");
+        if (idColIndex === -1) {
+          // Agregar columna "ID" al final del header
+          sheetHeaders = [...sheetHeaders, "ID"];
+          idColIndex = sheetHeaders.length - 1;
+          // Actualizar fila 1 en el sheet con el nuevo header "ID"
+          const colLetter = columnIndexToLetter(idColIndex);
+          await fetch(
+            `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(sheetName)}!${colLetter}1?valueInputOption=RAW`,
+            {
+              method: "PUT",
+              headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+              body: JSON.stringify({ values: [["ID"]] }),
+            },
+          );
+        }
+
+        // 4. Leer columna ID completa → Set de IDs ya en el sheet
+        const idColLetter = columnIndexToLetter(idColIndex);
+        const idColResp = await fetch(
+          `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(sheetName)}!${idColLetter}:${idColLetter}`,
+          { headers: { Authorization: `Bearer ${accessToken}` } },
+        );
+        const idColData = await idColResp.json();
+        const existingIds = new Set<string>(
+          (idColData.values ?? [])
+            .flat()
+            .map((v: string) => v.trim())
+            .filter(Boolean),
+        );
+
+        // 5. Obtener campos del formulario (excluyendo campos estructurales)
+        const { data: formFields } = await supabase
+          .from("form_fields")
+          .select("label, type")
+          .eq("form_id", formId)
+          .not("type", "in", '("section_header","separator","section")')
+          .order("order_index", { ascending: true });
+
+        const fields = formFields ?? [];
+
+        // 6. Obtener todas las respuestas de la DB
+        const { data: submissions } = await supabase
+          .from("form_submissions")
+          .select("id, data, created_at")
+          .eq("form_id", formId)
+          .eq("is_archived", false)
+          .order("created_at", { ascending: true });
+
+        if (!submissions || submissions.length === 0) {
+          await supabase.from("forms").update({ last_synced_at: new Date().toISOString() }).eq("id", formId);
+          return new Response(
+            JSON.stringify({ added: 0, total: 0 }),
+            { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
+          );
+        }
+
+        // Helper: serializar un valor de campo a string
+        const serializeValue = (val: any): string => {
+          if (val === undefined || val === null || val === "") return "";
+          if (Array.isArray(val)) return val.join(", ");
+          if (typeof val === "object") {
+            if (val.financial_receipt_path) {
+              return val.name ? `[Recibo] ${val.name}` : "Recibo financiero";
+            }
+            return val.url || val.webViewLink || val.name || "";
+          }
+          return String(val);
+        };
+
+        // 7. Detectar si hay campos en DB que no están en los headers del sheet
+        // Si hay nuevos campos, añadirlos al header row antes de agregar filas
+        const existingHeaderSet = new Set(sheetHeaders);
+        const newFieldHeaders = fields
+          .map((f) => f.label)
+          .filter((label) => !existingHeaderSet.has(label) && label !== "ID" && label !== "Timestamp");
+
+        if (newFieldHeaders.length > 0) {
+          // Insertar los nuevos headers antes de "ID" (al final, pero antes de la columna ID)
+          const insertAt = idColIndex; // ID seguirá siendo la última columna
+          sheetHeaders = [
+            ...sheetHeaders.slice(0, insertAt),
+            ...newFieldHeaders,
+            "ID",
+          ];
+          idColIndex = sheetHeaders.length - 1;
+          // Actualizar toda la fila 1
+          await updateSheetRow(accessToken, sheetId, sheetName, 1, sheetHeaders);
+        }
+
+        // 8. Filtrar y construir filas nuevas
+        const newRows: string[][] = [];
+        for (const s of submissions) {
+          const timestamp = new Date(s.created_at).toLocaleString("es-EC", {
+            timeZone: "America/Guayaquil",
+          });
+
+          // Dedup primaria: por ID
+          if (existingIds.has(s.id)) continue;
+          // Dedup secundaria: por timestamp (para filas migradas sin ID)
+          if (existingTimestamps.has(timestamp)) continue;
+
+          // Construir la fila mapeando por HEADER ACTUAL del sheet
+          const row: string[] = sheetHeaders.map((header) => {
+            if (header === "Timestamp") return timestamp;
+            if (header === "ID") return s.id;
+            return serializeValue(s.data[header]);
+          });
+
+          newRows.push(row);
+        }
+
+        // 9. Agregar filas nuevas (batch)
+        if (newRows.length > 0) {
+          await appendToSheet(accessToken, sheetId, newRows, sheetName);
+          formatSheetHeaders(accessToken, sheetId, sheetInfo.id).catch(
+            (e) => console.error("Format error:", e),
+          );
+        }
+
+        // 10. Actualizar last_synced_at
+        await supabase.from("forms").update({ last_synced_at: new Date().toISOString() }).eq("id", formId);
+
+        return new Response(
+          JSON.stringify({ added: newRows.length, total: submissions.length }),
+          { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
+        );
+      } catch (err) {
+        console.error("Error in sync-sheet:", err);
+        return new Response(
+          JSON.stringify({ error: err.message, details: err.stack }),
+          { status: 500, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } },
         );
       }
     } else {
