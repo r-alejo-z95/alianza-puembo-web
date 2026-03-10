@@ -16,6 +16,17 @@ import {
   CheckCircle2,
   ChevronRight,
   FileSpreadsheet,
+  Type,
+  Hash,
+  Mail,
+  CalendarDays,
+  CircleDot,
+  ChevronDown,
+  CheckSquare,
+  AlignLeft,
+  ImageIcon,
+  FileUp,
+  Columns2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +55,95 @@ import { AdminFAB } from "@/components/admin/layout/AdminFAB";
 import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
 import { Card, CardTitle, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+
+// --- Blocks Picker ---
+const FIELD_TYPES = [
+  { type: "text",     label: "Texto",      icon: Type,        color: "text-sky-600",     bg: "bg-sky-50",     hover: "hover:border-sky-300" },
+  { type: "number",   label: "Número",     icon: Hash,        color: "text-violet-600",  bg: "bg-violet-50",  hover: "hover:border-violet-300" },
+  { type: "email",    label: "Email",      icon: Mail,        color: "text-rose-500",    bg: "bg-rose-50",    hover: "hover:border-rose-300" },
+  { type: "date",     label: "Fecha",      icon: CalendarDays,color: "text-amber-600",   bg: "bg-amber-50",   hover: "hover:border-amber-300" },
+  { type: "radio",    label: "Opción única",icon: CircleDot,  color: "text-emerald-600", bg: "bg-emerald-50", hover: "hover:border-emerald-300" },
+  { type: "select",   label: "Desplegable",icon: ChevronDown, color: "text-teal-600",    bg: "bg-teal-50",    hover: "hover:border-teal-300" },
+  { type: "checkbox", label: "Múltiple",   icon: CheckSquare, color: "text-indigo-600",  bg: "bg-indigo-50",  hover: "hover:border-indigo-300" },
+  { type: "textarea", label: "Párrafo",    icon: AlignLeft,   color: "text-orange-600",  bg: "bg-orange-50",  hover: "hover:border-orange-300" },
+  { type: "image",    label: "Imagen",     icon: ImageIcon,   color: "text-pink-600",    bg: "bg-pink-50",    hover: "hover:border-pink-300" },
+  { type: "file",     label: "Archivo",    icon: FileUp,      color: "text-gray-600",    bg: "bg-gray-100",   hover: "hover:border-gray-400" },
+];
+
+function BlocksPicker({ onAdd, onImport }) {
+  return (
+    <div className="overflow-y-auto flex-1 p-5 pb-10 space-y-5">
+      {/* Question types grid */}
+      <div className="space-y-2">
+        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 px-1">
+          Preguntas
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {FIELD_TYPES.map(({ type, label, icon: Icon, color, bg, hover }) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => onAdd(type)}
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-2xl border-2 border-transparent bg-white hover:bg-white transition-all text-left group active:scale-95",
+                hover,
+                "shadow-sm hover:shadow-md",
+              )}
+            >
+              <div className={cn("p-2 rounded-xl shrink-0 transition-transform group-hover:scale-110", bg)}>
+                <Icon className={cn("w-4 h-4", color)} />
+              </div>
+              <span className={cn("text-[10px] font-black uppercase tracking-tight leading-tight", color)}>
+                {label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="h-px bg-gray-200" />
+
+      {/* Structure */}
+      <div className="space-y-2">
+        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 px-1">
+          Estructura
+        </p>
+        <button
+          type="button"
+          onClick={() => onAdd("section")}
+          className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-transparent bg-white hover:border-gray-800 hover:bg-white shadow-sm hover:shadow-md transition-all group active:scale-95"
+        >
+          <div className="p-2 rounded-xl bg-gray-100 shrink-0 group-hover:scale-110 transition-transform">
+            <Columns2 className="w-5 h-5 text-gray-700" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-black uppercase tracking-tight text-gray-800">Sección</span>
+            <span className="text-[9px] text-gray-400 font-medium leading-tight">Agrupa preguntas en un bloque</span>
+          </div>
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="h-px bg-gray-200" />
+
+      {/* Import */}
+      <button
+        type="button"
+        onClick={onImport}
+        className="w-full flex items-center gap-3 p-4 rounded-2xl border-2 border-transparent bg-white hover:border-blue-400 hover:bg-white shadow-sm hover:shadow-md transition-all group active:scale-95"
+      >
+        <div className="p-2 rounded-xl bg-blue-50 shrink-0 group-hover:scale-110 transition-transform">
+          <FileSpreadsheet className="w-5 h-5 text-blue-500" />
+        </div>
+        <div className="flex flex-col min-w-0">
+          <span className="text-[10px] font-black uppercase tracking-tight text-blue-600">Importar preguntas</span>
+          <span className="text-[9px] text-gray-400 font-medium leading-tight">Copia campos de otro formulario</span>
+        </div>
+      </button>
+    </div>
+  );
+}
 
 // --- Schemas ---
 const fieldSchema = z.object({
@@ -78,7 +178,23 @@ const formSchema = z.object({
   is_internal: z.boolean().default(false),
   is_financial: z.boolean().default(true),
   financial_field_label: z.string().optional().nullable(),
+  max_responses: z.number().int().min(1).optional().nullable(),
   fields: z.array(fieldSchema),
+}).superRefine((data, ctx) => {
+  if (data.is_financial && !data.financial_field_label) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["financial_field_label"],
+      message: "Debes seleccionar la pregunta del comprobante",
+    });
+  }
+  if (!data.max_responses || data.max_responses < 1) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["max_responses"],
+      message: "Define un límite de respuestas para el formulario",
+    });
+  }
 });
 
 export default function FormBuilder({
@@ -146,6 +262,8 @@ export default function FormBuilder({
       image_url: "",
       is_internal: false,
       is_financial: true,
+      financial_field_label: "",
+      max_responses: null,
       fields: [],
     },
     mode: "onChange",
@@ -184,6 +302,7 @@ export default function FormBuilder({
         is_internal: initialForm.is_internal || false,
         is_financial: initialForm.is_financial ?? true,
         financial_field_label: initialForm.financial_field_label || "",
+        max_responses: initialForm.max_responses ?? null,
         fields: preparedFields,
       });
     }
@@ -373,6 +492,26 @@ export default function FormBuilder({
         return;
       }
 
+      if (errors.financial_field_label) {
+        toast.error("Selecciona la pregunta del comprobante de pago", {
+          description: "Con la conciliación financiera activa, debes indicar qué campo recopila el comprobante.",
+          duration: 6000,
+        });
+        setActiveFieldId("header");
+        scrollToField("header");
+        return;
+      }
+
+      if (errors.max_responses) {
+        toast.error("Define un límite de respuestas", {
+          description: "Todos los formularios deben tener un número máximo de inscripciones.",
+          duration: 6000,
+        });
+        setActiveFieldId("header");
+        scrollToField("header");
+        return;
+      }
+
       if (errors.fields) {
         const fieldIndices = Object.keys(errors.fields)
           .filter((key) => !isNaN(key))
@@ -459,23 +598,23 @@ export default function FormBuilder({
       {/* Premium Header */}
       <div
         className={cn(
-          "sticky top-5 md:top-0 z-[100] w-full rounded-3xl bg-black text-white px-6 md:px-12 py-5 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md bg-black/95 transition-all duration-300 ease-in-out",
+          "sticky top-5 md:top-0 z-[100] w-full rounded-3xl bg-black text-white px-4 md:px-12 py-3 md:py-5 flex flex-row items-center justify-between gap-3 md:gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md bg-black/95 transition-all duration-300 ease-in-out",
           !isHeaderVisible
             ? "-translate-y-full opacity-0 pointer-events-none md:translate-y-0 md:opacity-100 md:pointer-events-auto"
             : "translate-y-0 opacity-100",
         )}
       >
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 md:gap-6 min-w-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={onCancel}
-            className="rounded-2xl text-white/60 hover:bg-[var(--puembo-green)] hover:text-black transition-all duration-300 h-12 w-12 shrink-0 border border-white/10 hover:border-transparent group"
+            className="rounded-2xl text-white/60 hover:bg-[var(--puembo-green)] hover:text-black transition-all duration-300 h-10 w-10 md:h-12 md:w-12 shrink-0 border border-white/10 hover:border-transparent group"
           >
-            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
           </Button>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
+          <div className="space-y-0.5 md:space-y-1 min-w-0">
+            <div className="hidden md:flex items-center gap-2">
               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
                 Editor
               </span>
@@ -484,23 +623,24 @@ export default function FormBuilder({
                 Builder
               </span>
             </div>
-            <CardTitle className="text-xl md:text-2xl font-serif font-bold text-white truncate max-w-xs md:max-w-md lg:max-w-2xl tracking-tight">
+            <CardTitle className="text-base md:text-2xl font-serif font-bold text-white truncate max-w-[160px] sm:max-w-xs md:max-w-md lg:max-w-2xl tracking-tight">
               {formTitle}
             </CardTitle>
           </div>
         </div>
 
-        <div className="flex items-center justify-around gap-3">
+        <div className="flex items-center gap-2 md:gap-3 shrink-0">
           <Tooltip>
             <TooltipTrigger asChild>
               <span>
                 <Button
                   variant="ghost"
-                  className="rounded-2xl px-6 py-6 font-bold border border-white/10 hover:bg-white/5 h-12 transition-all flex uppercase tracking-widest text-[10px] text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-2xl px-3 md:px-6 font-bold border border-white/10 hover:bg-white/5 h-10 md:h-12 transition-all flex uppercase tracking-widest text-[10px] text-gray-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={handlePreview}
                   disabled={!isValid}
                 >
-                  <Eye className="w-4 h-4 mr-2" /> Vista Previa
+                  <Eye className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Vista Previa</span>
                 </Button>
               </span>
             </TooltipTrigger>
@@ -516,16 +656,16 @@ export default function FormBuilder({
               <span>
                 <Button
                   variant="green"
-                  className="rounded-2xl px-8 py-6 font-bold shadow-[0_0_30px_rgba(var(--puembo-green-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--puembo-green-rgb),0.5)] transition-all hover:scale-[1.02] active:scale-95 h-12 uppercase tracking-widest text-[10px] disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"
+                  className="rounded-2xl px-4 md:px-8 font-bold shadow-[0_0_30px_rgba(var(--puembo-green-rgb),0.3)] hover:shadow-[0_0_40px_rgba(var(--puembo-green-rgb),0.5)] transition-all hover:scale-[1.02] active:scale-95 h-10 md:h-12 uppercase tracking-widest text-[10px] disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale"
                   onClick={form.handleSubmit(handleSave, onInvalid)}
                   disabled={isSaving || !isValid}
                 >
                   {isSaving ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <Loader2 className="w-4 h-4 animate-spin md:mr-2" />
                   ) : (
-                    <Save className="w-4 h-4 mr-2" />
+                    <Save className="w-4 h-4 md:mr-2" />
                   )}
-                  <span>{isSaving ? "Guardando..." : "Guardar"}</span>
+                  <span className="hidden md:inline">{isSaving ? "Guardando..." : "Guardar"}</span>
                 </Button>
               </span>
             </TooltipTrigger>
@@ -615,60 +755,7 @@ export default function FormBuilder({
               data-panel
             >
               {panelView === "blocks" ? (
-                <div className="grid grid-cols-1 gap-4 p-4 pb-12">
-                  <Button
-                    onClick={() => handleAddField("text")}
-                    variant="outline"
-                    className="h-24 flex items-center justify-start gap-4 px-4 sm:px-8 rounded-3xl border-2 border-gray-100 hover:border-[var(--puembo-green)] hover:bg-gray-50 transition-all text-left min-w-0 whitespace-normal"
-                  >
-                    <div className="p-3 bg-[var(--puembo-green)]/10 rounded-2xl shrink-0">
-                      <Plus className="w-6 h-6 text-[var(--puembo-green)]" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-black uppercase tracking-widest text-[10px]">
-                        Pregunta
-                      </span>
-                      <span className="text-xs text-gray-400 font-medium leading-tight">
-                        Añade un campo de entrada
-                      </span>
-                    </div>
-                  </Button>
-                  <Button
-                    onClick={() => handleAddField("section")}
-                    variant="outline"
-                    className="h-24 flex items-center justify-start gap-4 px-4 sm:px-8 rounded-3xl border-2 border-gray-100 hover:border-black hover:bg-gray-50 transition-all text-left min-w-0 whitespace-normal"
-                  >
-                    <div className="p-3 bg-black/5 rounded-2xl shrink-0">
-                      <Layout className="w-6 h-6 text-black" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-black uppercase tracking-widest text-[10px]">
-                        Sección
-                      </span>
-                      <span className="text-xs text-gray-400 font-medium leading-tight">
-                        Organiza por grupos de preguntas
-                      </span>
-                    </div>
-                  </Button>
-                  <div className="h-px bg-gray-100 my-2" />
-                  <Button
-                    onClick={() => setPanelView("importer")}
-                    variant="outline"
-                    className="h-24 flex items-center justify-start gap-4 px-4 sm:px-8 rounded-3xl border-2 border-gray-100 hover:border-blue-500 hover:bg-gray-50 transition-all text-left min-w-0 whitespace-normal"
-                  >
-                    <div className="p-3 bg-blue-50 rounded-2xl shrink-0">
-                      <FileSpreadsheet className="w-6 h-6 text-blue-500" />
-                    </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="font-black uppercase tracking-widest text-[10px]">
-                        Importar
-                      </span>
-                      <span className="text-xs text-gray-400 font-medium leading-tight">
-                        Copia preguntas de otro formulario
-                      </span>
-                    </div>
-                  </Button>
-                </div>
+                <BlocksPicker onAdd={handleAddField} onImport={() => setPanelView("importer")} />
               ) : (
                 <QuestionImporter
                   onImport={handleImportQuestions}

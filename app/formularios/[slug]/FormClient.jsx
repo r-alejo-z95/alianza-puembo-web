@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import FluentRenderer from "@/components/public/forms/fluent-renderer/FluentRenderer";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Clock } from "lucide-react";
+import { AlertTriangle, Clock, UserCheck } from "lucide-react";
 
 export const LoadingState = () => (
   <div className="fixed inset-0 bg-[#FAFAFA] flex flex-col gap-8 justify-center items-center z-50">
@@ -45,13 +45,15 @@ export const ErrorState = ({ type = "not_found" }) => (
       <div
         className={cn(
           "w-24 h-24 md:w-32 md:h-32 rounded-2xl md:rounded-[2.5rem] flex items-center justify-center mb-6 md:mb-8 mx-auto shadow-xl rotate-3",
-          type === "inactive"
+          type === "inactive" || type === "limit_reached"
             ? "bg-amber-50 text-amber-500"
             : "bg-red-50 text-red-500",
         )}
       >
         {type === "inactive" ? (
           <Clock className="w-10 h-10 md:w-12 md:h-12 -rotate-3" />
+        ) : type === "limit_reached" ? (
+          <UserCheck className="w-10 h-10 md:w-12 md:h-12 -rotate-3" />
         ) : (
           <AlertTriangle className="w-10 h-10 md:w-12 md:h-12 -rotate-3" />
         )}
@@ -59,12 +61,16 @@ export const ErrorState = ({ type = "not_found" }) => (
       <h1 className="text-2xl md:text-3xl font-serif font-black text-gray-900 mb-3 md:mb-4 leading-tight">
         {type === "inactive"
           ? "Este formulario ha cerrado sus puertas"
-          : "Ups, no encontramos lo que buscas"}
+          : type === "limit_reached"
+            ? "Cupos completos"
+            : "Ups, no encontramos lo que buscas"}
       </h1>
       <p className="text-gray-500 text-base md:text-lg font-light leading-relaxed mb-8 md:mb-10 px-2">
         {type === "inactive"
           ? "Por el momento ya no recibimos más respuestas. Si necesitas ayuda, no dudes en contactarnos."
-          : "Parece que el enlace es incorrecto o el formulario ya no está disponible."}
+          : type === "limit_reached"
+            ? "Este formulario ha alcanzado el límite de inscripciones. Si crees que es un error, contacta al organizador."
+            : "Parece que el enlace es incorrecto o el formulario ya no está disponible."}
       </p>
       <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
         <Button

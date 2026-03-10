@@ -26,6 +26,7 @@ export interface Form {
   google_sheet_id?: string;
   google_sheet_url?: string;
   last_synced_at?: string;
+  max_responses?: number | null;
   created_at: string;
   user_id: string;
   form_fields?: FormField[];
