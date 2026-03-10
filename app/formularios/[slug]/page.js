@@ -41,7 +41,8 @@ export default async function PublicFormPage({ params }) {
   }
 
   if (!form.enabled) {
-    return <FormClient form={form} errorType="inactive" />;
+    const errorType = form.max_responses ? "limit_reached" : "inactive";
+    return <FormClient form={form} errorType={errorType} />;
   }
 
   // Fields are already sorted in getFormBySlug, but just in case or if client relies on it being array

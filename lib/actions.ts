@@ -694,12 +694,28 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_financial, financial_field_label, user_id, google_sheet_id")
+      .select("id, title, slug, is_financial, financial_field_label, user_id, google_sheet_id, max_responses")
       .eq("id", formId)
       .single();
 
     if (formErr || !form) throw new Error("Formulario no encontrado");
     console.log(`[Submit] Form: ${form.slug}, Is Financial: ${form.is_financial}, Target Label: "${form.financial_field_label}"`);
+
+    // 1.1. Check max_responses limit before processing
+    if (form.max_responses) {
+      const { count: submissionCount } = await supabaseAdmin
+        .from("form_submissions")
+        .select("id", { count: "exact", head: true })
+        .eq("form_id", formId);
+
+      if ((submissionCount ?? 0) >= form.max_responses) {
+        // Auto-disable the form since limit is reached
+        await supabaseAdmin.from("forms").update({ enabled: false }).eq("id", formId);
+        revalidateTag("forms");
+        console.log(`[Submit] Límite de respuestas alcanzado para ${form.slug}. Formulario deshabilitado.`);
+        return { error: "Este formulario ya no acepta más respuestas. Ha alcanzado el límite de inscripciones.", closed: true };
+      }
+    }
 
     let aiExtractedData = null;
     let receiptPath = null;
@@ -776,6 +792,20 @@ export async function submitFormAction(payload: {
         extracted_data: aiExtractedData,
         status: aiExtractedData?.is_valid_receipt ? 'pending' : 'manual_review'
       }]);
+    }
+
+    // 3.2. Auto-disable form if max_responses just reached
+    if (form.max_responses) {
+      const { count: newCount } = await supabaseAdmin
+        .from("form_submissions")
+        .select("id", { count: "exact", head: true })
+        .eq("form_id", formId);
+
+      if ((newCount ?? 0) >= form.max_responses) {
+        await supabaseAdmin.from("forms").update({ enabled: false }).eq("id", formId);
+        revalidateTag("forms");
+        console.log(`[Submit] Límite alcanzado con esta respuesta. Formulario ${form.slug} deshabilitado automáticamente.`);
+      }
     }
 
     // 4. TAREAS EN BACKGROUND (No bloquean la respuesta al usuario)

@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ImageIcon, Trash2, Layout, Plus, ShieldCheck, Globe, Receipt, Banknote } from "lucide-react";
+import { ImageIcon, Trash2, Layout, Plus, ShieldCheck, Globe, Receipt, Banknote, Hash, AlertCircle, CheckCircle2, Circle } from "lucide-react";
 import QuestionCard from "./QuestionCard";
 import { useRef, useMemo } from "react";
 import RichTextEditor from "../RichTextEditor";
@@ -28,6 +28,7 @@ const FormHeader = ({
   headerFile,
   setHeaderFile,
   error,
+  errors,
   fields,
 }) => {
   const { control, watch, setValue } = useFormContext();
@@ -42,6 +43,9 @@ const FormHeader = ({
   const receiptFields = currentFields.filter(
     (f) => f.type === "image" || f.type === "file",
   );
+
+  const hasSettingsError = !!(errors?.financial_field_label || errors?.max_responses);
+  const hasError = error || hasSettingsError;
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -80,7 +84,7 @@ const FormHeader = ({
         isActive
           ? "border-[var(--puembo-green)] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] ring-8 ring-[var(--puembo-green)]/5 max-w-screen"
           : "border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md",
-        error && !isActive && "border-red-500 ring-4 ring-red-500/5",
+        hasError && !isActive && "border-red-500 ring-4 ring-red-500/5",
       )}
     >
       {/* Top Accent line for visual cues */}
@@ -89,7 +93,9 @@ const FormHeader = ({
           "h-1.5 w-full transition-colors",
           isActive
             ? "bg-[var(--puembo-green)]"
-            : "bg-gray-100 group-hover:bg-gray-200",
+            : hasError
+              ? "bg-red-400"
+              : "bg-gray-100 group-hover:bg-gray-200",
         )}
       />
 
@@ -179,6 +185,11 @@ const FormHeader = ({
             >
               {error ? "Título Requerido" : "Formulario"}
             </span>
+            {hasSettingsError && !isActive && (
+              <span className="flex items-center gap-1 text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
+                <AlertCircle className="w-3 h-3" /> Configuración incompleta
+              </span>
+            )}
           </div>
 
           <Controller
@@ -201,49 +212,103 @@ const FormHeader = ({
 
         {/* Configuration Switches */}
         {isActive && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in zoom-in-95 duration-300">
-            {/* Internal Switch */}
-            <div className="flex flex-col gap-4 p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
-              <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-300">
+            {/* Row 1: Access + Max Responses */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Internal Switch */}
+              <div className="flex flex-col gap-4 p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {isInternal ? (
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    ) : (
+                      <Globe className="w-4 h-4 text-blue-600" />
+                    )}
+                    <Label className="text-xs font-black uppercase tracking-widest text-gray-900">
+                      {isInternal ? "Uso Interno (Staff)" : "Acceso Público"}
+                    </Label>
+                  </div>
+                  <Controller
+                    control={control}
+                    name="is_internal"
+                    render={({ field }) => (
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="data-[state=checked]:bg-emerald-600"
+                      />
+                    )}
+                  />
+                </div>
+                <p className="text-[10px] text-gray-500 leading-relaxed">
+                  {isInternal
+                    ? "Solo visible para staff autorizado."
+                    : "Accesible mediante enlace público."}
+                </p>
+              </div>
+
+              {/* Max Responses */}
+              <div className={cn(
+                "flex flex-col gap-3 p-6 bg-gray-50 rounded-[2rem] border transition-colors",
+                errors?.max_responses ? "border-red-300 bg-red-50/30" : "border-gray-100"
+              )}>
                 <div className="flex items-center gap-2">
-                  {isInternal ? (
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  ) : (
-                    <Globe className="w-4 h-4 text-blue-600" />
-                  )}
-                  <Label className="text-xs font-black uppercase tracking-widest text-gray-900">
-                    {isInternal ? "Uso Interno (Staff)" : "Acceso Público"}
+                  <Hash className={cn("w-4 h-4", errors?.max_responses ? "text-red-500" : "text-violet-600")} />
+                  <Label className={cn("text-xs font-black uppercase tracking-widest", errors?.max_responses ? "text-red-600" : "text-gray-900")}>
+                    Límite de Respuestas
                   </Label>
+                  <span className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide", errors?.max_responses ? "bg-red-100 text-red-600" : "bg-violet-100 text-violet-700")}>
+                    Requerido
+                  </span>
                 </div>
                 <Controller
                   control={control}
-                  name="is_internal"
+                  name="max_responses"
                   render={({ field }) => (
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className="data-[state=checked]:bg-emerald-600"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min={1}
+                        placeholder="ej. 100"
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          field.onChange(val === "" ? null : parseInt(val, 10));
+                        }}
+                        className={cn(
+                          "h-10 text-sm font-bold rounded-xl bg-white w-32",
+                          errors?.max_responses ? "border-red-300 focus-visible:ring-red-300" : "border-gray-200"
+                        )}
+                      />
+                      <span className="text-[10px] text-gray-500 font-medium">respuestas máximo</span>
+                    </div>
                   )}
                 />
+                {errors?.max_responses ? (
+                  <p className="text-[10px] text-red-500 font-medium flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" /> {errors.max_responses.message}
+                  </p>
+                ) : (
+                  <p className="text-[10px] text-gray-500 leading-relaxed">
+                    El formulario se cerrará automáticamente al alcanzar este límite.
+                  </p>
+                )}
               </div>
-              <p className="text-[10px] text-gray-500 leading-relaxed">
-                {isInternal
-                  ? "Solo visible para staff autorizado."
-                  : "Accesible mediante enlace público."}
-              </p>
             </div>
 
-            {/* Financial Switch */}
-            <div className="flex flex-col gap-4 p-6 bg-gray-50 rounded-[2rem] border border-gray-100 relative overflow-hidden">
+            {/* Row 2: Financial Switch (full width) */}
+            <div className={cn(
+              "flex flex-col gap-4 p-6 bg-gray-50 rounded-[2rem] border transition-colors relative overflow-hidden",
+              errors?.financial_field_label ? "border-red-300 bg-red-50/30" : "border-gray-100"
+            )}>
               <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-2">
                   {isFinancial ? (
-                    <Banknote className="w-4 h-4 text-amber-600" />
+                    <Banknote className={cn("w-4 h-4", errors?.financial_field_label ? "text-red-500" : "text-amber-600")} />
                   ) : (
                     <Receipt className="w-4 h-4 text-gray-400" />
                   )}
-                  <Label className="text-xs font-black uppercase tracking-widest text-gray-900">
+                  <Label className={cn("text-xs font-black uppercase tracking-widest", errors?.financial_field_label ? "text-red-600" : "text-gray-900")}>
                     Conciliación Financiera
                   </Label>
                 </div>
@@ -265,8 +330,8 @@ const FormHeader = ({
 
               {isFinancial ? (
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                  <p className="text-[10px] font-bold text-amber-600/80 uppercase tracking-wide">
-                    Selecciona el comprobante
+                  <p className={cn("text-[10px] font-bold uppercase tracking-wide", errors?.financial_field_label ? "text-red-500" : "text-amber-600/80")}>
+                    {errors?.financial_field_label ? "⚠ Debes seleccionar el campo del comprobante" : "Selecciona el comprobante"}
                   </p>
                   <Controller
                     control={control}
@@ -276,8 +341,11 @@ const FormHeader = ({
                         onValueChange={field.onChange}
                         value={field.value || ""}
                       >
-                        <SelectTrigger className="h-10 overflow-clip whitespace-nowrap w-full bg-white border-amber-200/50 text-xs font-medium rounded-xl">
-                          <SelectValue placeholder="Campo de la foto..." />
+                        <SelectTrigger className={cn(
+                          "h-10 overflow-clip whitespace-nowrap w-full bg-white text-xs font-medium rounded-xl",
+                          errors?.financial_field_label ? "border-red-300 ring-1 ring-red-300" : "border-amber-200/50"
+                        )}>
+                          <SelectValue placeholder="Campo de la foto del comprobante..." />
                         </SelectTrigger>
                         <SelectContent align="left">
                           {receiptFields.length > 0 ? (
@@ -287,18 +355,24 @@ const FormHeader = ({
                               </SelectItem>
                             ))
                           ) : (
-                            <div className="p-2 text-[10px] text-gray-400 text-center">
-                              No hay campos de imagen
+                            <div className="p-3 text-[10px] text-gray-400 text-center space-y-1">
+                              <p className="font-bold text-gray-500">No hay campos de imagen/archivo</p>
+                              <p>Añade una pregunta de tipo &quot;Imagen&quot; o &quot;Archivo&quot; al formulario primero.</p>
                             </div>
                           )}
                         </SelectContent>
                       </Select>
                     )}
                   />
+                  {errors?.financial_field_label && (
+                    <p className="text-[10px] text-red-500 font-medium flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> {errors.financial_field_label.message}
+                    </p>
+                  )}
                 </div>
               ) : (
                 <p className="text-[10px] text-gray-500 leading-relaxed">
-                  Activa esto si el formulario recibe comprobantes de pago.
+                  Activa esto si el formulario recibe comprobantes de pago para procesarlos con IA.
                 </p>
               )}
             </div>
@@ -350,6 +424,82 @@ const FormHeader = ({
   );
 };
 
+const CheckItem = ({ done, label, sublabel, onClick }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={cn(
+      "flex items-start gap-3 p-4 rounded-2xl border text-left w-full transition-all",
+      done
+        ? "bg-[var(--puembo-green)]/5 border-[var(--puembo-green)]/20"
+        : "bg-amber-50/50 border-amber-200/50 hover:bg-amber-50 hover:border-amber-300",
+    )}
+  >
+    {done ? (
+      <CheckCircle2 className="w-5 h-5 text-[var(--puembo-green)] shrink-0 mt-0.5" />
+    ) : (
+      <Circle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+    )}
+    <div>
+      <p className={cn("text-xs font-bold", done ? "text-gray-600" : "text-amber-700")}>{label}</p>
+      {sublabel && <p className="text-[10px] text-gray-400 mt-0.5">{sublabel}</p>}
+    </div>
+  </button>
+);
+
+const OnboardingChecklist = ({ errors, watch, onActivateHeader }) => {
+  const title = watch("title");
+  const maxResponses = watch("max_responses");
+  const isFinancial = watch("is_financial");
+  const financialLabel = watch("financial_field_label");
+
+  const hasTitle = title && title.length >= 3;
+  const hasMaxResponses = maxResponses && maxResponses >= 1;
+  const financialOk = !isFinancial || (isFinancial && !!financialLabel);
+
+  return (
+    <div className="border-2 border-dashed border-gray-200 rounded-[3rem] bg-white/60 backdrop-blur-sm p-10 flex flex-col items-center gap-8">
+      <div className="relative">
+        <div className="p-8 bg-white rounded-[2.5rem] shadow-xl border border-gray-100 text-gray-200">
+          <Layout className="w-16 h-16" />
+        </div>
+        <div className="absolute -bottom-2 -right-2 bg-[var(--puembo-green)] p-3 rounded-2xl shadow-lg text-white animate-bounce">
+          <Plus className="w-6 h-6" />
+        </div>
+      </div>
+
+      <div className="w-full max-w-sm space-y-3">
+        <h3 className="text-gray-700 font-bold font-serif text-xl tracking-tight text-center mb-4">
+          Configura tu formulario
+        </h3>
+        <CheckItem
+          done={hasTitle}
+          label={hasTitle ? "Título configurado" : "Añade un título al formulario"}
+          sublabel={!hasTitle ? "Haz clic en la tarjeta de arriba para editarlo" : null}
+          onClick={onActivateHeader}
+        />
+        <CheckItem
+          done={hasMaxResponses}
+          label={hasMaxResponses ? `Límite: ${maxResponses} respuestas` : "Define el límite de respuestas"}
+          sublabel={!hasMaxResponses ? "Requerido — el formulario se cerrará automáticamente" : null}
+          onClick={onActivateHeader}
+        />
+        <CheckItem
+          done={financialOk}
+          label={financialOk ? "Configuración financiera lista" : "Selecciona el campo del comprobante"}
+          sublabel={!financialOk ? "La conciliación financiera requiere un campo de imagen" : null}
+          onClick={onActivateHeader}
+        />
+        <div className="pt-2 text-center">
+          <p className="text-[11px] text-gray-400 leading-relaxed">
+            Una vez configurado el encabezado, añade preguntas con el menú lateral.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function FormCanvas({
   fields,
   activeFieldId,
@@ -360,7 +510,7 @@ export default function FormCanvas({
   onDelete,
   errors,
 }) {
-  const { control } = useFormContext();
+  const { control, watch } = useFormContext();
   // Use useWatch for much better performance and real-time updates of nested fields
   const watchedFields = useWatch({
     control,
@@ -432,6 +582,7 @@ export default function FormCanvas({
         headerFile={headerFile}
         setHeaderFile={setHeaderFile}
         error={!!errors?.title}
+        errors={errors}
         fields={fields}
       />
 
@@ -461,25 +612,7 @@ export default function FormCanvas({
           })}
 
           {fields.length === 0 && (
-            <div className="text-center py-32 border-2 border-dashed border-gray-200 rounded-[3rem] bg-white/40 backdrop-blur-sm flex flex-col items-center gap-8 hover:bg-white/60 transition-all group">
-              <div className="relative">
-                <div className="p-8 bg-white rounded-[2.5rem] shadow-xl border border-gray-100 text-gray-200 group-hover:scale-110 transition-transform duration-500">
-                  <Layout className="w-16 h-16" />
-                </div>
-                <div className="absolute -bottom-2 -right-2 bg-[var(--puembo-green)] p-3 rounded-2xl shadow-lg text-white animate-bounce">
-                  <Plus className="w-6 h-6" />
-                </div>
-              </div>
-              <div className="space-y-3 max-w-sm px-10">
-                <h3 className="text-gray-600 font-bold font-serif text-2xl tracking-tight">
-                  Crea tu primer bloque
-                </h3>
-                <p className="text-sm text-gray-400 leading-relaxed">
-                  Añade preguntas o secciones usando el menú lateral para dar
-                  forma a tu formulario.
-                </p>
-              </div>
-            </div>
+            <OnboardingChecklist errors={errors} watch={watch} onActivateHeader={() => onActivateField("header")} />
           )}
         </div>
       </SortableContext>

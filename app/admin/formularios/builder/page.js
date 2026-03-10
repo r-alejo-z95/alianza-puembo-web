@@ -64,7 +64,7 @@ function BuilderContent() {
   const handleSave = async (formData, imageFile) => {
     setSaving(true);
     const supabase = createClient();
-    const { title, description, fields, image_url: formImageUrl, is_internal, is_financial, financial_field_label } = formData;
+    const { title, description, fields, image_url: formImageUrl, is_internal, is_financial, financial_field_label, max_responses } = formData;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -78,7 +78,7 @@ function BuilderContent() {
       if (!currentFormId) {
         const { data: newForm, error: formError } = await supabase
           .from("forms")
-          .insert([{ title, description, user_id: user?.id, slug, is_internal, is_financial, financial_field_label }])
+          .insert([{ title, description, user_id: user?.id, slug, is_internal, is_financial, financial_field_label, max_responses: max_responses ?? null }])
           .select()
           .single();
 
@@ -170,7 +170,7 @@ function BuilderContent() {
       // 3. Update Form Metadata
       const { error: metaErr } = await supabase
         .from("forms")
-        .update({ title, description, image_url: imageUrl, slug, is_internal, is_financial, financial_field_label })
+        .update({ title, description, image_url: imageUrl, slug, is_internal, is_financial, financial_field_label, max_responses: max_responses ?? null })
         .eq("id", currentFormId);
       if (metaErr) throw metaErr;
 

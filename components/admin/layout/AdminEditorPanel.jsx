@@ -17,6 +17,8 @@ import {
   DrawerDescription,
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /**
  * AdminEditorPanel
@@ -41,31 +43,43 @@ export function AdminEditorPanel({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
           className={cn(
-            "sm:max-w-2xl w-full p-0 flex flex-col border-none shadow-2xl overflow-hidden [&>button]:hidden",
+            "sm:max-w-xl w-full p-0 flex flex-col border-none shadow-2xl overflow-hidden [&>button]:hidden z-[200]",
             className,
           )}
           side="right"
           {...props}
         >
-          <div className={cn("bg-black p-8 md:p-10 shrink-0", headerClassName)}>
-            <SheetHeader className="space-y-4 text-left">
-              <div className="flex items-center gap-3">
-                <div className="h-px w-8 bg-[var(--puembo-green)]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
-                  Editor de Contenido
-                </span>
+          <div className={cn("bg-black px-8 pt-8 pb-6 shrink-0 relative", headerClassName)}>
+            <SheetHeader className="space-y-3 text-left">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="h-px w-8 bg-[var(--puembo-green)]" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+                    Editor de Contenido
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onOpenChange(false)}
+                  className="rounded-xl h-9 w-9 text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
-              <SheetTitle className="text-3xl md:text-4xl font-serif font-bold text-white leading-tight">
+              <SheetTitle className="text-2xl md:text-3xl font-serif font-bold text-white leading-tight">
                 {title}
               </SheetTitle>
               {description && (
-                <SheetDescription className="text-gray-400 font-light">
+                <SheetDescription className="text-gray-400 text-xs font-light leading-relaxed">
                   {description}
                 </SheetDescription>
               )}
             </SheetHeader>
+            {/* Visual separator: green accent line */}
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-[var(--puembo-green)]/40 via-[var(--puembo-green)]/10 to-transparent" />
           </div>
-          <div className="flex-grow overflow-y-auto custom-scrollbar bg-white">
+          <div className="flex-1 min-h-0 overflow-hidden bg-[#F8F9FA] custom-scrollbar flex flex-col">
             {children}
           </div>
         </SheetContent>
@@ -77,29 +91,30 @@ export function AdminEditorPanel({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent
-        className={cn("max-h-[96vh] flex flex-col z-400 bg-black", className)}
+        className={cn("max-h-[92vh] flex flex-col z-[400] bg-black", className)}
       >
         <div
-          className={cn("rounded-3xl bg-black p-6 shrink-0", headerClassName)}
+          className={cn("bg-black px-6 pt-5 pb-4 shrink-0 relative", headerClassName)}
         >
           <DrawerHeader className="space-y-2 text-left p-0">
             <div className="flex items-center gap-3">
-              <div className="h-px w-8 bg-[var(--puembo-green)]" />
+              <div className="h-px w-6 bg-[var(--puembo-green)]" />
               <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
-                Editor Móvil
+                Editor
               </span>
             </div>
-            <DrawerTitle className="text-2xl font-serif font-bold text-white leading-tight">
+            <DrawerTitle className="text-xl font-serif font-bold text-white leading-tight">
               {title}
             </DrawerTitle>
             {description && (
-              <DrawerDescription className="text-gray-400 text-xs font-light">
+              <DrawerDescription className="text-gray-400 text-[10px] font-light leading-relaxed">
                 {description}
               </DrawerDescription>
             )}
           </DrawerHeader>
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-[var(--puembo-green)]/40 via-[var(--puembo-green)]/10 to-transparent" />
         </div>
-        <div className="flex-grow overflow-y-auto bg-white p-6 pb-12">
+        <div className="flex-1 min-h-0 overflow-hidden bg-[#F8F9FA] flex flex-col">
           {children}
         </div>
       </DrawerContent>

@@ -20,6 +20,7 @@ import {
   FileSpreadsheet,
   BarChart3,
   RefreshCw,
+  Hash,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -256,6 +257,16 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
                 <Calendar className="w-3 h-3 text-[var(--puembo-green)]/50" /> {formattedDate}
             </div>
             <div className="flex items-center gap-2 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
+                {!isEnabled && form.max_responses && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Hash className="w-3 h-3 text-violet-500" />
+                      </TooltipTrigger>
+                      <TooltipContent>Cerrado automáticamente: límite de {form.max_responses} respuestas alcanzado</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
                 <span className={cn("text-[8px] font-black uppercase tracking-widest", isEnabled ? "text-emerald-600" : "text-gray-400")}>
                     {isEnabled ? "Activo" : "Cerrado"}
                 </span>
@@ -301,9 +312,21 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
       <TableCell className="px-8 py-6 text-center">
         <div className="flex flex-col items-center gap-1">
             <Switch checked={isEnabled} onCheckedChange={handleToggleEnabled} disabled={isUpdating} className="scale-75 cursor-pointer" />
-            <span className={cn("text-[8px] font-black uppercase tracking-widest", isEnabled ? "text-emerald-600" : "text-gray-400")}>
-                {isEnabled ? "Activo" : "Deshabilitado"}
-            </span>
+            <div className="flex items-center gap-1">
+              {!isEnabled && form.max_responses && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Hash className="w-3 h-3 text-violet-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>Cerrado automáticamente: límite de {form.max_responses} respuestas alcanzado</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+              <span className={cn("text-[8px] font-black uppercase tracking-widest", isEnabled ? "text-emerald-600" : "text-gray-400")}>
+                  {isEnabled ? "Activo" : "Cerrado"}
+              </span>
+            </div>
         </div>
       </TableCell>
       {!isInternalView && (
