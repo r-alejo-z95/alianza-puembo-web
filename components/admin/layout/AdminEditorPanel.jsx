@@ -79,7 +79,7 @@ export function AdminEditorPanel({
             {/* Visual separator: green accent line */}
             <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-[var(--puembo-green)]/40 via-[var(--puembo-green)]/10 to-transparent" />
           </div>
-          <div className="flex-1 min-h-0 overflow-hidden bg-[#F8F9FA] custom-scrollbar flex flex-col">
+          <div className="flex-1 min-h-0 overflow-y-auto bg-[#F8F9FA] custom-scrollbar flex flex-col">
             {children}
           </div>
         </SheetContent>
@@ -114,7 +114,7 @@ export function AdminEditorPanel({
           </DrawerHeader>
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-[var(--puembo-green)]/40 via-[var(--puembo-green)]/10 to-transparent" />
         </div>
-        <div className="flex-1 min-h-0 overflow-hidden bg-[#F8F9FA] flex flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto bg-[#F8F9FA] flex flex-col">
           {children}
         </div>
       </DrawerContent>
