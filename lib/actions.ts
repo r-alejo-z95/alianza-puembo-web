@@ -802,7 +802,7 @@ export async function submitFormAction(payload: {
         .eq("form_id", formId);
 
       if ((newCount ?? 0) >= form.max_responses) {
-        await supabaseAdmin.from("forms").update({ enabled: false }).eq("id", formId);
+        await supabaseAdmin.from("forms").update({ enabled: false, closed_by_limit: true }).eq("id", formId);
         revalidateTag("forms");
         console.log(`[Submit] Límite alcanzado con esta respuesta. Formulario ${form.slug} deshabilitado automáticamente.`);
       }

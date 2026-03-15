@@ -24,6 +24,7 @@ import {
   adminPageSection,
   adminPageHeaderContainer,
 } from "@/lib/styles.ts";
+import Link from "next/link";
 import {
   Loader2,
   Settings,
@@ -44,6 +45,7 @@ import {
   ChevronRight,
   Shield,
   Edit2,
+  Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 import { formatInEcuador } from "@/lib/date-utils";
@@ -384,6 +386,29 @@ export default function PreferenciasPage() {
                           />
                         </div>
                       </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+                  <div className="bg-black p-8">
+                    <div className="flex items-center gap-3">
+                      <Wrench className="w-5 h-5 text-[var(--puembo-green)]" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">Herramientas de Recuperación</span>
+                    </div>
+                  </div>
+                  <CardContent className="p-8 md:p-10">
+                    <div className="flex items-center justify-between gap-6">
+                      <div className="space-y-1">
+                        <p className="text-xs font-black text-gray-900 uppercase tracking-widest">Recuperar Recibos Financieros</p>
+                        <p className="text-[11px] text-gray-500 leading-relaxed max-w-sm">
+                          Inscripciones de formularios financieros que no tienen comprobante de pago procesado. Permite subir el archivo manualmente y procesarlo con IA.
+                        </p>
+                      </div>
+                      <Link href="/admin/preferencias/recuperar-recibos">
+                        <Button variant="outline" className="shrink-0 rounded-full border-gray-200 text-xs font-black uppercase tracking-widest h-10 px-5 hover:bg-black hover:text-white hover:border-black transition-all">
+                          Abrir <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                        </Button>
+                      </Link>
                     </div>
                   </CardContent>
                 </Card>

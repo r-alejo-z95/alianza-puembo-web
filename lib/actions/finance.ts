@@ -4,6 +4,8 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import * as XLSX from "xlsx";
 import { extractReceiptData, parseBankStatementWithAI } from "@/lib/services/ai-reconciliation";
 import { revalidatePath } from "next/cache";
+import { verifySuperAdmin } from "@/lib/auth/guards";
+import { uploadReceipt } from "@/lib/actions";
 
 /**
  * Step 1: Initialize a bank report
@@ -433,5 +435,96 @@ export async function addMultipartPayment(payload: {
   } catch (error: any) {
     console.error("Error en addMultipartPayment:", error);
     return { error: error.message || "Error al registrar el pago" };
+  }
+}
+
+/**
+ * Super-admin only: properly recovers a submission that is missing its financial receipt.
+ * Uploads the file to the finance_receipts bucket, updates form_submissions.data with
+ * financial_receipt_path, runs AI extraction, and creates the form_submission_payments record.
+ */
+export async function reprocessSubmissionWithReceipt(formData: FormData) {
+  await verifySuperAdmin();
+
+  const submissionId = formData.get("submissionId") as string;
+  const formSlug = formData.get("formSlug") as string;
+  const financialFieldLabel = formData.get("financialFieldLabel") as string;
+
+  if (!submissionId || !formSlug || !financialFieldLabel) {
+    return { error: "Datos incompletos" };
+  }
+
+  const supabaseAdmin = createAdminClient();
+
+  try {
+    // 1. Upload file to finance_receipts bucket
+    const uploadResult = await uploadReceipt(formData);
+    if ("error" in uploadResult || !uploadResult.fullPath) {
+      return { error: uploadResult.error ?? "Error al subir el archivo" };
+    }
+    const { fullPath } = uploadResult;
+
+    // 2. Fetch current submission data
+    const { data: submission, error: fetchErr } = await supabaseAdmin
+      .from("form_submissions")
+      .select("data")
+      .eq("id", submissionId)
+      .single();
+
+    if (fetchErr || !submission) {
+      return { error: "No se encontró la inscripción" };
+    }
+
+    // 3. Merge financial_receipt_path into the field object (preserve existing metadata)
+    const currentData = submission.data as Record<string, any>;
+    const existingFieldValue = currentData[financialFieldLabel];
+    const updatedFieldValue =
+      existingFieldValue && typeof existingFieldValue === "object"
+        ? { ...existingFieldValue, financial_receipt_path: fullPath }
+        : { _type: "file", info: "Archivo en Drive", financial_receipt_path: fullPath };
+
+    const updatedData = { ...currentData, [financialFieldLabel]: updatedFieldValue };
+
+    const { error: updateErr } = await supabaseAdmin
+      .from("form_submissions")
+      .update({ data: updatedData })
+      .eq("id", submissionId);
+
+    if (updateErr) throw updateErr;
+
+    // 4. Run AI extraction
+    let aiData = null;
+    const storagePath = fullPath.replace("finance_receipts/", "");
+    const { data: fileBlob, error: dlErr } = await supabaseAdmin.storage
+      .from("finance_receipts")
+      .download(storagePath);
+
+    if (!dlErr && fileBlob) {
+      try {
+        const buffer = await fileBlob.arrayBuffer();
+        aiData = await extractReceiptData(Buffer.from(buffer).toString("base64"), fileBlob.type);
+      } catch (aiErr) {
+        console.error("[Reprocess-AI] Error Gemini:", aiErr);
+      }
+    }
+
+    // 5. Create form_submission_payments record
+    const { data: payment, error: payErr } = await supabaseAdmin
+      .from("form_submission_payments")
+      .insert([{
+        submission_id: submissionId,
+        receipt_path: fullPath,
+        extracted_data: aiData,
+        status: aiData?.is_valid_receipt ? "pending" : "manual_review",
+      }])
+      .select()
+      .single();
+
+    if (payErr) throw payErr;
+
+    return { success: true, payment };
+  } catch (error: any) {
+    console.error("Error en reprocessSubmissionWithReceipt:", error);
+    return { error: error.message || "Error al reprocesar la inscripción" };
   }
 }

@@ -30,6 +30,16 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -215,6 +225,7 @@ export default function FormBuilder({
   const [activeFieldId, setActiveFieldId] = useState("header");
   const [headerFile, setHeaderFile] = useState(null);
   const [activeDragId, setActiveDragId] = useState(null);
+  const [pendingDeleteIndex, setPendingDeleteIndex] = useState(null);
 
   // Panel Control (Single Drawer for everything)
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -473,14 +484,32 @@ export default function FormBuilder({
     [form, insert, scrollToField],
   );
 
-  const handleDeleteField = useCallback(
+  const confirmDeleteField = useCallback(
     (index) => {
       const fieldId = fields[index]?.id;
       remove(index);
       if (activeFieldId === fieldId) setActiveFieldId(null);
+      // If this was the financial field, clear the financial_field_label
+      const financialLabel = form.getValues("financial_field_label");
+      if (financialLabel && fields[index]?.label === financialLabel) {
+        form.setValue("financial_field_label", "");
+      }
       toast.info("Elemento eliminado");
     },
-    [remove, fields, activeFieldId],
+    [remove, fields, activeFieldId, form],
+  );
+
+  const handleDeleteField = useCallback(
+    (index) => {
+      const financialLabel = form.getValues("financial_field_label");
+      const isFinancial = form.getValues("is_financial");
+      if (isFinancial && financialLabel && fields[index]?.label === financialLabel) {
+        setPendingDeleteIndex(index);
+        return;
+      }
+      confirmDeleteField(index);
+    },
+    [fields, form, confirmDeleteField],
   );
 
   const onInvalid = useCallback(
@@ -594,6 +623,27 @@ export default function FormBuilder({
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#F8F9FA] pb-32">
+      <AlertDialog open={pendingDeleteIndex !== null} onOpenChange={(open) => { if (!open) setPendingDeleteIndex(null); }}>
+        <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+          <AlertDialogHeader className="space-y-4">
+            <AlertDialogTitle className="text-xl font-black text-gray-900">
+              ¿Eliminar la pregunta del comprobante?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500 leading-relaxed">
+              Esta pregunta está configurada como la que captura el comprobante financiero. Si la eliminas, tendrás que seleccionar otra o el formulario quedará sin configuración financiera completa.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="pt-6">
+            <AlertDialogCancel className="rounded-full border-gray-100">Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-full bg-red-500 hover:bg-red-600"
+              onClick={() => { confirmDeleteField(pendingDeleteIndex); setPendingDeleteIndex(null); }}
+            >
+              Eliminar de todas formas
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <TooltipProvider>
       {/* Premium Header */}
       <div

@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ImageIcon, Trash2, Layout, Plus, ShieldCheck, Globe, Receipt, Banknote, Hash, AlertCircle, CheckCircle2, Circle } from "lucide-react";
+import { ImageIcon, Trash2, Layout, Plus, ShieldCheck, Globe, Receipt, Banknote, Hash, AlertCircle, CheckCircle2, Circle, ArrowDown } from "lucide-react";
 import QuestionCard from "./QuestionCard";
 import { useRef, useMemo } from "react";
 import RichTextEditor from "../RichTextEditor";
@@ -329,44 +329,66 @@ const FormHeader = ({
 
               {isFinancial ? (
                 <div className="px-4 md:px-6 pb-4 md:pb-6 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300 -mt-1">
-                  <p className={cn("text-[10px] font-bold uppercase tracking-wide", errors?.financial_field_label ? "text-red-500" : "text-amber-600/80")}>
-                    {errors?.financial_field_label ? "⚠ Debes seleccionar el campo del comprobante" : "Selecciona el comprobante"}
-                  </p>
-                  <Controller
-                    control={control}
-                    name="financial_field_label"
-                    render={({ field }) => (
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value || ""}
-                      >
-                        <SelectTrigger className={cn(
-                          "h-10 overflow-clip whitespace-nowrap w-full bg-white text-xs font-medium rounded-xl",
-                          errors?.financial_field_label ? "border-red-300 ring-1 ring-red-300" : "border-amber-200/50"
-                        )}>
-                          <SelectValue placeholder="Campo de la foto del comprobante..." />
-                        </SelectTrigger>
-                        <SelectContent align="left">
-                          {receiptFields.length > 0 ? (
-                            receiptFields.map((f) => (
-                              <SelectItem key={f.id} value={f.label} className="h-10 text-ellipsis overflow-hidden whitespace-nowrap w-full bg-white border-amber-200/50 text-xs font-medium rounded-xl">
-                                {f.label}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <div className="p-3 text-[10px] text-gray-400 text-center space-y-1">
-                              <p className="font-bold text-gray-500">No hay campos de imagen/archivo</p>
-                              <p>Añade una pregunta de tipo &quot;Imagen&quot; o &quot;Archivo&quot; al formulario primero.</p>
+                  {receiptFields.length === 0 ? (
+                    /* No file/image fields exist — prominent amber banner */
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-2">
+                      <p className="text-[11px] font-black text-amber-700 flex items-center gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        Falta una pregunta de tipo archivo
+                      </p>
+                      <p className="text-[10px] text-amber-600/90 leading-relaxed">
+                        Para procesar comprobantes necesitas agregar una pregunta de tipo <strong>Imagen</strong> o <strong>Archivo</strong> al formulario. Luego podrás seleccionarla aquí.
+                      </p>
+                      <div className="flex items-center gap-1.5 pt-0.5">
+                        <ArrowDown className="w-3 h-3 text-amber-500 animate-bounce" />
+                        <span className="text-[10px] font-bold text-amber-600">Agrega la pregunta en el formulario de abajo</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <Controller
+                        control={control}
+                        name="financial_field_label"
+                        render={({ field }) => {
+                          const isUnselected = !field.value && !errors?.financial_field_label;
+                          return (
+                            <div className="space-y-1.5">
+                              {isUnselected && (
+                                <p className="text-[10px] font-bold text-amber-600 flex items-center gap-1 animate-pulse">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                  Selecciona cuál pregunta captura el comprobante
+                                </p>
+                              )}
+                              {errors?.financial_field_label && (
+                                <p className="text-[10px] font-bold text-red-500 flex items-center gap-1">
+                                  <AlertCircle className="w-3 h-3 shrink-0" />
+                                  Debes seleccionar el campo del comprobante
+                                </p>
+                              )}
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
+                                <SelectTrigger className={cn(
+                                  "h-10 overflow-clip whitespace-nowrap w-full bg-white text-xs font-medium rounded-xl",
+                                  errors?.financial_field_label
+                                    ? "border-red-300 ring-1 ring-red-300"
+                                    : isUnselected
+                                    ? "border-amber-300 ring-1 ring-amber-200"
+                                    : "border-amber-200/50"
+                                )}>
+                                  <SelectValue placeholder="Campo de la foto del comprobante..." />
+                                </SelectTrigger>
+                                <SelectContent align="left">
+                                  {receiptFields.map((f) => (
+                                    <SelectItem key={f.id} value={f.label} className="h-10 text-ellipsis overflow-hidden whitespace-nowrap w-full bg-white border-amber-200/50 text-xs font-medium rounded-xl">
+                                      {f.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
-                          )}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors?.financial_field_label && (
-                    <p className="text-[10px] text-red-500 font-medium flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3 shrink-0" /> {errors.financial_field_label.message}
-                    </p>
+                          );
+                        }}
+                      />
+                    </>
                   )}
                 </div>
               ) : (

@@ -21,6 +21,7 @@ import {
   BarChart3,
   RefreshCw,
   Hash,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -50,7 +51,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
     setIsUpdating(true);
     const { error } = await supabase
       .from("forms")
-      .update({ enabled: checked })
+      .update({ enabled: checked, closed_by_limit: false })
       .eq("id", form.id);
 
     if (error) {
@@ -244,6 +245,19 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
                 >
                 {form.title}
                 </OverflowCell>
+                {form.is_financial && !form.financial_field_label && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 cursor-default">
+                          <AlertTriangle className="w-2.5 h-2.5 shrink-0" />
+                          Conf. incompleta
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>Formulario financiero sin pregunta de comprobante configurada</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
             </div>
           </div>
           <AuthorAvatar
@@ -257,7 +271,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
                 <Calendar className="w-3 h-3 text-[var(--puembo-green)]/50" /> {formattedDate}
             </div>
             <div className="flex items-center gap-2 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">
-                {!isEnabled && form.max_responses && (
+                {!isEnabled && form.closed_by_limit && (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
@@ -299,7 +313,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
         />
       </TableCell>
       <TableCell className="px-4 py-6 w-1/3">
-        <div className="max-w-[250px]">
+        <div className="max-w-[250px] space-y-1">
           <OverflowCell
             href={viewPath}
             linkText={form.is_internal ? "Abrir formulario" : "Ver formulario"}
@@ -307,13 +321,26 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
           >
             {form.title}
           </OverflowCell>
+          {form.is_financial && !form.financial_field_label && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 cursor-default">
+                    <AlertTriangle className="w-2.5 h-2.5 shrink-0" />
+                    Conf. incompleta
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>Formulario financiero sin pregunta de comprobante configurada</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </TableCell>
       <TableCell className="px-8 py-6 text-center">
         <div className="flex flex-col items-center gap-1">
             <Switch checked={isEnabled} onCheckedChange={handleToggleEnabled} disabled={isUpdating} className="scale-75 cursor-pointer" />
             <div className="flex items-center gap-1">
-              {!isEnabled && form.max_responses && (
+              {!isEnabled && form.closed_by_limit && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
