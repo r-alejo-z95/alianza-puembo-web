@@ -145,6 +145,11 @@ const nextConfig = {
         destination:
           "/involucrate/ministerios/servicio/conexion/redes-de-amor/punto-de-conexion",
       },
+      {
+        source: "/ministerios/the-four",
+        destination:
+          "/involucrate/ministerios/servicio/conexion/redes-de-amor/pescadores/the-four",
+      },
 
       // Servicio - Crecimiento
       {
