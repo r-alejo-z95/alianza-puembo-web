@@ -2,6 +2,7 @@ import Hero from "@/components/public/homepage/Hero";
 import Info from "@/components/public/homepage/Info";
 import Grupos from "@/components/public/homepage/Grupos";
 import Ubicacion from "@/components/public/homepage/Ubicacion";
+import TheFour from "@/components/public/homepage/TheFour";
 import { getYouTubeChannelStatus } from "@/lib/youtube";
 import { getCachedSettings } from "@/lib/data/settings";
 
@@ -21,14 +22,15 @@ export default async function Home() {
 
   return (
     <>
-      <Hero 
-        youtubeStatus={youtubeStatus} 
+      <Hero
+        youtubeStatus={youtubeStatus}
         announcementBar={{
           enabled: settings?.announcement_enabled,
           text: settings?.announcement_text,
           link: settings?.announcement_link
-        }} 
+        }}
       />
+      <TheFour />
       <Info />
       <Grupos />
       <Ubicacion youtubeStatus={youtubeStatus} />
