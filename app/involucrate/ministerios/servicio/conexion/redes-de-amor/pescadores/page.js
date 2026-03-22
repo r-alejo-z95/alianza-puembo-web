@@ -47,6 +47,20 @@ export default function Pescadores() {
     ],
   };
 
+  const herramientaData = {
+    title: "Nuestra Herramienta",
+    items: [
+      {
+        imageUrl: "/the-four/The Four-01.jpg",
+        imageAlt: "The Four — herramienta de evangelismo",
+        itemTitle: "The Four",
+        itemDescription:
+          "Una herramienta para compartir el evangelio de forma positiva, creativa y comprensible.",
+        href: "/ministerios/the-four",
+      },
+    ],
+  };
+
   return (
     <PublicPageLayout
       title="Pescadores"
@@ -55,17 +69,18 @@ export default function Pescadores() {
       imageAlt="Pescadores"
       introSectionData={introSectionData}
     >
-      <MinistryNavigation 
+      <MinistryNavigation
         hierarchy={[
           { name: "Servicio", href: "/ministerios/servicio" },
           { name: "Conexión", href: "/ministerios/conexion" },
           { name: "Redes de Amor", href: "/ministerios/redes-de-amor" },
         ]}
         current="Pescadores"
-        backLink="/ministerios/redes-de-amor" 
-        backLabel="Volver a Redes de Amor" 
+        backLink="/ministerios/redes-de-amor"
+        backLabel="Volver a Redes de Amor"
       />
       <MinistryContentSection {...focusAreasData} />
+      <MinistryContentSection {...herramientaData} />
     </PublicPageLayout>
   );
 }
