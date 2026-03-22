@@ -190,6 +190,13 @@ export const menuItems = [
                         name: "Pescadores",
                         href: "/ministerios/pescadores",
                         description: "Alcanzando vidas para Cristo",
+                        subroutes: [
+                          {
+                            name: "The Four",
+                            href: "/ministerios/the-four",
+                            description: "Cuatro verdades para compartir tu fe",
+                          },
+                        ],
                       },
                       {
                         name: "Punto de Conexión",
