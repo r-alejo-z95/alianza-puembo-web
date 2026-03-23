@@ -7,26 +7,43 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Share2, ChevronRight } from "lucide-react";
 
+const icons = [
+  { src: "/the-four/The Four_Corazon_Blanco.png", alt: "Dios me ama" },
+  { src: "/the-four/The Four_Division_Blanco.png", alt: "Vivo separado de Dios" },
+  { src: "/the-four/The Four_Cruz_Blanco.png", alt: "Jesús murió por mí" },
+  { src: "/the-four/The Four_Pregunta_Blanco.png", alt: "¿Elegiré seguir a Jesús?" },
+];
+
 export default function TheFour() {
   const router = useRouter();
 
   return (
-    <section className="relative w-full h-screen min-h-[500px] md:h-[80vh] flex flex-col overflow-hidden bg-black">
-      <Image
-        src="/the-four/The Four-01.jpg"
-        alt="The Four — cuatro verdades del evangelio"
-        fill
-        sizes="(max-width: 768px) 100vw, 1200px"
-        className="object-cover object-center scale-105"
-        quality={90}
-      />
+    <section className="relative w-full h-screen min-h-[500px] md:h-[80vh] flex flex-col overflow-hidden bg-[var(--puembo-green)]">
 
-      <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent" />
+      {/* Desktop: 4 icons spanning full width as background */}
+      <div className="absolute inset-0 hidden md:flex">
+        {icons.map((icon) => (
+          <div key={icon.alt} className="relative flex-1 h-full">
+            <Image src={icon.src} alt={icon.alt} fill className="object-contain p-8 lg:p-12 opacity-85" />
+          </div>
+        ))}
+      </div>
+
+      {/* Mobile: 2×2 grid filling full section */}
+      <div className="absolute inset-0 md:hidden grid grid-cols-2">
+        {icons.map((icon) => (
+          <div key={icon.alt} className="relative">
+            <Image src={icon.src} alt={icon.alt} fill className="object-contain p-5 opacity-85" />
+          </div>
+        ))}
+      </div>
+
+      <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent z-10" />
 
       <div
         className={cn(
           sectionPx,
-          "relative z-10 w-full h-full flex items-center pt-10 md:pt-0"
+          "relative z-20 w-full h-full flex items-center pt-10 md:pt-0"
         )}
       >
         <div className="max-w-2xl space-y-8 md:space-y-10">
@@ -75,7 +92,7 @@ export default function TheFour() {
         </div>
       </div>
 
-      <div className="absolute bottom-12 right-12 hidden md:block">
+      <div className="absolute bottom-12 right-12 hidden md:block z-20">
         <div className="flex items-center gap-6">
           <div className="h-px w-24 bg-white/20" />
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">
