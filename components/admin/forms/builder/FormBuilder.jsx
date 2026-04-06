@@ -642,11 +642,11 @@ export default function FormBuilder({
     <div ref={containerRef} className="min-h-screen bg-[#F8F9FA] pb-32">
       {/* Confirmation Save Modal */}
       <AlertDialog open={isConfirmSaveOpen} onOpenChange={setIsConfirmSaveOpen}>
-        <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden max-w-lg">
+        <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl p-0 max-w-lg max-h-[90vh] overflow-y-auto">
           <VisuallyHidden>
             <AlertDialogTitle>Confirmar Guardado de Formulario</AlertDialogTitle>
           </VisuallyHidden>
-          <div className="bg-black p-8 text-white">
+          <div className="bg-black p-8 text-white rounded-t-[2.5rem]">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 rounded-2xl bg-[var(--puembo-green)] flex items-center justify-center shrink-0">
                 <Save className="w-6 h-6 text-black" />
@@ -699,13 +699,13 @@ export default function FormBuilder({
               {pendingSaveData?.is_financial && (
                 <div className="bg-[var(--puembo-green)]/10 rounded-2xl p-4 border border-[var(--puembo-green)]/20">
                   <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)] mb-1">Campo de Comprobante</p>
-                  <p className="text-xs font-medium text-[var(--puembo-green)] truncate">{pendingSaveData?.financial_field_label}</p>
+                  <p className="text-xs font-medium text-[var(--puembo-green)] break-words">{pendingSaveData?.financial_field_label}</p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="p-6 bg-white flex gap-3">
+          <div className="p-6 bg-white flex gap-3 rounded-b-[2.5rem]">
             <Button 
               variant="ghost" 
               onClick={() => setIsConfirmSaveOpen(false)}
