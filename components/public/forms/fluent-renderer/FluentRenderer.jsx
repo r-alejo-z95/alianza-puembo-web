@@ -786,7 +786,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
           if (jId) {
             const tIdx = stepFields.findIndex((f) => f.id === jId);
             if (tIdx > idx) { idx = tIdx; loopJump = jId; continue; }
-            else if (tIdx === -1) break;
+            else if (tIdx === -1) { idx++; continue; } // jump target is in another step — don't break
           }
           idx++;
         }
