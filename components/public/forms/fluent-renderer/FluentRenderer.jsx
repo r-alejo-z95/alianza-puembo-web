@@ -122,15 +122,13 @@ function useFormLogic(form) {
       groups.push(currentGroup);
     }
 
-    // Paso Virtual de Notificación para formularios públicos
-    if (!form.is_internal) {
+    // Paso Virtual de Notificación para formularios públicos FINANCIEROS
+    if (!form.is_internal && form.is_financial) {
       groups.push({
         section: {
           id: "virtual-notification",
           label: "Contacto de Seguimiento",
-          help_text: form.is_financial 
-            ? "Para procesar tu pago y enviarte tu código de seguimiento, necesitamos un correo electrónico de contacto."
-            : "Indica un correo electrónico donde podamos enviarte actualizaciones sobre tu inscripción."
+          help_text: "Para procesar tu pago y enviarte tu código de seguimiento, necesitamos un correo electrónico de contacto."
         },
         fields: [{
           id: "notification-email-field",
@@ -138,7 +136,7 @@ function useFormLogic(form) {
           label: "Correo para Notificaciones",
           placeholder: "ejemplo@correo.com",
           required: true,
-          is_virtual: true // Flag para no guardarlo en el JSONB principal si no queremos, o manejarlo aparte
+          is_virtual: true 
         }]
       });
     }
