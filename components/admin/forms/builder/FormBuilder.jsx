@@ -748,7 +748,7 @@ export default function FormBuilder({
       {/* Premium Header */}
       <div
         className={cn(
-          "sticky top-5 md:top-0 z-[10] w-full rounded-3xl bg-black text-white px-4 md:px-12 py-3 md:py-5 flex flex-row items-center justify-between gap-3 md:gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md bg-black/95 transition-all duration-300 ease-in-out",
+          "sticky top-5 md:top-0 z-[10] w-full rounded-3xl bg-black text-white px-4 md:px-12 py-3 md:py-5 flex flex-row items-center justify-between gap-3 md:gap-6 shadow-[0_10px_40px_rgba(0,0,0,0.1)] backdrop-blur-md transition-all duration-300 ease-in-out",
           !isHeaderVisible
             ? "-translate-y-full opacity-0 pointer-events-none md:translate-y-0 md:opacity-100 md:pointer-events-auto"
             : "translate-y-0 opacity-100",
