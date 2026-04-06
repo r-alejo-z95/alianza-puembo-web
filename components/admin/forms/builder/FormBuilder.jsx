@@ -27,6 +27,10 @@ import {
   ImageIcon,
   FileUp,
   Columns2,
+  ShieldCheck,
+  Globe,
+  Coins,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,6 +43,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
   Tooltip,
   TooltipContent,
@@ -59,11 +64,10 @@ import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 import FormCanvas from "./FormCanvas";
 import FloatingToolbar from "./FloatingToolbar";
-import FluentRenderer from "@/components/public/forms/fluent-renderer/FluentRenderer";
 import QuestionImporter from "./QuestionImporter";
 import { AdminFAB } from "@/components/admin/layout/AdminFAB";
 import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
-import { Card, CardTitle, CardContent } from "@/components/ui/card";
+import { CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 // --- Blocks Picker ---
@@ -226,6 +230,10 @@ export default function FormBuilder({
   const [headerFile, setHeaderFile] = useState(null);
   const [activeDragId, setActiveDragId] = useState(null);
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState(null);
+
+  // Confirm Save Modal
+  const [isConfirmSaveOpen, setIsConfirmSaveOpen] = useState(false);
+  const [pendingSaveData, setPendingSaveData] = useState(null);
 
   // Panel Control (Single Drawer for everything)
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -563,14 +571,23 @@ export default function FormBuilder({
 
   const handleSave = useCallback(
     async (data) => {
-      const orderedFields = data.fields.map((f, index) => ({
-        ...f,
-        order_index: index,
-      }));
-      await onSave({ ...data, fields: orderedFields }, headerFile);
+      setPendingSaveData(data);
+      setIsConfirmSaveOpen(true);
     },
-    [onSave, headerFile],
+    [],
   );
+
+  const confirmSave = async () => {
+    if (!pendingSaveData) return;
+    setIsConfirmSaveOpen(false);
+    
+    const orderedFields = pendingSaveData.fields.map((f, index) => ({
+      ...f,
+      order_index: index,
+    }));
+    await onSave({ ...pendingSaveData, fields: orderedFields }, headerFile);
+    setPendingSaveData(null);
+  };
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -623,6 +640,89 @@ export default function FormBuilder({
 
   return (
     <div ref={containerRef} className="min-h-screen bg-[#F8F9FA] pb-32">
+      {/* Confirmation Save Modal */}
+      <AlertDialog open={isConfirmSaveOpen} onOpenChange={setIsConfirmSaveOpen}>
+        <AlertDialogContent className="rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden max-w-lg">
+          <VisuallyHidden>
+            <AlertDialogTitle>Confirmar Guardado de Formulario</AlertDialogTitle>
+          </VisuallyHidden>
+          <div className="bg-black p-8 text-white">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--puembo-green)] flex items-center justify-center shrink-0">
+                <Save className="w-6 h-6 text-black" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-serif font-bold">¿Guardar cambios?</h2>
+                <p className="text-white/50 text-[10px] uppercase tracking-widest font-black">Revisa el resumen antes de confirmar</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    {pendingSaveData?.is_internal ? (
+                      <ShieldCheck className="w-4 h-4 text-amber-400" />
+                    ) : (
+                      <Globe className="w-4 h-4 text-blue-400" />
+                    )}
+                    <span className="text-[10px] font-black uppercase tracking-tight text-white/40">Visibilidad</span>
+                  </div>
+                  <p className="text-sm font-bold">{pendingSaveData?.is_internal ? "Interno (Staff)" : "Público"}</p>
+                </div>
+
+                <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Coins className="w-4 h-4 text-[var(--puembo-green)]" />
+                    <span className="text-[10px] font-black uppercase tracking-tight text-white/40">Financiero</span>
+                  </div>
+                  <p className="text-sm font-bold">{pendingSaveData?.is_financial ? "Activado" : "Desactivado"}</p>
+                </div>
+
+                <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="w-4 h-4 text-purple-400" />
+                    <span className="text-[10px] font-black uppercase tracking-tight text-white/40">Límite</span>
+                  </div>
+                  <p className="text-sm font-bold">{pendingSaveData?.max_responses || "Sin límite"} registros</p>
+                </div>
+
+                <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Layout className="w-4 h-4 text-pink-400" />
+                    <span className="text-[10px] font-black uppercase tracking-tight text-white/40">Estructura</span>
+                  </div>
+                  <p className="text-sm font-bold">{pendingSaveData?.fields?.length || 0} bloques</p>
+                </div>
+              </div>
+              
+              {pendingSaveData?.is_financial && (
+                <div className="bg-[var(--puembo-green)]/10 rounded-2xl p-4 border border-[var(--puembo-green)]/20">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)] mb-1">Campo de Comprobante</p>
+                  <p className="text-xs font-medium text-[var(--puembo-green)] truncate">{pendingSaveData?.financial_field_label}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="p-6 bg-white flex gap-3">
+            <Button 
+              variant="ghost" 
+              onClick={() => setIsConfirmSaveOpen(false)}
+              className="flex-1 rounded-2xl h-14 font-bold uppercase tracking-widest text-[10px] border-gray-100 hover:bg-gray-50"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={confirmSave}
+              className="flex-[2] rounded-2xl h-14 font-bold uppercase tracking-widest text-[10px] bg-black text-white hover:bg-gray-900 transition-all active:scale-95"
+            >
+              Confirmar y Guardar
+            </Button>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={pendingDeleteIndex !== null} onOpenChange={(open) => { if (!open) setPendingDeleteIndex(null); }}>
         <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
           <AlertDialogHeader className="space-y-4">
