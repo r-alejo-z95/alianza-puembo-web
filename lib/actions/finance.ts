@@ -120,7 +120,7 @@ export async function analyzeFormReceipts(formId: string) {
   try {
     const { data: form } = await supabase
       .from("forms")
-      .select("financial_field_label, financial_field_id, form_fields!form_fields_form_id_fkey(id, label)")
+      .select("financial_field_label, financial_field_id, form_fields!form_id(id, label)")
       .eq("id", formId)
       .single();
 

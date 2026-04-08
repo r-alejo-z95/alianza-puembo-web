@@ -40,7 +40,7 @@ export const getCachedForms = unstable_cache(
     const supabase = createAdminClient();
     let query = supabase
       .from("forms")
-      .select("*, profiles(full_name, email), form_fields(*)")
+      .select("*, profiles(full_name, email), form_fields!form_id(*)")
       .eq("is_archived", false);
 
     if (isInternal !== null) {
@@ -81,7 +81,7 @@ export async function getFormBySlug(slug: string): Promise<Form | null> {
       const supabase = createAdminClient();
       const { data, error } = await supabase
         .from("forms")
-        .select("*, profiles(full_name, email), form_fields(*)")
+        .select("*, profiles(full_name, email), form_fields!form_id(*)")
         .eq("slug", s)
         .eq("is_archived", false)
         .single();

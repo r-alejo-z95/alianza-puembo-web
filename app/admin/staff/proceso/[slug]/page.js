@@ -51,7 +51,7 @@ export default async function StaffFormViewPage({ params }) {
   const supabase = await createClient();
   const { data: form } = await supabase
     .from("forms")
-    .select("*, form_fields(*)")
+    .select("*, form_fields!form_id(*)")
     .eq("slug", slug)
     .eq("is_internal", true)
     .eq("is_archived", false)

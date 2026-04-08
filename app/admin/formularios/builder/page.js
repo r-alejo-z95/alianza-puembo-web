@@ -31,7 +31,7 @@ function BuilderContent() {
         const supabase = createClient();
         let query = supabase
           .from("forms")
-          .select("*, form_fields(*)")
+          .select("*, form_fields!form_id(*)")
           .eq("is_archived", false);
 
         if (formId) {

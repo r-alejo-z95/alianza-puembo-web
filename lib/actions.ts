@@ -694,7 +694,7 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_financial, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_fields_form_id_fkey(id, label)")
+      .select("id, title, slug, is_financial, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label)")
       .eq("id", formId)
       .single();
 
