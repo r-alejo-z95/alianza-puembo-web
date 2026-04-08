@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
+import ExcelJS from "exceljs";
 import {
   BarChart,
   Bar,
@@ -332,6 +333,26 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
     };
   };
 
+  const formatExportValue = (value) => {
+    if (Array.isArray(value)) return value.join(", ");
+    if (value && typeof value === "object") {
+      if (value._type === "file") return value.name || value.url || "";
+      return value.name || value.label || value.url || JSON.stringify(value);
+    }
+    return String(value ?? "");
+  };
+
+  const getExcelColumnLetter = (columnNumber) => {
+    let n = columnNumber;
+    let letter = "";
+    while (n > 0) {
+      const rem = (n - 1) % 26;
+      letter = String.fromCharCode(65 + rem) + letter;
+      n = Math.floor((n - 1) / 26);
+    }
+    return letter;
+  };
+
   // 5. Actions
   async function handleOpenSheet() {
     if (!form.google_sheet_url) return;
@@ -350,28 +371,54 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
     }
   }
 
-  function exportToCSV() {
+  async function exportToXLSX() {
     const dataFields = (form.form_fields ?? []).filter(
       (f) => f.type !== "section_header" && f.type !== "separator" && f.type !== "section"
     );
     const headers = ["Timestamp", ...dataFields.map((f) => f.label)];
     const rows = filteredSubmissions.map((s) => [
       formatInEcuador(s.created_at, "dd/MM/yyyy HH:mm"),
-      ...dataFields.map((f) => {
-        const v = s.data[f.label];
-        if (Array.isArray(v)) return v.join(", ");
-        if (typeof v === "object" && v) return v.name || v.url || "";
-        return String(v ?? "");
-      }),
+      ...dataFields.map((f) => formatExportValue(s.data?.[f.label])),
     ]);
-    const csv = [headers, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = "Alianza Puembo";
+    workbook.created = new Date();
+
+    const worksheet = workbook.addWorksheet("Respuestas", {
+      views: [{ state: "frozen", ySplit: 1, activeCell: "A2" }],
+    });
+
+    worksheet.columns = headers.map((header, index) => ({
+      header,
+      key: `col_${index}`,
+      width: Math.max(18, Math.min(48, header.length + 4)),
+    }));
+
+    rows.forEach((row) => {
+      worksheet.addRow(row);
+    });
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    headerRow.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF111111" },
+    };
+    headerRow.alignment = { vertical: "middle", horizontal: "center" };
+    headerRow.height = 22;
+
+    worksheet.autoFilter = `A1:${getExcelColumnLetter(headers.length)}1`;
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${form.slug}-${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = `${form.slug}-${new Date().toISOString().split("T")[0]}.xlsx`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -417,11 +464,11 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
           <div className="flex flex-wrap items-center gap-3 shrink-0">
             {filteredSubmissions.length > 0 && (
               <button
-                onClick={exportToCSV}
+                onClick={exportToXLSX}
                 className="flex items-center gap-2 h-10 px-5 rounded-full border border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)]/40 transition-all"
               >
                 <Download className="w-3.5 h-3.5" />
-                CSV
+                XLSX
               </button>
             )}
 
