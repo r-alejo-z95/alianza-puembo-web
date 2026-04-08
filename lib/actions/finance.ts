@@ -6,6 +6,7 @@ import { extractReceiptData, parseBankStatementWithAI } from "@/lib/services/ai-
 import { revalidatePath } from "next/cache";
 import { verifySuperAdmin } from "@/lib/auth/guards";
 import { uploadReceipt } from "@/lib/actions";
+import { INVALID_RECEIPT_MESSAGE, validateFinancialReceipt } from "@/lib/services/receipt-validation";
 
 /**
  * Step 1: Initialize a bank report
@@ -33,7 +34,27 @@ export async function initBankReport(filename: string): Promise<{ reportId?: str
 export async function processBankChunk(reportId: string, chunk: any[][], headers: any[]): Promise<{ success: boolean, error?: string }> {
   try {
     const supabase = await createClient();
-    const extracted = await parseBankStatementWithAI(chunk, headers);
+    const normalizedRows = chunk.filter((row) => {
+      const rowText = (Array.isArray(row) ? row : [row])
+        .map((cell) => String(cell ?? ""))
+        .join(" ")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      const commissionKeywords = [
+        "comision",
+        "valor debitado",
+        "debitado",
+        "cargo por",
+        "costo de",
+        "fee",
+      ];
+
+      return !commissionKeywords.some((keyword) => rowText.includes(keyword));
+    });
+
+    const extracted = await parseBankStatementWithAI(normalizedRows, headers);
 
     if (!extracted || extracted.length === 0) return { success: true };
 
@@ -414,7 +435,20 @@ export async function addMultipartPayment(payload: {
         aiData = await extractReceiptData(Buffer.from(buffer).toString('base64'), fileBlob.type);
       } catch (aiErr) {
         console.error("[Multipart-AI] Error Gemini:", aiErr);
+        }
+    }
+
+    const validation = validateFinancialReceipt(aiData);
+    if (!validation.isValid) {
+      const { error: cleanupError } = await supabaseAdmin.storage
+        .from("finance_receipts")
+        .remove([path]);
+
+      if (cleanupError) {
+        console.error("[Multipart-Payment] Error limpiando comprobante inválido:", cleanupError.message);
       }
+
+      return { error: INVALID_RECEIPT_MESSAGE };
     }
 
     // 3. Insertar en la tabla de abonos
@@ -425,7 +459,7 @@ export async function addMultipartPayment(payload: {
         receipt_path: receiptPath,
         extracted_data: aiData,
         amount_claimed: amountClaimed || 0,
-        status: aiData?.is_valid_receipt ? 'pending' : 'manual_review'
+        status: 'pending'
       }])
       .select()
       .single();
@@ -511,6 +545,20 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
       }
     }
 
+    const validation = validateFinancialReceipt(aiData);
+    if (!validation.isValid) {
+      const cleanupPath = fullPath.replace("finance_receipts/", "");
+      const { error: cleanupError } = await supabaseAdmin.storage
+        .from("finance_receipts")
+        .remove([cleanupPath]);
+
+      if (cleanupError) {
+        console.error("[Reprocess] Error limpiando comprobante inválido:", cleanupError.message);
+      }
+
+      return { error: INVALID_RECEIPT_MESSAGE };
+    }
+
     // 5. Create form_submission_payments record
     const { data: payment, error: payErr } = await supabaseAdmin
       .from("form_submission_payments")
@@ -518,7 +566,7 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
         submission_id: submissionId,
         receipt_path: fullPath,
         extracted_data: aiData,
-        status: aiData?.is_valid_receipt ? "pending" : "manual_review",
+        status: "pending",
       }])
       .select()
       .single();

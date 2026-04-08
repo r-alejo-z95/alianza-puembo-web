@@ -138,6 +138,8 @@ export async function parseBankStatementWithAI(rows: any[][], headers: any[]): P
       4. Si no hay una 'Referencia' explícita, usa el número de documento o cualquier identificador único de la fila.
       5. Formato de Moneda: En Ecuador, algunos bancos usan coma para decimales (ej: 10,00 -> 10.00). Asegúrate de devolver un número válido.
       6. No omitas ningún ingreso por pequeño que sea.
+      7. Si aparece una línea de comisión, cargo, débito, valor debitado o total debitado, IGNÓRALA por completo.
+      8. Cuando una transacción tenga una comisión separada, extrae solo el monto real de la transferencia o depósito, nunca el monto debitado total con cargos.
       
       Filas a procesar:
       ${JSON.stringify(rows)}

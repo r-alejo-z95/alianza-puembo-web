@@ -191,14 +191,34 @@ export async function sendSystemNotification({
 /**
  * Envía el email de confirmación y seguimiento al usuario que se inscribe.
  */
-export async function sendConfirmationEmail(email: string, formTitle: string, accessToken: string) {
+export async function sendConfirmationEmail(
+  email: string,
+  payload: {
+    formTitle: string;
+    accessToken: string;
+    paymentType: "single" | "installments" | null;
+    totalAmount: number;
+    amountPaid: number;
+    remainingBalance: number;
+  },
+) {
   try {
-    const trackingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://alianzapuembo.org'}/inscripcion/${accessToken}`;
-    
+    if (payload.paymentType !== "installments" || payload.remainingBalance <= 0) {
+      return { success: true, skipped: true };
+    }
+
+    const trackingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://alianzapuembo.org"}/inscripcion/${payload.accessToken}`;
+    const formatMoney = (value: number) =>
+      new Intl.NumberFormat("es-EC", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      }).format(value || 0);
+
     await resend.emails.send({
       from: "Iglesia Alianza Puembo <notificaciones@alianzapuembo.org>",
       to: [email],
-      subject: `Seguimiento de Inscripción: ${formTitle}`,
+      subject: `Seguimiento de Inscripción: ${payload.formTitle}`,
       html: `
         <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
           <div style="background-color: #000; padding: 20px; text-align: center;">
@@ -206,11 +226,13 @@ export async function sendConfirmationEmail(email: string, formTitle: string, ac
           </div>
           <div style="padding: 40px;">
             <h2 style="color: #8fc641;">¡Hola!</h2>
-            <p>Hemos recibido correctamente tu inscripción para <strong>${formTitle}</strong>.</p>
+            <p>Hemos recibido correctamente tu inscripción para <strong>${payload.formTitle}</strong>.</p>
             
             <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 20px 0;">
-              <p style="margin: 0; font-weight: bold; color: #666;">Tu código de seguimiento:</p>
-              <p style="font-size: 24px; font-weight: bold; color: #000; margin: 10px 0;">${accessToken}</p>
+              <p style="margin: 0; font-weight: bold; color: #666;">Resumen de pago</p>
+              <p style="margin: 8px 0 0 0;"><strong>Total:</strong> ${formatMoney(payload.totalAmount)}</p>
+              <p style="margin: 4px 0 0 0;"><strong>Pagado:</strong> ${formatMoney(payload.amountPaid)}</p>
+              <p style="margin: 4px 0 0 0;"><strong>Saldo pendiente:</strong> ${formatMoney(payload.remainingBalance)}</p>
             </div>
 
             <p>Si necesitas realizar pagos parciales o subir comprobantes adicionales, puedes hacerlo desde nuestro portal de seguimiento:</p>
@@ -221,7 +243,7 @@ export async function sendConfirmationEmail(email: string, formTitle: string, ac
               </a>
             </div>
 
-            <p style="font-size: 14px; color: #666;">Nota: Si ya has completado el pago total, puedes ignorar este mensaje. Este enlace es principalmente para quienes realizan pagos en cuotas o necesitan validar abonos pendientes.</p>
+            <p style="font-size: 14px; color: #666;">Puedes usar este enlace para registrar nuevos abonos hasta completar el total.</p>
             
             <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
             <p style="font-size: 14px; color: #666;">

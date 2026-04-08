@@ -193,7 +193,7 @@ export default function FormManager({ initialForms = [], isInternal = false }) {
     );
   };
 
-  const createFormUrl = `/admin/formularios/builder${isInternal ? "?internal=true" : ""}`;
+  const createFormUrl = `/admin/formularios/nuevo${isInternal ? "?internal=true" : ""}`;
 
   return (
     <div className="space-y-6">

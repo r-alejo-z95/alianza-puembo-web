@@ -10,6 +10,13 @@ import { initializeGoogleIntegration } from "@/lib/actions";
 import { revalidateForms } from "@/lib/actions/cache";
 import { slugify } from "@/lib/utils";
 
+function isSetupComplete(form) {
+  if (!form) return false;
+  if (!form.title || form.max_responses == null || form.is_financial == null) return false;
+  if (!form.is_financial) return true;
+  return !!(form.payment_type && form.total_amount && form.destination_account_id);
+}
+
 function sanitizeFileName(name) {
   return name.replace(/[^a-z0-9.]/gi, "_").toLowerCase();
 }
@@ -22,7 +29,7 @@ function BuilderContent() {
   const isInternalParam = searchParams.get("internal") === "true";
   
   const [form, setForm] = useState(null);
-  const [loading, setLoading] = useState(!!(formSlug || formId));
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -47,24 +54,41 @@ function BuilderContent() {
           toast.error("No se pudo cargar el formulario.");
           router.push("/admin/formularios");
         } else {
+          if (!isSetupComplete(data)) {
+            router.replace(`/admin/formularios/nuevo?id=${data.id}`);
+            setLoading(false);
+            return;
+          }
           setForm(data);
         }
         setLoading(false);
       };
       fetchForm();
     } else {
-      // Si es nuevo, preparamos un objeto con valores por defecto
-      setForm({ 
-        is_internal: isInternalParam,
-        is_financial: true 
-      });
+      const query = isInternalParam ? "?internal=true" : "";
+      router.replace(`/admin/formularios/nuevo${query}`);
+      setLoading(false);
     }
   }, [formSlug, formId, isInternalParam, router]);
 
   const handleSave = async (formData, imageFile) => {
     setSaving(true);
     const supabase = createClient();
-    const { title, description, fields, image_url: formImageUrl, is_internal, is_financial, financial_field_label, financial_field_id, max_responses } = formData;
+    const {
+      title,
+      description,
+      fields,
+      image_url: formImageUrl,
+      is_internal,
+      is_financial,
+      financial_field_label,
+      financial_field_id,
+      max_responses,
+      payment_type,
+      max_installments,
+      total_amount,
+      destination_account_id,
+    } = formData;
     // Derive the current label from the selected field ID (keeps financial_field_label in sync for legacy lookups)
     const financialField = fields?.find((f) => f.id === financial_field_id);
     const derivedFinancialLabel = financialField?.label ?? financial_field_label ?? null;
@@ -81,7 +105,21 @@ function BuilderContent() {
       if (!currentFormId) {
         const { data: newForm, error: formError } = await supabase
           .from("forms")
-          .insert([{ title, description, user_id: user?.id, slug, is_internal, is_financial, financial_field_label: derivedFinancialLabel, financial_field_id: financial_field_id || null, max_responses: max_responses ?? null }])
+          .insert([{
+            title,
+            description,
+            user_id: user?.id,
+            slug,
+            is_internal,
+            is_financial,
+            financial_field_label: derivedFinancialLabel,
+            financial_field_id: financial_field_id || null,
+            max_responses: max_responses ?? null,
+            payment_type: is_financial ? payment_type ?? "single" : null,
+            max_installments: is_financial && payment_type === "installments" ? max_installments ?? null : null,
+            total_amount: is_financial ? total_amount ?? null : null,
+            destination_account_id: is_financial ? destination_account_id ?? null : null,
+          }])
           .select()
           .single();
 
@@ -173,7 +211,21 @@ function BuilderContent() {
       // 3. Update Form Metadata
       const { error: metaErr } = await supabase
         .from("forms")
-        .update({ title, description, image_url: imageUrl, slug, is_internal, is_financial, financial_field_label: derivedFinancialLabel, financial_field_id: financial_field_id || null, max_responses: max_responses ?? null })
+        .update({
+          title,
+          description,
+          image_url: imageUrl,
+          slug,
+          is_internal,
+          is_financial,
+          financial_field_label: derivedFinancialLabel,
+          financial_field_id: financial_field_id || null,
+          max_responses: max_responses ?? null,
+          payment_type: is_financial ? payment_type ?? "single" : null,
+          max_installments: is_financial && payment_type === "installments" ? max_installments ?? null : null,
+          total_amount: is_financial ? total_amount ?? null : null,
+          destination_account_id: is_financial ? destination_account_id ?? null : null,
+        })
         .eq("id", currentFormId);
       if (metaErr) throw metaErr;
 
@@ -240,6 +292,10 @@ function BuilderContent() {
         </p>
       </div>
     );
+  }
+
+  if (!form) {
+    return null;
   }
 
   return (

@@ -13,6 +13,7 @@ import { sendSystemNotification, sendConfirmationEmail } from "@/lib/services/no
 import { headers } from "next/headers";
 import { revalidateForms, revalidateFormSubmissions } from "./actions/cache";
 import { extractReceiptData } from "@/lib/services/ai-reconciliation";
+import { INVALID_RECEIPT_MESSAGE, validateFinancialReceipt } from "@/lib/services/receipt-validation";
 import crypto from "crypto";
 
 /**
@@ -694,7 +695,7 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_financial, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label)")
+      .select("id, title, slug, is_financial, payment_type, total_amount, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label)")
       .eq("id", formId)
       .single();
 
@@ -762,6 +763,30 @@ export async function submitFormAction(payload: {
       }
     }
 
+    // 2.1. Validación crítica: comprobante inválido NO debe persistir en DB
+    if (form.is_financial && receiptPath) {
+      const validation = validateFinancialReceipt(aiExtractedData);
+      if (!validation.isValid) {
+        console.warn(`[Submit] Comprobante inválido detectado. Motivo: ${validation.reason || "N/A"}`);
+
+        const storagePath = receiptPath.startsWith("finance_receipts/")
+          ? receiptPath.replace("finance_receipts/", "")
+          : receiptPath;
+
+        if (storagePath) {
+          const { error: cleanupError } = await supabaseAdmin.storage
+            .from("finance_receipts")
+            .remove([storagePath]);
+
+          if (cleanupError) {
+            console.error(`[Submit] Error limpiando comprobante inválido (${storagePath}): ${cleanupError.message}`);
+          }
+        }
+
+        return { error: INVALID_RECEIPT_MESSAGE };
+      }
+    }
+
     // 3. Insertar en DB (Usamos Admin para bypass de RLS en formularios públicos)
     const submissionData: any = {
       form_id: formId,
@@ -792,6 +817,7 @@ export async function submitFormAction(payload: {
       await supabaseAdmin.from("form_submission_payments").insert([{
         submission_id: submission.id,
         receipt_path: receiptPath,
+        amount_claimed: Number(aiExtractedData?.amount || 0),
         extracted_data: aiExtractedData,
         status: aiExtractedData?.is_valid_receipt ? 'pending' : 'manual_review'
       }]);
@@ -813,8 +839,30 @@ export async function submitFormAction(payload: {
 
     // 4. TAREAS EN BACKGROUND (No bloquean la respuesta al usuario)
     if (notificationEmail && form.is_financial) {
-       sendConfirmationEmail(notificationEmail, form.title, submission.access_token)
-         .catch(err => console.error("[Confirmation Email Error]:", err));
+      const { data: payments } = await supabaseAdmin
+        .from("form_submission_payments")
+        .select("amount_claimed, extracted_data")
+        .eq("submission_id", submission.id);
+
+      const amountPaid = (payments || []).reduce((acc: number, payment: any) => {
+        const hasStoredAmount = payment.amount_claimed !== null && payment.amount_claimed !== undefined;
+        const value = hasStoredAmount
+          ? Number(payment.amount_claimed || 0)
+          : Number(payment.extracted_data?.amount || 0);
+        return acc + (Number.isFinite(value) ? value : 0);
+      }, 0);
+
+      const totalAmount = Number(form.total_amount || 0);
+      const remainingBalance = Math.max(totalAmount - amountPaid, 0);
+
+      sendConfirmationEmail(notificationEmail, {
+        formTitle: form.title,
+        accessToken: submission.access_token,
+        paymentType: form.payment_type,
+        totalAmount,
+        amountPaid,
+        remainingBalance,
+      }).catch(err => console.error("[Confirmation Email Error]:", err));
     }
 
     notifyFormSubmission(form.title, form.slug, form.user_id, user?.id)
