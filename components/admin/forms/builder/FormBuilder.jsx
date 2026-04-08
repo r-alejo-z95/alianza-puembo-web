@@ -192,13 +192,14 @@ const formSchema = z.object({
   is_internal: z.boolean().default(false),
   is_financial: z.boolean().default(true),
   financial_field_label: z.string().optional().nullable(),
+  financial_field_id: z.string().optional().nullable(),
   max_responses: z.number().int().min(1).optional().nullable(),
   fields: z.array(fieldSchema),
 }).superRefine((data, ctx) => {
-  if (data.is_financial && !data.financial_field_label) {
+  if (data.is_financial && !data.financial_field_id) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ["financial_field_label"],
+      path: ["financial_field_id"],
       message: "Debes seleccionar la pregunta del comprobante",
     });
   }
@@ -219,6 +220,7 @@ export default function FormBuilder({
     is_internal: false,
     is_financial: true,
     financial_field_label: "",
+    financial_field_id: "",
     fields: [],
   },
   onSave,
@@ -282,6 +284,7 @@ export default function FormBuilder({
       is_internal: false,
       is_financial: true,
       financial_field_label: "",
+      financial_field_id: "",
       max_responses: null,
       fields: [],
     },
@@ -314,6 +317,15 @@ export default function FormBuilder({
         }))
         .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
 
+      // Auto-migrate: if financial_field_id is missing but financial_field_label is set,
+      // try to find the matching field by label to populate the ID.
+      const migratedFieldId = initialForm.financial_field_id ||
+        (initialForm.financial_field_label && preparedFields.length
+          ? (preparedFields.find(
+              (f) => f.label?.trim().toLowerCase() === initialForm.financial_field_label?.trim().toLowerCase()
+            )?.id || "")
+          : "");
+
       form.reset({
         title: initialForm.title || "",
         description: initialForm.description || "",
@@ -321,6 +333,7 @@ export default function FormBuilder({
         is_internal: initialForm.is_internal || false,
         is_financial: initialForm.is_financial ?? true,
         financial_field_label: initialForm.financial_field_label || "",
+        financial_field_id: migratedFieldId,
         max_responses: initialForm.max_responses ?? null,
         fields: preparedFields,
       });
@@ -497,9 +510,10 @@ export default function FormBuilder({
       const fieldId = fields[index]?.id;
       remove(index);
       if (activeFieldId === fieldId) setActiveFieldId(null);
-      // If this was the financial field, clear the financial_field_label
-      const financialLabel = form.getValues("financial_field_label");
-      if (financialLabel && fields[index]?.label === financialLabel) {
+      // If this was the financial field, clear both references
+      const financialId = form.getValues("financial_field_id");
+      if (financialId && fields[index]?.id === financialId) {
+        form.setValue("financial_field_id", "");
         form.setValue("financial_field_label", "");
       }
       toast.info("Elemento eliminado");
@@ -509,9 +523,9 @@ export default function FormBuilder({
 
   const handleDeleteField = useCallback(
     (index) => {
-      const financialLabel = form.getValues("financial_field_label");
+      const financialId = form.getValues("financial_field_id");
       const isFinancial = form.getValues("is_financial");
-      if (isFinancial && financialLabel && fields[index]?.label === financialLabel) {
+      if (isFinancial && financialId && fields[index]?.id === financialId) {
         setPendingDeleteIndex(index);
         return;
       }
@@ -529,7 +543,7 @@ export default function FormBuilder({
         return;
       }
 
-      if (errors.financial_field_label) {
+      if (errors.financial_field_id) {
         toast.error("Selecciona la pregunta del comprobante de pago", {
           description: "Con la conciliación financiera activa, debes indicar qué campo recopila el comprobante.",
           duration: 6000,
@@ -699,7 +713,9 @@ export default function FormBuilder({
               {pendingSaveData?.is_financial && (
                 <div className="bg-[var(--puembo-green)]/10 rounded-2xl p-4 border border-[var(--puembo-green)]/20">
                   <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)] mb-1">Campo de Comprobante</p>
-                  <p className="text-xs font-medium text-[var(--puembo-green)] break-words">{pendingSaveData?.financial_field_label}</p>
+                  <p className="text-xs font-medium text-[var(--puembo-green)] break-words">
+                    {pendingSaveData?.fields?.find((f) => f.id === pendingSaveData?.financial_field_id)?.label ?? pendingSaveData?.financial_field_label}
+                  </p>
                 </div>
               )}
             </div>

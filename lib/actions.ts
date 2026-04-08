@@ -694,7 +694,7 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_financial, financial_field_label, user_id, google_sheet_id, max_responses")
+      .select("id, title, slug, is_financial, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_fields_form_id_fkey(id, label)")
       .eq("id", formId)
       .single();
 
@@ -722,9 +722,12 @@ export async function submitFormAction(payload: {
 
     // 2. Si el formulario es financiero, procesar con IA
     if (form.is_financial && form.financial_field_label) {
-      // Buscamos el campo ignorando espacios extras
-      const targetLabel = form.financial_field_label.trim();
-      const actualKey = Object.keys(rawData).find(k => k.trim() === targetLabel);
+      // Look up by field ID first (stable), fall back to label text for legacy forms
+      const financialField = (form as any).form_fields?.find((f: any) => f.id === form.financial_field_id);
+      const targetLabel = (financialField?.label ?? form.financial_field_label ?? "").trim();
+      const actualKey = targetLabel
+        ? Object.keys(rawData).find(k => k.trim().toLowerCase() === targetLabel.toLowerCase())
+        : undefined;
       const receiptInfo = actualKey ? rawData[actualKey] : null;
       
       console.log(`[Submit] Buscando comprobante en key: "${actualKey}"`);

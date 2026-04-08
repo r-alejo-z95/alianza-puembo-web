@@ -829,11 +829,13 @@ export default function FluentRenderer({ form, isPreview = false }) {
           // 2. Subida para conciliación financiera
           let financialReceiptPath = null;
           
-          // Comparación robusta: ignorar mayúsculas y espacios
+          // Look up by field ID first (stable reference), fall back to label text for legacy forms
+          const financialField = form.form_fields?.find((f) => f.id === form.financial_field_id);
+          const financialFieldLabel = (financialField?.label ?? form.financial_field_label ?? "").trim();
           const normalizedKey = key.trim().toLowerCase();
-          const normalizedLabel = form.financial_field_label?.trim().toLowerCase() || "";
-          
-          const isFinancialField = form.is_financial && normalizedKey === normalizedLabel;
+          const normalizedLabel = financialFieldLabel.toLowerCase();
+
+          const isFinancialField = form.is_financial && !!financialFieldLabel && normalizedKey === normalizedLabel;
           
           if (isFinancialField) {
             console.log(`[Form] Subiendo comprobante financiero: "${file.name}"`);

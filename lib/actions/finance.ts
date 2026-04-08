@@ -120,11 +120,11 @@ export async function analyzeFormReceipts(formId: string) {
   try {
     const { data: form } = await supabase
       .from("forms")
-      .select("financial_field_label")
+      .select("financial_field_label, financial_field_id, form_fields!form_fields_form_id_fkey(id, label)")
       .eq("id", formId)
       .single();
 
-    if (!form?.financial_field_label) throw new Error("Formulario no configurado");
+    if (!form?.financial_field_id && !form?.financial_field_label) throw new Error("Formulario no configurado");
 
     const { data: submissions, error: subError } = await supabase
       .from("form_submissions")
@@ -135,8 +135,11 @@ export async function analyzeFormReceipts(formId: string) {
     if (subError) throw subError;
 
     for (const sub of submissions) {
-      const targetLabel = form.financial_field_label.trim();
-      const actualKey = Object.keys(sub.data || {}).find(k => k.trim() === targetLabel);
+      const financialField = (form as any).form_fields?.find((f: any) => f.id === (form as any).financial_field_id);
+      const targetLabel = (financialField?.label ?? form.financial_field_label ?? "").trim();
+      const actualKey = targetLabel
+        ? Object.keys(sub.data || {}).find(k => k.trim().toLowerCase() === targetLabel.toLowerCase())
+        : undefined;
       const mainPath = actualKey ? sub.data[actualKey]?.financial_receipt_path : null;
 
       // Unificar rutas para procesar (evitar duplicados si mainPath también está en form_submission_payments)

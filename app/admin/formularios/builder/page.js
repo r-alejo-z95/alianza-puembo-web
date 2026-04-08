@@ -64,7 +64,10 @@ function BuilderContent() {
   const handleSave = async (formData, imageFile) => {
     setSaving(true);
     const supabase = createClient();
-    const { title, description, fields, image_url: formImageUrl, is_internal, is_financial, financial_field_label, max_responses } = formData;
+    const { title, description, fields, image_url: formImageUrl, is_internal, is_financial, financial_field_label, financial_field_id, max_responses } = formData;
+    // Derive the current label from the selected field ID (keeps financial_field_label in sync for legacy lookups)
+    const financialField = fields?.find((f) => f.id === financial_field_id);
+    const derivedFinancialLabel = financialField?.label ?? financial_field_label ?? null;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -78,7 +81,7 @@ function BuilderContent() {
       if (!currentFormId) {
         const { data: newForm, error: formError } = await supabase
           .from("forms")
-          .insert([{ title, description, user_id: user?.id, slug, is_internal, is_financial, financial_field_label, max_responses: max_responses ?? null }])
+          .insert([{ title, description, user_id: user?.id, slug, is_internal, is_financial, financial_field_label: derivedFinancialLabel, financial_field_id: financial_field_id || null, max_responses: max_responses ?? null }])
           .select()
           .single();
 
@@ -170,7 +173,7 @@ function BuilderContent() {
       // 3. Update Form Metadata
       const { error: metaErr } = await supabase
         .from("forms")
-        .update({ title, description, image_url: imageUrl, slug, is_internal, is_financial, financial_field_label, max_responses: max_responses ?? null })
+        .update({ title, description, image_url: imageUrl, slug, is_internal, is_financial, financial_field_label: derivedFinancialLabel, financial_field_id: financial_field_id || null, max_responses: max_responses ?? null })
         .eq("id", currentFormId);
       if (metaErr) throw metaErr;
 

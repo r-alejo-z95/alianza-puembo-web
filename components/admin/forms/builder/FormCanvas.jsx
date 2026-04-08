@@ -44,7 +44,7 @@ const FormHeader = ({
     (f) => f.type === "image" || f.type === "file",
   );
 
-  const hasSettingsError = !!(errors?.financial_field_label || errors?.max_responses);
+  const hasSettingsError = !!(errors?.financial_field_id || errors?.max_responses);
   const hasError = error || hasSettingsError;
 
   const handleFileChange = (e) => {
@@ -298,16 +298,16 @@ const FormHeader = ({
             {/* Row 2: Financial Switch (full width) */}
             <div className={cn(
               "rounded-2xl md:rounded-[2rem] border transition-colors overflow-hidden",
-              errors?.financial_field_label ? "border-red-300 bg-red-50/30" : "bg-gray-50 border-gray-100"
+              errors?.financial_field_id ? "border-red-300 bg-red-50/30" : "bg-gray-50 border-gray-100"
             )}>
               <div className="flex items-center justify-between gap-3 p-4 md:p-6">
                 <div className="flex items-center gap-2">
                   {isFinancial ? (
-                    <Banknote className={cn("w-4 h-4 shrink-0", errors?.financial_field_label ? "text-red-500" : "text-amber-600")} />
+                    <Banknote className={cn("w-4 h-4 shrink-0", errors?.financial_field_id ? "text-red-500" : "text-amber-600")} />
                   ) : (
                     <Receipt className="w-4 h-4 text-gray-400 shrink-0" />
                   )}
-                  <Label className={cn("text-xs font-black uppercase tracking-widest", errors?.financial_field_label ? "text-red-600" : "text-gray-900")}>
+                  <Label className={cn("text-xs font-black uppercase tracking-widest", errors?.financial_field_id ? "text-red-600" : "text-gray-900")}>
                     Financiero
                   </Label>
                 </div>
@@ -319,7 +319,7 @@ const FormHeader = ({
                       checked={field.value}
                       onCheckedChange={(val) => {
                         field.onChange(val);
-                        if (!val) setValue("financial_field_label", "");
+                        if (!val) { setValue("financial_field_id", ""); setValue("financial_field_label", ""); }
                       }}
                       className="data-[state=checked]:bg-amber-500"
                     />
@@ -348,9 +348,9 @@ const FormHeader = ({
                     <>
                       <Controller
                         control={control}
-                        name="financial_field_label"
+                        name="financial_field_id"
                         render={({ field }) => {
-                          const isUnselected = !field.value && !errors?.financial_field_label;
+                          const isUnselected = !field.value && !errors?.financial_field_id;
                           return (
                             <div className="space-y-1.5">
                               {isUnselected && (
@@ -359,7 +359,7 @@ const FormHeader = ({
                                   Selecciona cuál pregunta captura el comprobante
                                 </p>
                               )}
-                              {errors?.financial_field_label && (
+                              {errors?.financial_field_id && (
                                 <p className="text-[10px] font-bold text-red-500 flex items-center gap-1">
                                   <AlertCircle className="w-3 h-3 shrink-0" />
                                   Debes seleccionar el campo del comprobante
@@ -368,7 +368,7 @@ const FormHeader = ({
                               <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <SelectTrigger className={cn(
                                   "h-10 overflow-clip whitespace-nowrap w-full bg-white text-xs font-medium rounded-xl",
-                                  errors?.financial_field_label
+                                  errors?.financial_field_id
                                     ? "border-red-300 ring-1 ring-red-300"
                                     : isUnselected
                                     ? "border-amber-300 ring-1 ring-amber-200"
@@ -378,7 +378,7 @@ const FormHeader = ({
                                 </SelectTrigger>
                                 <SelectContent align="left">
                                   {receiptFields.map((f) => (
-                                    <SelectItem key={f.id} value={f.label} className="h-10 text-ellipsis overflow-hidden whitespace-nowrap w-full bg-white border-amber-200/50 text-xs font-medium rounded-xl">
+                                    <SelectItem key={f.id} value={f.id} className="h-10 text-ellipsis overflow-hidden whitespace-nowrap w-full bg-white border-amber-200/50 text-xs font-medium rounded-xl">
                                       {f.label}
                                     </SelectItem>
                                   ))}
@@ -472,11 +472,11 @@ const OnboardingChecklist = ({ errors, watch, onActivateHeader }) => {
   const title = watch("title");
   const maxResponses = watch("max_responses");
   const isFinancial = watch("is_financial");
-  const financialLabel = watch("financial_field_label");
+  const financialFieldId = watch("financial_field_id");
 
   const hasTitle = title && title.length >= 3;
   const hasMaxResponses = maxResponses && maxResponses >= 1;
-  const financialOk = !isFinancial || (isFinancial && !!financialLabel);
+  const financialOk = !isFinancial || (isFinancial && !!financialFieldId);
 
   return (
     <div className="border-2 border-dashed border-gray-200 rounded-[3rem] bg-white/60 backdrop-blur-sm p-10 flex flex-col items-center gap-8">
