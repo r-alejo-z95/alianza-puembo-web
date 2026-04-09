@@ -6,22 +6,54 @@ import { extractReceiptData, parseBankStatementWithAI } from "@/lib/services/ai-
 import { revalidatePath } from "next/cache";
 import { verifySuperAdmin } from "@/lib/auth/guards";
 import { uploadReceipt } from "@/lib/actions";
+import { INVALID_RECEIPT_MESSAGE, validateFinancialReceipt } from "@/lib/services/receipt-validation";
 
 /**
  * Step 1: Initialize a bank report
  */
-export async function initBankReport(filename: string): Promise<{ reportId?: string, error?: string }> {
+export async function initBankReport(
+  filename: string,
+  bankAccount?: { id?: string | null; bank_name?: string | null; account_number?: string | null } | null,
+): Promise<{ reportId?: string, error?: string }> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    const { data: report, error: reportErr } = await supabase
-      .from("bank_reports")
-      .insert([{ filename, created_by: user?.id }])
-      .select().single();
+    const labelParts = [bankAccount?.bank_name, bankAccount?.account_number].filter(Boolean);
+    const reportLabel = labelParts.length > 0 ? `${labelParts.join(" - ")} · ${filename}` : filename;
+    const basePayload: Record<string, any> = {
+      filename: reportLabel,
+      created_by: user?.id,
+    };
 
-    if (reportErr) throw reportErr;
-    return { reportId: report.id };
+    const payloads = bankAccount?.id
+      ? [
+          { ...basePayload, bank_account_id: bankAccount.id },
+          { ...basePayload, account_id: bankAccount.id },
+          basePayload,
+        ]
+      : [basePayload];
+
+    let lastErr: any = null;
+    for (const payload of payloads) {
+      const { data: report, error: reportErr } = await supabase
+        .from("bank_reports")
+        .insert([payload])
+        .select()
+        .single();
+
+      if (!reportErr && report) {
+        return { reportId: report.id };
+      }
+      lastErr = reportErr;
+      const message = String(reportErr?.message || "").toLowerCase();
+      if (!message.includes("column") && !message.includes("does not exist") && !message.includes("unknown")) {
+        break;
+      }
+    }
+
+    if (lastErr) throw lastErr;
+    throw new Error("No se pudo crear el reporte bancario");
   } catch (e: any) {
     return { error: e.message };
   }
@@ -30,10 +62,20 @@ export async function initBankReport(filename: string): Promise<{ reportId?: str
 /**
  * Step 2: Process a chunk of data rows
  */
-export async function processBankChunk(reportId: string, chunk: any[][], headers: any[]): Promise<{ success: boolean, error?: string }> {
+export async function processBankChunk(
+  reportId: string,
+  chunk: any[][],
+  headers: any[],
+  bankAccount?: { bank_name?: string | null; account_number?: string | null } | null,
+): Promise<{ success: boolean, error?: string }> {
   try {
     const supabase = await createClient();
-    const extracted = await parseBankStatementWithAI(chunk, headers);
+    const extracted = await parseBankStatementWithAI(chunk, headers, bankAccount
+      ? {
+          bankAccountName: bankAccount.bank_name || undefined,
+          bankAccountNumber: bankAccount.account_number || undefined,
+        }
+      : undefined);
 
     if (!extracted || extracted.length === 0) return { success: true };
 
@@ -45,7 +87,7 @@ export async function processBankChunk(reportId: string, chunk: any[][], headers
         ? `Depósito - ${t.sender_name}` 
         : 'Depósito'),
       reference: String(t.reference || "").trim(),
-      bank_name: t.bank_name || "Desconocido"
+      bank_name: t.bank_name || bankAccount?.bank_name || "Desconocido"
     }));
 
     const { error: batchErr } = await supabase.from("bank_transactions").upsert(dbTransactions, { 
@@ -414,7 +456,20 @@ export async function addMultipartPayment(payload: {
         aiData = await extractReceiptData(Buffer.from(buffer).toString('base64'), fileBlob.type);
       } catch (aiErr) {
         console.error("[Multipart-AI] Error Gemini:", aiErr);
+        }
+    }
+
+    const validation = validateFinancialReceipt(aiData);
+    if (!validation.isValid) {
+      const { error: cleanupError } = await supabaseAdmin.storage
+        .from("finance_receipts")
+        .remove([path]);
+
+      if (cleanupError) {
+        console.error("[Multipart-Payment] Error limpiando comprobante inválido:", cleanupError.message);
       }
+
+      return { error: INVALID_RECEIPT_MESSAGE };
     }
 
     // 3. Insertar en la tabla de abonos
@@ -425,7 +480,7 @@ export async function addMultipartPayment(payload: {
         receipt_path: receiptPath,
         extracted_data: aiData,
         amount_claimed: amountClaimed || 0,
-        status: aiData?.is_valid_receipt ? 'pending' : 'manual_review'
+        status: 'pending'
       }])
       .select()
       .single();
@@ -511,6 +566,20 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
       }
     }
 
+    const validation = validateFinancialReceipt(aiData);
+    if (!validation.isValid) {
+      const cleanupPath = fullPath.replace("finance_receipts/", "");
+      const { error: cleanupError } = await supabaseAdmin.storage
+        .from("finance_receipts")
+        .remove([cleanupPath]);
+
+      if (cleanupError) {
+        console.error("[Reprocess] Error limpiando comprobante inválido:", cleanupError.message);
+      }
+
+      return { error: INVALID_RECEIPT_MESSAGE };
+    }
+
     // 5. Create form_submission_payments record
     const { data: payment, error: payErr } = await supabaseAdmin
       .from("form_submission_payments")
@@ -518,7 +587,7 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
         submission_id: submissionId,
         receipt_path: fullPath,
         extracted_data: aiData,
-        status: aiData?.is_valid_receipt ? "pending" : "manual_review",
+        status: "pending",
       }])
       .select()
       .single();

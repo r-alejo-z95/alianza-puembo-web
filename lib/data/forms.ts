@@ -27,9 +27,25 @@ export interface Form {
   google_sheet_url?: string;
   last_synced_at?: string;
   max_responses?: number | null;
+  payment_type?: "single" | "installments" | null;
+  max_installments?: number | null;
+  total_amount?: number | string | null;
+  destination_account_id?: string | null;
   created_at: string;
   user_id: string;
   form_fields?: FormField[];
+}
+
+export interface BankAccount {
+  id: string;
+  bank_name: string;
+  account_holder: string;
+  account_number: string;
+  account_type: string;
+  notes?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 /**
@@ -186,7 +202,7 @@ export async function getAllSubmissions() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("form_submissions")
-    .select("*, forms!inner(*), profiles(*)")
+    .select("*, forms!inner(*), profiles(*), form_submission_payments(*)")
     .eq("is_archived", false)
     .eq("forms.is_internal", false)
     .eq("forms.is_financial", true)
