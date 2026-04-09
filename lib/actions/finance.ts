@@ -70,27 +70,7 @@ export async function processBankChunk(
 ): Promise<{ success: boolean, error?: string }> {
   try {
     const supabase = await createClient();
-    const normalizedRows = chunk.filter((row) => {
-      const rowText = (Array.isArray(row) ? row : [row])
-        .map((cell) => String(cell ?? ""))
-        .join(" ")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-
-      const commissionKeywords = [
-        "comision",
-        "valor debitado",
-        "debitado",
-        "cargo por",
-        "costo de",
-        "fee",
-      ];
-
-      return !commissionKeywords.some((keyword) => rowText.includes(keyword));
-    });
-
-    const extracted = await parseBankStatementWithAI(normalizedRows, headers, bankAccount
+    const extracted = await parseBankStatementWithAI(chunk, headers, bankAccount
       ? {
           bankAccountName: bankAccount.bank_name || undefined,
           bankAccountNumber: bankAccount.account_number || undefined,

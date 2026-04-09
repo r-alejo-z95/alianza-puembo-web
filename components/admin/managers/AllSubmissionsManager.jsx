@@ -351,9 +351,9 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
   const formattedTime = format(parseISO(sub.created_at), "HH:mm 'hrs'");
   const payments = sub.form_submission_payments || [];
   const amountPaid = payments
-    .filter((p) => p.status === "verified")
+    .filter((p) => p.status !== "rejected")
     .reduce((sum, payment) => sum + Number(payment.extracted_data?.amount || payment.amount_claimed || 0), 0);
-  const paymentStatus = payments.some((p) => p.status === "verified") ? "verified" : "pending";
+  const paymentStatus = payments.some((p) => p.status === "verified") ? "verified" : "not_verified";
 
   return (
     <TableRow className="group transition-all duration-300 border-b border-gray-50 hover:bg-gray-50/50">
@@ -387,13 +387,13 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
       <TableCell className="px-8 py-6 text-right">
         <div className="flex items-center justify-end gap-3">
           <div className="flex flex-col items-end gap-1">
-            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">Monto</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">Monto entregado</span>
             <span className="text-sm font-bold text-gray-900">${amountPaid.toFixed(2)}</span>
             <Badge className={cn(
               "rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
               paymentStatus === "verified" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
             )}>
-              {paymentStatus === "verified" ? "Verificado" : "Pendiente"}
+              {paymentStatus === "verified" ? "Verificado" : "No verificado"}
             </Badge>
           </div>
           <Button
@@ -427,9 +427,9 @@ function SubmissionCard({ sub, onCopy, isCopied }) {
     const date = format(parseISO(sub.created_at), "d MMM", { locale: es });
     const payments = sub.form_submission_payments || [];
     const amountPaid = payments
-        .filter((p) => p.status === "verified")
+        .filter((p) => p.status !== "rejected")
         .reduce((sum, payment) => sum + Number(payment.extracted_data?.amount || payment.amount_claimed || 0), 0);
-    const paymentStatus = payments.some((p) => p.status === "verified") ? "verified" : "pending";
+    const paymentStatus = payments.some((p) => p.status === "verified") ? "verified" : "not_verified";
     
     return (
         <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm space-y-4">
@@ -445,13 +445,13 @@ function SubmissionCard({ sub, onCopy, isCopied }) {
             
             <div className="flex gap-2">
                 <div className="flex-1 rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                    <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400">Monto pagado</span>
+                    <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400">Monto entregado</span>
                     <p className="mt-1 text-base font-bold text-gray-900">${amountPaid.toFixed(2)}</p>
                     <Badge className={cn(
                         "mt-2 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
                         paymentStatus === "verified" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
                     )}>
-                        {paymentStatus === "verified" ? "Verificado" : "Pendiente"}
+                        {paymentStatus === "verified" ? "Verificado" : "No verificado"}
                     </Badge>
                 </div>
                 <Button 
