@@ -62,6 +62,11 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
     [bankAccounts],
   );
 
+  const sortedForms = useMemo(
+    () => [...forms].sort((a, b) => (a.title || "").localeCompare(b.title || "")),
+    [forms],
+  );
+
   const selectedBankAccount = useMemo(
     () => sortedBankAccounts.find((account) => account.id === selectedBankAccountId) || sortedBankAccounts[0] || null,
     [sortedBankAccounts, selectedBankAccountId],
@@ -312,7 +317,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
                   <SelectValue placeholder="Selecciona..." />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                  {forms.map(f => <SelectItem key={f.id} value={f.id} className="py-3 md:py-4 cursor-pointer rounded-xl font-medium text-xs md:text-base">{f.title}</SelectItem>)}
+                  {sortedForms.map(f => <SelectItem key={f.id} value={f.id} className="py-3 md:py-4 cursor-pointer rounded-xl font-medium text-xs md:text-base">{f.title}</SelectItem>)}
                 </SelectContent>
               </Select>
 

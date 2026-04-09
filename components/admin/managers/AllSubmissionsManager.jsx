@@ -18,15 +18,10 @@ import {
   ExternalLink,
   Copy,
   Check,
-  ClipboardList,
-  Calendar,
   User,
   ArrowLeft,
   Filter,
-  LayoutGrid,
-  Rows,
   ChevronDown,
-  Event,
   Ticket,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,7 +33,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import Link from "next/link";
 import { findNameInSubmission } from "@/lib/form-utils";
-import { motion, AnimatePresence } from "framer-motion";
 
 export default function AllSubmissionsManager({ initialSubmissions = [] }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -47,7 +41,7 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
   const [formFilter, setFormFilter] = useState("all");
   const [groupBy, setGroupBy] = useState("none"); // "none", "month", "form"
   
-  const { isLg, isSm } = useScreenSize();
+  const { isLg } = useScreenSize();
   const itemsPerPage = isLg ? 12 : 6;
 
   // Extract unique forms for the filter

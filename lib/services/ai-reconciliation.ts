@@ -107,6 +107,12 @@ function parseDateValue(value: unknown) {
   return null;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// EXCEL BANK STATEMENT PARSER (deterministic + AI fallback)
+// Processes structured rows from Excel/CSV exports of bank accounts.
+// NOT used for receipt image OCR — see extractReceiptData below.
+// ─────────────────────────────────────────────────────────────────────────────
+
 function parseBankStatementDeterministic(rows: any[][], headers: any[], context?: { bankAccountName?: string; bankAccountNumber?: string }) {
   if (!Array.isArray(rows) || rows.length === 0 || !Array.isArray(headers) || headers.length === 0) {
     return [];
@@ -128,9 +134,17 @@ function parseBankStatementDeterministic(rows: any[][], headers: any[], context?
   for (const row of rows) {
     if (!Array.isArray(row)) continue;
     const rowText = row.map(getCellText).join(" ");
-    const normalizedRowText = normalizeText(rowText);
-    if (!normalizedRowText) continue;
-    if (hasAnyKeyword(normalizedRowText, DEBIT_KEYWORDS) && !hasAnyKeyword(normalizedRowText, CREDIT_KEYWORDS)) continue;
+    if (!normalizeText(rowText)) continue;
+
+    // Classify the row as debit or credit using only the type and description
+    // columns — NOT the full concatenated row. Concatenating all cells can
+    // incorrectly discard valid credit rows whose description echoes terms like
+    // "valor debitado" (common in Banco de Guayaquil statements).
+    const typeValue = typeIdx >= 0 ? normalizeText(getCellText(row[typeIdx])) : "";
+    const descValue = descriptionIdx >= 0 ? normalizeText(getCellText(row[descriptionIdx])) : "";
+    const classificationText = [typeValue, descValue].filter(Boolean).join(" ") || normalizeText(rowText);
+
+    if (hasAnyKeyword(classificationText, DEBIT_KEYWORDS) && !hasAnyKeyword(classificationText, CREDIT_KEYWORDS)) continue;
 
     const date = parseDateValue(dateIdx >= 0 ? row[dateIdx] : null);
     const description = descriptionIdx >= 0 ? getCellText(row[descriptionIdx]).trim() : rowText.trim();
@@ -141,20 +155,22 @@ function parseBankStatementDeterministic(rows: any[][], headers: any[], context?
     const creditAmount = creditIdx >= 0 ? parseAmount(row[creditIdx]) : null;
     const debitAmount = debitIdx >= 0 ? parseAmount(row[debitIdx]) : null;
     const singleAmount = amountIdx >= 0 ? parseAmount(row[amountIdx]) : null;
-    const typeValue = typeIdx >= 0 ? normalizeText(row[typeIdx]) : "";
 
     let amount = null;
 
     if (creditAmount !== null && creditAmount > 0) {
+      // Explicit credit column — most reliable signal
       amount = creditAmount;
     } else if (
       singleAmount !== null &&
       singleAmount > 0 &&
       (!debitAmount || debitAmount <= 0) &&
-      (hasAnyKeyword(typeValue, CREDIT_KEYWORDS) || hasAnyKeyword(normalizedRowText, CREDIT_KEYWORDS) || !hasAnyKeyword(normalizedRowText, DEBIT_KEYWORDS))
+      (hasAnyKeyword(typeValue, CREDIT_KEYWORDS) || hasAnyKeyword(classificationText, CREDIT_KEYWORDS) || !hasAnyKeyword(classificationText, DEBIT_KEYWORDS))
     ) {
+      // Single amount column, confirmed as credit by type/description
       amount = singleAmount;
-    } else if (debitAmount === null && singleAmount !== null && singleAmount > 0 && !hasAnyKeyword(normalizedRowText, DEBIT_KEYWORDS)) {
+    } else if (debitAmount === null && singleAmount !== null && singleAmount > 0 && !hasAnyKeyword(classificationText, DEBIT_KEYWORDS)) {
+      // No debit column at all and no debit signals — treat as credit
       amount = singleAmount;
     }
 

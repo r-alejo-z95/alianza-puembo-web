@@ -202,7 +202,7 @@ export async function getAllSubmissions() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("form_submissions")
-    .select("*, forms!inner(*), profiles(*)")
+    .select("*, forms!inner(*), profiles(*), form_submission_payments(*)")
     .eq("is_archived", false)
     .eq("forms.is_internal", false)
     .eq("forms.is_financial", true)
