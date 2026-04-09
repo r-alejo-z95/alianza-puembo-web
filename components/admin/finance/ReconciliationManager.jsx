@@ -72,7 +72,9 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
     [sortedBankAccounts, selectedBankAccountId],
   );
 
-  useEffect(() => { loadGlobalLedger(); }, []);
+  useEffect(() => {
+    loadGlobalLedger(selectedBankAccountId);
+  }, [selectedBankAccountId]);
 
   useEffect(() => {
     if (!selectedBankAccountId && sortedBankAccounts.length > 0) {
@@ -85,8 +87,8 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
     else setSubmissions([]);
   }, [selectedFormId]);
 
-  const loadGlobalLedger = async () => {
-    const res = await getGlobalTransactions();
+  const loadGlobalLedger = async (accountId = selectedBankAccountId) => {
+    const res = await getGlobalTransactions(accountId || null);
     if (res.transactions) setBankTransactions(res.transactions);
   };
 
@@ -96,7 +98,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
     try {
       const res = await analyzeFormReceipts(selectedFormId);
       if (res.submissions) setSubmissions(res.submissions);
-      await loadGlobalLedger();
+      await loadGlobalLedger(selectedBankAccountId);
     } catch (e) { console.error(e); } finally { setIsLoadingContext(false); }
   };
 
@@ -152,7 +154,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
       await finalizeBankReport();
       
       toast.success("Historial actualizado correctamente");
-      await loadGlobalLedger();
+      await loadGlobalLedger(selectedBankAccountId);
       setBankFile(null);
       
       // Small delay to let the user see 100%
@@ -346,13 +348,14 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
       </Card>
 
       <div className="w-full">
-        <ReconciliationWorkbench 
-          bankTransactions={bankTransactions} 
-          submissions={submissions}
-          onRefresh={loadFormData}
-          isFormSelected={!!selectedFormId}
-          selectedFormId={selectedFormId}
-        />
+      <ReconciliationWorkbench 
+        bankTransactions={bankTransactions} 
+        submissions={submissions}
+        onRefresh={loadFormData}
+        isFormSelected={!!selectedFormId}
+        selectedFormId={selectedFormId}
+        selectedBankAccount={selectedBankAccount}
+      />
       </div>
 
     </div>

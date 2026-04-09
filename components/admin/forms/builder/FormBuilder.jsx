@@ -159,6 +159,13 @@ function BlocksPicker({ onAdd, onImport }) {
   );
 }
 
+function formatBankAccountLabel(account) {
+  if (!account) return "";
+  return [account.bank_name, account.account_type, account.account_number]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 // --- Schemas ---
 const fieldSchema = z.object({
   id: z.string().default(() => uuidv4()),
@@ -262,6 +269,7 @@ export default function FormBuilder({
   onSave,
   onCancel,
   isSaving,
+  bankAccounts = [],
 }) {
 
   const [activeFieldId, setActiveFieldId] = useState("header");
@@ -699,6 +707,18 @@ export default function FormBuilder({
     return form.watch("title") || "Formulario sin título";
   }, [form.watch("title")]);
 
+  const destinationAccountLabel = useMemo(() => {
+    const selectedAccount = bankAccounts.find(
+      (account) => account.id === pendingSaveData?.destination_account_id,
+    );
+
+    if (selectedAccount) {
+      return formatBankAccountLabel(selectedAccount);
+    }
+
+    return pendingSaveData?.destination_account_id || "Sin cuenta asignada";
+  }, [bankAccounts, pendingSaveData?.destination_account_id]);
+
   return (
     <div ref={containerRef} className="min-h-screen bg-[#F8F9FA] pb-32">
       {/* Confirmation Save Modal */}
@@ -786,8 +806,8 @@ export default function FormBuilder({
                     )}
                     <div className="col-span-2">
                       <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]/70 mb-1">Cuenta destino</p>
-                      <p className="font-semibold text-[var(--puembo-green)] break-all">
-                        {pendingSaveData?.destination_account_id || "Sin cuenta asignada"}
+                      <p className="font-semibold text-[var(--puembo-green)] break-words">
+                        {destinationAccountLabel}
                       </p>
                     </div>
                   </div>

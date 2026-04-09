@@ -29,46 +29,72 @@ function BuilderContent() {
   const isInternalParam = searchParams.get("internal") === "true";
   
   const [form, setForm] = useState(null);
+  const [bankAccounts, setBankAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (formSlug || formId) {
-      const fetchForm = async () => {
-        const supabase = createClient();
-        let query = supabase
-          .from("forms")
-          .select("*, form_fields!form_id(*)")
-          .eq("is_archived", false);
+    const fetchBuilderContext = async () => {
+      const supabase = createClient();
 
-        if (formId) {
-          query = query.eq("id", formId);
-        } else {
-          query = query.eq("slug", formSlug);
-        }
+      const bankAccountsPromise = supabase
+        .from("bank_accounts")
+        .select("id, bank_name, account_type, account_number")
+        .eq("is_active", true)
+        .order("bank_name", { ascending: true });
 
-        const { data, error } = await query.single();
+      const formPromise = formSlug || formId
+        ? (() => {
+            let query = supabase
+              .from("forms")
+              .select("*, form_fields!form_id(*)")
+              .eq("is_archived", false);
 
-        if (error) {
-          console.error("Error fetching form:", error);
-          toast.error("No se pudo cargar el formulario.");
-          router.push("/admin/formularios");
-        } else {
-          if (!isSetupComplete(data)) {
-            router.replace(`/admin/formularios/nuevo?id=${data.id}`);
-            setLoading(false);
-            return;
-          }
-          setForm(data);
-        }
+            if (formId) {
+              query = query.eq("id", formId);
+            } else {
+              query = query.eq("slug", formSlug);
+            }
+
+            return query.single();
+          })()
+        : Promise.resolve({ data: null, error: null });
+
+      const [
+        { data: activeBankAccounts, error: bankAccountsError },
+        { data, error },
+      ] = await Promise.all([bankAccountsPromise, formPromise]);
+
+      if (bankAccountsError) {
+        console.error("Error fetching bank accounts:", bankAccountsError);
+      } else {
+        setBankAccounts(activeBankAccounts || []);
+      }
+
+      if (!formSlug && !formId) {
+        const query = isInternalParam ? "?internal=true" : "";
+        router.replace(`/admin/formularios/nuevo${query}`);
         setLoading(false);
-      };
-      fetchForm();
-    } else {
-      const query = isInternalParam ? "?internal=true" : "";
-      router.replace(`/admin/formularios/nuevo${query}`);
+        return;
+      }
+
+      if (error) {
+        console.error("Error fetching form:", error);
+        toast.error("No se pudo cargar el formulario.");
+        router.push("/admin/formularios");
+      } else if (data) {
+        if (!isSetupComplete(data)) {
+          router.replace(`/admin/formularios/nuevo?id=${data.id}`);
+          setLoading(false);
+          return;
+        }
+        setForm(data);
+      }
+
       setLoading(false);
-    }
+    };
+
+    fetchBuilderContext();
   }, [formSlug, formId, isInternalParam, router]);
 
   const handleSave = async (formData, imageFile) => {
@@ -113,7 +139,7 @@ function BuilderContent() {
             is_internal,
             is_financial,
             financial_field_label: derivedFinancialLabel,
-            financial_field_id: financial_field_id || null,
+            financial_field_id: null,
             max_responses: max_responses ?? null,
             payment_type: is_financial ? payment_type ?? "single" : null,
             max_installments: is_financial && payment_type === "installments" ? max_installments ?? null : null,
@@ -304,6 +330,7 @@ function BuilderContent() {
       onSave={handleSave}
       onCancel={handleCancel}
       isSaving={saving}
+      bankAccounts={bankAccounts}
     />
   );
 }

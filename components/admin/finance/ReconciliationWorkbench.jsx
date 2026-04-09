@@ -67,7 +67,8 @@ export function ReconciliationWorkbench({
   bankTransactions = [], 
   submissions = [], 
   onRefresh,
-  isFormSelected = false
+  isFormSelected = false,
+  selectedBankAccount = null,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("pending");
@@ -145,7 +146,11 @@ export function ReconciliationWorkbench({
     const list = [];
     submissions.forEach(sub => {
         const subName = findNameInSubmission(sub.data);
-        const payments = sub.form_submission_payments || [];
+        const payments = [...(sub.form_submission_payments || [])].sort((a, b) => {
+          const aTime = new Date(a.created_at).getTime();
+          const bTime = new Date(b.created_at).getTime();
+          return aTime - bTime;
+        });
         
         const subTotalVerified = payments
             .filter(p => p.status === 'verified')
@@ -326,7 +331,17 @@ export function ReconciliationWorkbench({
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 overflow-hidden">
             <div className="flex items-center gap-4 shrink-0">
               <div className="w-12 h-12 rounded-xl bg-[var(--puembo-green)] flex items-center justify-center text-black shadow-lg"><Banknote className="w-6 h-6" /></div>
-              <div><CardTitle className="text-xl md:text-2xl font-serif font-bold tracking-tight">Extracto Bancario</CardTitle><p className="text-gray-400 text-[9px] uppercase font-black tracking-[0.3em] mt-0.5">Pool de Ingresos Históricos</p></div>
+              <div className="space-y-1">
+                <CardTitle className="text-xl md:text-2xl font-serif font-bold tracking-tight">Extracto Bancario</CardTitle>
+                <p className="text-gray-400 text-[9px] uppercase font-black tracking-[0.3em] mt-0.5">Pool de Ingresos Históricos</p>
+                {selectedBankAccount && (
+                  <p className="text-[9px] text-gray-300 font-bold tracking-wide">
+                    Cuenta activa: {selectedBankAccount.bank_name}
+                    {selectedBankAccount.account_type ? ` · ${selectedBankAccount.account_type}` : ""}
+                    {selectedBankAccount.account_number ? ` · ${selectedBankAccount.account_number}` : ""}
+                  </p>
+                )}
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-1 bg-white/5 p-1 rounded-full border border-white/10 shrink-0">

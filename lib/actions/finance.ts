@@ -124,15 +124,52 @@ export async function parseBankReport(formData: FormData): Promise<{ reportId?: 
 
 /**
  * Gets the entire church-wide bank pool, enhanced with global conciliation status.
+ * If a bank account is provided, only transactions from reports tied to that account are returned.
  */
-export async function getGlobalTransactions() {
+export async function getGlobalTransactions(selectedBankAccountId?: string | null) {
   const supabase = await createClient();
-  
-  // 1. Get all transactions
-  const { data: transactions, error: txError } = await supabase
+
+  let transactionsQuery = supabase
     .from("bank_transactions")
     .select("*")
     .order("date", { ascending: false });
+
+  if (selectedBankAccountId) {
+    const reportIds = new Set<string>();
+    const accountColumns = ["bank_account_id", "account_id"];
+
+    for (const column of accountColumns) {
+      const { data: reports, error } = await supabase
+        .from("bank_reports")
+        .select("id")
+        .eq(column, selectedBankAccountId);
+
+      if (!error) {
+        (reports || []).forEach((report: any) => reportIds.add(report.id));
+        if (reportIds.size > 0 || column === accountColumns[accountColumns.length - 1]) {
+          break;
+        }
+        continue;
+      }
+
+      const message = String(error.message || "").toLowerCase();
+      if (!message.includes("column") && !message.includes("does not exist") && !message.includes("unknown")) {
+        return { error: error.message };
+      }
+    }
+
+    if (reportIds.size === 0) {
+      return { transactions: [] };
+    }
+
+    transactionsQuery = supabase
+      .from("bank_transactions")
+      .select("*")
+      .in("report_id", Array.from(reportIds))
+      .order("date", { ascending: false });
+  }
+
+  const { data: transactions, error: txError } = await transactionsQuery;
 
   if (txError) return { error: txError.message };
 
