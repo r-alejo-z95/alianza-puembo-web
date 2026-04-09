@@ -7,8 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2, ChevronRight, Settings2, CreditCard, Landmark } from "lucide-react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
-import { slugify } from "@/lib/utils";
+import { saveFormSetup } from "@/lib/actions/forms";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -69,6 +68,22 @@ const setupSchema = z
     }
   });
 
+function buildPaymentDescription(values, bankAccounts) {
+  if (!values.is_financial) return null;
+  const account = bankAccounts.find((a) => a.id === values.destination_account_id);
+  const accountStr = account
+    ? `${account.bank_name} — Cta. ${account.account_number}`
+    : null;
+  const amount = `$${Number(values.total_amount).toFixed(2)}`;
+  const dest = accountStr ? ` a ${accountStr}` : "";
+
+  if (values.payment_type === "installments") {
+    const n = values.max_installments ?? 1;
+    return `Debes realizar un pago de ${amount}${dest}. Puedes hacerlo en hasta ${n} ${n === 1 ? "cuota" : "cuotas"}.`;
+  }
+  return `Debes realizar un pago único de ${amount}${dest}.`;
+}
+
 function mapInitialValues(initialValues = {}) {
   return {
     id: initialValues.id ?? null,
@@ -91,7 +106,6 @@ export default function FormSetupWizard({
   initialValues = {},
 }) {
   const router = useRouter();
-  const supabase = createClient();
   const [isSaving, setIsSaving] = useState(false);
 
   const defaultValues = useMemo(() => mapInitialValues(initialValues), [initialValues]);
@@ -118,48 +132,16 @@ export default function FormSetupWizard({
     setIsSaving(true);
 
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const description = buildPaymentDescription(values, bankAccounts);
+      const result = await saveFormSetup({ ...values, id: defaultValues.id ?? null, description });
 
-      if (!user) {
-        toast.error("Tu sesión expiró. Vuelve a iniciar sesión.");
-        router.push("/login");
+      if (result.error) {
+        toast.error("No se pudo guardar la configuración", { description: result.error });
         return;
       }
 
-      const payload = {
-        title: values.title.trim(),
-        slug: slugify(values.title),
-        is_internal: values.is_internal,
-        max_responses: values.max_responses,
-        is_financial: values.is_financial,
-        payment_type: values.is_financial ? values.payment_type : null,
-        max_installments:
-          values.is_financial && values.payment_type === "installments"
-            ? values.max_installments
-            : null,
-        total_amount: values.is_financial ? values.total_amount : null,
-        destination_account_id: values.is_financial ? values.destination_account_id : null,
-      };
-
-      let targetId = defaultValues.id;
-
-      if (isEditing) {
-        const { error } = await supabase.from("forms").update(payload).eq("id", targetId);
-        if (error) throw error;
-      } else {
-        const { data, error } = await supabase
-          .from("forms")
-          .insert([{ ...payload, user_id: user.id }])
-          .select("id")
-          .single();
-        if (error) throw error;
-        targetId = data.id;
-      }
-
       toast.success("Configuración guardada");
-      router.push(`/admin/formularios/builder?id=${targetId}`);
+      router.push(`/admin/formularios/builder?id=${result.formId}`);
     } catch (error) {
       console.error(error);
       toast.error("No se pudo guardar la configuración inicial");
