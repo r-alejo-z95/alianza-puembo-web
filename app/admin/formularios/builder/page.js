@@ -234,7 +234,28 @@ function BuilderContent() {
         }),
       );
 
-      // 3. Update Form Metadata
+      // 3. Sync Fields — must run BEFORE updating forms.financial_field_id
+      // because that FK requires the field to already exist in form_fields.
+      const { data: existingFields } = await supabase
+        .from("form_fields")
+        .select("id")
+        .eq("form_id", currentFormId);
+      const currentIds = processedFields.map((f) => f.id);
+      const toDelete =
+        existingFields
+          ?.filter((f) => !currentIds.includes(f.id))
+          .map((f) => f.id) || [];
+
+      if (toDelete.length > 0) {
+        await supabase.from("form_fields").delete().in("id", toDelete);
+      }
+
+      const { error: fieldsErr } = await supabase
+        .from("form_fields")
+        .upsert(processedFields);
+      if (fieldsErr) throw fieldsErr;
+
+      // 4. Update Form Metadata — after fields are persisted so financial_field_id FK is valid
       const { error: metaErr } = await supabase
         .from("forms")
         .update({
@@ -254,26 +275,6 @@ function BuilderContent() {
         })
         .eq("id", currentFormId);
       if (metaErr) throw metaErr;
-
-      // 4. Sync Fields (Delete removed ones)
-      const { data: existingFields } = await supabase
-        .from("form_fields")
-        .select("id")
-        .eq("form_id", currentFormId);
-      const currentIds = processedFields.map((f) => f.id);
-      const toDelete =
-        existingFields
-          ?.filter((f) => !currentIds.includes(f.id))
-          .map((f) => f.id) || [];
-
-      if (toDelete.length > 0) {
-        await supabase.from("form_fields").delete().in("id", toDelete);
-      }
-
-      const { error: fieldsErr } = await supabase
-        .from("form_fields")
-        .upsert(processedFields);
-      if (fieldsErr) throw fieldsErr;
 
       // 5. Google Integration (New forms only, and only if NOT internal)
       if (!form?.id && !is_internal) {
