@@ -34,6 +34,7 @@ import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { PaginationControls } from "@/components/shared/PaginationControls";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import Link from "next/link";
 import { findNameInSubmission } from "@/lib/form-utils";
@@ -92,6 +93,24 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
 
     return result;
   }, [initialSubmissions, searchTerm, formFilter]);
+
+  const selectedFormSubmissions = useMemo(() => {
+    if (formFilter === "all") return [];
+    return initialSubmissions.filter((s) => s.form_id === formFilter);
+  }, [initialSubmissions, formFilter]);
+
+  const selectedFormStats = useMemo(() => {
+    if (formFilter === "all") return null;
+    const totalConfirmedAmount = selectedFormSubmissions.reduce((acc, sub) => {
+      const verifiedPayments = (sub.form_submission_payments || []).filter((p) => p.status === "verified");
+      return acc + verifiedPayments.reduce((sum, payment) => sum + Number(payment.extracted_data?.amount || payment.amount_claimed || 0), 0);
+    }, 0);
+
+    return {
+      totalRegistered: selectedFormSubmissions.length,
+      totalConfirmedAmount,
+    };
+  }, [formFilter, selectedFormSubmissions]);
 
   const totalPages = Math.ceil(processedSubmissions.length / itemsPerPage);
   
@@ -179,6 +198,25 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
         </div>
       </div>
 
+      {selectedFormStats && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="border-none shadow-lg rounded-[2rem] bg-black text-white overflow-hidden">
+            <CardContent className="p-6 md:p-8 space-y-2">
+              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Registrados</span>
+              <p className="text-3xl md:text-4xl font-serif font-bold text-[var(--puembo-green)]">{selectedFormStats.totalRegistered}</p>
+              <p className="text-xs text-white/50">Total de personas inscritas en este evento.</p>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-lg rounded-[2rem] bg-white overflow-hidden">
+            <CardContent className="p-6 md:p-8 space-y-2">
+              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Monto confirmado</span>
+              <p className="text-3xl md:text-4xl font-serif font-bold text-gray-900">${selectedFormStats.totalConfirmedAmount.toFixed(2)}</p>
+              <p className="text-xs text-gray-400">Suma de pagos verificados para este evento.</p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Filtros Card */}
       <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
         <div className="p-6 md:p-8 border-b border-gray-50 bg-gray-50/30">
@@ -259,6 +297,7 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
                           <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Fecha</TableHead>
                           <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Evento / Actividad</TableHead>
                           <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Nombre del Inscrito</TableHead>
+                          <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-right">Monto / Estado</TableHead>
                           <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-right">Acciones</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -310,6 +349,11 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
   const subscriberName = findNameInSubmission(sub.data);
   const formattedDate = format(parseISO(sub.created_at), "d MMM, yyyy", { locale: es });
   const formattedTime = format(parseISO(sub.created_at), "HH:mm 'hrs'");
+  const payments = sub.form_submission_payments || [];
+  const amountPaid = payments
+    .filter((p) => p.status === "verified")
+    .reduce((sum, payment) => sum + Number(payment.extracted_data?.amount || payment.amount_claimed || 0), 0);
+  const paymentStatus = payments.some((p) => p.status === "verified") ? "verified" : "pending";
 
   return (
     <TableRow className="group transition-all duration-300 border-b border-gray-50 hover:bg-gray-50/50">
@@ -342,6 +386,16 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
       </TableCell>
       <TableCell className="px-8 py-6 text-right">
         <div className="flex items-center justify-end gap-3">
+          <div className="flex flex-col items-end gap-1">
+            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">Monto</span>
+            <span className="text-sm font-bold text-gray-900">${amountPaid.toFixed(2)}</span>
+            <Badge className={cn(
+              "rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
+              paymentStatus === "verified" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+            )}>
+              {paymentStatus === "verified" ? "Verificado" : "Pendiente"}
+            </Badge>
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -371,6 +425,11 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
 function SubmissionCard({ sub, onCopy, isCopied }) {
     const subscriberName = findNameInSubmission(sub.data);
     const date = format(parseISO(sub.created_at), "d MMM", { locale: es });
+    const payments = sub.form_submission_payments || [];
+    const amountPaid = payments
+        .filter((p) => p.status === "verified")
+        .reduce((sum, payment) => sum + Number(payment.extracted_data?.amount || payment.amount_claimed || 0), 0);
+    const paymentStatus = payments.some((p) => p.status === "verified") ? "verified" : "pending";
     
     return (
         <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm space-y-4">
@@ -385,6 +444,16 @@ function SubmissionCard({ sub, onCopy, isCopied }) {
             </div>
             
             <div className="flex gap-2">
+                <div className="flex-1 rounded-2xl border border-gray-100 bg-gray-50 p-3">
+                    <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400">Monto pagado</span>
+                    <p className="mt-1 text-base font-bold text-gray-900">${amountPaid.toFixed(2)}</p>
+                    <Badge className={cn(
+                        "mt-2 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
+                        paymentStatus === "verified" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                    )}>
+                        {paymentStatus === "verified" ? "Verificado" : "Pendiente"}
+                    </Badge>
+                </div>
                 <Button 
                     variant="outline" 
                     className={cn(

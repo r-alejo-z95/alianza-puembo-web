@@ -2,6 +2,182 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.PROJECT_GEMINI_API_KEY || "");
 
+const CREDIT_KEYWORDS = [
+  "credito",
+  "crédito",
+  "abono",
+  "deposito",
+  "depósito",
+  "ingreso",
+  "acreditado",
+  "transferencia recibida",
+  "nota de credito",
+  "nota de crédito",
+];
+
+const DEBIT_KEYWORDS = [
+  "debito",
+  "débito",
+  "egreso",
+  "salida",
+  "cargo",
+  "retiro",
+  "valor debitado",
+  "total debitado",
+];
+
+function normalizeText(input: unknown) {
+  return String(input ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function getCellText(cell: unknown) {
+  if (cell === null || cell === undefined) return "";
+  if (typeof cell === "string") return cell;
+  if (typeof cell === "number") return String(cell);
+  if (typeof cell === "object") {
+    if (Array.isArray(cell)) return cell.map(getCellText).join(" ");
+    if ("value" in (cell as any)) return getCellText((cell as any).value);
+    if ("label" in (cell as any)) return getCellText((cell as any).label);
+    if ("text" in (cell as any)) return getCellText((cell as any).text);
+  }
+  return String(cell);
+}
+
+function parseAmount(value: unknown) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  const text = normalizeText(value);
+  if (!text) return null;
+  const cleaned = text
+    .replace(/\s+/g, "")
+    .replace(/[$€]/g, "")
+    .replace(/[^0-9,.-]/g, "");
+  if (!cleaned) return null;
+
+  const commaCount = (cleaned.match(/,/g) || []).length;
+  const dotCount = (cleaned.match(/\./g) || []).length;
+  let normalized = cleaned;
+
+  if (commaCount > 0 && dotCount > 0) {
+    normalized = cleaned.replace(/\./g, "").replace(",", ".");
+  } else if (commaCount > 0 && dotCount === 0) {
+    normalized = cleaned.replace(",", ".");
+  }
+
+  const amount = Number(normalized);
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function findHeaderIndex(headers: any[], patterns: string[]) {
+  return headers.findIndex((header) => {
+    const headerText = normalizeText(header);
+    return patterns.some((pattern) => headerText.includes(normalizeText(pattern)));
+  });
+}
+
+function hasAnyKeyword(text: string, keywords: string[]) {
+  const haystack = normalizeText(text);
+  return keywords.some((keyword) => haystack.includes(normalizeText(keyword)));
+}
+
+function parseDateValue(value: unknown) {
+  if (!value) return null;
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  const text = String(value).trim();
+  if (!text) return null;
+
+  const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+
+  const slashMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (slashMatch) {
+    const day = slashMatch[1].padStart(2, "0");
+    const month = slashMatch[2].padStart(2, "0");
+    const year = slashMatch[3].length === 2 ? `20${slashMatch[3]}` : slashMatch[3];
+    return `${year}-${month}-${day}`;
+  }
+
+  const parsed = new Date(text);
+  if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  return null;
+}
+
+function parseBankStatementDeterministic(rows: any[][], headers: any[], context?: { bankAccountName?: string; bankAccountNumber?: string }) {
+  if (!Array.isArray(rows) || rows.length === 0 || !Array.isArray(headers) || headers.length === 0) {
+    return [];
+  }
+
+  const normalizedHeaders = headers.map((header) => normalizeText(header));
+  const dateIdx = findHeaderIndex(normalizedHeaders, ["fecha", "date"]);
+  const descriptionIdx = findHeaderIndex(normalizedHeaders, ["descripcion", "descripción", "concepto", "detalle", "movimiento", "transaccion", "transacción"]);
+  const referenceIdx = findHeaderIndex(normalizedHeaders, ["referencia", "comprobante", "documento", "secuencial", "autorizacion", "autorización"]);
+  const creditIdx = findHeaderIndex(normalizedHeaders, ["credito", "crédito", "abono", "ingreso", "acreditado", "valor acreditado"]);
+  const debitIdx = findHeaderIndex(normalizedHeaders, ["debito", "débito", "cargo", "egreso", "valor debitado", "total debitado"]);
+  const amountIdx = findHeaderIndex(normalizedHeaders, ["monto", "importe", "valor", "amount", "saldo"]);
+  const typeIdx = findHeaderIndex(normalizedHeaders, ["tipo", "movimiento", "operacion", "operación"]);
+  const bankIdx = findHeaderIndex(normalizedHeaders, ["banco", "entidad", "origen"]);
+  const senderIdx = findHeaderIndex(normalizedHeaders, ["ordenante", "remitente", "depositante", "cliente", "titular"]);
+
+  const parsed = [];
+
+  for (const row of rows) {
+    if (!Array.isArray(row)) continue;
+    const rowText = row.map(getCellText).join(" ");
+    const normalizedRowText = normalizeText(rowText);
+    if (!normalizedRowText) continue;
+    if (hasAnyKeyword(normalizedRowText, DEBIT_KEYWORDS) && !hasAnyKeyword(normalizedRowText, CREDIT_KEYWORDS)) continue;
+
+    const date = parseDateValue(dateIdx >= 0 ? row[dateIdx] : null);
+    const description = descriptionIdx >= 0 ? getCellText(row[descriptionIdx]).trim() : rowText.trim();
+    const reference = referenceIdx >= 0 ? getCellText(row[referenceIdx]).trim() : "";
+    const senderName = senderIdx >= 0 ? getCellText(row[senderIdx]).trim() : "";
+    const bankName = bankIdx >= 0 ? getCellText(row[bankIdx]).trim() : context?.bankAccountName || "";
+
+    const creditAmount = creditIdx >= 0 ? parseAmount(row[creditIdx]) : null;
+    const debitAmount = debitIdx >= 0 ? parseAmount(row[debitIdx]) : null;
+    const singleAmount = amountIdx >= 0 ? parseAmount(row[amountIdx]) : null;
+    const typeValue = typeIdx >= 0 ? normalizeText(row[typeIdx]) : "";
+
+    let amount = null;
+
+    if (creditAmount !== null && creditAmount > 0) {
+      amount = creditAmount;
+    } else if (
+      singleAmount !== null &&
+      singleAmount > 0 &&
+      (!debitAmount || debitAmount <= 0) &&
+      (hasAnyKeyword(typeValue, CREDIT_KEYWORDS) || hasAnyKeyword(normalizedRowText, CREDIT_KEYWORDS) || !hasAnyKeyword(normalizedRowText, DEBIT_KEYWORDS))
+    ) {
+      amount = singleAmount;
+    } else if (debitAmount === null && singleAmount !== null && singleAmount > 0 && !hasAnyKeyword(normalizedRowText, DEBIT_KEYWORDS)) {
+      amount = singleAmount;
+    }
+
+    if (!amount || !date) continue;
+
+    parsed.push({
+      amount,
+      date,
+      reference: reference || "",
+      description: description || rowText.trim(),
+      sender_name: senderName || null,
+      bank_name: bankName || null,
+      beneficiary_name: context?.bankAccountName || null,
+      beneficiary_account: context?.bankAccountNumber || null,
+      currency: "USD",
+      is_valid_receipt: true,
+      is_correct_beneficiary: true,
+    });
+  }
+
+  return parsed;
+}
+
 /**
  * Interface for the structured data extracted from a receipt.
  */
@@ -61,7 +237,9 @@ export async function extractReceiptData(
 
       Otras Reglas:
       1. En reference, busca números de "Comprobante", "Referencia", "Secuencial" o "Autorización".
-      2. Devuelve SOLO el JSON, sin bloques de código markdown ni texto adicional.
+      2. Si el comprobante muestra comisiones, cargos, valores debitados o totales debitados, ignóralos por completo.
+      3. El campo amount debe contener únicamente el monto real transferido o depositado, nunca el total debitado con cargos.
+      4. Devuelve SOLO el JSON, sin bloques de código markdown ni texto adicional.
     `;
 
     const result = await model.generateContent([
@@ -107,15 +285,25 @@ export async function extractReceiptData(
 }
 
 /**
- * Uses AI to parse bank statement rows into standardized JSON.
+ * Uses deterministic parsing first, and falls back to AI only when needed.
  */
-export async function parseBankStatementWithAI(rows: any[][], headers: any[]): Promise<ExtractedReceiptData[]> {
+export async function parseBankStatementWithAI(
+  rows: any[][],
+  headers: any[],
+  context?: { bankAccountName?: string; bankAccountNumber?: string },
+): Promise<ExtractedReceiptData[]> {
+  const deterministic = parseBankStatementDeterministic(rows, headers, context);
+  if (deterministic.length > 0) {
+    return deterministic;
+  }
+
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
     
     const prompt = `
       Eres un auditor experto en Ecuador. Analiza estas filas de un extracto bancario y conviértelas en JSON.
       Contexto de encabezados: ${JSON.stringify(headers)}
+      Contexto de cuenta bancaria seleccionada: ${JSON.stringify(context || null)}
 
       Tu objetivo es identificar TODOS los movimientos que representen un INGRESO (Crédito) a la cuenta, sin importar su origen.
 

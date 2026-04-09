@@ -11,18 +11,49 @@ import { INVALID_RECEIPT_MESSAGE, validateFinancialReceipt } from "@/lib/service
 /**
  * Step 1: Initialize a bank report
  */
-export async function initBankReport(filename: string): Promise<{ reportId?: string, error?: string }> {
+export async function initBankReport(
+  filename: string,
+  bankAccount?: { id?: string | null; bank_name?: string | null; account_number?: string | null } | null,
+): Promise<{ reportId?: string, error?: string }> {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    const { data: report, error: reportErr } = await supabase
-      .from("bank_reports")
-      .insert([{ filename, created_by: user?.id }])
-      .select().single();
+    const labelParts = [bankAccount?.bank_name, bankAccount?.account_number].filter(Boolean);
+    const reportLabel = labelParts.length > 0 ? `${labelParts.join(" - ")} · ${filename}` : filename;
+    const basePayload: Record<string, any> = {
+      filename: reportLabel,
+      created_by: user?.id,
+    };
 
-    if (reportErr) throw reportErr;
-    return { reportId: report.id };
+    const payloads = bankAccount?.id
+      ? [
+          { ...basePayload, bank_account_id: bankAccount.id },
+          { ...basePayload, account_id: bankAccount.id },
+          basePayload,
+        ]
+      : [basePayload];
+
+    let lastErr: any = null;
+    for (const payload of payloads) {
+      const { data: report, error: reportErr } = await supabase
+        .from("bank_reports")
+        .insert([payload])
+        .select()
+        .single();
+
+      if (!reportErr && report) {
+        return { reportId: report.id };
+      }
+      lastErr = reportErr;
+      const message = String(reportErr?.message || "").toLowerCase();
+      if (!message.includes("column") && !message.includes("does not exist") && !message.includes("unknown")) {
+        break;
+      }
+    }
+
+    if (lastErr) throw lastErr;
+    throw new Error("No se pudo crear el reporte bancario");
   } catch (e: any) {
     return { error: e.message };
   }
@@ -31,7 +62,12 @@ export async function initBankReport(filename: string): Promise<{ reportId?: str
 /**
  * Step 2: Process a chunk of data rows
  */
-export async function processBankChunk(reportId: string, chunk: any[][], headers: any[]): Promise<{ success: boolean, error?: string }> {
+export async function processBankChunk(
+  reportId: string,
+  chunk: any[][],
+  headers: any[],
+  bankAccount?: { bank_name?: string | null; account_number?: string | null } | null,
+): Promise<{ success: boolean, error?: string }> {
   try {
     const supabase = await createClient();
     const normalizedRows = chunk.filter((row) => {
@@ -54,7 +90,12 @@ export async function processBankChunk(reportId: string, chunk: any[][], headers
       return !commissionKeywords.some((keyword) => rowText.includes(keyword));
     });
 
-    const extracted = await parseBankStatementWithAI(normalizedRows, headers);
+    const extracted = await parseBankStatementWithAI(normalizedRows, headers, bankAccount
+      ? {
+          bankAccountName: bankAccount.bank_name || undefined,
+          bankAccountNumber: bankAccount.account_number || undefined,
+        }
+      : undefined);
 
     if (!extracted || extracted.length === 0) return { success: true };
 
@@ -66,7 +107,7 @@ export async function processBankChunk(reportId: string, chunk: any[][], headers
         ? `Depósito - ${t.sender_name}` 
         : 'Depósito'),
       reference: String(t.reference || "").trim(),
-      bank_name: t.bank_name || "Desconocido"
+      bank_name: t.bank_name || bankAccount?.bank_name || "Desconocido"
     }));
 
     const { error: batchErr } = await supabase.from("bank_transactions").upsert(dbTransactions, { 
