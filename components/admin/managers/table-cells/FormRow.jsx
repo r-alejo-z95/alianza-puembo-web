@@ -67,7 +67,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
     ? `/admin/staff/respuestas/${form.slug}` 
     : `/admin/formularios/analiticas/${form.slug}`;
   
-  const responsesLabel = form.is_internal ? "Ver Respuestas" : "Ver Analíticas";
+  const responsesLabel = form.is_internal ? "Respuestas" : "Analíticas";
   
   const viewPath = form.is_internal
     ? `/admin/staff/proceso/${form.slug}`
@@ -81,16 +81,23 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Link href={responsesPath} className="flex-1 lg:flex-none">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-xl w-full text-blue-600 lg:text-black hover:bg-blue-50 lg:hover:text-blue-600 transition-all duration-300 gap-2 px-4 lg:px-2"
-              >
-                <BarChart3 className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">{responsesLabel}</span>
-              </Button>
-            </Link>
+            <Button
+              asChild
+              variant="ghost"
+              className="group h-auto flex-1 lg:flex-none rounded-[1rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700 shadow-sm transition-all duration-300 hover:bg-emerald-100 hover:text-emerald-800 hover:shadow-md"
+            >
+              <Link href={responsesPath} className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-(--puembo-green) text-white shadow-sm transition-transform duration-300 group-hover:scale-105">
+                  <BarChart3 className="w-4 h-4" />
+                </span>
+                <span className="flex flex-col items-start text-left">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">{responsesLabel}</span>
+                  <span className="hidden text-[11px] font-medium leading-tight text-emerald-700/80 lg:block">
+                    Abrir estado y exportación
+                  </span>
+                </span>
+              </Link>
+            </Button>
           </TooltipTrigger>
           <TooltipContent>{responsesLabel}</TooltipContent>
         </Tooltip>
