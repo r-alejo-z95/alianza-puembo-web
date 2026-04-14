@@ -45,7 +45,7 @@ import { cn } from "@/lib/utils";
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { isFormSetupComplete } from "@/lib/data/forms";
+import { isFormSetupComplete } from "@/lib/forms/setup";
 
 export default function FormManager({ initialForms = [], isInternal = false }) {
   const {

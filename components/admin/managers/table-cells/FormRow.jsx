@@ -40,7 +40,7 @@ import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { revalidateForms } from "@/lib/actions/cache";
 import { syncFormToSheets } from "@/lib/actions";
-import { isFormSetupComplete } from "@/lib/data/forms";
+import { isFormSetupComplete } from "@/lib/forms/setup";
 
 export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect, isInternalView }) {
   const [isEnabled, setEnabled] = useState(form.enabled ?? true);

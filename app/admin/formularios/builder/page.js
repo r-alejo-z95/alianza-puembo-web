@@ -9,7 +9,7 @@ import { Loader2 } from "lucide-react";
 import { initializeGoogleIntegration } from "@/lib/actions";
 import { revalidateForms } from "@/lib/actions/cache";
 import { slugify } from "@/lib/utils";
-import { isFormSetupComplete } from "@/lib/data/forms";
+import { isFormSetupComplete } from "@/lib/forms/setup";
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-z0-9.]/gi, "_").toLowerCase();
