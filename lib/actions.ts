@@ -856,7 +856,7 @@ export async function submitFormAction(payload: {
     }
 
     // 4. TAREAS EN BACKGROUND (No bloquean la respuesta al usuario)
-    if (notificationEmail && form.is_financial && form.payment_type === "installments") {
+    if (notificationEmail && form.is_financial) {
       const { data: payments } = await supabaseAdmin
         .from("form_submission_payments")
         .select("amount_claimed, extracted_data, status")

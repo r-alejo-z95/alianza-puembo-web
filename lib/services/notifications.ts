@@ -203,7 +203,7 @@ export async function sendConfirmationEmail(
   },
 ) {
   try {
-    if (payload.paymentType !== "installments" || payload.remainingBalance <= 0) {
+    if (payload.remainingBalance <= 0) {
       return { success: true, skipped: true };
     }
 
