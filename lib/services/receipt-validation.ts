@@ -19,6 +19,14 @@ const RECEIPT_KEYWORDS = [
 
 const CASH_KEYWORDS = ["efectivo", "cash", "pago en efectivo"];
 
+export type ReceiptReviewStatus = "valid" | "manual_review" | "invalid";
+
+export type DestinationBankAccountLike = {
+  bank_name?: string | null;
+  account_holder?: string | null;
+  account_number?: string | null;
+};
+
 function normalizeText(input: string) {
   return input
     .toLowerCase()
@@ -26,11 +34,102 @@ function normalizeText(input: string) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-export function validateFinancialReceipt(
-  extractedData: ExtractedReceiptData | null,
-): { isValid: boolean; reason?: string } {
+function normalizeDigits(input: string) {
+  return input.replace(/\D/g, "");
+}
+
+function getBeneficiaryMatchScore(
+  extractedData: ExtractedReceiptData,
+  destinationAccount?: DestinationBankAccountLike | null,
+) {
+  if (!destinationAccount) {
+    return { score: 0, confidence: "none" as const, matched: false };
+  }
+
+  const expectedName = normalizeText(destinationAccount.account_holder || "");
+  const expectedNumber = normalizeDigits(destinationAccount.account_number || "");
+  const expectedBank = normalizeText(destinationAccount.bank_name || "");
+
+  const candidateText = normalizeText(
+    [
+      extractedData.bank_name,
+      extractedData.beneficiary_name,
+      extractedData.sender_name,
+      extractedData.description,
+      extractedData.reference,
+      extractedData.beneficiary_account,
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+
+  const candidateDigits = normalizeDigits(
+    [
+      extractedData.beneficiary_account,
+      extractedData.reference,
+      extractedData.description,
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+
+  let score = 0;
+
+  if (expectedNumber) {
+    if (candidateDigits === expectedNumber) {
+      score += 60;
+    } else if (candidateDigits.endsWith(expectedNumber.slice(-6)) || candidateDigits.includes(expectedNumber.slice(-4))) {
+      score += 40;
+    }
+  }
+
+  if (expectedName) {
+    const nameTokens = expectedName
+      .split(/\s+/)
+      .map((token) => token.trim())
+      .filter((token) => token.length >= 4);
+
+    const matchedTokens = nameTokens.filter((token) => {
+      if (candidateText.includes(token)) return true;
+      const shortened = token.slice(0, 4);
+      return shortened.length >= 3 && candidateText.includes(shortened);
+    }).length;
+
+    if (nameTokens.length > 0) {
+      score += Math.round((matchedTokens / nameTokens.length) * 30);
+    }
+  }
+
+  if (expectedBank && candidateText.includes(expectedBank)) {
+    score += 15;
+  }
+
+  if (candidateText.includes(expectedName) && expectedName) {
+    score += 20;
+  }
+
+  const confidence: "high" | "medium" | "low" | "none" =
+    score >= 70 ? "high" : score >= 40 ? "medium" : score >= 15 ? "low" : "none";
+  return { score, confidence, matched: score >= 40 };
+}
+
+export function compareReceiptBeneficiary(
+  extractedData: ExtractedReceiptData | null | undefined,
+  destinationAccount?: DestinationBankAccountLike | null,
+) {
   if (!extractedData) {
-    return { isValid: false, reason: "No se pudo extraer información del comprobante." };
+    return { score: 0, confidence: "none" as const, matched: false };
+  }
+
+  return getBeneficiaryMatchScore(extractedData, destinationAccount);
+}
+
+export function classifyFinancialReceipt(
+  extractedData: ExtractedReceiptData | null,
+  destinationAccount?: DestinationBankAccountLike | null,
+): { status: ReceiptReviewStatus; reason?: string; beneficiaryMatch?: { score: number; confidence: "high" | "medium" | "low" | "none"; matched: boolean } } {
+  if (!extractedData) {
+    return { status: "invalid", reason: "No se pudo extraer información del comprobante." };
   }
 
   const textParts = [
@@ -58,27 +157,52 @@ export function validateFinancialReceipt(
     !!extractedData.date &&
     (!!extractedData.bank_name || !!extractedData.beneficiary_account);
 
+  const beneficiaryMatch = getBeneficiaryMatchScore(extractedData, destinationAccount);
+  const hasReceiptSignals = keywordMatches > 0 || !!extractedData.bank_name || !!extractedData.beneficiary_account || !!extractedData.reference;
+  const hasStrongReceiptSignals = keywordMatches >= 2 || beneficiaryMatch.matched;
+
   if (hasCashLanguage) {
-    return { isValid: false, reason: "El comprobante parece corresponder a efectivo." };
+    return {
+      status: "invalid",
+      reason: "El comprobante parece corresponder a efectivo.",
+      beneficiaryMatch,
+    };
   }
 
-  if (!extractedData.is_valid_receipt) {
-    return { isValid: false, reason: "La IA no lo identificó como comprobante válido." };
+  if (!extractedData.is_valid_receipt && !hasReceiptSignals && !hasStrongReceiptSignals) {
+    return {
+      status: "invalid",
+      reason: "La IA no lo identificó como comprobante y no hay señales bancarias suficientes.",
+      beneficiaryMatch,
+    };
   }
 
   if (!hasCoreFields) {
     return {
-      isValid: false,
+      status: "manual_review",
       reason: "Faltan datos clave como monto, fecha o cuenta/banco en el comprobante.",
+      beneficiaryMatch,
     };
   }
 
-  if (keywordMatches < 2) {
+  if (!extractedData.is_valid_receipt || keywordMatches < 2 || !hasStrongReceiptSignals) {
     return {
-      isValid: false,
-      reason: "No contiene suficientes señales textuales de comprobante bancario.",
+      status: "manual_review",
+      reason: "El comprobante parece válido pero requiere revisión manual.",
+      beneficiaryMatch,
     };
   }
 
-  return { isValid: true };
+  return {
+    status: "valid",
+    beneficiaryMatch,
+  };
+}
+
+export function validateFinancialReceipt(
+  extractedData: ExtractedReceiptData | null,
+  destinationAccount?: DestinationBankAccountLike | null,
+): { isValid: boolean; reason?: string } {
+  const result = classifyFinancialReceipt(extractedData, destinationAccount);
+  return { isValid: result.status !== "invalid", reason: result.reason };
 }

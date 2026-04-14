@@ -4,9 +4,9 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import * as XLSX from "xlsx";
 import { extractReceiptData, parseBankStatementWithAI } from "@/lib/services/ai-reconciliation";
 import { revalidatePath } from "next/cache";
-import { verifySuperAdmin } from "@/lib/auth/guards";
+import { verifyPermission, verifySuperAdmin } from "@/lib/auth/guards";
 import { uploadReceipt } from "@/lib/actions";
-import { INVALID_RECEIPT_MESSAGE, validateFinancialReceipt } from "@/lib/services/receipt-validation";
+import { INVALID_RECEIPT_MESSAGE, classifyFinancialReceipt } from "@/lib/services/receipt-validation";
 
 /**
  * Step 1: Initialize a bank report
@@ -355,6 +355,61 @@ export async function reconcilePayment(paymentId: string, transactionId: string,
 }
 
 /**
+ * Super-admin/manual review: update extracted receipt data before reconciliation.
+ */
+export async function updatePaymentReview(
+  paymentId: string,
+  payload: {
+    extractedData?: Record<string, any>;
+    amountClaimed?: number | null;
+    status?: "pending" | "manual_review";
+    notes?: string | null;
+  },
+) {
+  await verifyPermission("perm_finanzas");
+
+  const supabase = createAdminClient();
+
+  try {
+    const { data: currentPayment, error: fetchErr } = await supabase
+      .from("form_submission_payments")
+      .select("id, extracted_data, amount_claimed, status, reconciliation_notes")
+      .eq("id", paymentId)
+      .single();
+
+    if (fetchErr) throw fetchErr;
+    if (!currentPayment) throw new Error("Pago no encontrado");
+
+    const mergedExtractedData = {
+      ...(currentPayment.extracted_data || {}),
+      ...(payload.extractedData || {}),
+    };
+
+    const { error: updateErr } = await supabase
+      .from("form_submission_payments")
+      .update({
+        extracted_data: mergedExtractedData,
+        amount_claimed:
+          payload.amountClaimed !== undefined && payload.amountClaimed !== null
+            ? payload.amountClaimed
+            : currentPayment.amount_claimed,
+        status: payload.status || currentPayment.status || "manual_review",
+        reconciliation_notes:
+          payload.notes !== undefined ? payload.notes : currentPayment.reconciliation_notes,
+      })
+      .eq("id", paymentId);
+
+    if (updateErr) throw updateErr;
+
+    revalidatePath("/admin/finanzas");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error en updatePaymentReview:", error);
+    return { error: error.message || "Error al actualizar la revisión" };
+  }
+}
+
+/**
  * Validates a payment by linking it to a bank transaction.
  */
 export async function updateFinancialStatus(submissionId: string, status: string, notes?: string, matchId?: string) {
@@ -468,7 +523,7 @@ export async function addMultipartPayment(payload: {
     // 1. Verificar token y pertenencia (Seguridad)
     const { data: submission, error: subError } = await supabase
       .from("form_submissions")
-      .select("id")
+      .select("id, form_id")
       .eq("id", submissionId)
       .eq("access_token", accessToken)
       .single();
@@ -476,6 +531,28 @@ export async function addMultipartPayment(payload: {
     if (subError || !submission) {
         console.error("addMultipartPayment subError:", subError);
         throw new Error("Acceso no autorizado o inscripción no encontrada.");
+    }
+
+    let destinationAccount: {
+      bank_name?: string | null;
+      account_holder?: string | null;
+      account_number?: string | null;
+    } | null = null;
+
+    const { data: form } = await supabaseAdmin
+      .from("forms")
+      .select("destination_account_id")
+      .eq("id", submission.form_id)
+      .maybeSingle();
+
+    if (form?.destination_account_id) {
+      const { data: account } = await supabaseAdmin
+        .from("bank_accounts")
+        .select("bank_name, account_holder, account_number")
+        .eq("id", form.destination_account_id)
+        .maybeSingle();
+
+      destinationAccount = account || null;
     }
 
     // 2. Procesar con AI (Gemini)
@@ -496,8 +573,8 @@ export async function addMultipartPayment(payload: {
         }
     }
 
-    const validation = validateFinancialReceipt(aiData);
-    if (!validation.isValid) {
+    const validation = classifyFinancialReceipt(aiData, destinationAccount);
+    if (validation.status === "invalid") {
       const { error: cleanupError } = await supabaseAdmin.storage
         .from("finance_receipts")
         .remove([path]);
@@ -517,7 +594,7 @@ export async function addMultipartPayment(payload: {
         receipt_path: receiptPath,
         extracted_data: aiData,
         amount_claimed: amountClaimed || 0,
-        status: 'pending'
+        status: validation.status === "valid" ? "pending" : "manual_review"
       }])
       .select()
       .single();
@@ -562,12 +639,34 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
     // 2. Fetch current submission data
     const { data: submission, error: fetchErr } = await supabaseAdmin
       .from("form_submissions")
-      .select("data")
+      .select("data, form_id")
       .eq("id", submissionId)
       .single();
 
     if (fetchErr || !submission) {
       return { error: "No se encontró la inscripción" };
+    }
+
+    let destinationAccount: {
+      bank_name?: string | null;
+      account_holder?: string | null;
+      account_number?: string | null;
+    } | null = null;
+
+    const { data: form } = await supabaseAdmin
+      .from("forms")
+      .select("destination_account_id")
+      .eq("id", submission.form_id)
+      .maybeSingle();
+
+    if (form?.destination_account_id) {
+      const { data: account } = await supabaseAdmin
+        .from("bank_accounts")
+        .select("bank_name, account_holder, account_number")
+        .eq("id", form.destination_account_id)
+        .maybeSingle();
+
+      destinationAccount = account || null;
     }
 
     // 3. Run AI extraction before touching DB state
@@ -586,8 +685,8 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
       }
     }
 
-    const validation = validateFinancialReceipt(aiData);
-    if (!validation.isValid) {
+    const validation = classifyFinancialReceipt(aiData, destinationAccount);
+    if (validation.status === "invalid") {
       const cleanupPath = fullPath.replace("finance_receipts/", "");
       const { error: cleanupError } = await supabaseAdmin.storage
         .from("finance_receipts")
@@ -624,7 +723,7 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
         submission_id: submissionId,
         receipt_path: fullPath,
         extracted_data: aiData,
-        status: "pending",
+        status: validation.status === "valid" ? "pending" : "manual_review",
       }])
       .select()
       .single();

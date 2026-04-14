@@ -21,7 +21,7 @@ export default async function ReconciliationPage() {
   const [{ data: financialForms }, { data: bankAccounts }] = await Promise.all([
     supabase
       .from("forms")
-      .select("id, title, financial_field_label")
+      .select("id, title, financial_field_label, destination_account_id")
       .eq("is_financial", true)
       .eq("is_archived", false)
       .order("title", { ascending: true }),

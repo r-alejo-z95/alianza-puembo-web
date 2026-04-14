@@ -13,7 +13,7 @@ import { sendSystemNotification, sendConfirmationEmail } from "@/lib/services/no
 import { headers } from "next/headers";
 import { revalidateForms, revalidateFormSubmissions } from "./actions/cache";
 import { extractReceiptData } from "@/lib/services/ai-reconciliation";
-import { INVALID_RECEIPT_MESSAGE, validateFinancialReceipt } from "@/lib/services/receipt-validation";
+import { INVALID_RECEIPT_MESSAGE, classifyFinancialReceipt } from "@/lib/services/receipt-validation";
 import crypto from "crypto";
 
 /**
@@ -695,12 +695,28 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_financial, payment_type, total_amount, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label)")
+      .select("id, title, slug, is_financial, payment_type, total_amount, destination_account_id, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label)")
       .eq("id", formId)
       .single();
 
     if (formErr || !form) throw new Error("Formulario no encontrado");
     console.log(`[Submit] Form: ${form.slug}, Is Financial: ${form.is_financial}, Target Label: "${form.financial_field_label}"`);
+
+    let destinationAccount: {
+      bank_name?: string | null;
+      account_holder?: string | null;
+      account_number?: string | null;
+    } | null = null;
+
+    if (form.destination_account_id) {
+      const { data: account } = await supabaseAdmin
+        .from("bank_accounts")
+        .select("bank_name, account_holder, account_number")
+        .eq("id", form.destination_account_id)
+        .maybeSingle();
+
+      destinationAccount = account || null;
+    }
 
     // 1.1. Check max_responses limit before processing
     if (form.max_responses) {
@@ -764,9 +780,11 @@ export async function submitFormAction(payload: {
     }
 
     // 2.1. Validación crítica: comprobante inválido NO debe persistir en DB
+    let receiptReviewStatus: "valid" | "manual_review" | "invalid" = "valid";
     if (form.is_financial && receiptPath) {
-      const validation = validateFinancialReceipt(aiExtractedData);
-      if (!validation.isValid) {
+      const validation = classifyFinancialReceipt(aiExtractedData, destinationAccount);
+      receiptReviewStatus = validation.status;
+      if (validation.status === "invalid") {
         console.warn(`[Submit] Comprobante inválido detectado. Motivo: ${validation.reason || "N/A"}`);
 
         const storagePath = receiptPath.startsWith("finance_receipts/")
@@ -819,7 +837,7 @@ export async function submitFormAction(payload: {
         receipt_path: receiptPath,
         amount_claimed: Number(aiExtractedData?.amount || 0),
         extracted_data: aiExtractedData,
-        status: aiExtractedData?.is_valid_receipt ? 'pending' : 'manual_review'
+        status: receiptReviewStatus === "valid" ? 'pending' : 'manual_review'
       }]);
     }
 

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Table, 
@@ -50,7 +51,8 @@ import {
 import { cn } from "@/lib/utils";
 import { format, parseISO, addDays, subDays, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
-import { reconcilePayment, getReceiptSignedUrl } from "@/lib/actions/finance";
+import { reconcilePayment, getReceiptSignedUrl, updatePaymentReview } from "@/lib/actions/finance";
+import { compareReceiptBeneficiary } from "@/lib/services/receipt-validation";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -63,16 +65,40 @@ function displayDate(dateStr) {
   } catch (e) { return dateStr; }
 }
 
+function toDraftString(value) {
+  return value === null || value === undefined ? "" : String(value);
+}
+
+function buildReviewDraft(payment) {
+  const data = payment?.extracted_data || {};
+  return {
+    amount: toDraftString(data.amount ?? payment?.amount_claimed ?? ""),
+    date: toDraftString(data.date),
+    reference: toDraftString(data.reference),
+    sender_name: toDraftString(data.sender_name),
+    bank_name: toDraftString(data.bank_name),
+    beneficiary_name: toDraftString(data.beneficiary_name),
+    beneficiary_account: toDraftString(data.beneficiary_account),
+    is_valid_receipt: data.is_valid_receipt === false ? "false" : "true",
+    is_correct_beneficiary: data.is_correct_beneficiary === false ? "false" : "true",
+    reconciliation_notes: toDraftString(payment?.reconciliation_notes),
+    status: payment?.status === "pending" ? "pending" : "manual_review",
+  };
+}
+
 export function ReconciliationWorkbench({ 
   bankTransactions = [], 
   submissions = [], 
   onRefresh,
   isFormSelected = false,
   selectedBankAccount = null,
+  selectedDestinationAccount = null,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("pending");
   const [manualMatch, setManualMatch] = useState(null); // { paymentId, submission }
+  const [reviewDraft, setReviewDraft] = useState(buildReviewDraft(null));
+  const [isSavingReview, setIsSavingReview] = useState(false);
   const [bankSearch, setBankSearch] = useState("");
   const [modalSearch, setModalSearch] = useState("");
   const [pageSize, setPageSize] = useState("25");
@@ -82,6 +108,24 @@ export function ReconciliationWorkbench({
   const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
   const [bankStatusFilter, setBankStatusFilter] = useState('all'); 
   const [processingIds, setProcessingIds] = useState(new Set());
+
+  const beneficiaryMatch = useMemo(
+    () => (manualMatch ? compareReceiptBeneficiary(manualMatch.extracted_data || {}, selectedDestinationAccount) : null),
+    [manualMatch, selectedDestinationAccount],
+  );
+
+  useEffect(() => {
+    if (manualMatch) {
+      const draft = buildReviewDraft(manualMatch);
+      setReviewDraft({
+        ...draft,
+        is_correct_beneficiary: beneficiaryMatch?.matched ? "true" : draft.is_correct_beneficiary,
+      });
+    } else {
+      setReviewDraft(buildReviewDraft(null));
+      setIsSavingReview(false);
+    }
+  }, [manualMatch, beneficiaryMatch]);
 
   const usedTransactionIds = useMemo(() => {
     const ids = new Set(bankTransactions.filter(bt => bt.is_reconciled).map(bt => bt.id));
@@ -111,6 +155,49 @@ export function ReconciliationWorkbench({
       const res = await getReceiptSignedUrl(payment.receipt_path);
       if (res.url) setViewingReceipt({ url: res.url, title: submissionName || 'Comprobante', aiData: payment.extracted_data });
     } catch (e) { toast.error("Error"); } finally { setIsLoadingImage(false); }
+  };
+
+  const openReview = (item) => {
+    setManualMatch(item);
+    setModalSearch("");
+  };
+
+  const handleSaveReview = async () => {
+    if (!manualMatch) return;
+    setIsSavingReview(true);
+    try {
+      const amount = Number(reviewDraft.amount || 0);
+      const extractedData = {
+        ...manualMatch.extracted_data,
+        amount,
+        date: reviewDraft.date || null,
+        reference: reviewDraft.reference || null,
+        sender_name: reviewDraft.sender_name || null,
+        bank_name: reviewDraft.bank_name || null,
+        beneficiary_name: reviewDraft.beneficiary_name || null,
+        beneficiary_account: reviewDraft.beneficiary_account || null,
+        is_valid_receipt: reviewDraft.is_valid_receipt === "true",
+        is_correct_beneficiary: reviewDraft.is_correct_beneficiary === "true",
+      };
+
+      const res = await updatePaymentReview(manualMatch.id, {
+        extractedData,
+        amountClaimed: amount,
+        status: reviewDraft.status,
+        notes: reviewDraft.reconciliation_notes,
+      });
+
+      if (res.success) {
+        toast.success("Comprobante actualizado");
+        await onRefresh?.();
+      } else {
+        toast.error(res.error || "No se pudo guardar la revisión");
+      }
+    } catch (e) {
+      toast.error("No se pudo guardar la revisión");
+    } finally {
+      setIsSavingReview(false);
+    }
   };
 
   const filteredAndSortedBank = useMemo(() => {
@@ -304,7 +391,7 @@ export function ReconciliationWorkbench({
                 <p className="text-2xl font-serif font-black text-[var(--puembo-green)]">+ ${item.match.amount.toFixed(2)}</p>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button size="sm" variant="green" className="flex-1 rounded-full h-10 font-black text-[10px] uppercase tracking-widest shadow-lg" onClick={() => handleVerify(item.id, item.match.id)} disabled={item.status === 'verified'}>{item.status === 'verified' ? '¡Conciliado!' : 'Conciliar con esta'}</Button>
-                  {item.status !== 'verified' && <Button onClick={() => setManualMatch(item)} variant="outline" className="flex-1 rounded-full h-10 text-[9px] font-black uppercase tracking-widest gap-2"><Search className="w-3 h-3" /> Buscar otro...</Button>}
+                  {item.status !== 'verified' && <Button onClick={() => openReview(item)} variant="outline" className="flex-1 rounded-full h-10 text-[9px] font-black uppercase tracking-widest gap-2"><Search className="w-3 h-3" /> Revisar / editar</Button>}
                 </div>
               </div>
             ) : (
@@ -314,7 +401,7 @@ export function ReconciliationWorkbench({
                 ) : (
                     <p className="text-xs font-medium text-orange-600 italic">No hay coincidencias automáticas.</p>
                 )}
-                <Button onClick={() => setManualMatch(item)} variant="outline" className="w-full rounded-full h-10 text-[9px] font-black uppercase tracking-widest border-orange-200 text-orange-600 hover:bg-orange-50"><Search className="w-3.5 h-3.5 mr-2" /> Búsqueda Manual</Button>
+                <Button onClick={() => openReview(item)} variant="outline" className="w-full rounded-full h-10 text-[9px] font-black uppercase tracking-widest border-orange-200 text-orange-600 hover:bg-orange-50"><Search className="w-3.5 h-3.5 mr-2" /> Revisar / editar</Button>
               </div>
             )}
           </div>
@@ -462,6 +549,127 @@ export function ReconciliationWorkbench({
                  value={modalSearch} 
                  onChange={(e) => setModalSearch(e.target.value)} 
                />
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm shrink-0 space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Editar comprobante</p>
+                  <p className="text-xs text-gray-500 mt-1">Corrige los datos extraídos antes de conciliar o dejarlo en revisión.</p>
+                </div>
+                <Badge className={cn("rounded-full text-[9px] font-black uppercase tracking-widest", reviewDraft.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700")}>
+                  {reviewDraft.status === "pending" ? "Pendiente" : "Revisión manual"}
+                </Badge>
+              </div>
+
+              {selectedDestinationAccount && (
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 flex flex-col gap-1">
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-700">Cuenta destino esperada</p>
+                  <p className="text-xs font-bold text-gray-900">
+                    {selectedDestinationAccount.bank_name}
+                    {selectedDestinationAccount.account_number ? ` · ${selectedDestinationAccount.account_number}` : ""}
+                  </p>
+                  <p className="text-[10px] text-gray-500">
+                    Titular: {selectedDestinationAccount.account_holder || "No definido"}
+                  </p>
+                  <div className="pt-1">
+                    <Badge className={cn(
+                      "rounded-full text-[8px] font-black uppercase tracking-widest",
+                      beneficiaryMatch?.matched ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                    )}>
+                      {beneficiaryMatch?.matched ? "Coincide con el beneficiario" : "Revisar beneficiario"}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Monto</p>
+                  <Input type="number" step="0.01" value={reviewDraft.amount} onChange={(e) => setReviewDraft((prev) => ({ ...prev, amount: e.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Fecha</p>
+                  <Input type="date" value={reviewDraft.date} onChange={(e) => setReviewDraft((prev) => ({ ...prev, date: e.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Referencia</p>
+                  <Input value={reviewDraft.reference} onChange={(e) => setReviewDraft((prev) => ({ ...prev, reference: e.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Banco</p>
+                  <Input value={reviewDraft.bank_name} onChange={(e) => setReviewDraft((prev) => ({ ...prev, bank_name: e.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Titular</p>
+                  <Input value={reviewDraft.sender_name} onChange={(e) => setReviewDraft((prev) => ({ ...prev, sender_name: e.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Cuenta beneficiaria</p>
+                  <Input value={reviewDraft.beneficiary_account} onChange={(e) => setReviewDraft((prev) => ({ ...prev, beneficiary_account: e.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Beneficiario</p>
+                  <Input value={reviewDraft.beneficiary_name} onChange={(e) => setReviewDraft((prev) => ({ ...prev, beneficiary_name: e.target.value }))} />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Estado</p>
+                  <Select value={reviewDraft.status} onValueChange={(value) => setReviewDraft((prev) => ({ ...prev, status: value }))}>
+                    <SelectTrigger className="h-10 w-full rounded-lg bg-white border-gray-100 shadow-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="manual_review">Revisión manual</SelectItem>
+                      <SelectItem value="pending">Pendiente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">¿Es comprobante?</p>
+                  <Select value={reviewDraft.is_valid_receipt} onValueChange={(value) => setReviewDraft((prev) => ({ ...prev, is_valid_receipt: value }))}>
+                    <SelectTrigger className="h-10 w-full rounded-lg bg-white border-gray-100 shadow-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Sí</SelectItem>
+                      <SelectItem value="false">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">¿Beneficiario correcto?</p>
+                  <Select value={reviewDraft.is_correct_beneficiary} onValueChange={(value) => setReviewDraft((prev) => ({ ...prev, is_correct_beneficiary: value }))}>
+                    <SelectTrigger className="h-10 w-full rounded-lg bg-white border-gray-100 shadow-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Sí</SelectItem>
+                      <SelectItem value="false">No</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Notas</p>
+                <Textarea
+                  value={reviewDraft.reconciliation_notes}
+                  onChange={(e) => setReviewDraft((prev) => ({ ...prev, reconciliation_notes: e.target.value }))}
+                  rows={3}
+                  className="rounded-xl bg-white border-gray-100 shadow-sm"
+                  placeholder="Observaciones de la revisión..."
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-end">
+                <Button
+                  onClick={handleSaveReview}
+                  disabled={isSavingReview}
+                  className="rounded-full h-10 px-5 font-black text-[10px] uppercase tracking-widest"
+                >
+                  {isSavingReview ? "Guardando..." : "Guardar revisión"}
+                </Button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-1 scrollbar-none space-y-6">

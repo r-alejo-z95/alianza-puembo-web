@@ -72,6 +72,19 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
     [sortedBankAccounts, selectedBankAccountId],
   );
 
+  const selectedForm = useMemo(
+    () => sortedForms.find((form) => form.id === selectedFormId) || null,
+    [sortedForms, selectedFormId],
+  );
+
+  const selectedDestinationAccount = useMemo(
+    () =>
+      selectedForm?.destination_account_id
+        ? sortedBankAccounts.find((account) => account.id === selectedForm.destination_account_id) || null
+        : null,
+    [sortedBankAccounts, selectedForm],
+  );
+
   useEffect(() => {
     loadGlobalLedger(selectedBankAccountId);
   }, [selectedBankAccountId]);
@@ -355,6 +368,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
         isFormSelected={!!selectedFormId}
         selectedFormId={selectedFormId}
         selectedBankAccount={selectedBankAccount}
+        selectedDestinationAccount={selectedDestinationAccount}
       />
       </div>
 
