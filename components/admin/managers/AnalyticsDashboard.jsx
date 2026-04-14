@@ -53,6 +53,7 @@ import { findNameInSubmission } from "@/lib/form-utils";
 import {
   buildHistoricalFormFields,
   getSubmissionValueForField,
+  getHistoricalFieldDisplay,
 } from "@/lib/form-response-history";
 
 // ------------------------------------------------------------------
@@ -346,6 +347,13 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
     return String(value ?? "");
   };
 
+  const getFieldHeaderLabel = (field) => {
+    const display = getHistoricalFieldDisplay(field);
+    if (display.status === "deleted") return `${display.label} [eliminada]`;
+    if (display.status === "edited") return `${display.label} [editada]`;
+    return display.label;
+  };
+
   const getExcelColumnLetter = (columnNumber) => {
     let n = columnNumber;
     let letter = "";
@@ -362,7 +370,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
     const dataFields = historicalFields.filter(
       (f) => f.type !== "section_header" && f.type !== "separator" && f.type !== "section"
     );
-    const headers = ["Timestamp", ...dataFields.map((f) => f.label)];
+    const headers = ["Timestamp", ...dataFields.map((f) => getFieldHeaderLabel(f))];
     const rows = filteredSubmissions.map((s) => [
       formatInEcuador(s.created_at, "dd/MM/yyyy HH:mm"),
       ...dataFields.map((f) => formatExportValue(getSubmissionValueForField(s, f))),
@@ -601,9 +609,35 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                           {respondedCount}/{totalSubmissions}
                         </span>
                       </div>
-                      <CardTitle className="text-lg font-serif font-bold text-gray-900 leading-snug">
-                        {field.label}
-                      </CardTitle>
+                      {(() => {
+                        const display = getHistoricalFieldDisplay(field);
+                        return (
+                          <div className="space-y-2">
+                            <CardTitle className="text-lg font-serif font-bold text-gray-900 leading-snug">
+                              {field.label}
+                            </CardTitle>
+                            {display.status !== "current" ? (
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.25em] border",
+                                    display.status === "deleted"
+                                      ? "border-amber-200 bg-amber-50 text-amber-700"
+                                      : "border-sky-200 bg-sky-50 text-sky-700",
+                                  )}
+                                >
+                                  {display.status === "deleted" ? "Eliminada" : "Editada"}
+                                </span>
+                                {display.note ? (
+                                  <span className="text-[10px] font-medium text-gray-400">
+                                    {display.note}
+                                  </span>
+                                ) : null}
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })()}
                       {/* Response rate bar */}
                       <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div
@@ -820,6 +854,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                               {historicalFields.map((field) => {
                                 const fieldType = field.field_type || field.type;
+                                const display = getHistoricalFieldDisplay(field);
 
                                 if (fieldType === "section" || fieldType === "section_header") {
                                   return (
@@ -840,9 +875,28 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
 
                                 return (
                                   <div key={field.id} className="space-y-1.5 group">
-                                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 group-hover:text-[var(--puembo-green)] transition-colors">
-                                      {field.label}
-                                    </p>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 group-hover:text-[var(--puembo-green)] transition-colors">
+                                        {field.label}
+                                      </p>
+                                      {display.status !== "current" ? (
+                                        <span
+                                          className={cn(
+                                            "inline-flex items-center rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.25em] border",
+                                            display.status === "deleted"
+                                              ? "border-amber-200 bg-amber-50 text-amber-700"
+                                              : "border-sky-200 bg-sky-50 text-sky-700",
+                                          )}
+                                        >
+                                          {display.status === "deleted" ? "Eliminada" : "Editada"}
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                    {display.note ? (
+                                      <p className="text-[10px] font-medium text-gray-400">
+                                        {display.note}
+                                      </p>
+                                    ) : null}
                                     <div className="min-h-[1.25rem]">
                                       {empty ? (
                                         <span className="text-gray-200 italic text-sm">

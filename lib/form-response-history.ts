@@ -14,6 +14,12 @@ export type HistoricalFormField = FormField & {
   historical_labels?: string[];
 };
 
+export type HistoricalFieldDisplay = {
+  label: string;
+  status: "current" | "edited" | "deleted";
+  note?: string;
+};
+
 export function normalizeFormKey(value: string | null | undefined): string {
   return String(value ?? "")
     .normalize("NFKD")
@@ -131,4 +137,32 @@ export function buildHistoricalFormFields(
   return [...currentFields, ...historicalFields].sort(
     (a, b) => (a.order_index ?? 0) - (b.order_index ?? 0),
   );
+}
+
+export function getHistoricalFieldDisplay(field: HistoricalFormField): HistoricalFieldDisplay {
+  if (field.source === "historical") {
+    return {
+      label: field.label,
+      status: "deleted",
+      note: "Pregunta eliminada",
+    };
+  }
+
+  const historicalCount = Array.isArray(field.historical_labels)
+    ? field.historical_labels.length
+    : 0;
+
+  if (historicalCount > 0) {
+    const firstLabel = field.historical_labels?.[0];
+    return {
+      label: field.label,
+      status: "edited",
+      note: firstLabel ? `Antes: ${firstLabel}` : "Pregunta editada",
+    };
+  }
+
+  return {
+    label: field.label,
+    status: "current",
+  };
 }
