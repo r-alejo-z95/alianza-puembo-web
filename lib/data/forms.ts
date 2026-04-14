@@ -27,13 +27,35 @@ export interface Form {
   google_sheet_url?: string;
   last_synced_at?: string;
   max_responses?: number | null;
+  is_financial?: boolean;
   payment_type?: "single" | "installments" | null;
   max_installments?: number | null;
   total_amount?: number | string | null;
   destination_account_id?: string | null;
+  financial_field_label?: string | null;
+  financial_field_id?: string | null;
   created_at: string;
   user_id: string;
   form_fields?: FormField[];
+}
+
+export function isFormSetupComplete(form?: Partial<Form> | null): boolean {
+  if (!form) return false;
+  if (!form.title || form.max_responses == null || form.is_financial == null) return false;
+  if (!form.is_financial) return true;
+
+  const hasBaseFinancialSetup =
+    !!form.payment_type &&
+    form.total_amount != null &&
+    !!form.destination_account_id;
+
+  if (!hasBaseFinancialSetup) return false;
+
+  if (form.payment_type === "installments") {
+    return form.max_installments != null;
+  }
+
+  return true;
 }
 
 export interface BankAccount {

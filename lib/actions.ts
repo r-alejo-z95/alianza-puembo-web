@@ -838,13 +838,15 @@ export async function submitFormAction(payload: {
     }
 
     // 4. TAREAS EN BACKGROUND (No bloquean la respuesta al usuario)
-    if (notificationEmail && form.is_financial) {
+    if (notificationEmail && form.is_financial && form.payment_type === "installments") {
       const { data: payments } = await supabaseAdmin
         .from("form_submission_payments")
-        .select("amount_claimed, extracted_data")
+        .select("amount_claimed, extracted_data, status")
         .eq("submission_id", submission.id);
 
       const amountPaid = (payments || []).reduce((acc: number, payment: any) => {
+        if (!["verified", "pending"].includes(payment.status)) return acc;
+
         const hasStoredAmount = payment.amount_claimed !== null && payment.amount_claimed !== undefined;
         const value = hasStoredAmount
           ? Number(payment.amount_claimed || 0)
@@ -855,14 +857,16 @@ export async function submitFormAction(payload: {
       const totalAmount = Number(form.total_amount || 0);
       const remainingBalance = Math.max(totalAmount - amountPaid, 0);
 
-      sendConfirmationEmail(notificationEmail, {
-        formTitle: form.title,
-        accessToken: submission.access_token,
-        paymentType: form.payment_type,
-        totalAmount,
-        amountPaid,
-        remainingBalance,
-      }).catch(err => console.error("[Confirmation Email Error]:", err));
+      if (remainingBalance > 0) {
+        sendConfirmationEmail(notificationEmail, {
+          formTitle: form.title,
+          accessToken: submission.access_token,
+          paymentType: form.payment_type,
+          totalAmount,
+          amountPaid,
+          remainingBalance,
+        }).catch(err => console.error("[Confirmation Email Error]:", err));
+      }
     }
 
     notifyFormSubmission(form.title, form.slug, form.user_id, user?.id)

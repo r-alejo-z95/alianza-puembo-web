@@ -43,13 +43,12 @@ export default function TrackingClient({ submission }) {
     return aTime - bTime;
   });
   
-  const totalVerified = payments
-    .filter(p => p.status === 'verified')
-    .reduce((acc, p) => acc + Number(p.extracted_data?.amount || p.amount_claimed || 0), 0);
+  const paymentAmount = (payment) =>
+    Number(payment.extracted_data?.amount ?? payment.amount_claimed ?? 0) || 0;
 
-  const totalPending = payments
-    .filter(p => p.status !== 'verified' && p.status !== 'rejected')
-    .reduce((acc, p) => acc + Number(p.extracted_data?.amount || p.amount_claimed || 0), 0);
+  const totalVerified = sortedPayments
+    .filter((p) => p.status === "verified")
+    .reduce((acc, p) => acc + paymentAmount(p), 0);
 
   // Status config
   const statusConfig = {
@@ -242,7 +241,7 @@ export default function TrackingClient({ submission }) {
                                     <p className="font-bold text-gray-900">Abono #{idx + 1}</p>
                                     <p className="text-[10px] text-gray-400 uppercase font-black tracking-wider">
                                         {format(new Date(payment.created_at), "d MMM, HH:mm", { locale: es })}
-                                        <span className="ml-2 text-blue-600">(${Number(payment.extracted_data?.amount || payment.amount_claimed || 0).toFixed(2)})</span>
+                                        <span className="ml-2 text-blue-600">(${paymentAmount(payment).toFixed(2)})</span>
                                     </p>
                                 </div>
                             </div>

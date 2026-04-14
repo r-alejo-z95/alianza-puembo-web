@@ -9,13 +9,7 @@ import { Loader2 } from "lucide-react";
 import { initializeGoogleIntegration } from "@/lib/actions";
 import { revalidateForms } from "@/lib/actions/cache";
 import { slugify } from "@/lib/utils";
-
-function isSetupComplete(form) {
-  if (!form) return false;
-  if (!form.title || form.max_responses == null || form.is_financial == null) return false;
-  if (!form.is_financial) return true;
-  return !!(form.payment_type && form.total_amount && form.destination_account_id);
-}
+import { isFormSetupComplete } from "@/lib/data/forms";
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-z0-9.]/gi, "_").toLowerCase();
@@ -83,7 +77,7 @@ function BuilderContent() {
         toast.error("No se pudo cargar el formulario.");
         router.push("/admin/formularios");
       } else if (data) {
-        if (!isSetupComplete(data)) {
+        if (!isFormSetupComplete(data)) {
           router.replace(`/admin/formularios/nuevo?id=${data.id}`);
           setLoading(false);
           return;

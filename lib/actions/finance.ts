@@ -570,24 +570,7 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
       return { error: "No se encontró la inscripción" };
     }
 
-    // 3. Merge financial_receipt_path into the field object (preserve existing metadata)
-    const currentData = submission.data as Record<string, any>;
-    const existingFieldValue = currentData[financialFieldLabel];
-    const updatedFieldValue =
-      existingFieldValue && typeof existingFieldValue === "object"
-        ? { ...existingFieldValue, financial_receipt_path: fullPath }
-        : { _type: "file", info: "Archivo en Drive", financial_receipt_path: fullPath };
-
-    const updatedData = { ...currentData, [financialFieldLabel]: updatedFieldValue };
-
-    const { error: updateErr } = await supabaseAdmin
-      .from("form_submissions")
-      .update({ data: updatedData })
-      .eq("id", submissionId);
-
-    if (updateErr) throw updateErr;
-
-    // 4. Run AI extraction
+    // 3. Run AI extraction before touching DB state
     let aiData = null;
     const storagePath = fullPath.replace("finance_receipts/", "");
     const { data: fileBlob, error: dlErr } = await supabaseAdmin.storage
@@ -616,6 +599,23 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
 
       return { error: INVALID_RECEIPT_MESSAGE };
     }
+
+    // 4. Merge financial_receipt_path into the field object (preserve existing metadata)
+    const currentData = submission.data as Record<string, any>;
+    const existingFieldValue = currentData[financialFieldLabel];
+    const updatedFieldValue =
+      existingFieldValue && typeof existingFieldValue === "object"
+        ? { ...existingFieldValue, financial_receipt_path: fullPath }
+        : { _type: "file", info: "Archivo en Drive", financial_receipt_path: fullPath };
+
+    const updatedData = { ...currentData, [financialFieldLabel]: updatedFieldValue };
+
+    const { error: updateErr } = await supabaseAdmin
+      .from("form_submissions")
+      .update({ data: updatedData })
+      .eq("id", submissionId);
+
+    if (updateErr) throw updateErr;
 
     // 5. Create form_submission_payments record
     const { data: payment, error: payErr } = await supabaseAdmin

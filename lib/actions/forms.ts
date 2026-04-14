@@ -24,6 +24,10 @@ export async function saveFormSetup(
   try {
     const user = await getSessionUser();
     if (!user) return { error: "Sesión expirada. Vuelve a iniciar sesión." };
+    const canManageForms = user.is_super_admin || user.permissions?.perm_forms || user.permissions?.perm_internal_forms;
+    if (!canManageForms) {
+      return { error: "No tienes permisos para crear o editar formularios." };
+    }
 
     const supabase = createAdminClient();
     const isEditing = !!values.id;
