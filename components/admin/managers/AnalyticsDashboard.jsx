@@ -50,6 +50,10 @@ import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 import { cn } from "@/lib/utils.ts";
 import { getFileSignedUrl } from "@/lib/actions";
 import { findNameInSubmission } from "@/lib/form-utils";
+import {
+  buildHistoricalFormFields,
+  getSubmissionValueForField,
+} from "@/lib/form-response-history";
 
 // ------------------------------------------------------------------
 // FileDisplay — cached signed URL + modal viewer
@@ -213,6 +217,10 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
 
   // Shared URL cache — signed URLs are valid 1h, no need to re-fetch on re-render
   const urlCacheRef = useRef(new Map());
+  const historicalFields = useMemo(
+    () => buildHistoricalFormFields(form, allSubmissions),
+    [form, allSubmissions],
+  );
 
   // 1. Period filter — always ascending (oldest first = #1)
   const filteredSubmissions = useMemo(() => {
@@ -247,9 +255,10 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
     if (!searchQuery.trim()) return filteredSubmissions;
     const q = searchQuery.toLowerCase();
     return filteredSubmissions.filter((s) =>
-      Object.values(s.data ?? {}).some((v) =>
-        String(v ?? "").toLowerCase().includes(q)
-      )
+      [
+        ...((s.answers ?? []).map((answer) => answer?.value)),
+        ...Object.values(s.data ?? {}),
+      ].some((v) => String(v ?? "").toLowerCase().includes(q))
     );
   }, [filteredSubmissions, searchQuery]);
 
@@ -307,11 +316,11 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
     return false;
   };
 
-  const getFieldStats = (fieldLabel) => {
+  const getFieldStats = (field) => {
     const counts = {};
     let respondedCount = 0;
     filteredSubmissions.forEach((s) => {
-      const val = s.data[fieldLabel];
+      const val = getSubmissionValueForField(s, field);
       if (isValueEmpty(val)) return;
       respondedCount++;
       if (Array.isArray(val)) {
@@ -350,13 +359,13 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
 
   // 5. Actions
   async function exportToXLSX() {
-    const dataFields = (form.form_fields ?? []).filter(
+    const dataFields = historicalFields.filter(
       (f) => f.type !== "section_header" && f.type !== "separator" && f.type !== "section"
     );
     const headers = ["Timestamp", ...dataFields.map((f) => f.label)];
     const rows = filteredSubmissions.map((s) => [
       formatInEcuador(s.created_at, "dd/MM/yyyy HH:mm"),
-      ...dataFields.map((f) => formatExportValue(s.data?.[f.label])),
+      ...dataFields.map((f) => formatExportValue(getSubmissionValueForField(s, f))),
     ]);
 
     const workbook = new ExcelJS.Workbook();
@@ -571,10 +580,10 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
 
           {/* Per-field charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {form.form_fields
+            {historicalFields
               .filter((f) => f.type !== "section" && f.type !== "section_header" && f.type !== "separator")
               .map((field) => {
-                const { data: stats, respondedCount } = getFieldStats(field.label);
+                const { data: stats, respondedCount } = getFieldStats(field);
                 const fieldType = field.field_type || field.type;
                 const isChartable = ["radio", "select", "checkbox"].includes(fieldType);
                 const responseRate = totalSubmissions > 0
@@ -652,7 +661,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                       ) : (
                         <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
                           {filteredSubmissions.map((s, idx) => {
-                            const val = s.data[field.label];
+                            const val = getSubmissionValueForField(s, field);
                             const empty = isValueEmpty(val);
                             return (
                               <div key={idx} className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
@@ -751,7 +760,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
               ) : (
                 <div className="space-y-2.5">
                   {searchedSubmissions.map((s, idx) => {
-                    const name = findNameInSubmission(s.data);
+                    const name = findNameInSubmission(s);
                     const isExpanded = expandedId === s.id;
                     const cardNumber = idx + 1;
 
@@ -809,7 +818,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                         {isExpanded && (
                           <div className="border-t border-gray-50 px-5 md:px-8 py-6 space-y-0 animate-in slide-in-from-top-1 duration-200">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                              {form.form_fields.map((field) => {
+                              {historicalFields.map((field) => {
                                 const fieldType = field.field_type || field.type;
 
                                 if (fieldType === "section" || fieldType === "section_header") {
@@ -824,7 +833,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                                   );
                                 }
 
-                                const val = s.data[field.label];
+                                const val = getSubmissionValueForField(s, field);
                                 const empty = isValueEmpty(val);
                                 const isFile =
                                   typeof val === "object" && val !== null && val._type === "file";

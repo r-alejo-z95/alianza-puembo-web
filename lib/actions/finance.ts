@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { verifyPermission, verifySuperAdmin } from "@/lib/auth/guards";
 import { uploadReceipt } from "@/lib/actions";
 import { INVALID_RECEIPT_MESSAGE, classifyFinancialReceipt } from "@/lib/services/receipt-validation";
+import { normalizeFormKey } from "@/lib/form-response-history";
 
 /**
  * Step 1: Initialize a bank report
@@ -216,10 +217,26 @@ export async function analyzeFormReceipts(formId: string) {
     for (const sub of submissions) {
       const financialField = (form as any).form_fields?.find((f: any) => f.id === (form as any).financial_field_id);
       const targetLabel = (financialField?.label ?? form.financial_field_label ?? "").trim();
+      const submissionAnswers = Array.isArray((sub as any).answers) ? (sub as any).answers : [];
+      const answerById = financialField?.id
+        ? submissionAnswers.find((answer: any) => answer?.field_id === financialField.id)
+        : undefined;
+      const answerByLabel = targetLabel
+        ? submissionAnswers.find(
+            (answer: any) =>
+              normalizeFormKey(answer?.label || answer?.key) === normalizeFormKey(targetLabel),
+          )
+        : undefined;
+      const financialAnswer = answerById || answerByLabel;
+      const answerValue = financialAnswer?.value;
+      const answerPath = answerValue && typeof answerValue === "object"
+        ? answerValue.financial_receipt_path || answerValue.path || null
+        : null;
       const actualKey = targetLabel
         ? Object.keys(sub.data || {}).find(k => k.trim().toLowerCase() === targetLabel.toLowerCase())
         : undefined;
-      const mainPath = actualKey ? sub.data[actualKey]?.financial_receipt_path : null;
+      const legacyPath = actualKey ? sub.data[actualKey]?.financial_receipt_path : null;
+      const mainPath = answerPath || legacyPath;
 
       // Unificar rutas para procesar (evitar duplicados si mainPath también está en form_submission_payments)
       const pathsToProcess = new Set<string>();
@@ -541,7 +558,7 @@ export async function addMultipartPayment(payload: {
 
     const { data: form } = await supabaseAdmin
       .from("forms")
-      .select("destination_account_id")
+      .select("destination_account_id, financial_field_id, financial_field_label")
       .eq("id", submission.form_id)
       .maybeSingle();
 
@@ -639,7 +656,7 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
     // 2. Fetch current submission data
     const { data: submission, error: fetchErr } = await supabaseAdmin
       .from("form_submissions")
-      .select("data, form_id")
+      .select("data, answers, form_id")
       .eq("id", submissionId)
       .single();
 
@@ -701,17 +718,40 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
 
     // 4. Merge financial_receipt_path into the field object (preserve existing metadata)
     const currentData = submission.data as Record<string, any>;
-    const existingFieldValue = currentData[financialFieldLabel];
+    const formWithFinancialField = form as any;
+    const matchingFieldKey =
+      formWithFinancialField?.financial_field_id
+        ? formWithFinancialField.financial_field_id
+        : financialFieldLabel;
+    const existingFieldValue =
+      currentData[matchingFieldKey] ?? currentData[financialFieldLabel];
     const updatedFieldValue =
       existingFieldValue && typeof existingFieldValue === "object"
         ? { ...existingFieldValue, financial_receipt_path: fullPath }
         : { _type: "file", info: "Archivo en Drive", financial_receipt_path: fullPath };
 
-    const updatedData = { ...currentData, [financialFieldLabel]: updatedFieldValue };
+    const updatedData = {
+      ...currentData,
+      [matchingFieldKey]: updatedFieldValue,
+      [financialFieldLabel]: updatedFieldValue,
+    };
+    const updatedAnswers = Array.isArray(submission.answers)
+      ? submission.answers.map((answer: any) => {
+          const answerFieldId = answer?.field_id;
+          const answerLabel = normalizeFormKey(answer?.label || answer?.key);
+          const matchesFieldId = formWithFinancialField?.financial_field_id && answerFieldId === formWithFinancialField.financial_field_id;
+          const matchesLabel = answerLabel === normalizeFormKey(financialFieldLabel);
+          if (!matchesFieldId && !matchesLabel) return answer;
+          const value = answer?.value && typeof answer.value === "object"
+            ? { ...answer.value, financial_receipt_path: fullPath }
+            : { _type: "file", info: "Archivo en Drive", financial_receipt_path: fullPath };
+          return { ...answer, value };
+        })
+      : [];
 
     const { error: updateErr } = await supabaseAdmin
       .from("form_submissions")
-      .update({ data: updatedData })
+      .update({ data: updatedData, answers: updatedAnswers })
       .eq("id", submissionId);
 
     if (updateErr) throw updateErr;

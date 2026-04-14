@@ -2,6 +2,7 @@ import { verifySuperAdmin } from "@/lib/auth/guards";
 import { createAdminClient } from "@/lib/supabase/server";
 import { findNameInSubmission } from "@/lib/form-utils";
 import RecoveryManager from "@/components/admin/super/RecoveryManager";
+import { normalizeFormKey } from "@/lib/form-response-history";
 
 export const metadata = { title: "Recuperar Recibos" };
 
@@ -22,6 +23,7 @@ async function getPendingSubmissions() {
       id,
       created_at,
       data,
+      answers,
       access_token,
       forms!inner(title, slug, financial_field_label, is_financial)
     `)
@@ -43,11 +45,16 @@ async function getPendingSubmissions() {
     id: s.id,
     created_at: s.created_at,
     access_token: s.access_token,
-    name: findNameInSubmission(s.data),
+    name: findNameInSubmission(s),
     phone: (() => {
+      const answer = (s.answers || []).find((item) => normalizeFormKey(item?.label || item?.key).includes("telefono") || normalizeFormKey(item?.label || item?.key).includes("phone"));
+      if (answer) return String(answer.value || "");
+
       const keys = Object.keys(s.data || {});
       const phoneKey = keys.find((k) => k.toLowerCase().includes("telef") || k.toLowerCase().includes("phone") || k.toLowerCase().includes("número"));
-      return phoneKey ? String(s.data[phoneKey] || "") : "";
+      if (phoneKey) return String(s.data[phoneKey] || "");
+
+      return "";
     })(),
     formTitle: s.forms?.title ?? "",
     formSlug: s.forms?.slug ?? "",
@@ -55,6 +62,9 @@ async function getPendingSubmissions() {
     expectedFileName: (() => {
       const label = s.forms?.financial_field_label;
       if (!label) return null;
+      const answer = (s.answers || []).find((item) => normalizeFormKey(item?.label || item?.key) === normalizeFormKey(label));
+      if (answer) return answer.value?.name ?? null;
+
       const field = s.data?.[label];
       return field?.name ?? null;
     })(),

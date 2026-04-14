@@ -126,7 +126,7 @@ export default function TrackingClient({ submission }) {
 
   // Intentar encontrar el nombre del inscrito en los datos del formulario
   const getSubmissionName = () => {
-    return findNameInSubmission(submission.data);
+    return findNameInSubmission(submission);
   };
 
   return (

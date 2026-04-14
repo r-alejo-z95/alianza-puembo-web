@@ -52,7 +52,7 @@ import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 // --- Helpers ---
 
 const getJumpTarget = (field, values) => {
-  const val = values[field.label];
+  const val = values[field.id] ?? values[field.label];
   if (!val) {
     // Si no hay valor pero el campo tiene un salto por defecto (field-level)
     if (field.next_section_id && field.next_section_id !== "default") {
@@ -203,11 +203,12 @@ const FieldInput = ({
   setValue,
 }) => {
   const fieldId = `field-${field.id}`;
+  const fieldName = field.id || field.label;
 
   const baseClass =
     "w-full min-h-[56px] bg-white/50 backdrop-blur-sm border border-gray-200 rounded-2xl focus:ring-4 focus:ring-[var(--puembo-green)]/10 focus:border-[var(--puembo-green)] transition-all px-5 text-base shadow-sm hover:border-gray-300 hover:bg-white";
 
-  const selectedFile = watch(field.label);
+  const selectedFile = watch(fieldName);
 
   const fileName =
     selectedFile && selectedFile instanceof FileList && selectedFile.length > 0
@@ -226,7 +227,7 @@ const FieldInput = ({
           type={field.type === "email" ? "email" : "text"}
           placeholder={field.placeholder || "Tu respuesta..."}
           className={baseClass}
-          {...register(field.label, { required: isRequired })}
+          {...register(fieldName, { required: isRequired })}
         />
       );
 
@@ -239,14 +240,14 @@ const FieldInput = ({
             baseClass,
             "min-h-[140px] py-5 leading-relaxed resize-none",
           )}
-          {...register(field.label, { required: isRequired })}
+          {...register(fieldName, { required: isRequired })}
         />
       );
 
     case "number":
       return (
         <Controller
-          name={field.label}
+          name={fieldName}
           control={control}
           rules={{ required: isRequired }}
           render={({ field: ctrlField }) => (
@@ -271,14 +272,14 @@ const FieldInput = ({
           id={fieldId}
           type="date"
           className={baseClass}
-          {...register(field.label, { required: isRequired })}
+          {...register(fieldName, { required: isRequired })}
         />
       );
 
     case "radio":
       return (
         <Controller
-          name={field.label}
+          name={fieldName}
           control={control}
           rules={{ required: isRequired }}
           render={({ field: ctrlField }) => (
@@ -343,7 +344,7 @@ const FieldInput = ({
           {options.map((opt) => (
             <Controller
               key={opt.id}
-              name={`${field.label}.${opt.value}`}
+              name={`${fieldName}.${opt.value}`}
               control={control}
               render={({ field: ctrlField }) => (
                 <Label
@@ -390,7 +391,7 @@ const FieldInput = ({
     case "select":
       return (
         <Controller
-          name={field.label}
+          name={fieldName}
           control={control}
           rules={{ required: isRequired }}
           render={({ field: ctrlField }) => (
@@ -428,7 +429,7 @@ const FieldInput = ({
             type="file"
             accept={field.type === "image" ? "image/*" : undefined}
             className="hidden"
-            {...register(field.label, { required: isRequired })}
+            {...register(fieldName, { required: isRequired })}
           />
 
           {!fileName ? (
@@ -480,7 +481,7 @@ const FieldInput = ({
                   type="button"
                   variant="ghost"
                   className="flex-1 rounded-xl h-10 md:h-12 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 hover:text-red-600"
-                  onClick={() => setValue(field.label, null)}
+                  onClick={() => setValue(fieldName, null)}
                 >
                   Eliminar
                 </Button>
@@ -616,7 +617,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
         ),
     );
 
-    return branchingFields.every((field) => !!watchedValues[field.label]);
+    return branchingFields.every((field) => !!(watchedValues[field.id] ?? watchedValues[field.label]));
   }, [hasBranchingRadio, visibleFields, watchedValues]);
 
   const isLastStep = useMemo(() => {
@@ -645,9 +646,9 @@ export default function FluentRenderer({ form, isPreview = false }) {
     const fieldLabels = [];
     visibleFields.forEach((f) => {
       if (f.type === "checkbox") {
-        f.options?.forEach((opt) => fieldLabels.push(`${f.label}.${opt.value}`));
+        f.options?.forEach((opt) => fieldLabels.push(`${f.id}.${opt.value}`));
       } else {
-        fieldLabels.push(f.label);
+        fieldLabels.push(f.id || f.label);
       }
     });
 
@@ -664,7 +665,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
     // Validación manual para checkboxes (al menos uno)
     const missingRequiredCheckbox = visibleFields.some((f) => {
       if (f.required && f.type === "checkbox") {
-        const val = values[f.label];
+        const val = values[f.id] ?? values[f.label];
         return !val || !Object.values(val).some((v) => v === true);
       }
       return false;
@@ -781,7 +782,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
           if (jumpTargets.has(field.id) && entry.startFieldId !== field.id && loopJump !== field.id) {
             idx++; continue;
           }
-          visibleFieldLabels.add(field.label);
+          visibleFieldLabels.add(field.id || field.label);
           const jId = getJumpTarget(field, data);
           if (jId) {
             const tIdx = stepFields.findIndex((f) => f.id === jId);
@@ -802,15 +803,29 @@ export default function FluentRenderer({ form, isPreview = false }) {
         const value = data[key];
         
         // Buscar definición del campo, incluyendo el virtual
-        const virtualField = !form.is_internal && key === "Correo para Notificaciones";
+        const virtualField = !form.is_internal && key === "notification-email-field";
         const fieldDef = virtualField 
-          ? { label: key, type: "email", is_virtual: true }
-          : form.form_fields.find((f) => f.label === key);
+          ? { id: key, label: "Correo para Notificaciones", type: "email", is_virtual: true }
+          : form.form_fields.find((f) => f.id === key || f.label === key);
 
         if (!fieldDef || (fieldDef.type || fieldDef.field_type) === "section") return;
 
         // Si es virtual, no lo guardamos en rawData para la DB (según requerimiento)
         if (fieldDef.is_virtual) return;
+
+        const fieldType = fieldDef.type || fieldDef.field_type || "text";
+        const answerBase = {
+          field_id: fieldDef.id || null,
+          label: fieldDef.label || key,
+          type: fieldType,
+          key,
+        };
+        const storeCompatibleValue = (storedValue) => {
+          rawDataForDb[key] = storedValue;
+          if (fieldDef.label && fieldDef.label !== key) {
+            rawDataForDb[fieldDef.label] = storedValue;
+          }
+        };
 
         // MANEJO DE ARCHIVOS
         if (value instanceof FileList && value.length > 0) {
@@ -872,11 +887,17 @@ export default function FluentRenderer({ form, isPreview = false }) {
             mimeType: file.type,
           };
 
-          rawDataForDb[key] = {
+          const storedValue = {
             _type: "file",
             name: file.name,
             info: "Archivo en Drive",
             ...(financialReceiptPath ? { financial_receipt_path: financialReceiptPath } : {}),
+          };
+          storeCompatibleValue(storedValue);
+
+          return {
+            ...answerBase,
+            value: storedValue,
           };
         } 
         // OTROS CAMPOS (Radio, Select, Checkbox, Text)
@@ -884,20 +905,32 @@ export default function FluentRenderer({ form, isPreview = false }) {
           const fieldOptions = typeof fieldDef.options === "string" ? JSON.parse(fieldDef.options) : fieldDef.options || [];
           const selected = Object.keys(value).filter((k) => value[k]).map((k) => fieldOptions.find((o) => o.value === k)?.label || k);
           processedDataForGoogle[key] = selected.join("\n");
-          rawDataForDb[key] = selected;
+          storeCompatibleValue(selected);
+          return {
+            ...answerBase,
+            value: selected,
+          };
         } else if (fieldDef.options) {
           const fieldOptions = typeof fieldDef.options === "string" ? JSON.parse(fieldDef.options) : fieldDef.options || [];
           const opt = fieldOptions.find((o) => o.value === value);
           const label = opt ? opt.label : value;
           processedDataForGoogle[key] = label;
-          rawDataForDb[key] = label;
+          storeCompatibleValue(label);
+          return {
+            ...answerBase,
+            value: label,
+          };
         } else {
           processedDataForGoogle[key] = value;
-          rawDataForDb[key] = value;
+          storeCompatibleValue(value);
+          return {
+            ...answerBase,
+            value,
+          };
         }
       });
 
-      await Promise.all(processingPromises);
+      const submissionAnswers = (await Promise.all(processingPromises)).filter(Boolean);
 
       processedDataForGoogle.Timestamp = formatInEcuador(getNowInEcuador(), "d/M/yyyy HH:mm:ss");
       rawDataForDb.Timestamp = processedDataForGoogle.Timestamp;
@@ -908,10 +941,11 @@ export default function FluentRenderer({ form, isPreview = false }) {
       const result = await submitFormAction({
         formId: form.id,
         rawData: rawDataForDb,
+        answers: submissionAnswers,
         processedDataForGoogle: processedDataForGoogle,
         userAgent: navigator.userAgent,
         isInternal: form.is_internal && !!user?.id,
-        notificationEmail: data["Correo para Notificaciones"]
+        notificationEmail: data["notification-email-field"] || data["Correo para Notificaciones"]
       });
 
       if (result.error) throw new Error(result.error);
@@ -940,7 +974,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
     const branchingField = visibleFields.find((f) => f.type === "radio");
 
-    const val = branchingField ? watchedValues[branchingField.label] : null;
+    const val = branchingField ? (watchedValues[branchingField.id] ?? watchedValues[branchingField.label]) : null;
 
     if (val) {
       const opt = branchingField.options.find((o) => o.value === val);
@@ -1089,7 +1123,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
                       htmlFor={`field-${field.id}`}
                       className="text-lg font-black text-gray-800 flex items-center gap-2 group-focus-within:text-[var(--puembo-green)] transition-colors"
                     >
-                      {field.label}
+                    {field.label}
 
                       {field.required && (
                         <span className="text-[var(--puembo-green)] text-lg">
@@ -1141,7 +1175,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
                   </div>
 
                   <AnimatePresence>
-                    {errors[field.label] && (
+                    {errors[field.id || field.label] && (
                       <motion.p
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}

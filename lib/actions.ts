@@ -679,12 +679,13 @@ export async function initializeGoogleIntegration(
 export async function submitFormAction(payload: {
   formId: string;
   rawData: any;
+  answers?: any[];
   processedDataForGoogle: any;
   userAgent: string;
   isInternal: boolean;
   notificationEmail?: string;
 }) {
-  const { formId, rawData, processedDataForGoogle, userAgent, isInternal, notificationEmail } = payload;
+  const { formId, rawData, answers = [], processedDataForGoogle, userAgent, isInternal, notificationEmail } = payload;
   console.log(`[Submit] Iniciando procesamiento para formulario: ${formId}`);
 
   try {
@@ -809,6 +810,7 @@ export async function submitFormAction(payload: {
     const submissionData: any = {
       form_id: formId,
       data: rawData,
+      answers,
       user_agent: userAgent,
       notification_email: notificationEmail,
     };
@@ -892,23 +894,6 @@ export async function submitFormAction(payload: {
 
     // Revalidar para que el admin vea la nueva respuesta inmediatamente
     revalidateFormSubmissions(formId).catch(err => console.error("[Revalidate Error]:", err));
-
-    // Auto-sync Google Sheet after response is sent (zero latency for the user)
-    if (!isInternal && form.google_sheet_id) {
-      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-      const syncUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/sheets-drive-integration/sync-sheet`;
-      after(async () => {
-        try {
-          await fetch(syncUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${serviceRoleKey}` },
-            body: JSON.stringify({ formId: form.id }),
-          });
-        } catch (err) {
-          console.error("[Auto-sync Sheet Error]:", err);
-        }
-      });
-    }
 
     return { success: true, submissionId: submission.id };
 

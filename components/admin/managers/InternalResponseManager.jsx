@@ -45,6 +45,10 @@ import { useFormSubmissions } from "@/lib/hooks/useFormSubmissions";
 import { AdminEditorPanel } from "../layout/AdminEditorPanel";
 import RecycleBin from "./RecycleBin";
 import { useRouter } from "next/navigation";
+import {
+  buildHistoricalFormFields,
+  getSubmissionValueForField,
+} from "@/lib/form-response-history";
 
 export default function InternalResponseManager({ form, initialSubmissions = [] }) {
   const {
@@ -193,10 +197,10 @@ export default function InternalResponseManager({ form, initialSubmissions = [] 
   };
 
   const sortedFields = useMemo(() => {
-    return (form.form_fields || [])
+    return buildHistoricalFormFields(form, submissions)
       .filter(f => (f.type || f.field_type) !== 'section')
       .sort((a, b) => (a.order_index ?? a.order ?? 0) - (b.order_index ?? b.order ?? 0));
-  }, [form]);
+  }, [form, submissions]);
 
   return (
     <div className="space-y-6">
@@ -481,7 +485,7 @@ export default function InternalResponseManager({ form, initialSubmissions = [] 
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                       {sortedFields.map(f => {
-                        const val = (selectedSubmission.answers || selectedSubmission.data || {})[f.label];
+                        const val = getSubmissionValueForField(selectedSubmission, f);
                         if (val === undefined) return null;
                         
                         const type = f.type || f.field_type;

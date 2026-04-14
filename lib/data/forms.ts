@@ -131,6 +131,7 @@ export interface FormSubmission {
   id: string;
   form_id: string;
   data: any; // JSONb
+  answers?: any[];
   created_at: string;
   user_id?: string;
   status: 'pending' | 'approved' | 'rejected';

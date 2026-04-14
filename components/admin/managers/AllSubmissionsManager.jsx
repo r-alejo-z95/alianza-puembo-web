@@ -62,10 +62,13 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
       result = result.filter((s) => {
         const formTitle = s.forms?.title?.toLowerCase() || "";
         const profileName = s.profiles?.full_name?.toLowerCase() || "";
-        const subscriberName = findNameInSubmission(s.data).toLowerCase();
+        const subscriberName = findNameInSubmission(s).toLowerCase();
         
         // Search in JSON data values
-        const dataValues = Object.values(s.data || {})
+        const dataValues = [
+          ...((s.answers || []).map((answer) => answer?.value)),
+          ...Object.values(s.data || {}),
+        ]
           .map(v => String(v).toLowerCase())
           .join(" ");
         
@@ -329,7 +332,7 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
 }
 
 function SubmissionRow({ sub, onCopy, isCopied }) {
-  const subscriberName = findNameInSubmission(sub.data);
+  const subscriberName = findNameInSubmission(sub);
   const formattedDate = format(parseISO(sub.created_at), "d MMM, yyyy", { locale: es });
   const formattedTime = format(parseISO(sub.created_at), "HH:mm 'hrs'");
   const payments = sub.form_submission_payments || [];
@@ -406,7 +409,7 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
 }
 
 function SubmissionCard({ sub, onCopy, isCopied }) {
-    const subscriberName = findNameInSubmission(sub.data);
+    const subscriberName = findNameInSubmission(sub);
     const date = format(parseISO(sub.created_at), "d MMM", { locale: es });
     const payments = sub.form_submission_payments || [];
     const amountPaid = payments

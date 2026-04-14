@@ -444,7 +444,7 @@ export function ReconciliationWorkbench({
   const reconcilablePayments = useMemo(() => {
     const list = [];
     submissions.forEach(sub => {
-        const subName = findNameInSubmission(sub.data);
+        const subName = findNameInSubmission(sub);
         const payments = [...(sub.form_submission_payments || [])].sort((a, b) => {
           const aTime = new Date(a.created_at).getTime();
           const bTime = new Date(b.created_at).getTime();
@@ -602,9 +602,9 @@ export function ReconciliationWorkbench({
               <div className="space-y-4">
                 <div>
                   {item.matchType === 'perfect' ? (
-                    <span className="text-[9px] font-black uppercase text-emerald-600 block mb-1 flex items-center gap-1"><CheckCircle2 className="w-2.5 h-2.5" /> Match Perfecto</span>
+                    <span className="text-[9px] font-black uppercase text-emerald-600 mb-1 flex items-center gap-1"><CheckCircle2 className="w-2.5 h-2.5" /> Match Perfecto</span>
                   ) : (
-                    <span className="text-[9px] font-black uppercase text-amber-600 block mb-1 flex items-center gap-1"><Sparkles className="w-2.5 h-2.5" /> Sugerencia IA (Por Verificar)</span>
+                    <span className="text-[9px] font-black uppercase text-amber-600 mb-1 flex items-center gap-1"><Sparkles className="w-2.5 h-2.5" /> Sugerencia IA (Por Verificar)</span>
                   )}
                   <h4 className="font-bold text-gray-900 text-base uppercase leading-tight mb-2">{item.match.description}</h4>
                   <div className="flex gap-4"><span className="flex items-center gap-1 text-[10px] text-gray-500 font-bold uppercase tracking-tighter"><CalendarDays className="w-3.5 h-3.5" /> {displayDate(item.match.date)}</span><span className="flex items-center gap-1 text-[10px] text-[var(--puembo-green)] font-black uppercase tracking-tighter"><Receipt className="w-3.5 h-3.5" /> {item.match.reference || 'N/A'}</span></div>
