@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useRef } from "react";
 import ExcelJS from "exceljs";
 import {
   BarChart,
@@ -34,6 +34,8 @@ import {
   CalendarDays,
   ZoomIn,
   ChevronDown,
+  DollarSign,
+  Loader2,
 } from "lucide-react";
 import {
   Select,
@@ -67,17 +69,25 @@ function FileDisplay({ val, urlCache }) {
   const [open, setOpen] = useState(false);
   const isImage = /\.(jpg|jpeg|png|gif|webp|heic)$/i.test(val?.name ?? "");
 
-  useEffect(() => {
-    if (resolvedUrl || !val?.financial_receipt_path) return;
+  const resolveUrl = async () => {
+    if (resolvedUrl || !val?.financial_receipt_path) return resolvedUrl;
+
     setLoading(true);
-    getFileSignedUrl(val.financial_receipt_path).then((res) => {
-      if (res.url) {
-        setResolvedUrl(res.url);
-        urlCache?.set(val.financial_receipt_path, res.url);
-      }
-      setLoading(false);
-    });
-  }, []);
+    const res = await getFileSignedUrl(val.financial_receipt_path);
+    if (res.url) {
+      setResolvedUrl(res.url);
+      urlCache?.set(val.financial_receipt_path, res.url);
+    }
+    setLoading(false);
+    return res.url || null;
+  };
+
+  const handleOpen = async () => {
+    const url = await resolveUrl();
+    if (url || resolvedUrl) {
+      setOpen(true);
+    }
+  };
 
   if (loading) {
     return <div className="w-32 h-20 bg-gray-100 rounded-2xl animate-pulse" />;
@@ -87,7 +97,7 @@ function FileDisplay({ val, urlCache }) {
     return (
       <>
         <button
-          onClick={() => setOpen(true)}
+          onClick={handleOpen}
           className="group relative overflow-hidden rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
         >
           <img
@@ -117,13 +127,18 @@ function FileDisplay({ val, urlCache }) {
     return (
       <>
         <button
-          onClick={() => setOpen(true)}
-          className="flex items-center gap-3 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 w-fit hover:bg-emerald-100/50 transition-all"
+          onClick={handleOpen}
+          className="flex items-center gap-3 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 w-fit hover:bg-emerald-100/50 transition-all cursor-pointer"
         >
           <FileText className="w-5 h-5 text-[var(--puembo-green)] shrink-0" />
-          <span className="text-sm font-bold text-emerald-900 truncate max-w-[200px]">
-            {val.name}
-          </span>
+          <div className="min-w-0">
+            <span className="block text-[10px] font-black uppercase tracking-widest text-emerald-500">
+              Ver archivo
+            </span>
+            <span className="block text-sm font-bold text-emerald-900 truncate max-w-[200px]">
+              {val.name}
+            </span>
+          </div>
         </button>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-sm rounded-[2rem] border-none shadow-2xl">
@@ -152,12 +167,20 @@ function FileDisplay({ val, urlCache }) {
   }
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl border border-gray-100 w-fit">
+    <button
+      onClick={handleOpen}
+      className="flex items-center gap-2 px-4 py-2 bg-gray-50 rounded-xl border border-gray-100 w-fit hover:bg-gray-100 transition-colors cursor-pointer"
+    >
       <FileText className="w-4 h-4 text-gray-300 shrink-0" />
-      <span className="text-sm text-gray-400 italic truncate max-w-[200px]">
-        {val?.name || "Archivo adjunto"}
-      </span>
-    </div>
+      <div className="min-w-0">
+        <span className="block text-[9px] font-black uppercase tracking-widest text-gray-300">
+          {loading ? "Cargando" : "Ver archivo"}
+        </span>
+        <span className="block text-sm text-gray-400 italic truncate max-w-[200px]">
+          {loading ? "Espera un momento..." : val?.name || "Archivo adjunto"}
+        </span>
+      </div>
+    </button>
   );
 }
 
@@ -207,6 +230,79 @@ const CustomPieTooltip = ({ active, payload }) => {
   return null;
 };
 
+function getConfirmedFinancialAmount(submissions = []) {
+  return submissions.reduce((total, submission) => {
+    const payments = Array.isArray(submission?.form_submission_payments)
+      ? submission.form_submission_payments
+      : [];
+
+    const confirmed = payments
+      .filter((payment) => payment?.status === "verified")
+      .reduce((sum, payment) => {
+        const rawAmount =
+          payment?.extracted_data?.amount ??
+          payment?.amount_claimed ??
+          0;
+
+        const amount = Number(rawAmount);
+        return sum + (Number.isFinite(amount) ? amount : 0);
+      }, 0);
+
+    return total + confirmed;
+  }, 0);
+}
+
+function formatUsdAmount(amount) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number.isFinite(Number(amount)) ? Number(amount) : 0);
+}
+
+function isExportFileValue(value) {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      (value._type === "file" || value.financial_receipt_path || value.path || value.url),
+  );
+}
+
+function getExportFilePath(value) {
+  return value?.financial_receipt_path || value?.path || null;
+}
+
+function getExportFileLabel(value) {
+  return value?.name || value?.info || getExportFilePath(value) || value?.url || "Archivo adjunto";
+}
+
+function getExportCellValue(value, fileUrlMap) {
+  if (Array.isArray(value)) return value.join(", ");
+  if (isExportFileValue(value)) {
+    const path = getExportFilePath(value);
+    const directUrl = value?.url || null;
+    const resolvedUrl = directUrl || (path ? fileUrlMap.get(path) : null);
+    const label = getExportFileLabel(value);
+
+    if (resolvedUrl) {
+      return {
+        formula: `HYPERLINK("${String(resolvedUrl).replaceAll('"', '""')}","${String(label).replaceAll('"', '""')}")`,
+        result: label,
+      };
+    }
+
+    return label;
+  }
+
+  if (value && typeof value === "object") {
+    return value.name || value.label || value.url || JSON.stringify(value);
+  }
+
+  return String(value ?? "");
+}
+
 // ------------------------------------------------------------------
 // Main Component
 // ------------------------------------------------------------------
@@ -215,6 +311,9 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
   const [activeTab, setActiveTab] = useState("summary");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedId, setExpandedId] = useState(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [reportProgress, setReportProgress] = useState(0);
+  const [reportRecords, setReportRecords] = useState(0);
 
   // Shared URL cache — signed URLs are valid 1h, no need to re-fetch on re-render
   const urlCacheRef = useRef(new Map());
@@ -264,6 +363,10 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
   }, [filteredSubmissions, searchQuery]);
 
   const totalSubmissions = filteredSubmissions.length;
+  const confirmedFinancialAmount = useMemo(
+    () => (form.is_financial ? getConfirmedFinancialAmount(filteredSubmissions) : 0),
+    [filteredSubmissions, form.is_financial],
+  );
 
   const last24Hours = useMemo(() => {
     const cutoff = subHours(new Date(), 24);
@@ -338,15 +441,6 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
     };
   };
 
-  const formatExportValue = (value) => {
-    if (Array.isArray(value)) return value.join(", ");
-    if (value && typeof value === "object") {
-      if (value._type === "file") return value.name || value.url || "";
-      return value.name || value.label || value.url || JSON.stringify(value);
-    }
-    return String(value ?? "");
-  };
-
   const getFieldHeaderLabel = (field) => {
     const display = getHistoricalFieldDisplay(field);
     if (display.status === "deleted") return `${display.label} [eliminada]`;
@@ -367,55 +461,172 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
 
   // 5. Actions
   async function exportToXLSX() {
-    const dataFields = historicalFields.filter(
-      (f) => f.type !== "section_header" && f.type !== "separator" && f.type !== "section"
-    );
-    const headers = ["Timestamp", ...dataFields.map((f) => getFieldHeaderLabel(f))];
-    const rows = filteredSubmissions.map((s) => [
-      formatInEcuador(s.created_at, "dd/MM/yyyy HH:mm"),
-      ...dataFields.map((f) => formatExportValue(getSubmissionValueForField(s, f))),
-    ]);
+    setIsGeneratingReport(true);
+    setReportProgress(0);
+    setReportRecords(filteredSubmissions.length);
 
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = "Alianza Puembo";
-    workbook.created = new Date();
+    await new Promise((resolve) => requestAnimationFrame(() => resolve()));
 
-    const worksheet = workbook.addWorksheet("Respuestas", {
-      views: [{ state: "frozen", ySplit: 1, activeCell: "A2" }],
-    });
+    try {
+      const dataFields = historicalFields.filter(
+        (f) => f.type !== "section_header" && f.type !== "separator" && f.type !== "section"
+      );
+      const headers = ["Timestamp", ...dataFields.map((f) => getFieldHeaderLabel(f))];
+      const exportRows = filteredSubmissions.map((submission) => ({
+        timestamp: formatInEcuador(submission.created_at, "dd/MM/yyyy HH:mm"),
+        values: dataFields.map((field) => getSubmissionValueForField(submission, field)),
+      }));
 
-    worksheet.columns = headers.map((header, index) => ({
-      header,
-      key: `col_${index}`,
-      width: Math.max(18, Math.min(48, header.length + 4)),
-    }));
+      const filePaths = new Set();
+      exportRows.forEach((row) => {
+        row.values.forEach((value) => {
+          if (!isExportFileValue(value)) return;
+          const path = getExportFilePath(value);
+          if (path) filePaths.add(path);
+        });
+      });
 
-    rows.forEach((row) => {
-      worksheet.addRow(row);
-    });
+      const fileUrlMap = new Map();
+      const filePathList = Array.from(filePaths);
+      const totalFiles = filePathList.length;
+      const totalSteps = Math.max(1, totalFiles + exportRows.length + 3);
+      let completedSteps = 1;
+      const updateProgress = () => {
+        setReportProgress(Math.min(100, Math.round((completedSteps / totalSteps) * 100)));
+      };
 
-    const headerRow = worksheet.getRow(1);
-    headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
-    headerRow.fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FF111111" },
-    };
-    headerRow.alignment = { vertical: "middle", horizontal: "center" };
-    headerRow.height = 22;
+      updateProgress();
 
-    worksheet.autoFilter = `A1:${getExcelColumnLetter(headers.length)}1`;
+      if (totalFiles > 0) {
+        for (let index = 0; index < filePathList.length; index += 1) {
+          const path = filePathList[index];
+          const result = await getFileSignedUrl(path);
+          if (result?.url) {
+            fileUrlMap.set(path, result.url);
+          }
+          completedSteps += 1;
+          updateProgress();
+        }
+      } else {
+        updateProgress();
+      }
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${form.slug}-${new Date().toISOString().split("T")[0]}.xlsx`;
-    a.click();
-    URL.revokeObjectURL(url);
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = "Alianza Puembo";
+      workbook.created = new Date();
+      completedSteps += 1;
+      updateProgress();
+
+      const worksheet = workbook.addWorksheet("Respuestas", {
+        views: [{ state: "frozen", ySplit: 1, activeCell: "A2" }],
+      });
+      completedSteps += 1;
+      updateProgress();
+
+      worksheet.columns = headers.map((header) => ({
+        width: Math.max(18, Math.min(48, header.length + 4)),
+      }));
+
+      if (form.is_financial) {
+        const summaryCols = Math.max(headers.length, 2);
+        const titleRow = worksheet.addRow([`Resumen financiero de ${form.title}`]);
+        worksheet.mergeCells(titleRow.number, 1, titleRow.number, summaryCols);
+        titleRow.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
+        titleRow.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: "FF111111" },
+        };
+        titleRow.alignment = { vertical: "middle", horizontal: "left" };
+        titleRow.height = 22;
+
+        const recordsRow = worksheet.addRow(["Número de registros", filteredSubmissions.length]);
+        const amountRow = worksheet.addRow(["Monto recaudado confirmado", formatUsdAmount(confirmedFinancialAmount)]);
+        [recordsRow, amountRow].forEach((row, rowIndex) => {
+          const bg = rowIndex === 0 ? "FFF8FAFC" : "FFF0FDF4";
+          row.eachCell((cell) => {
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: bg },
+            };
+            cell.border = {
+              top: { style: "thin", color: { argb: "FFE5E7EB" } },
+              bottom: { style: "thin", color: { argb: "FFE5E7EB" } },
+              left: { style: "thin", color: { argb: "FFE5E7EB" } },
+              right: { style: "thin", color: { argb: "FFE5E7EB" } },
+            };
+            cell.alignment = { vertical: "middle", horizontal: "left" };
+          });
+        });
+        recordsRow.getCell(1).font = { bold: true, color: { argb: "FF374151" } };
+        recordsRow.getCell(2).font = { bold: true, color: { argb: "FF111827" } };
+        amountRow.getCell(1).font = { bold: true, color: { argb: "FF374151" } };
+        amountRow.getCell(2).font = { bold: true, color: { argb: "FF059669" } };
+
+        const separatorRow = worksheet.addRow([]);
+        separatorRow.height = 6;
+      }
+
+      const headerRow = worksheet.addRow(headers);
+      headerRow.font = { bold: true, color: { argb: "FFFFFFFF" } };
+      headerRow.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FF111111" },
+      };
+      headerRow.alignment = { vertical: "middle", horizontal: "center" };
+      headerRow.height = 22;
+
+      exportRows.forEach((row, rowIndex) => {
+        const excelRow = worksheet.addRow([
+          row.timestamp,
+          ...row.values.map((value) => getExportCellValue(value, fileUrlMap)),
+        ]);
+
+        excelRow.eachCell((cell, colNumber) => {
+          if (cell.value && typeof cell.value === "object" && "formula" in cell.value) {
+            cell.font = {
+              color: { argb: "FF0563C1" },
+              underline: true,
+            };
+            cell.alignment = { vertical: "top", wrapText: true };
+          } else {
+            cell.alignment = {
+              vertical: "top",
+              wrapText: colNumber > 1,
+            };
+          }
+        });
+        completedSteps += 1;
+        updateProgress();
+      });
+
+      worksheet.autoFilter = `A${headerRow.number}:${getExcelColumnLetter(headers.length)}${headerRow.number}`;
+
+      completedSteps += 1;
+      updateProgress();
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${form.slug}-${new Date().toISOString().split("T")[0]}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      completedSteps = totalSteps;
+      updateProgress();
+    } catch (error) {
+      console.error("Error exportando Excel:", error);
+    } finally {
+      setTimeout(() => {
+        setIsGeneratingReport(false);
+        setReportProgress(0);
+        setReportRecords(0);
+      }, 600);
+    }
   }
 
   // ------------------------------------------------------------------
@@ -423,6 +634,76 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
   // ------------------------------------------------------------------
   return (
     <div className="space-y-8 pb-24 animate-in fade-in duration-700 max-w-7xl mx-auto px-4">
+      <Dialog open={isGeneratingReport} onOpenChange={() => {}}>
+        <DialogContent
+          hideClose
+          className="max-w-md rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden bg-white"
+          overlayClassName="bg-black/60 backdrop-blur-md"
+        >
+          <DialogTitle className="sr-only">Exportando Excel</DialogTitle>
+          <div className="p-6 md:p-7 space-y-5">
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-[var(--puembo-green)]/10 flex items-center justify-center shrink-0 border border-[var(--puembo-green)]/10">
+                <Loader2 className="w-7 h-7 text-[var(--puembo-green)] animate-spin" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.45em] text-gray-400">
+                  Descarga en progreso
+                </p>
+                <h2 className="text-2xl font-serif font-bold text-gray-900 leading-tight mt-1">
+                  Exportando Excel
+                </h2>
+                <p className="text-sm text-gray-500 mt-2">
+                  El panel queda bloqueado hasta completar el archivo.
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-[1.5rem] border border-gray-100 bg-gray-50 p-5">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-[0.35em] text-gray-400">
+                    Progreso
+                  </p>
+                  <p className="text-4xl font-serif font-bold leading-none mt-2 text-gray-900">
+                    {reportProgress}%
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[9px] font-black uppercase tracking-[0.35em] text-gray-400">
+                    Registros
+                  </p>
+                  <p className="text-lg font-bold mt-1 text-gray-900">
+                    {reportRecords}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-5 h-2 rounded-full bg-white overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[var(--puembo-green)] transition-all duration-300"
+                  style={{ width: `${reportProgress}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-[1.5rem] border border-gray-100 p-4 md:p-5 bg-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-white shrink-0">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">
+                    Formulario
+                  </p>
+                  <p className="text-sm font-bold text-gray-900 truncate">
+                    {form.title}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Header ── */}
       <div className="space-y-6 pt-2">
@@ -460,7 +741,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
             {filteredSubmissions.length > 0 && (
               <button
                 onClick={exportToXLSX}
-                className="flex items-center gap-2 h-10 px-5 rounded-full border border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)]/40 transition-all"
+                className="cursor-pointer flex items-center gap-2 h-10 px-5 rounded-full border border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)]/40 transition-all"
               >
                 <Download className="w-3.5 h-3.5" />
                 Descargar Excel
@@ -498,12 +779,15 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
       </div>
 
       {/* ── KPI Bar ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className={cn("grid grid-cols-2 gap-3", form.is_financial ? "lg:grid-cols-5" : "lg:grid-cols-4")}>
         {[
-          { label: "Respuestas", value: totalSubmissions, icon: Inbox, color: "#10b981", borderColor: "border-emerald-400" },
+          { label: "Registros", value: totalSubmissions, icon: Inbox, color: "#10b981", borderColor: "border-emerald-400" },
           { label: "Actividad 24h", value: last24Hours, icon: Activity, color: "#3b82f6", borderColor: "border-blue-400" },
           { label: "Estado", value: form.enabled ? "Activo" : "Cerrado", icon: TrendingUp, color: form.enabled ? "#10b981" : "#94a3b8", borderColor: form.enabled ? "border-emerald-400" : "border-gray-300" },
           { label: "Último registro", value: lastSubmissionDate ? formatInEcuador(lastSubmissionDate, "d MMM") : "—", icon: CalendarDays, color: "#8b5cf6", borderColor: "border-purple-400" },
+          ...(form.is_financial ? [
+            { label: "Recaudado", value: formatUsdAmount(confirmedFinancialAmount), icon: DollarSign, color: "#059669", borderColor: "border-emerald-400" },
+          ] : []),
         ].map((kpi, i) => (
           <div
             key={i}

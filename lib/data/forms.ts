@@ -177,7 +177,7 @@ export const getCachedFormSubmissions = async (formId: string) => {
       const supabase = createAdminClient();
       const { data, error } = await supabase
         .from("form_submissions")
-        .select("*, profiles(*)") // Fetch all profile data to match original query
+        .select("*, profiles(*), form_submission_payments(*)")
         .eq("form_id", id)
         .order("created_at", { ascending: false });
 
