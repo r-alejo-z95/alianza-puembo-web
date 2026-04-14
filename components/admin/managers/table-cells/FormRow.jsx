@@ -40,6 +40,7 @@ import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { revalidateForms } from "@/lib/actions/cache";
 import { syncFormToSheets } from "@/lib/actions";
+import { isFormSetupComplete } from "@/lib/data/forms";
 
 export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect, isInternalView }) {
   const [isEnabled, setEnabled] = useState(form.enabled ?? true);
@@ -156,6 +157,9 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
     ? `/admin/staff/proceso/${form.slug}`
     : `/formularios/${form.slug}`;
 
+  const hasIncompleteFinancialConfig =
+    form.is_financial && (!isFormSetupComplete(form) || !form.financial_field_label);
+
   const actions = (
     <div className="flex items-center justify-end lg:justify-center gap-2 w-full lg:w-auto">
       <TooltipProvider>
@@ -245,7 +249,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
                 >
                 {form.title}
                 </OverflowCell>
-                {form.is_financial && !form.financial_field_label && (
+                {hasIncompleteFinancialConfig && (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -254,7 +258,9 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
                           Conf. incompleta
                         </span>
                       </TooltipTrigger>
-                      <TooltipContent>Formulario financiero sin pregunta de comprobante configurada</TooltipContent>
+                      <TooltipContent>
+                        Formulario financiero con configuración incompleta o sin pregunta de comprobante
+                      </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 )}
@@ -321,7 +327,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
           >
             {form.title}
           </OverflowCell>
-          {form.is_financial && !form.financial_field_label && (
+          {hasIncompleteFinancialConfig && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -330,7 +336,9 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
                     Conf. incompleta
                   </span>
                 </TooltipTrigger>
-                <TooltipContent>Formulario financiero sin pregunta de comprobante configurada</TooltipContent>
+                <TooltipContent>
+                  Formulario financiero con configuración incompleta o sin pregunta de comprobante
+                </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           )}

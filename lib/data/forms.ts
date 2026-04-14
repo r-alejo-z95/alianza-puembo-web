@@ -27,9 +27,47 @@ export interface Form {
   google_sheet_url?: string;
   last_synced_at?: string;
   max_responses?: number | null;
+  is_financial?: boolean;
+  payment_type?: "single" | "installments" | null;
+  max_installments?: number | null;
+  total_amount?: number | string | null;
+  destination_account_id?: string | null;
+  financial_field_label?: string | null;
+  financial_field_id?: string | null;
   created_at: string;
   user_id: string;
   form_fields?: FormField[];
+}
+
+export function isFormSetupComplete(form?: Partial<Form> | null): boolean {
+  if (!form) return false;
+  if (!form.title || form.max_responses == null || form.is_financial == null) return false;
+  if (!form.is_financial) return true;
+
+  const hasBaseFinancialSetup =
+    !!form.payment_type &&
+    form.total_amount != null &&
+    !!form.destination_account_id;
+
+  if (!hasBaseFinancialSetup) return false;
+
+  if (form.payment_type === "installments") {
+    return form.max_installments != null;
+  }
+
+  return true;
+}
+
+export interface BankAccount {
+  id: string;
+  bank_name: string;
+  account_holder: string;
+  account_number: string;
+  account_type: string;
+  notes?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 /**
@@ -186,7 +224,7 @@ export async function getAllSubmissions() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("form_submissions")
-    .select("*, forms!inner(*), profiles(*)")
+    .select("*, forms!inner(*), profiles(*), form_submission_payments(*)")
     .eq("is_archived", false)
     .eq("forms.is_internal", false)
     .eq("forms.is_financial", true)

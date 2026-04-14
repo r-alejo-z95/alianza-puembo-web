@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { initializeGoogleIntegration } from "@/lib/actions";
 import { revalidateForms } from "@/lib/actions/cache";
 import { slugify } from "@/lib/utils";
+import { isFormSetupComplete } from "@/lib/data/forms";
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-z0-9.]/gi, "_").toLowerCase();
@@ -22,49 +23,92 @@ function BuilderContent() {
   const isInternalParam = searchParams.get("internal") === "true";
   
   const [form, setForm] = useState(null);
-  const [loading, setLoading] = useState(!!(formSlug || formId));
+  const [bankAccounts, setBankAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (formSlug || formId) {
-      const fetchForm = async () => {
-        const supabase = createClient();
-        let query = supabase
-          .from("forms")
-          .select("*, form_fields!form_id(*)")
-          .eq("is_archived", false);
+    const fetchBuilderContext = async () => {
+      const supabase = createClient();
 
-        if (formId) {
-          query = query.eq("id", formId);
-        } else {
-          query = query.eq("slug", formSlug);
-        }
+      const bankAccountsPromise = supabase
+        .from("bank_accounts")
+        .select("id, bank_name, account_type, account_number")
+        .eq("is_active", true)
+        .order("bank_name", { ascending: true });
 
-        const { data, error } = await query.single();
+      const formPromise = formSlug || formId
+        ? (() => {
+            let query = supabase
+              .from("forms")
+              .select("*, form_fields!form_id(*)")
+              .eq("is_archived", false);
 
-        if (error) {
-          console.error("Error fetching form:", error);
-          toast.error("No se pudo cargar el formulario.");
-          router.push("/admin/formularios");
-        } else {
-          setForm(data);
-        }
+            if (formId) {
+              query = query.eq("id", formId);
+            } else {
+              query = query.eq("slug", formSlug);
+            }
+
+            return query.single();
+          })()
+        : Promise.resolve({ data: null, error: null });
+
+      const [
+        { data: activeBankAccounts, error: bankAccountsError },
+        { data, error },
+      ] = await Promise.all([bankAccountsPromise, formPromise]);
+
+      if (bankAccountsError) {
+        console.error("Error fetching bank accounts:", bankAccountsError);
+      } else {
+        setBankAccounts(activeBankAccounts || []);
+      }
+
+      if (!formSlug && !formId) {
+        const query = isInternalParam ? "?internal=true" : "";
+        router.replace(`/admin/formularios/nuevo${query}`);
         setLoading(false);
-      };
-      fetchForm();
-    } else {
-      // Si es nuevo, preparamos un objeto con valores por defecto
-      setForm({ 
-        is_internal: isInternalParam,
-        is_financial: true 
-      });
-    }
+        return;
+      }
+
+      if (error) {
+        console.error("Error fetching form:", error);
+        toast.error("No se pudo cargar el formulario.");
+        router.push("/admin/formularios");
+      } else if (data) {
+        if (!isFormSetupComplete(data)) {
+          router.replace(`/admin/formularios/nuevo?id=${data.id}`);
+          setLoading(false);
+          return;
+        }
+        setForm(data);
+      }
+
+      setLoading(false);
+    };
+
+    fetchBuilderContext();
   }, [formSlug, formId, isInternalParam, router]);
 
   const handleSave = async (formData, imageFile) => {
     setSaving(true);
     const supabase = createClient();
-    const { title, description, fields, image_url: formImageUrl, is_internal, is_financial, financial_field_label, financial_field_id, max_responses } = formData;
+    const {
+      title,
+      description,
+      fields,
+      image_url: formImageUrl,
+      is_internal,
+      is_financial,
+      financial_field_label,
+      financial_field_id,
+      max_responses,
+      payment_type,
+      max_installments,
+      total_amount,
+      destination_account_id,
+    } = formData;
     // Derive the current label from the selected field ID (keeps financial_field_label in sync for legacy lookups)
     const financialField = fields?.find((f) => f.id === financial_field_id);
     const derivedFinancialLabel = financialField?.label ?? financial_field_label ?? null;
@@ -81,7 +125,21 @@ function BuilderContent() {
       if (!currentFormId) {
         const { data: newForm, error: formError } = await supabase
           .from("forms")
-          .insert([{ title, description, user_id: user?.id, slug, is_internal, is_financial, financial_field_label: derivedFinancialLabel, financial_field_id: financial_field_id || null, max_responses: max_responses ?? null }])
+          .insert([{
+            title,
+            description,
+            user_id: user?.id,
+            slug,
+            is_internal,
+            is_financial,
+            financial_field_label: derivedFinancialLabel,
+            financial_field_id: null,
+            max_responses: max_responses ?? null,
+            payment_type: is_financial ? payment_type ?? "single" : null,
+            max_installments: is_financial && payment_type === "installments" ? max_installments ?? null : null,
+            total_amount: is_financial ? total_amount ?? null : null,
+            destination_account_id: is_financial ? destination_account_id ?? null : null,
+          }])
           .select()
           .single();
 
@@ -170,14 +228,8 @@ function BuilderContent() {
         }),
       );
 
-      // 3. Update Form Metadata
-      const { error: metaErr } = await supabase
-        .from("forms")
-        .update({ title, description, image_url: imageUrl, slug, is_internal, is_financial, financial_field_label: derivedFinancialLabel, financial_field_id: financial_field_id || null, max_responses: max_responses ?? null })
-        .eq("id", currentFormId);
-      if (metaErr) throw metaErr;
-
-      // 4. Sync Fields (Delete removed ones)
+      // 3. Sync Fields — must run BEFORE updating forms.financial_field_id
+      // because that FK requires the field to already exist in form_fields.
       const { data: existingFields } = await supabase
         .from("form_fields")
         .select("id")
@@ -196,6 +248,27 @@ function BuilderContent() {
         .from("form_fields")
         .upsert(processedFields);
       if (fieldsErr) throw fieldsErr;
+
+      // 4. Update Form Metadata — after fields are persisted so financial_field_id FK is valid
+      const { error: metaErr } = await supabase
+        .from("forms")
+        .update({
+          title,
+          description,
+          image_url: imageUrl,
+          slug,
+          is_internal,
+          is_financial,
+          financial_field_label: derivedFinancialLabel,
+          financial_field_id: financial_field_id || null,
+          max_responses: max_responses ?? null,
+          payment_type: is_financial ? payment_type ?? "single" : null,
+          max_installments: is_financial && payment_type === "installments" ? max_installments ?? null : null,
+          total_amount: is_financial ? total_amount ?? null : null,
+          destination_account_id: is_financial ? destination_account_id ?? null : null,
+        })
+        .eq("id", currentFormId);
+      if (metaErr) throw metaErr;
 
       // 5. Google Integration (New forms only, and only if NOT internal)
       if (!form?.id && !is_internal) {
@@ -242,12 +315,17 @@ function BuilderContent() {
     );
   }
 
+  if (!form) {
+    return null;
+  }
+
   return (
     <FormBuilder
       form={form}
       onSave={handleSave}
       onCancel={handleCancel}
       isSaving={saving}
+      bankAccounts={bankAccounts}
     />
   );
 }

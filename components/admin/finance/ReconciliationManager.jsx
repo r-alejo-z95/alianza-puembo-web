@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import * as XLSX from "xlsx";
 import { 
   Select, 
@@ -46,25 +46,49 @@ import {
 } from "@/lib/actions/finance";
 import { ReconciliationWorkbench } from "./ReconciliationWorkbench";
 
-export function ReconciliationManager({ forms }) {
+export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
   const [bankTransactions, setBankTransactions] = useState([]);
   const [isUploadingBank, setIsUploadingBank] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState("");
   const [bankFile, setBankFile] = useState(null);
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState("");
   const [selectedFormId, setSelectedFormId] = useState("");
   const [submissions, setSubmissions] = useState([]);
   const [isLoadingContext, setIsLoadingContext] = useState(false);
 
-  useEffect(() => { loadGlobalLedger(); }, []);
+  const sortedBankAccounts = useMemo(
+    () => [...bankAccounts].sort((a, b) => (a.bank_name || "").localeCompare(b.bank_name || "")),
+    [bankAccounts],
+  );
+
+  const sortedForms = useMemo(
+    () => [...forms].sort((a, b) => (a.title || "").localeCompare(b.title || "")),
+    [forms],
+  );
+
+  const selectedBankAccount = useMemo(
+    () => sortedBankAccounts.find((account) => account.id === selectedBankAccountId) || sortedBankAccounts[0] || null,
+    [sortedBankAccounts, selectedBankAccountId],
+  );
+
+  useEffect(() => {
+    loadGlobalLedger(selectedBankAccountId);
+  }, [selectedBankAccountId]);
+
+  useEffect(() => {
+    if (!selectedBankAccountId && sortedBankAccounts.length > 0) {
+      setSelectedBankAccountId(sortedBankAccounts[0].id);
+    }
+  }, [selectedBankAccountId, sortedBankAccounts]);
 
   useEffect(() => {
     if (selectedFormId) loadFormData();
     else setSubmissions([]);
   }, [selectedFormId]);
 
-  const loadGlobalLedger = async () => {
-    const res = await getGlobalTransactions();
+  const loadGlobalLedger = async (accountId = selectedBankAccountId) => {
+    const res = await getGlobalTransactions(accountId || null);
     if (res.transactions) setBankTransactions(res.transactions);
   };
 
@@ -74,7 +98,7 @@ export function ReconciliationManager({ forms }) {
     try {
       const res = await analyzeFormReceipts(selectedFormId);
       if (res.submissions) setSubmissions(res.submissions);
-      await loadGlobalLedger();
+      await loadGlobalLedger(selectedBankAccountId);
     } catch (e) { console.error(e); } finally { setIsLoadingContext(false); }
   };
 
@@ -101,7 +125,10 @@ export function ReconciliationManager({ forms }) {
       
       // 2. Initialize report
       setUploadStatus("Iniciando auditoría...");
-      const { reportId, error: initErr } = await initBankReport(bankFile.name);
+      const reportLabel = selectedBankAccount
+        ? `${selectedBankAccount.bank_name}${selectedBankAccount.account_number ? ` - ${selectedBankAccount.account_number}` : ""} · ${bankFile.name}`
+        : bankFile.name;
+      const { reportId, error: initErr } = await initBankReport(reportLabel, selectedBankAccount);
       if (initErr) throw new Error(initErr);
 
       // 3. Process in chunks
@@ -116,7 +143,7 @@ export function ReconciliationManager({ forms }) {
         setUploadStatus(`Analizando bloque ${chunkIndex} de ${totalChunks}...`);
         
         const chunk = dataRows.slice(i, i + CHUNK_SIZE);
-        const { success, error: chunkErr } = await processBankChunk(reportId, chunk, headers);
+        const { success, error: chunkErr } = await processBankChunk(reportId, chunk, headers, selectedBankAccount);
         
         if (!success) console.warn(`Error en bloque ${chunkIndex}:`, chunkErr);
       }
@@ -127,7 +154,7 @@ export function ReconciliationManager({ forms }) {
       await finalizeBankReport();
       
       toast.success("Historial actualizado correctamente");
-      await loadGlobalLedger();
+      await loadGlobalLedger(selectedBankAccountId);
       setBankFile(null);
       
       // Small delay to let the user see 100%
@@ -216,6 +243,27 @@ export function ReconciliationManager({ forms }) {
             </div>
 
             <div className="space-y-4">
+              <div className="space-y-2">
+                <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Cuenta bancaria</span>
+                <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId} disabled={sortedBankAccounts.length === 0}>
+                  <SelectTrigger className="h-12 md:h-14 rounded-2xl md:rounded-[2rem] border-gray-200 bg-white font-bold text-sm">
+                    <SelectValue placeholder={sortedBankAccounts.length > 0 ? "Selecciona una cuenta" : "No hay cuentas activas"} />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
+                    {sortedBankAccounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id} className="py-3 md:py-4 cursor-pointer rounded-xl font-medium text-xs md:text-sm">
+                        {account.bank_name}{account.account_number ? ` · ${account.account_number}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {sortedBankAccounts.length === 0 && (
+                  <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+                    No hay cuentas bancarias activas. Configúralas en Preferencias antes de cargar extractos.
+                  </p>
+                )}
+              </div>
+
               <div 
                 className={cn(
                   "h-24 md:h-32 border-2 border-dashed rounded-2xl md:rounded-[2rem] flex flex-col items-center justify-center cursor-pointer transition-all gap-2 px-4 md:px-6",
@@ -241,7 +289,7 @@ export function ReconciliationManager({ forms }) {
               {bankFile && (
                 <Button 
                   onClick={handleBankUpload} 
-                  disabled={isUploadingBank}
+                  disabled={isUploadingBank || !selectedBankAccount}
                   variant="green"
                   className="w-full h-12 md:h-14 rounded-full font-bold shadow-lg shadow-[var(--puembo-green)]/20 text-xs uppercase tracking-widest"
                 >
@@ -271,7 +319,7 @@ export function ReconciliationManager({ forms }) {
                   <SelectValue placeholder="Selecciona..." />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                  {forms.map(f => <SelectItem key={f.id} value={f.id} className="py-3 md:py-4 cursor-pointer rounded-xl font-medium text-xs md:text-base">{f.title}</SelectItem>)}
+                  {sortedForms.map(f => <SelectItem key={f.id} value={f.id} className="py-3 md:py-4 cursor-pointer rounded-xl font-medium text-xs md:text-base">{f.title}</SelectItem>)}
                 </SelectContent>
               </Select>
 
@@ -300,13 +348,14 @@ export function ReconciliationManager({ forms }) {
       </Card>
 
       <div className="w-full">
-        <ReconciliationWorkbench 
-          bankTransactions={bankTransactions} 
-          submissions={submissions}
-          onRefresh={loadFormData}
-          isFormSelected={!!selectedFormId}
-          selectedFormId={selectedFormId}
-        />
+      <ReconciliationWorkbench 
+        bankTransactions={bankTransactions} 
+        submissions={submissions}
+        onRefresh={loadFormData}
+        isFormSelected={!!selectedFormId}
+        selectedFormId={selectedFormId}
+        selectedBankAccount={selectedBankAccount}
+      />
       </div>
 
     </div>

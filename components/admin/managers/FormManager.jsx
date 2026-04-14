@@ -45,6 +45,7 @@ import { cn } from "@/lib/utils";
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { isFormSetupComplete } from "@/lib/data/forms";
 
 export default function FormManager({ initialForms = [], isInternal = false }) {
   const {
@@ -109,10 +110,6 @@ export default function FormManager({ initialForms = [], isInternal = false }) {
       return !duplicate;
     });
   }, [forms]);
-
-  const handleEdit = (form) => {
-    router.push(`/admin/formularios/builder?slug=${form.slug}`);
-  };
 
   const handleDelete = async (formId) => {
     const success = await archiveForm(formId);
@@ -193,7 +190,16 @@ export default function FormManager({ initialForms = [], isInternal = false }) {
     );
   };
 
-  const createFormUrl = `/admin/formularios/builder${isInternal ? "?internal=true" : ""}`;
+  const createFormUrl = `/admin/formularios/nuevo${isInternal ? "?internal=true" : ""}`;
+
+  const handleEdit = (form) => {
+    if (isFormSetupComplete(form)) {
+      router.push(`/admin/formularios/builder?slug=${form.slug}`);
+      return;
+    }
+
+    router.push(`/admin/formularios/nuevo?id=${form.id}`);
+  };
 
   return (
     <div className="space-y-6">

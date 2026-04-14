@@ -37,14 +37,18 @@ export default function TrackingClient({ submission }) {
 
   const form = submission.forms;
   const payments = submission.form_submission_payments || [];
+  const sortedPayments = [...payments].sort((a, b) => {
+    const aTime = new Date(a.created_at).getTime();
+    const bTime = new Date(b.created_at).getTime();
+    return aTime - bTime;
+  });
   
-  const totalVerified = payments
-    .filter(p => p.status === 'verified')
-    .reduce((acc, p) => acc + Number(p.extracted_data?.amount || p.amount_claimed || 0), 0);
+  const paymentAmount = (payment) =>
+    Number(payment.extracted_data?.amount ?? payment.amount_claimed ?? 0) || 0;
 
-  const totalPending = payments
-    .filter(p => p.status !== 'verified' && p.status !== 'rejected')
-    .reduce((acc, p) => acc + Number(p.extracted_data?.amount || p.amount_claimed || 0), 0);
+  const totalVerified = sortedPayments
+    .filter((p) => p.status === "verified")
+    .reduce((acc, p) => acc + paymentAmount(p), 0);
 
   // Status config
   const statusConfig = {
@@ -184,7 +188,7 @@ export default function TrackingClient({ submission }) {
                 </div>
                 <div className="space-y-3">
                     <div className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                        <span className="text-sm font-bold text-gray-600">Total Abonos ({payments.length})</span>
+                        <span className="text-sm font-bold text-gray-600">Total Abonos ({sortedPayments.length})</span>
                         <span className="text-lg font-black text-gray-900">${totalVerified.toFixed(2)}</span>
                     </div>
                     
@@ -213,12 +217,12 @@ export default function TrackingClient({ submission }) {
             </div>
 
             <div className="space-y-4">
-                {payments.length === 0 ? (
+                {sortedPayments.length === 0 ? (
                     <div className="p-12 text-center bg-white rounded-[2rem] border border-dashed border-gray-200">
                         <p className="text-gray-400 font-medium italic">No se han registrado abonos aún.</p>
                     </div>
                 ) : (
-                    payments.map((payment, idx) => (
+                    sortedPayments.map((payment, idx) => (
                         <motion.div 
                             key={payment.id}
                             initial={{ opacity: 0, y: 10 }}
@@ -237,7 +241,7 @@ export default function TrackingClient({ submission }) {
                                     <p className="font-bold text-gray-900">Abono #{idx + 1}</p>
                                     <p className="text-[10px] text-gray-400 uppercase font-black tracking-wider">
                                         {format(new Date(payment.created_at), "d MMM, HH:mm", { locale: es })}
-                                        <span className="ml-2 text-blue-600">(${Number(payment.extracted_data?.amount || payment.amount_claimed || 0).toFixed(2)})</span>
+                                        <span className="ml-2 text-blue-600">(${paymentAmount(payment).toFixed(2)})</span>
                                     </p>
                                 </div>
                             </div>

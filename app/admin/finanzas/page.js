@@ -18,14 +18,22 @@ export default async function ReconciliationPage() {
 
   const supabase = await createClient();
 
-  const { data: financialForms } = await supabase
-    .from("forms")
-    .select("id, title, financial_field_label")
-    .eq("is_financial", true)
-    .eq("is_archived", false)
-    .order("created_at", { ascending: false });
+  const [{ data: financialForms }, { data: bankAccounts }] = await Promise.all([
+    supabase
+      .from("forms")
+      .select("id, title, financial_field_label")
+      .eq("is_financial", true)
+      .eq("is_archived", false)
+      .order("title", { ascending: true }),
+    supabase
+      .from("bank_accounts")
+      .select("id, bank_name, account_number, account_holder, is_active")
+      .eq("is_active", true)
+      .order("bank_name", { ascending: true }),
+  ]);
 
   const forms = financialForms || [];
+  const activeBankAccounts = bankAccounts || [];
 
   return (
     <section className={adminPageSection}>
@@ -45,7 +53,7 @@ export default async function ReconciliationPage() {
         </p>
       </header>
 
-      <ReconciliationManager forms={forms} />
+      <ReconciliationManager forms={forms} bankAccounts={activeBankAccounts} />
     </section>
   );
 }

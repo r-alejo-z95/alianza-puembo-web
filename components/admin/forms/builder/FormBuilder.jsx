@@ -159,6 +159,13 @@ function BlocksPicker({ onAdd, onImport }) {
   );
 }
 
+function formatBankAccountLabel(account) {
+  if (!account) return "";
+  return [account.bank_name, account.account_type, account.account_number]
+    .filter(Boolean)
+    .join(" · ");
+}
+
 // --- Schemas ---
 const fieldSchema = z.object({
   id: z.string().default(() => uuidv4()),
@@ -191,11 +198,43 @@ const formSchema = z.object({
   image_url: z.string().optional().nullable(),
   is_internal: z.boolean().default(false),
   is_financial: z.boolean().default(true),
+  payment_type: z.enum(["single", "installments"]).optional().nullable(),
+  max_installments: z.number().int().min(1).optional().nullable(),
+  total_amount: z.number().positive().optional().nullable(),
+  destination_account_id: z.string().optional().nullable(),
   financial_field_label: z.string().optional().nullable(),
   financial_field_id: z.string().optional().nullable(),
   max_responses: z.number().int().min(1).optional().nullable(),
   fields: z.array(fieldSchema),
 }).superRefine((data, ctx) => {
+  if (data.is_financial && !data.payment_type) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["payment_type"],
+      message: "Define si el pago es único o por cuotas",
+    });
+  }
+  if (data.is_financial && !data.destination_account_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["destination_account_id"],
+      message: "Debes seleccionar una cuenta de destino",
+    });
+  }
+  if (data.is_financial && (!data.total_amount || data.total_amount <= 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["total_amount"],
+      message: "Debes definir el monto total del formulario",
+    });
+  }
+  if (data.is_financial && data.payment_type === "installments" && (!data.max_installments || data.max_installments < 1)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["max_installments"],
+      message: "Debes definir el máximo de cuotas",
+    });
+  }
   if (data.is_financial && !data.financial_field_id) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -219,6 +258,10 @@ export default function FormBuilder({
     image_url: "",
     is_internal: false,
     is_financial: true,
+    payment_type: "single",
+    max_installments: null,
+    total_amount: null,
+    destination_account_id: "",
     financial_field_label: "",
     financial_field_id: "",
     fields: [],
@@ -226,6 +269,7 @@ export default function FormBuilder({
   onSave,
   onCancel,
   isSaving,
+  bankAccounts = [],
 }) {
 
   const [activeFieldId, setActiveFieldId] = useState("header");
@@ -283,6 +327,10 @@ export default function FormBuilder({
       image_url: "",
       is_internal: false,
       is_financial: true,
+      payment_type: "single",
+      max_installments: null,
+      total_amount: null,
+      destination_account_id: "",
       financial_field_label: "",
       financial_field_id: "",
       max_responses: null,
@@ -332,6 +380,13 @@ export default function FormBuilder({
         image_url: initialForm.image_url || "",
         is_internal: initialForm.is_internal || false,
         is_financial: initialForm.is_financial ?? true,
+        payment_type: initialForm.payment_type || "single",
+        max_installments: initialForm.max_installments ?? null,
+        total_amount:
+          initialForm.total_amount === null || initialForm.total_amount === undefined
+            ? null
+            : Number(initialForm.total_amount),
+        destination_account_id: initialForm.destination_account_id || "",
         financial_field_label: initialForm.financial_field_label || "",
         financial_field_id: migratedFieldId,
         max_responses: initialForm.max_responses ?? null,
@@ -652,6 +707,18 @@ export default function FormBuilder({
     return form.watch("title") || "Formulario sin título";
   }, [form.watch("title")]);
 
+  const destinationAccountLabel = useMemo(() => {
+    const selectedAccount = bankAccounts.find(
+      (account) => account.id === pendingSaveData?.destination_account_id,
+    );
+
+    if (selectedAccount) {
+      return formatBankAccountLabel(selectedAccount);
+    }
+
+    return pendingSaveData?.destination_account_id || "Sin cuenta asignada";
+  }, [bankAccounts, pendingSaveData?.destination_account_id]);
+
   return (
     <div ref={containerRef} className="min-h-screen bg-[#F8F9FA] pb-32">
       {/* Confirmation Save Modal */}
@@ -711,11 +778,39 @@ export default function FormBuilder({
               </div>
               
               {pendingSaveData?.is_financial && (
-                <div className="bg-[var(--puembo-green)]/10 rounded-2xl p-4 border border-[var(--puembo-green)]/20">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)] mb-1">Campo de Comprobante</p>
-                  <p className="text-xs font-medium text-[var(--puembo-green)] break-words">
-                    {pendingSaveData?.fields?.find((f) => f.id === pendingSaveData?.financial_field_id)?.label ?? pendingSaveData?.financial_field_label}
-                  </p>
+                <div className="bg-[var(--puembo-green)]/10 rounded-2xl p-4 border border-[var(--puembo-green)]/20 space-y-3">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)] mb-1">Campo de Comprobante</p>
+                    <p className="text-xs font-medium text-[var(--puembo-green)] break-words">
+                      {pendingSaveData?.fields?.find((f) => f.id === pendingSaveData?.financial_field_id)?.label ?? pendingSaveData?.financial_field_label}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-[11px]">
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]/70 mb-1">Tipo de pago</p>
+                      <p className="font-semibold text-[var(--puembo-green)]">
+                        {pendingSaveData?.payment_type === "installments" ? "Cuotas" : "Pago único"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]/70 mb-1">Monto total</p>
+                      <p className="font-semibold text-[var(--puembo-green)]">
+                        ${Number(pendingSaveData?.total_amount || 0).toFixed(2)}
+                      </p>
+                    </div>
+                    {pendingSaveData?.payment_type === "installments" && (
+                      <div>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]/70 mb-1">Máx. cuotas</p>
+                        <p className="font-semibold text-[var(--puembo-green)]">{pendingSaveData?.max_installments || "-"}</p>
+                      </div>
+                    )}
+                    <div className="col-span-2">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]/70 mb-1">Cuenta destino</p>
+                      <p className="font-semibold text-[var(--puembo-green)] break-words">
+                        {destinationAccountLabel}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
