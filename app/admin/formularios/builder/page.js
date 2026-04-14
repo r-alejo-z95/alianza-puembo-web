@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import FormBuilder from "@/components/admin/forms/builder/FormBuilder";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { initializeGoogleIntegration } from "@/lib/actions";
 import { revalidateForms } from "@/lib/actions/cache";
 import { slugify } from "@/lib/utils";
 import { isFormSetupComplete } from "@/lib/forms/setup";
@@ -269,20 +268,6 @@ function BuilderContent() {
         })
         .eq("id", currentFormId);
       if (metaErr) throw metaErr;
-
-      // 5. Google Integration (New forms only, and only if NOT internal)
-      if (!form?.id && !is_internal) {
-        toast.info("Conectando con Google Sheets...");
-        const googleRes = await initializeGoogleIntegration(currentFormId, title, slug, fields);
-        
-        if (googleRes?.error) {
-          toast.error("Google Integration: " + googleRes.error, {
-            description: googleRes.details,
-            duration: 10000, // Show longer for debugging
-          });
-          // Note: We don't throw here to allow the form to be saved even if Google fails
-        }
-      }
 
       toast.success("Formulario guardado correctamente.");
       await revalidateForms();

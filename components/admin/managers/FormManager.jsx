@@ -61,7 +61,6 @@ export default function FormManager({ initialForms = [], isInternal = false }) {
     permanentlyDeleteManyForms,
     emptyRecycleBin,
     fetchArchivedForms,
-    refetchForms,
   } = useForms({ initialForms, isInternal });
 
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
@@ -400,7 +399,7 @@ export default function FormManager({ initialForms = [], isInternal = false }) {
 
         <CardContent className="p-0">
           {loading ? (
-            <ManagerSkeleton rows={itemsPerPage} columns={6} />
+            <ManagerSkeleton rows={itemsPerPage} columns={5} />
           ) : processedForms.length === 0 ? (
             <div className="py-32 text-center space-y-4">
               <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
@@ -434,16 +433,6 @@ export default function FormManager({ initialForms = [], isInternal = false }) {
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
                         Estado
                       </TableHead>
-                      {!isInternal && (
-                        <>
-                          <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
-                            Sheets
-                          </TableHead>
-                          <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
-                            Drive
-                          </TableHead>
-                        </>
-                      )}
                       <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">
                         Autor
                       </TableHead>
@@ -458,8 +447,8 @@ export default function FormManager({ initialForms = [], isInternal = false }) {
                         <React.Fragment key={group}>
                           {groupByMonth && (
                             <TableRow className="bg-white hover:bg-white border-none">
-                              <TableCell
-                                colSpan={isInternal ? 5 : 7}
+                          <TableCell
+                                colSpan={5}
                                 className="px-8 pt-12 pb-4"
                               >
                                 <div className="flex items-center gap-4">

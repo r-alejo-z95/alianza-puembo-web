@@ -15,11 +15,8 @@ import { OverflowCell } from "./OverflowCell";
 import {
   Edit,
   Trash2,
-  FolderOpen,
   Calendar,
-  FileSpreadsheet,
   BarChart3,
-  RefreshCw,
   Hash,
   AlertTriangle,
 } from "lucide-react";
@@ -39,13 +36,11 @@ import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { revalidateForms } from "@/lib/actions/cache";
-import { syncFormToSheets } from "@/lib/actions";
 import { isFormSetupComplete } from "@/lib/forms/setup";
 
 export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect, isInternalView }) {
   const [isEnabled, setEnabled] = useState(form.enabled ?? true);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isSyncingSheet, setIsSyncingSheet] = useState(false);
   const supabase = createClient();
 
   const handleToggleEnabled = async (checked) => {
@@ -67,85 +62,6 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
     }
     setIsUpdating(false);
   };
-
-  const handleOpenSheet = async () => {
-    if (!form.google_sheet_url || isSyncingSheet) return;
-    setIsSyncingSheet(true);
-    try {
-      const result = await syncFormToSheets(form.id);
-      if (result.error) {
-        toast.error(`Error al sincronizar: ${result.error}`);
-        // Abrir de todas formas como fallback
-        window.open(form.google_sheet_url, "_blank");
-      } else {
-        toast.success(
-          result.added === 0
-            ? "Sheet al día — abriendo..."
-            : `${result.added} respuesta${result.added !== 1 ? "s" : ""} nueva${result.added !== 1 ? "s" : ""} añadida${result.added !== 1 ? "s" : ""}`
-        );
-        window.open(form.google_sheet_url, "_blank");
-      }
-    } catch {
-      toast.error("Error inesperado al sincronizar.");
-      window.open(form.google_sheet_url, "_blank");
-    } finally {
-      setIsSyncingSheet(false);
-    }
-  };
-
-  const sheetLinkActions = form.google_sheet_url ? (
-    <div className="flex items-center justify-center gap-2">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={handleOpenSheet}
-              disabled={isSyncingSheet}
-              className="flex items-center gap-2 px-4 py-2 lg:p-2 rounded-xl bg-emerald-50 text-emerald-600 lg:text-black lg:hover:bg-emerald-500 lg:hover:text-white transition-all duration-300 shadow-sm shadow-emerald-500/10 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {isSyncingSheet
-                ? <RefreshCw className="w-4 h-4 animate-spin" />
-                : <FileSpreadsheet className="w-4 h-4" />
-              }
-              <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">
-                {isSyncingSheet ? "Sincronizando..." : "Ver Hoja"}
-              </span>
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>Sincronizar y abrir hoja</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  ) : (
-    <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">
-      -
-    </span>
-  );
-
-  const folderLinkActions = form.google_drive_folder_id ? (
-    <div className="flex items-center justify-center gap-2">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <a
-              href={`https://drive.google.com/drive/folders/${form.google_drive_folder_id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 lg:p-2 rounded-xl bg-blue-50 text-blue-600 lg:text-black lg:hover:bg-blue-500 lg:hover:text-white transition-all duration-300 shadow-sm shadow-blue-500/10"
-            >
-              <FolderOpen className="w-4 h-4" />
-              <span className="text-[10px] font-black uppercase tracking-widest lg:hidden">Ver Carpeta</span>
-            </a>
-          </TooltipTrigger>
-          <TooltipContent>Abrir Carpeta Drive</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-  ) : (
-    <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">
-      -
-    </span>
-  );
 
   const responsesPath = form.is_internal 
     ? `/admin/staff/respuestas/${form.slug}` 
@@ -294,13 +210,8 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
             </div>
         </div>
 
-        <div className="flex flex-col gap-2 pt-2 border-t border-gray-50 pl-9">
-          {!isInternalView && (
-            <div className="flex flex-wrap gap-2">
-              {sheetLinkActions} {folderLinkActions}
-            </div>
-          )}
-          <div className="flex justify-end w-full">{actions}</div>
+        <div className="flex justify-end pt-2 border-t border-gray-50 pl-9">
+          {actions}
         </div>
       </div>
     );
@@ -364,16 +275,6 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
             </div>
         </div>
       </TableCell>
-      {!isInternalView && (
-        <>
-          <TableCell className="px-8 py-6 text-center">
-            {sheetLinkActions}
-          </TableCell>
-          <TableCell className="px-8 py-6 text-center">
-            {folderLinkActions}
-          </TableCell>
-        </>
-      )}
       <TableCell className="px-8 py-6">
         <div className="flex justify-center">
           <AuthorAvatar

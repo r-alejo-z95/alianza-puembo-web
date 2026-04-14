@@ -3,12 +3,10 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useScreenSize } from "@/lib/hooks/useScreenSize";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
-  TableHead,
-  TableHeader,
   TableRow,
   TableCell,
 } from "@/components/ui/table";
@@ -39,7 +37,7 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedId, setCopiedId] = useState(null);
   const [formFilter, setFormFilter] = useState("all");
-  const [groupBy, setGroupBy] = useState("none"); // "none", "month", "form"
+  const [groupBy, setGroupBy] = useState("month"); // "month", "form"
   
   const { isLg } = useScreenSize();
   const itemsPerPage = isLg ? 12 : 6;
@@ -114,8 +112,6 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
   }, [processedSubmissions, currentPage, itemsPerPage]);
 
   const groupedItems = useMemo(() => {
-    if (groupBy === "none") return { "Resultados": currentItems };
-    
     const groups = {};
     currentItems.forEach((item) => {
       let groupKey = "Otros";
@@ -169,43 +165,45 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-             <div className="bg-white p-1 rounded-full border border-gray-100 shadow-sm flex items-center">
-                <Button 
-                    variant={groupBy === "none" ? "green" : "ghost"} 
-                    size="sm" 
-                    onClick={() => setGroupBy("none")}
-                    className="rounded-full h-8 px-4 text-[9px] font-black uppercase tracking-widest"
-                >Lista</Button>
-                <Button 
-                    variant={groupBy === "month" ? "green" : "ghost"} 
-                    size="sm" 
-                    onClick={() => setGroupBy("month")}
-                    className="rounded-full h-8 px-4 text-[9px] font-black uppercase tracking-widest"
-                >Mes</Button>
-                <Button 
-                    variant={groupBy === "form" ? "green" : "ghost"} 
-                    size="sm" 
-                    onClick={() => setGroupBy("form")}
-                    className="rounded-full h-8 px-4 text-[9px] font-black uppercase tracking-widest"
-                >Evento</Button>
-             </div>
+          <div className="bg-white p-1 rounded-full border border-gray-100 shadow-sm flex items-center">
+            <Button
+              variant={groupBy === "month" ? "green" : "ghost"}
+              size="sm"
+              onClick={() => setGroupBy("month")}
+              className="rounded-full h-8 px-4 text-[9px] font-black uppercase tracking-widest"
+            >
+              Mes
+            </Button>
+            <Button
+              variant={groupBy === "form" ? "green" : "ghost"}
+              size="sm"
+              onClick={() => setGroupBy("form")}
+              className="rounded-full h-8 px-4 text-[9px] font-black uppercase tracking-widest"
+            >
+              Evento
+            </Button>
+          </div>
         </div>
       </div>
 
       {selectedFormStats && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="border-none shadow-lg rounded-[2rem] bg-black text-white overflow-hidden">
-            <CardContent className="p-6 md:p-8 space-y-2">
-              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Registrados</span>
-              <p className="text-3xl md:text-4xl font-serif font-bold text-[var(--puembo-green)]">{selectedFormStats.totalRegistered}</p>
-              <p className="text-xs text-white/50">Total de personas inscritas en este evento.</p>
+          <Card className="border-none shadow-sm rounded-[2rem] bg-gray-50 overflow-hidden ring-1 ring-gray-100">
+            <CardContent className="p-5 md:p-6 space-y-2">
+              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Inscritos</span>
+              <p className="text-2xl md:text-3xl font-serif font-bold text-gray-900">
+                {selectedFormStats.totalRegistered}
+              </p>
+              <p className="text-xs text-gray-500">Total de personas inscritas.</p>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-lg rounded-[2rem] bg-white overflow-hidden">
-            <CardContent className="p-6 md:p-8 space-y-2">
+          <Card className="border-none shadow-sm rounded-[2rem] bg-white overflow-hidden ring-1 ring-gray-100">
+            <CardContent className="p-5 md:p-6 space-y-2">
               <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Monto confirmado</span>
-              <p className="text-3xl md:text-4xl font-serif font-bold text-gray-900">${selectedFormStats.totalConfirmedAmount.toFixed(2)}</p>
-              <p className="text-xs text-gray-400">Suma de pagos verificados para este evento.</p>
+              <p className="text-2xl md:text-3xl font-serif font-bold text-gray-900">
+                ${selectedFormStats.totalConfirmedAmount.toFixed(2)}
+              </p>
+              <p className="text-xs text-gray-500">Pagos verificados acumulados.</p>
             </CardContent>
           </Card>
         </div>
@@ -286,15 +284,6 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
 
                   <div className="hidden lg:block overflow-x-auto">
                     <Table>
-                      <TableHeader className={cn("bg-gray-50/50", groupBy !== "none" && "sr-only")}>
-                        <TableRow className="hover:bg-transparent border-b border-gray-100">
-                          <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Fecha</TableHead>
-                          <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Evento / Actividad</TableHead>
-                          <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Nombre del Inscrito</TableHead>
-                          <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-right">Monto / Estado</TableHead>
-                          <TableHead className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 text-right">Acciones</TableHead>
-                        </TableRow>
-                      </TableHeader>
                       <TableBody>
                         {items.map((sub) => (
                           <SubmissionRow 
@@ -351,13 +340,13 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
 
   return (
     <TableRow className="group transition-all duration-300 border-b border-gray-50 hover:bg-gray-50/50">
-      <TableCell className="px-8 py-6">
+      <TableCell className="px-4 py-6">
         <div className="flex flex-col">
           <span className="text-xs font-bold text-gray-700">{formattedDate}</span>
           <span className="text-[9px] font-black uppercase text-gray-400 tracking-tighter">{formattedTime}</span>
         </div>
       </TableCell>
-      <TableCell className="px-8 py-6">
+      <TableCell className="px-4 py-6">
         <div className="flex flex-col max-w-[300px]">
           <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest opacity-60 leading-tight mb-1">Evento</span>
           <span className="font-bold text-gray-900 text-sm leading-tight truncate">
@@ -365,7 +354,7 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
           </span>
         </div>
       </TableCell>
-      <TableCell className="px-8 py-6">
+      <TableCell className="pl-4 pr-2 py-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner shrink-0">
              <User className="w-4 h-4" />
@@ -378,11 +367,11 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
           </div>
         </div>
       </TableCell>
-      <TableCell className="px-8 py-6 text-right">
-        <div className="flex items-center justify-end gap-3">
+      <TableCell className="pl-2 pr-4 py-6 text-right">
+        <div className="flex items-center justify-end gap-2">
           <div className="flex flex-col items-end gap-1">
             <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">Monto entregado</span>
-            <span className="text-sm font-bold text-gray-900">${amountPaid.toFixed(2)}</span>
+            <span className="text-base font-bold text-gray-900">${amountPaid.toFixed(2)}</span>
             <Badge className={cn(
               "rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
               paymentStatus === "verified" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
@@ -432,7 +421,7 @@ function SubmissionCard({ sub, onCopy, isCopied }) {
                     <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest">{sub.forms?.title}</span>
                     <h4 className="text-base font-bold text-gray-900 truncate">{subscriberName}</h4>
                 </div>
-                <div className="bg-gray-50 rounded-xl px-3 py-1 text-center shrink-0">
+                <div className="bg-gray-50 rounded-xl px-3 py-1 text-center shrink-0 border border-gray-100">
                     <span className="text-[9px] font-black text-gray-400 block uppercase">{date}</span>
                 </div>
             </div>
@@ -440,7 +429,7 @@ function SubmissionCard({ sub, onCopy, isCopied }) {
             <div className="flex gap-2">
                 <div className="flex-1 rounded-2xl border border-gray-100 bg-gray-50 p-3">
                     <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400">Monto entregado</span>
-                    <p className="mt-1 text-base font-bold text-gray-900">${amountPaid.toFixed(2)}</p>
+                    <p className="mt-1 text-xl font-bold text-gray-900">${amountPaid.toFixed(2)}</p>
                     <Badge className={cn(
                         "mt-2 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
                         paymentStatus === "verified" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
@@ -459,11 +448,11 @@ function SubmissionCard({ sub, onCopy, isCopied }) {
                     {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     {isCopied ? "Copiado" : "Copiar Link"}
                 </Button>
-                <Link href={`/inscripcion/${sub.access_token}`} target="_blank" className="shrink-0">
-                    <Button variant="ghost" className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-400">
+                <Button asChild variant="ghost" className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-400 shrink-0">
+                    <Link href={`/inscripcion/${sub.access_token}`} target="_blank">
                         <ExternalLink className="w-4 h-4" />
-                    </Button>
-                </Link>
+                    </Link>
+                </Button>
             </div>
         </div>
     );

@@ -28,12 +28,9 @@ import {
   Inbox,
   TrendingUp,
   ExternalLink,
-  RefreshCw,
   Download,
   Search,
   X,
-  CheckCircle,
-  AlertCircle,
   CalendarDays,
   ZoomIn,
   ChevronDown,
@@ -51,7 +48,7 @@ import Link from "next/link";
 import { subDays, subHours, format } from "date-fns";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 import { cn } from "@/lib/utils.ts";
-import { syncFormToSheets, getFileSignedUrl } from "@/lib/actions";
+import { getFileSignedUrl } from "@/lib/actions";
 import { findNameInSubmission } from "@/lib/form-utils";
 
 // ------------------------------------------------------------------
@@ -213,8 +210,6 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
   const [activeTab, setActiveTab] = useState("summary");
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedId, setExpandedId] = useState(null);
-  const [sheetSyncState, setSheetSyncState] = useState("idle");
-  const [syncAdded, setSyncAdded] = useState(0);
 
   // Shared URL cache — signed URLs are valid 1h, no need to re-fetch on re-render
   const urlCacheRef = useRef(new Map());
@@ -354,23 +349,6 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
   };
 
   // 5. Actions
-  async function handleOpenSheet() {
-    if (!form.google_sheet_url) return;
-    setSheetSyncState("syncing");
-    try {
-      const result = await syncFormToSheets(form.id);
-      if (result.error) {
-        setSheetSyncState("error");
-      } else {
-        setSyncAdded(result.added ?? 0);
-        setSheetSyncState("done");
-        window.open(form.google_sheet_url, "_blank");
-      }
-    } catch {
-      setSheetSyncState("error");
-    }
-  }
-
   async function exportToXLSX() {
     const dataFields = (form.form_fields ?? []).filter(
       (f) => f.type !== "section_header" && f.type !== "separator" && f.type !== "section"
@@ -468,33 +446,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                 className="flex items-center gap-2 h-10 px-5 rounded-full border border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)]/40 transition-all"
               >
                 <Download className="w-3.5 h-3.5" />
-                XLSX
-              </button>
-            )}
-
-            {/* Sheet button — compact, in header */}
-            {form.google_sheet_id && (
-              <button
-                onClick={handleOpenSheet}
-                disabled={sheetSyncState === "syncing"}
-                className="flex items-center gap-2 h-10 px-5 rounded-full bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-[var(--puembo-green)] disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-              >
-                {sheetSyncState === "syncing" ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                ) : sheetSyncState === "done" ? (
-                  <CheckCircle className="w-3.5 h-3.5 text-[var(--puembo-green)]" />
-                ) : sheetSyncState === "error" ? (
-                  <AlertCircle className="w-3.5 h-3.5 text-red-400" />
-                ) : (
-                  <ExternalLink className="w-3.5 h-3.5" />
-                )}
-                {sheetSyncState === "syncing"
-                  ? "Sincronizando..."
-                  : sheetSyncState === "done"
-                  ? syncAdded === 0 ? "Sheet al día" : `+${syncAdded} añadidas`
-                  : sheetSyncState === "error"
-                  ? "Error al sincronizar"
-                  : "Abrir Sheet"}
+                Descargar Excel
               </button>
             )}
 
@@ -507,7 +459,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl border-none shadow-2xl bg-black text-white">
                   {[
-                    { value: "all", label: "Todo el histórico" },
+                    { value: "all", label: "Todo" },
                     { value: "today", label: "Hoy" },
                     { value: "7days", label: "Últimos 7 días" },
                     { value: "30days", label: "Últimos 30 días" },
@@ -526,13 +478,6 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
           </div>
         </div>
 
-        {/* Sync status line — only when relevant */}
-        {form.google_sheet_id && sheetSyncState === "idle" && form.last_synced_at && (
-          <p className="text-[10px] text-gray-400 font-medium">
-            Sheet sincronizado:{" "}
-            <span className="font-black">{formatInEcuador(form.last_synced_at, "d MMM, HH:mm")}</span>
-          </p>
-        )}
       </div>
 
       {/* ── KPI Bar ── */}
