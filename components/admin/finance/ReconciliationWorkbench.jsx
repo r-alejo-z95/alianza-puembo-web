@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,8 @@ import {
   CreditCard,
   Zap,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  PencilLine,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO, addDays, subDays, isSameDay } from "date-fns";
@@ -86,6 +87,167 @@ function buildReviewDraft(payment) {
   };
 }
 
+function buildReviewPayload(payment, draft) {
+  const amount = Number(draft.amount || 0);
+  return {
+    extractedData: {
+      ...payment.extracted_data,
+      amount,
+      date: draft.date || null,
+      reference: draft.reference || null,
+      sender_name: draft.sender_name || null,
+      bank_name: draft.bank_name || null,
+      beneficiary_name: draft.beneficiary_name || null,
+      beneficiary_account: draft.beneficiary_account || null,
+      is_valid_receipt: draft.is_valid_receipt === "true",
+      is_correct_beneficiary: draft.is_correct_beneficiary === "true",
+    },
+    amountClaimed: amount,
+    status: draft.status,
+    notes: draft.reconciliation_notes,
+  };
+}
+
+function ReviewEditorFields({
+  draft,
+  setDraft,
+  beneficiaryMatch,
+  selectedDestinationAccount,
+  onSave,
+  isSaving,
+  saveLabel = "Guardar cambios",
+}) {
+  return (
+    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm shrink-0 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Editar comprobante</p>
+          <p className="text-xs text-gray-500 mt-1">Corrige la información detectada por la IA antes de conciliar.</p>
+        </div>
+        <Badge className={cn("rounded-full text-[9px] font-black uppercase tracking-widest", draft.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700")}>
+          {draft.status === "pending" ? "Pendiente" : "Revisión manual"}
+        </Badge>
+      </div>
+
+      {selectedDestinationAccount && (
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 flex flex-col gap-1">
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-700">Cuenta destino esperada</p>
+          <p className="text-xs font-bold text-gray-900">
+            {selectedDestinationAccount.bank_name}
+            {selectedDestinationAccount.account_number ? ` · ${selectedDestinationAccount.account_number}` : ""}
+          </p>
+          <p className="text-[10px] text-gray-500">
+            Titular: {selectedDestinationAccount.account_holder || "No definido"}
+          </p>
+          <div className="pt-1">
+            <Badge className={cn(
+              "rounded-full text-[8px] font-black uppercase tracking-widest",
+              beneficiaryMatch?.matched ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+            )}>
+              {beneficiaryMatch?.matched ? "Coincide con el beneficiario" : "Revisar beneficiario"}
+            </Badge>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="space-y-1">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Monto</p>
+          <Input type="number" step="0.01" value={draft.amount} onChange={(e) => setDraft((prev) => ({ ...prev, amount: e.target.value }))} />
+        </div>
+        <div className="space-y-1">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Fecha</p>
+          <Input type="date" value={draft.date} onChange={(e) => setDraft((prev) => ({ ...prev, date: e.target.value }))} />
+        </div>
+        <div className="space-y-1">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Referencia</p>
+          <Input value={draft.reference} onChange={(e) => setDraft((prev) => ({ ...prev, reference: e.target.value }))} />
+        </div>
+        <div className="space-y-1">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Banco</p>
+          <Input value={draft.bank_name} onChange={(e) => setDraft((prev) => ({ ...prev, bank_name: e.target.value }))} />
+        </div>
+        <div className="space-y-1">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Titular</p>
+          <Input value={draft.sender_name} onChange={(e) => setDraft((prev) => ({ ...prev, sender_name: e.target.value }))} />
+        </div>
+        <div className="space-y-1">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Cuenta beneficiaria</p>
+          <Input value={draft.beneficiary_account} onChange={(e) => setDraft((prev) => ({ ...prev, beneficiary_account: e.target.value }))} />
+        </div>
+        <div className="space-y-1">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Beneficiario</p>
+          <Input value={draft.beneficiary_name} onChange={(e) => setDraft((prev) => ({ ...prev, beneficiary_name: e.target.value }))} />
+        </div>
+        <div className="space-y-1">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Estado</p>
+          <Select value={draft.status} onValueChange={(value) => setDraft((prev) => ({ ...prev, status: value }))}>
+            <SelectTrigger className="h-10 w-full rounded-lg bg-white border-gray-100 shadow-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="manual_review">Revisión manual</SelectItem>
+              <SelectItem value="pending">Pendiente</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">¿Es comprobante?</p>
+          <Select value={draft.is_valid_receipt} onValueChange={(value) => setDraft((prev) => ({ ...prev, is_valid_receipt: value }))}>
+            <SelectTrigger className="h-10 w-full rounded-lg bg-white border-gray-100 shadow-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">Sí</SelectItem>
+              <SelectItem value="false">No</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1">
+          <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">¿Beneficiario correcto?</p>
+          <Select value={draft.is_correct_beneficiary} onValueChange={(value) => setDraft((prev) => ({ ...prev, is_correct_beneficiary: value }))}>
+            <SelectTrigger className="h-10 w-full rounded-lg bg-white border-gray-100 shadow-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">Sí</SelectItem>
+              <SelectItem value="false">No</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Notas</p>
+        <Textarea
+          value={draft.reconciliation_notes}
+          onChange={(e) => setDraft((prev) => ({ ...prev, reconciliation_notes: e.target.value }))}
+          rows={3}
+          className="rounded-xl bg-white border-gray-100 shadow-sm"
+          placeholder="Observaciones de la revisión..."
+        />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-end">
+        <Button
+          onClick={onSave}
+          disabled={isSaving}
+          className="rounded-full h-10 px-5 font-black text-[10px] uppercase tracking-widest"
+        >
+          {isSaving ? "Guardando..." : saveLabel}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function getReceiptKind(receiptPath = "") {
+  const lower = String(receiptPath).toLowerCase();
+  if (lower.endsWith(".pdf")) return "pdf";
+  if (/\.(png|jpe?g|gif|webp|heic|heif)$/i.test(lower)) return "image";
+  return "unknown";
+}
+
 export function ReconciliationWorkbench({ 
   bankTransactions = [], 
   submissions = [], 
@@ -99,11 +261,16 @@ export function ReconciliationWorkbench({
   const [manualMatch, setManualMatch] = useState(null); // { paymentId, submission }
   const [reviewDraft, setReviewDraft] = useState(buildReviewDraft(null));
   const [isSavingReview, setIsSavingReview] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [editingDraft, setEditingDraft] = useState(buildReviewDraft(null));
+  const [isSavingEditing, setIsSavingEditing] = useState(false);
   const [bankSearch, setBankSearch] = useState("");
   const [modalSearch, setModalSearch] = useState("");
   const [pageSize, setPageSize] = useState("25");
   const [viewingReceipt, setViewingReceipt] = useState(null);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
+  const isMountedRef = useRef(true);
+  const receiptRequestIdRef = useRef(0);
   
   const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
   const [bankStatusFilter, setBankStatusFilter] = useState('all'); 
@@ -113,6 +280,16 @@ export function ReconciliationWorkbench({
     () => (manualMatch ? compareReceiptBeneficiary(manualMatch.extracted_data || {}, selectedDestinationAccount) : null),
     [manualMatch, selectedDestinationAccount],
   );
+  const beneficiaryEditMatch = useMemo(
+    () => (editingItem ? compareReceiptBeneficiary(editingItem.extracted_data || {}, selectedDestinationAccount) : null),
+    [editingItem, selectedDestinationAccount],
+  );
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (manualMatch) {
@@ -126,6 +303,19 @@ export function ReconciliationWorkbench({
       setIsSavingReview(false);
     }
   }, [manualMatch, beneficiaryMatch]);
+
+  useEffect(() => {
+    if (editingItem) {
+      const draft = buildReviewDraft(editingItem);
+      setEditingDraft({
+        ...draft,
+        is_correct_beneficiary: beneficiaryEditMatch?.matched ? "true" : draft.is_correct_beneficiary,
+      });
+    } else {
+      setEditingDraft(buildReviewDraft(null));
+      setIsSavingEditing(false);
+    }
+  }, [editingItem, beneficiaryEditMatch]);
 
   const usedTransactionIds = useMemo(() => {
     const ids = new Set(bankTransactions.filter(bt => bt.is_reconciled).map(bt => bt.id));
@@ -150,11 +340,28 @@ export function ReconciliationWorkbench({
 
   const handleViewReceipt = async (payment, submissionName) => {
     if (!payment.receipt_path) return toast.error("Sin imagen");
+    const requestId = ++receiptRequestIdRef.current;
     setIsLoadingImage(true);
     try {
       const res = await getReceiptSignedUrl(payment.receipt_path);
-      if (res.url) setViewingReceipt({ url: res.url, title: submissionName || 'Comprobante', aiData: payment.extracted_data });
-    } catch (e) { toast.error("Error"); } finally { setIsLoadingImage(false); }
+      if (!isMountedRef.current || requestId !== receiptRequestIdRef.current) return;
+      if (res.url) {
+        setViewingReceipt({
+          url: res.url,
+          title: submissionName || "Comprobante",
+          aiData: payment.extracted_data,
+          kind: getReceiptKind(payment.receipt_path),
+        });
+      }
+    } catch (e) {
+      if (isMountedRef.current && requestId === receiptRequestIdRef.current) {
+        toast.error("Error");
+      }
+    } finally {
+      if (isMountedRef.current && requestId === receiptRequestIdRef.current) {
+        setIsLoadingImage(false);
+      }
+    }
   };
 
   const openReview = (item) => {
@@ -162,30 +369,15 @@ export function ReconciliationWorkbench({
     setModalSearch("");
   };
 
+  const openEdit = (item) => {
+    setEditingItem(item);
+  };
+
   const handleSaveReview = async () => {
     if (!manualMatch) return;
     setIsSavingReview(true);
     try {
-      const amount = Number(reviewDraft.amount || 0);
-      const extractedData = {
-        ...manualMatch.extracted_data,
-        amount,
-        date: reviewDraft.date || null,
-        reference: reviewDraft.reference || null,
-        sender_name: reviewDraft.sender_name || null,
-        bank_name: reviewDraft.bank_name || null,
-        beneficiary_name: reviewDraft.beneficiary_name || null,
-        beneficiary_account: reviewDraft.beneficiary_account || null,
-        is_valid_receipt: reviewDraft.is_valid_receipt === "true",
-        is_correct_beneficiary: reviewDraft.is_correct_beneficiary === "true",
-      };
-
-      const res = await updatePaymentReview(manualMatch.id, {
-        extractedData,
-        amountClaimed: amount,
-        status: reviewDraft.status,
-        notes: reviewDraft.reconciliation_notes,
-      });
+      const res = await updatePaymentReview(manualMatch.id, buildReviewPayload(manualMatch, reviewDraft));
 
       if (res.success) {
         toast.success("Comprobante actualizado");
@@ -197,6 +389,26 @@ export function ReconciliationWorkbench({
       toast.error("No se pudo guardar la revisión");
     } finally {
       setIsSavingReview(false);
+    }
+  };
+
+  const handleSaveEditing = async () => {
+    if (!editingItem) return;
+    setIsSavingEditing(true);
+    try {
+      const res = await updatePaymentReview(editingItem.id, buildReviewPayload(editingItem, editingDraft));
+
+      if (res.success) {
+        toast.success("Comprobante actualizado");
+        await onRefresh?.();
+        setEditingItem(null);
+      } else {
+        toast.error(res.error || "No se pudo guardar la revisión");
+      }
+    } catch (e) {
+      toast.error("No se pudo guardar la revisión");
+    } finally {
+      setIsSavingEditing(false);
     }
   };
 
@@ -346,6 +558,12 @@ export function ReconciliationWorkbench({
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Monto IA: <span className="text-blue-600">${item.subTotalClaimed.toFixed(2)}</span></span>
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Verificado: <span className="text-emerald-600">${item.subTotalVerified.toFixed(2)}</span></span>
                 </div>
+
+                {!item.match && (
+                  <div className="rounded-2xl border border-orange-100 bg-orange-50/80 px-3 py-2 text-[10px] font-medium text-orange-700 leading-relaxed">
+                    La IA no pudo validar este comprobante con confianza.
+                  </div>
+                )}
                 
                 <div className="pt-3 space-y-2">
                   <div>
@@ -365,9 +583,12 @@ export function ReconciliationWorkbench({
                 <div className="bg-gray-50 rounded-xl p-3 border border-gray-100"><span className="text-[8px] font-black uppercase text-gray-400 block mb-0.5">Abono Creado</span><span className="text-xs font-bold text-gray-700">{displayDate(item.created_at)}</span></div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="text-[9px] font-bold text-gray-400 uppercase bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">REF: <span className="text-gray-900">{item.extracted_data?.reference || 'N/A'}</span></div>
-              <Button variant="ghost" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 text-[var(--puembo-green)] hover:bg-green-50" onClick={() => handleViewReceipt(item, item.submissionName)}><Eye className="w-3.5 h-3.5" /> Ver Foto</Button>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 text-[var(--puembo-green)] hover:bg-green-50" onClick={() => handleViewReceipt(item, item.submissionName)}><Eye className="w-3.5 h-3.5" /> Ver Foto</Button>
+                <Button variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-gray-200 text-gray-700 hover:bg-gray-50" onClick={() => openEdit(item)}><PencilLine className="w-3.5 h-3.5" /> Editar datos</Button>
+              </div>
             </div>
           </div>
 
@@ -391,17 +612,23 @@ export function ReconciliationWorkbench({
                 <p className="text-2xl font-serif font-black text-[var(--puembo-green)]">+ ${item.match.amount.toFixed(2)}</p>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button size="sm" variant="green" className="flex-1 rounded-full h-10 font-black text-[10px] uppercase tracking-widest shadow-lg" onClick={() => handleVerify(item.id, item.match.id)} disabled={item.status === 'verified'}>{item.status === 'verified' ? '¡Conciliado!' : 'Conciliar con esta'}</Button>
-                  {item.status !== 'verified' && <Button onClick={() => openReview(item)} variant="outline" className="flex-1 rounded-full h-10 text-[9px] font-black uppercase tracking-widest gap-2"><Search className="w-3 h-3" /> Revisar / editar</Button>}
+                  {item.status !== 'verified' && <Button onClick={() => openReview(item)} variant="outline" className="flex-1 rounded-full h-10 text-[9px] font-black uppercase tracking-widest gap-2"><Search className="w-3 h-3" /> Revisar</Button>}
                 </div>
               </div>
             ) : (
               <div className="flex flex-col justify-center h-full space-y-3 py-2">
-                {!item.extracted_data || Object.keys(item.extracted_data).length === 0 ? (
-                    <p className="text-xs font-medium text-orange-600 italic">Procesando imagen con IA...</p>
-                ) : (
-                    <p className="text-xs font-medium text-orange-600 italic">No hay coincidencias automáticas.</p>
-                )}
-                <Button onClick={() => openReview(item)} variant="outline" className="w-full rounded-full h-10 text-[9px] font-black uppercase tracking-widest border-orange-200 text-orange-600 hover:bg-orange-50"><Search className="w-3.5 h-3.5 mr-2" /> Revisar / editar</Button>
+                <p className="text-xs font-medium text-orange-600 italic leading-relaxed">
+                  Primero verifica los datos manualmente.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    onClick={() => openReview(item)}
+                    variant="outline"
+                    className="flex-1 rounded-full h-10 text-[9px] font-black uppercase tracking-widest gap-2 border-orange-200 text-orange-600 hover:bg-orange-50"
+                  >
+                    <Search className="w-3 h-3" /> Abrir búsqueda
+                  </Button>
+                </div>
               </div>
             )}
           </div>
@@ -551,127 +778,6 @@ export function ReconciliationWorkbench({
                />
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm shrink-0 space-y-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Editar comprobante</p>
-                  <p className="text-xs text-gray-500 mt-1">Corrige los datos extraídos antes de conciliar o dejarlo en revisión.</p>
-                </div>
-                <Badge className={cn("rounded-full text-[9px] font-black uppercase tracking-widest", reviewDraft.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700")}>
-                  {reviewDraft.status === "pending" ? "Pendiente" : "Revisión manual"}
-                </Badge>
-              </div>
-
-              {selectedDestinationAccount && (
-                <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-3 flex flex-col gap-1">
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-700">Cuenta destino esperada</p>
-                  <p className="text-xs font-bold text-gray-900">
-                    {selectedDestinationAccount.bank_name}
-                    {selectedDestinationAccount.account_number ? ` · ${selectedDestinationAccount.account_number}` : ""}
-                  </p>
-                  <p className="text-[10px] text-gray-500">
-                    Titular: {selectedDestinationAccount.account_holder || "No definido"}
-                  </p>
-                  <div className="pt-1">
-                    <Badge className={cn(
-                      "rounded-full text-[8px] font-black uppercase tracking-widest",
-                      beneficiaryMatch?.matched ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-                    )}>
-                      {beneficiaryMatch?.matched ? "Coincide con el beneficiario" : "Revisar beneficiario"}
-                    </Badge>
-                  </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Monto</p>
-                  <Input type="number" step="0.01" value={reviewDraft.amount} onChange={(e) => setReviewDraft((prev) => ({ ...prev, amount: e.target.value }))} />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Fecha</p>
-                  <Input type="date" value={reviewDraft.date} onChange={(e) => setReviewDraft((prev) => ({ ...prev, date: e.target.value }))} />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Referencia</p>
-                  <Input value={reviewDraft.reference} onChange={(e) => setReviewDraft((prev) => ({ ...prev, reference: e.target.value }))} />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Banco</p>
-                  <Input value={reviewDraft.bank_name} onChange={(e) => setReviewDraft((prev) => ({ ...prev, bank_name: e.target.value }))} />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Titular</p>
-                  <Input value={reviewDraft.sender_name} onChange={(e) => setReviewDraft((prev) => ({ ...prev, sender_name: e.target.value }))} />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Cuenta beneficiaria</p>
-                  <Input value={reviewDraft.beneficiary_account} onChange={(e) => setReviewDraft((prev) => ({ ...prev, beneficiary_account: e.target.value }))} />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Beneficiario</p>
-                  <Input value={reviewDraft.beneficiary_name} onChange={(e) => setReviewDraft((prev) => ({ ...prev, beneficiary_name: e.target.value }))} />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Estado</p>
-                  <Select value={reviewDraft.status} onValueChange={(value) => setReviewDraft((prev) => ({ ...prev, status: value }))}>
-                    <SelectTrigger className="h-10 w-full rounded-lg bg-white border-gray-100 shadow-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="manual_review">Revisión manual</SelectItem>
-                      <SelectItem value="pending">Pendiente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">¿Es comprobante?</p>
-                  <Select value={reviewDraft.is_valid_receipt} onValueChange={(value) => setReviewDraft((prev) => ({ ...prev, is_valid_receipt: value }))}>
-                    <SelectTrigger className="h-10 w-full rounded-lg bg-white border-gray-100 shadow-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Sí</SelectItem>
-                      <SelectItem value="false">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">¿Beneficiario correcto?</p>
-                  <Select value={reviewDraft.is_correct_beneficiary} onValueChange={(value) => setReviewDraft((prev) => ({ ...prev, is_correct_beneficiary: value }))}>
-                    <SelectTrigger className="h-10 w-full rounded-lg bg-white border-gray-100 shadow-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Sí</SelectItem>
-                      <SelectItem value="false">No</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Notas</p>
-                <Textarea
-                  value={reviewDraft.reconciliation_notes}
-                  onChange={(e) => setReviewDraft((prev) => ({ ...prev, reconciliation_notes: e.target.value }))}
-                  rows={3}
-                  className="rounded-xl bg-white border-gray-100 shadow-sm"
-                  placeholder="Observaciones de la revisión..."
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-end">
-                <Button
-                  onClick={handleSaveReview}
-                  disabled={isSavingReview}
-                  className="rounded-full h-10 px-5 font-black text-[10px] uppercase tracking-widest"
-                >
-                  {isSavingReview ? "Guardando..." : "Guardar revisión"}
-                </Button>
-              </div>
-            </div>
-
             <div className="flex-1 overflow-y-auto pr-1 scrollbar-none space-y-6">
               {/* SMART SUGGESTIONS */}
               {manualMatch?.suggestions?.length > 0 && !modalSearch && (
@@ -728,6 +834,43 @@ export function ReconciliationWorkbench({
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
+        <DialogContent className="max-w-4xl w-[96vw] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl flex flex-col max-h-[92vh]">
+          <div className="bg-gray-900 px-8 py-5 text-white shrink-0">
+            <div className="flex items-center justify-between gap-4">
+              <div className="space-y-1 min-w-0">
+                <Badge className="bg-[var(--puembo-green)] text-black border-none font-black text-[8px] uppercase tracking-widest px-3 py-1 rounded-full">Editar datos</Badge>
+                <DialogTitle className="text-xl md:text-2xl font-serif font-bold leading-tight truncate">
+                  Corregir comprobante
+                </DialogTitle>
+                <p className="text-xs text-gray-400">
+                  Ajusta aquí la información extraída por IA.
+                </p>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-[7px] font-black uppercase text-gray-500 block mb-0.5 leading-none tracking-tighter">Monto detectado</span>
+                <span className="text-lg md:text-xl font-black font-serif text-[var(--puembo-green)] leading-none">${Number(editingItem?.extracted_data?.amount || 0).toFixed(2)}</span>
+              </div>
+            </div>
+            <div className="mt-3 text-[10px] text-gray-400 truncate">
+              {editingItem?.submissionName}
+            </div>
+          </div>
+
+          <div className="p-4 md:p-6 overflow-y-auto bg-gray-50/50">
+            <ReviewEditorFields
+              draft={editingDraft}
+              setDraft={setEditingDraft}
+              beneficiaryMatch={beneficiaryEditMatch}
+              selectedDestinationAccount={selectedDestinationAccount}
+              onSave={handleSaveEditing}
+              isSaving={isSavingEditing}
+              saveLabel="Guardar cambios"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* 4. RECEIPT VIEWER */}
       <Dialog open={!!viewingReceipt} onOpenChange={() => setViewingReceipt(null)}>
         <DialogContent className="max-w-4xl w-[95vw] rounded-[2rem] p-6 md:p-8 overflow-hidden border-none shadow-2xl bg-black/95 flex flex-col h-[90vh]">
@@ -744,7 +887,33 @@ export function ReconciliationWorkbench({
                   </div>
                 </div>
                 <div className="flex-1 min-h-0 w-full relative flex items-center justify-center p-4 bg-white/5 rounded-3xl border border-white/10">
-                  <img src={viewingReceipt.url} alt="Recibo bancario" className="max-w-full max-h-full object-contain shadow-2xl rounded-lg" />
+                  {viewingReceipt.kind === "pdf" ? (
+                    <iframe
+                      src={viewingReceipt.url}
+                      title="Comprobante bancario"
+                      className="w-full h-full rounded-lg bg-white"
+                    />
+                  ) : viewingReceipt.kind === "image" ? (
+                    <img
+                      src={viewingReceipt.url}
+                      alt="Recibo bancario"
+                      className="max-w-full max-h-full object-contain shadow-2xl rounded-lg"
+                    />
+                  ) : (
+                    <div className="text-center space-y-4">
+                      <p className="text-white font-medium">
+                        No se puede previsualizar este archivo aquí.
+                      </p>
+                      <a
+                        href={viewingReceipt.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center rounded-full bg-white px-5 py-3 text-[10px] font-black uppercase tracking-widest text-black"
+                      >
+                        Abrir comprobante
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
