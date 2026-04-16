@@ -274,19 +274,17 @@ function getExportFilePath(value) {
   return value?.financial_receipt_path || value?.path || null;
 }
 
-function getExportFileLabel(value) {
-  return value?.name || value?.info || getExportFilePath(value) || value?.url || "Archivo adjunto";
-}
-
 function getExportCellValue(value, fileUrlMap) {
   if (Array.isArray(value)) return value.join(", ");
   if (isExportFileValue(value)) {
     const path = getExportFilePath(value);
     const directUrl = value?.url || null;
     const resolvedUrl = directUrl || (path ? fileUrlMap.get(path) : null);
-    const label = getExportFileLabel(value);
+    const label = "Ver imagen/archivo";
 
-    return resolvedUrl || label;
+    return resolvedUrl
+      ? { text: label, hyperlink: resolvedUrl }
+      : label;
   }
 
   if (value && typeof value === "object") {
@@ -294,6 +292,18 @@ function getExportCellValue(value, fileUrlMap) {
   }
 
   return String(value ?? "");
+}
+
+function getExcelTextWidth(value) {
+  if (value && typeof value === "object") {
+    return getExcelTextWidth(value.text || value.result || value.hyperlink);
+  }
+  const text = String(value ?? "");
+  return Math.max(12, Math.min(100, text.length + 2));
+}
+
+function isExcelHyperlinkCell(value) {
+  return Boolean(value && typeof value === "object" && value.hyperlink);
 }
 
 // ------------------------------------------------------------------
@@ -504,6 +514,27 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
         updateProgress();
       }
 
+      const columnWidths = headers.map((header, colIndex) => {
+        const values = [header];
+
+        if (form.is_financial) {
+          if (colIndex === 0) {
+            values.push("Resumen financiero de " + form.title, "Número de registros", "Monto recaudado confirmado");
+          } else if (colIndex === 1) {
+            values.push(String(filteredSubmissions.length), formatUsdAmount(confirmedFinancialAmount));
+          }
+        }
+
+        exportRows.forEach((row) => {
+          const cellValue = colIndex === 0
+            ? row.timestamp
+            : getExportCellValue(row.values[colIndex - 1], fileUrlMap);
+          values.push(cellValue);
+        });
+
+        return Math.max(...values.map(getExcelTextWidth));
+      });
+
       const workbook = new ExcelJS.Workbook();
       workbook.creator = "Alianza Puembo";
       workbook.created = new Date();
@@ -516,8 +547,8 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
       completedSteps += 1;
       updateProgress();
 
-      worksheet.columns = headers.map((header) => ({
-        width: Math.max(18, Math.min(48, header.length + 4)),
+      worksheet.columns = headers.map((_, index) => ({
+        width: columnWidths[index],
       }));
 
       if (form.is_financial) {
@@ -578,18 +609,13 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
         ]);
 
         excelRow.eachCell((cell, colNumber) => {
-          if (cell.value && typeof cell.value === "object" && "formula" in cell.value) {
+          if (isExcelHyperlinkCell(cell.value)) {
             cell.font = {
               color: { argb: "FF0563C1" },
               underline: true,
             };
-            cell.alignment = { vertical: "top", wrapText: true };
-          } else {
-            cell.alignment = {
-              vertical: "top",
-              wrapText: colNumber > 1,
-            };
           }
+          cell.alignment = { vertical: "top", wrapText: false };
         });
         completedSteps += 1;
         updateProgress();
