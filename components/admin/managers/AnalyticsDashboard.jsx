@@ -286,14 +286,7 @@ function getExportCellValue(value, fileUrlMap) {
     const resolvedUrl = directUrl || (path ? fileUrlMap.get(path) : null);
     const label = getExportFileLabel(value);
 
-    if (resolvedUrl) {
-      return {
-        formula: `HYPERLINK("${String(resolvedUrl).replaceAll('"', '""')}","${String(label).replaceAll('"', '""')}")`,
-        result: label,
-      };
-    }
-
-    return label;
+    return resolvedUrl || label;
   }
 
   if (value && typeof value === "object") {

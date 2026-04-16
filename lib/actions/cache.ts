@@ -1,5 +1,6 @@
 'use server';
 
+import { createAdminClient } from "@/lib/supabase/server";
 import { revalidateTag, revalidatePath } from 'next/cache';
 
 export async function revalidateEvents() {
@@ -40,8 +41,17 @@ export async function revalidateFormSubmissions(formId?: string) {
   revalidateTag('form-submissions');
   if (formId) {
     revalidateTag(`form-submissions-${formId}`);
-    revalidatePath(`/admin/formularios/analiticas/${formId}`);
-    revalidatePath(`/admin/staff/respuestas/${formId}`);
+    const supabase = createAdminClient();
+    const { data: form } = await supabase
+      .from("forms")
+      .select("slug")
+      .eq("id", formId)
+      .single();
+
+    if (form?.slug) {
+      revalidatePath(`/admin/formularios/analiticas/${form.slug}`);
+      revalidatePath(`/admin/staff/respuestas/${form.slug}`);
+    }
   }
   revalidatePath('/admin/formularios');
 }

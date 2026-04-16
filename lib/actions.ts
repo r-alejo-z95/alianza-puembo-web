@@ -841,6 +841,7 @@ export async function submitFormAction(payload: {
         extracted_data: aiExtractedData,
         status: receiptReviewStatus === "valid" ? 'pending' : 'manual_review'
       }]);
+      await revalidateFormSubmissions(formId);
     }
 
     // 3.2. Auto-disable form if max_responses just reached

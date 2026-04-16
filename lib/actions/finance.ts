@@ -4,6 +4,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import * as XLSX from "xlsx";
 import { extractReceiptData, parseBankStatementWithAI } from "@/lib/services/ai-reconciliation";
 import { revalidatePath } from "next/cache";
+import { revalidateFormSubmissions } from "@/lib/actions/cache";
 import { verifyPermission, verifySuperAdmin } from "@/lib/auth/guards";
 import { uploadReceipt } from "@/lib/actions";
 import { INVALID_RECEIPT_MESSAGE, classifyFinancialReceipt } from "@/lib/services/receipt-validation";
@@ -332,6 +333,7 @@ export async function analyzeFormReceipts(formId: string) {
       .eq("is_archived", false)
       .order("created_at", { ascending: false });
 
+    await revalidateFormSubmissions(formId);
     return { success: true, submissions: updated };
   } catch (error: any) {
     return { error: error.message };
@@ -345,8 +347,24 @@ export async function reconcilePayment(paymentId: string, transactionId: string,
   const supabase = await createClient();
   
   try {
+    const { data: currentPayment, error: currentPaymentErr } = await supabase
+      .from("form_submission_payments")
+      .select("submission_id")
+      .eq("id", paymentId)
+      .single();
+
+    if (currentPaymentErr) throw currentPaymentErr;
+
+    const { data: submission, error: submissionErr } = await supabase
+      .from("form_submissions")
+      .select("form_id")
+      .eq("id", currentPayment.submission_id)
+      .single();
+
+    if (submissionErr) throw submissionErr;
+
     // 1. Actualizar el abono
-    const { data: payment, error: payErr } = await supabase
+    const { error: payErr } = await supabase
       .from("form_submission_payments")
       .update({
         bank_transaction_id: transactionId,
@@ -362,7 +380,7 @@ export async function reconcilePayment(paymentId: string, transactionId: string,
     // 2. Verificar si todos los abonos de esta inscripción están verificados
     // (Opcional: podrías querer cambiar el status global de la inscripción a 'verified'
     // si consideras que ya se completó el pago, pero por ahora lo dejamos granular)
-    
+    await revalidateFormSubmissions(submission.form_id);
     revalidatePath("/admin/finanzas");
     return { success: true };
   } catch (error: any) {
@@ -390,12 +408,20 @@ export async function updatePaymentReview(
   try {
     const { data: currentPayment, error: fetchErr } = await supabase
       .from("form_submission_payments")
-      .select("id, extracted_data, amount_claimed, status, reconciliation_notes")
+      .select("id, submission_id, extracted_data, amount_claimed, status, reconciliation_notes")
       .eq("id", paymentId)
       .single();
 
     if (fetchErr) throw fetchErr;
     if (!currentPayment) throw new Error("Pago no encontrado");
+
+    const { data: submission, error: submissionErr } = await supabase
+      .from("form_submissions")
+      .select("form_id")
+      .eq("id", currentPayment.submission_id)
+      .single();
+
+    if (submissionErr) throw submissionErr;
 
     const mergedExtractedData = {
       ...(currentPayment.extracted_data || {}),
@@ -418,6 +444,7 @@ export async function updatePaymentReview(
 
     if (updateErr) throw updateErr;
 
+    await revalidateFormSubmissions(submission.form_id);
     revalidatePath("/admin/finanzas");
     return { success: true };
   } catch (error: any) {
@@ -618,6 +645,7 @@ export async function addMultipartPayment(payload: {
 
     if (payErr) throw payErr;
 
+    await revalidateFormSubmissions(submission.form_id);
     revalidatePath(`/inscripcion/${accessToken}`);
     return { success: true, payment };
 
@@ -770,6 +798,7 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
 
     if (payErr) throw payErr;
 
+    await revalidateFormSubmissions(submission.form_id);
     return { success: true, payment };
   } catch (error: any) {
     console.error("Error en reprocessSubmissionWithReceipt:", error);
