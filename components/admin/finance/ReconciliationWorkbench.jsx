@@ -52,10 +52,11 @@ import {
 import { cn } from "@/lib/utils";
 import { format, parseISO, addDays, subDays, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
-import { reconcilePayment, getReceiptSignedUrl, updatePaymentReview } from "@/lib/actions/finance";
+import { discardPaymentReceipt, reconcilePayment, getReceiptSignedUrl, updatePaymentReview } from "@/lib/actions/finance";
 import { compareReceiptBeneficiary } from "@/lib/services/receipt-validation";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DiscardReceiptDialog } from "./DiscardReceiptDialog";
 
 import { findNameInSubmission } from "@/lib/form-utils";
 
@@ -251,6 +252,7 @@ function getReceiptKind(receiptPath = "") {
 export function ReconciliationWorkbench({ 
   bankTransactions = [], 
   submissions = [], 
+  discardedItems = [],
   onRefresh,
   isFormSelected = false,
   selectedBankAccount = null,
@@ -275,6 +277,8 @@ export function ReconciliationWorkbench({
   const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
   const [bankStatusFilter, setBankStatusFilter] = useState('all'); 
   const [processingIds, setProcessingIds] = useState(new Set());
+  const [discardTarget, setDiscardTarget] = useState(null);
+  const [isDiscarding, setIsDiscarding] = useState(false);
 
   const beneficiaryMatch = useMemo(
     () => (manualMatch ? compareReceiptBeneficiary(manualMatch.extracted_data || {}, selectedDestinationAccount) : null),
@@ -445,7 +449,9 @@ export function ReconciliationWorkbench({
     const list = [];
     submissions.forEach(sub => {
         const subName = findNameInSubmission(sub);
-        const payments = [...(sub.form_submission_payments || [])].sort((a, b) => {
+        const payments = [...(sub.form_submission_payments || [])]
+          .filter((payment) => !payment?.manual_disposition)
+          .sort((a, b) => {
           const aTime = new Date(a.created_at).getTime();
           const bTime = new Date(b.created_at).getTime();
           return aTime - bTime;
@@ -517,6 +523,13 @@ export function ReconciliationWorkbench({
 
   const pendingItems = useMemo(() => reconcilablePayments.filter(p => p.status !== 'verified' && !processingIds.has(p.id)).sort((a, b) => a.matchPriority - b.matchPriority), [reconcilablePayments, processingIds]);
   const verifiedItems = useMemo(() => reconcilablePayments.filter(p => p.status === 'verified'), [reconcilablePayments]);
+  const visibleDiscardedItems = useMemo(
+    () => discardedItems.filter((item) => {
+      const s = searchTerm.toLowerCase();
+      return !s || (item.submissionName || "").toLowerCase().includes(s);
+    }),
+    [discardedItems, searchTerm],
+  );
 
   const handleVerify = async (paymentId, transactionId) => {
     setProcessingIds(prev => new Set(prev).add(paymentId));
@@ -533,6 +546,30 @@ export function ReconciliationWorkbench({
       }
     } catch (e) { 
         setProcessingIds(prev => { const next = new Set(prev); next.delete(paymentId); return next; }); 
+    }
+  };
+
+  const handleDiscard = async ({ reason, notes, coveredBySubmissionId }) => {
+    if (!discardTarget) return;
+    setIsDiscarding(true);
+    try {
+      const res = await discardPaymentReceipt({
+        paymentId: discardTarget.id,
+        reason,
+        notes,
+        coveredBySubmissionId,
+      });
+      if (res.success) {
+        toast.success("Comprobante descartado");
+        setDiscardTarget(null);
+        await onRefresh?.();
+      } else {
+        toast.error(res.error || "No se pudo descartar");
+      }
+    } catch (e) {
+      toast.error("No se pudo descartar");
+    } finally {
+      setIsDiscarding(false);
     }
   };
 
@@ -588,6 +625,9 @@ export function ReconciliationWorkbench({
               <div className="flex items-center gap-2">
                 <Button variant="ghost" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 text-[var(--puembo-green)] hover:bg-green-50" onClick={() => handleViewReceipt(item, item.submissionName)}><Eye className="w-3.5 h-3.5" /> Ver Foto</Button>
                 <Button variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-gray-200 text-gray-700 hover:bg-gray-50" onClick={() => openEdit(item)}><PencilLine className="w-3.5 h-3.5" /> Editar datos</Button>
+                {item.status !== "verified" && (
+                  <Button variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => setDiscardTarget(item)}>Descartar</Button>
+                )}
               </div>
             </div>
           </div>
@@ -715,6 +755,7 @@ export function ReconciliationWorkbench({
             <TabsList className="bg-gray-100/80 p-1 rounded-full h-auto self-start border border-gray-200/50 backdrop-blur-sm">
               <TabsTrigger value="pending" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Abonos Pendientes <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-amber-100 text-amber-700 border-none">{pendingItems.length}</Badge></TabsTrigger>
               <TabsTrigger value="verified" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Conciliados <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-emerald-100 text-emerald-700 border-none">{verifiedItems.length}</Badge></TabsTrigger>
+              <TabsTrigger value="discarded" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Descartados <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-rose-100 text-rose-700 border-none">{discardedItems.length}</Badge></TabsTrigger>
             </TabsList>
             <div className="relative group w-full sm:w-80"><Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 transition-colors group-focus-within:text-[var(--puembo-green)]" /><Input placeholder="Filtrar por nombre..." className="pl-11 h-11 rounded-full bg-white border-gray-100 text-xs shadow-sm focus:ring-4 focus:ring-green-500/5 transition-all" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
           </div>
@@ -725,6 +766,39 @@ export function ReconciliationWorkbench({
             {pendingItems.length === 0 && (<div className="py-24 text-center bg-white rounded-[3rem] border border-dashed border-gray-100 shadow-inner"><CheckCircle2 className="w-12 h-12 text-[var(--puembo-green)]/30 mx-auto mb-6" /><h4 className="text-2xl font-serif font-bold text-gray-400">¡Conciliación al Día!</h4><p className="text-gray-300 text-[10px] uppercase tracking-widest font-black mt-2">No hay pagos pendientes por auditar</p></div>)}
           </TabsContent>
           <TabsContent value="verified" className="outline-none space-y-4"><AnimatePresence mode="popLayout">{verifiedItems.map(item => renderPaymentItem(item))}</AnimatePresence></TabsContent>
+          <TabsContent value="discarded" className="outline-none space-y-4">
+            {visibleDiscardedItems.map((item) => (
+              <Card key={item.id} className="border-none shadow-lg rounded-[1.5rem] bg-white">
+                <div className="p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-rose-100 text-rose-700 border-none rounded-full text-[8px] font-black px-3 py-0.5 uppercase tracking-widest">
+                        {item.discardReason === "duplicado" ? "Duplicado" : "Comprobante incorrecto"}
+                      </Badge>
+                    </div>
+                    <h4 className="text-lg font-bold text-gray-900">{item.submissionName}</h4>
+                    <p className="text-xs text-gray-500">
+                      {item.manual_disposition_at ? `Descartado el ${displayDate(item.manual_disposition_at)}` : "Descartado manualmente"}
+                    </p>
+                    {item.coveredBySubmissionId && (
+                      <p className="text-xs text-sky-700 font-medium">
+                        Cubierta por pago ya usado en la inscripción principal seleccionada.
+                      </p>
+                    )}
+                    {item.manual_disposition_notes && (
+                      <p className="text-xs text-gray-600">{item.manual_disposition_notes}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 text-[var(--puembo-green)] hover:bg-green-50" onClick={() => handleViewReceipt(item, item.submissionName)}><Eye className="w-3.5 h-3.5" /> Ver Foto</Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+            {visibleDiscardedItems.length === 0 && (
+              <div className="py-20 text-center text-gray-400 italic text-xs">No hay comprobantes descartados para este formulario.</div>
+            )}
+          </TabsContent>
         </Tabs>
       ) : (
         <div className="py-32 text-center bg-white rounded-[4rem] border-2 border-dashed border-gray-50 shadow-inner flex flex-col items-center justify-center"><Database className="w-14 h-14 text-gray-200 mb-6" /><h4 className="text-2xl font-serif font-bold text-gray-400">Paso 2: Auditar Actividad</h4><p className="text-gray-300 text-[10px] uppercase tracking-[0.3em] font-black mt-3">Selecciona un formulario financiero arriba para comenzar</p></div>
@@ -870,6 +944,17 @@ export function ReconciliationWorkbench({
           </div>
         </DialogContent>
       </Dialog>
+
+      <DiscardReceiptDialog
+        open={!!discardTarget}
+        onOpenChange={(open) => {
+          if (!open) setDiscardTarget(null);
+        }}
+        payment={discardTarget}
+        submissions={submissions}
+        onConfirm={handleDiscard}
+        isSubmitting={isDiscarding}
+      />
 
       {/* 4. RECEIPT VIEWER */}
       <Dialog open={!!viewingReceipt} onOpenChange={() => setViewingReceipt(null)}>

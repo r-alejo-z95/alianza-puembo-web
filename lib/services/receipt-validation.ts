@@ -1,7 +1,7 @@
 import type { ExtractedReceiptData } from "@/lib/services/ai-reconciliation";
 
 export const INVALID_RECEIPT_MESSAGE =
-  "Parece que estás subiendo una imagen no válida. Sube un comprobante de transferencia o depósito o acércate al equipo para más información.";
+  "Parece que estás subiendo una imagen no válida. Sube un comprobante de transferencia o depósito. Recuerda que no puedes reservar tu inscripción sin el pago. Si deseas pagar con efectivo o tarjeta, acércate al equipo ministerial.";
 
 const RECEIPT_KEYWORDS = [
   "transferencia",

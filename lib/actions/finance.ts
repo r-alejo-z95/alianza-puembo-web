@@ -9,6 +9,24 @@ import { verifyPermission, verifySuperAdmin } from "@/lib/auth/guards";
 import { uploadReceipt } from "@/lib/actions";
 import { INVALID_RECEIPT_MESSAGE, classifyFinancialReceipt } from "@/lib/services/receipt-validation";
 import { normalizeFormKey } from "@/lib/form-response-history";
+import {
+  validateManualFinancialForm,
+  validateManualRegistrationValues,
+} from "@/lib/finance/manual-registration.mjs";
+
+function buildDiscardedItems(submissions: any[] = []) {
+  return submissions.flatMap((submission) =>
+    (submission.form_submission_payments || [])
+      .filter((payment: any) => payment?.manual_disposition)
+      .map((payment: any) => ({
+        ...payment,
+        submissionId: submission.id,
+        submissionName: submission.profiles?.full_name || submission.notification_email || "Sin nombre",
+        discardReason: payment.manual_disposition,
+        coveredBySubmissionId: submission.covered_by_submission_id || null,
+      })),
+  );
+}
 
 /**
  * Step 1: Initialize a bank report
@@ -209,7 +227,7 @@ export async function analyzeFormReceipts(formId: string) {
 
     const { data: submissions, error: subError } = await supabase
       .from("form_submissions")
-      .select("*, profiles(full_name, email), form_submission_payments(id, receipt_path, extracted_data, status)")
+      .select("*, profiles:profiles!form_submissions_user_id_fkey(full_name, email), form_submission_payments(id, receipt_path, extracted_data, status, bank_transaction_id, created_at, manual_disposition, manual_disposition_at, manual_disposition_by, manual_disposition_notes)")
       .eq("form_id", formId)
       .eq("is_archived", false);
 
@@ -328,15 +346,125 @@ export async function analyzeFormReceipts(formId: string) {
 
     const { data: updated } = await supabase
       .from("form_submissions")
-      .select("*, profiles(full_name, email), form_submission_payments(*)")
+      .select("*, profiles:profiles!form_submissions_user_id_fkey(full_name, email), form_submission_payments(*)")
       .eq("form_id", formId)
       .eq("is_archived", false)
       .order("created_at", { ascending: false });
 
     await revalidateFormSubmissions(formId);
-    return { success: true, submissions: updated };
+    return { success: true, submissions: updated, discardedItems: buildDiscardedItems(updated || []) };
   } catch (error: any) {
     return { error: error.message };
+  }
+}
+
+export async function discardPaymentReceipt(payload: {
+  paymentId: string;
+  reason: "incorrecto" | "duplicado";
+  notes?: string;
+  coveredBySubmissionId?: string | null;
+}) {
+  await verifyPermission("perm_finanzas");
+
+  const supabase = await createClient();
+  const admin = createAdminClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  try {
+    const { data: payment, error } = await admin
+      .from("form_submission_payments")
+      .select("id, submission_id, status, manual_disposition")
+      .eq("id", payload.paymentId)
+      .single();
+
+    if (error || !payment) return { error: "No se encontró el comprobante." };
+    if (payment.status === "verified") return { error: "No se puede descartar un comprobante ya conciliado." };
+    if (payload.reason === "duplicado" && !payload.coveredBySubmissionId) {
+      return { error: "Debes seleccionar la inscripción principal." };
+    }
+
+    if (payload.reason === "duplicado") {
+      const { data: primarySubmission, error: primaryErr } = await admin
+        .from("form_submissions")
+        .select("id, form_id, form_submission_payments(id, status, manual_disposition)")
+        .eq("id", payload.coveredBySubmissionId)
+        .single();
+
+      const { data: currentSubmission, error: currentErr } = await admin
+        .from("form_submissions")
+        .select("id, form_id")
+        .eq("id", payment.submission_id)
+        .single();
+
+      if (primaryErr || !primarySubmission || currentErr || !currentSubmission) {
+        return { error: "No se pudo validar la inscripción principal." };
+      }
+      if (primarySubmission.id === currentSubmission.id) {
+        return { error: "La inscripción principal no puede ser la misma inscripción descartada." };
+      }
+      if (primarySubmission.form_id !== currentSubmission.form_id) {
+        return { error: "La inscripción principal debe pertenecer al mismo formulario." };
+      }
+
+      const hasActivePayment = (primarySubmission.form_submission_payments || []).some(
+        (candidate: any) =>
+          ["pending", "verified"].includes(candidate?.status) && !candidate?.manual_disposition,
+      );
+      if (!hasActivePayment) {
+        return { error: "La inscripción principal debe tener un pago activo y utilizable." };
+      }
+    }
+
+    const paymentUpdate = {
+      manual_disposition: payload.reason,
+      manual_disposition_at: new Date().toISOString(),
+      manual_disposition_by: user?.id || null,
+      manual_disposition_notes: payload.notes || null,
+      bank_transaction_id: null,
+    };
+
+    const submissionUpdate =
+      payload.reason === "incorrecto"
+        ? {
+            coverage_mode: "bank_receipt",
+            covered_by_submission_id: null,
+          }
+        : {
+            coverage_mode: "covered_by_used_payment",
+            covered_by_submission_id: payload.coveredBySubmissionId,
+          };
+
+    const { data: submission, error: submissionErr } = await admin
+      .from("form_submissions")
+      .select("form_id")
+      .eq("id", payment.submission_id)
+      .single();
+
+    if (submissionErr) throw submissionErr;
+
+    const { error: payUpdateErr } = await admin
+      .from("form_submission_payments")
+      .update(paymentUpdate)
+      .eq("id", payload.paymentId);
+
+    if (payUpdateErr) throw payUpdateErr;
+
+    const { error: subUpdateErr } = await admin
+      .from("form_submissions")
+      .update(submissionUpdate)
+      .eq("id", payment.submission_id);
+
+    if (subUpdateErr) throw subUpdateErr;
+
+    await revalidateFormSubmissions(submission.form_id);
+    revalidatePath("/admin/finanzas");
+    revalidatePath("/admin/formularios/inscripciones");
+    return { success: true };
+  } catch (err: any) {
+    console.error("Error en discardPaymentReceipt:", err);
+    return { error: err.message || "No se pudo descartar el comprobante." };
   }
 }
 
@@ -464,6 +592,86 @@ export async function updateFinancialStatus(submissionId: string, status: string
   const { error } = await supabase.from("form_submissions").update(updateData).eq("id", submissionId);
   revalidatePath("/admin/finanzas");
   return error ? { error: error.message } : { success: true };
+}
+
+export async function createManualFinancialRegistration(payload: {
+  formId: string;
+  data: Record<string, any>;
+  answers: any[];
+  rawValues?: Record<string, any>;
+  coverageMode: "cash" | "card" | "scholarship";
+  coverageAmount?: number | null;
+  backupImagePath?: string | null;
+  notificationEmail?: string | null;
+}) {
+  await verifyPermission("perm_forms");
+
+  const supabase = await createClient();
+  const admin = createAdminClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  try {
+    if ((payload.coverageMode === "cash" || payload.coverageMode === "card") && !payload.coverageAmount) {
+      return { error: "El monto es obligatorio para efectivo y tarjeta." };
+    }
+
+    const { data: form, error: formError } = await admin
+      .from("forms")
+      .select("id, is_financial, is_archived, form_fields(*)")
+      .eq("id", payload.formId)
+      .maybeSingle();
+
+    if (formError) {
+      return { error: formError.message };
+    }
+
+    const formValidation = validateManualFinancialForm(form);
+    if (!formValidation.valid) {
+      return { error: formValidation.error };
+    }
+
+    const fieldValidation = validateManualRegistrationValues(
+      (form as any)?.form_fields || [],
+      payload.rawValues || {},
+    );
+    if (!fieldValidation.valid) {
+      return {
+        error: `Completa los campos requeridos: ${fieldValidation.missingFieldLabels.join(", ")}`,
+      };
+    }
+
+    const submissionPayload = {
+      form_id: payload.formId,
+      data: payload.data,
+      answers: payload.answers,
+      notification_email: payload.notificationEmail || null,
+      user_agent: "admin-manual-registration",
+      is_manual: true,
+      coverage_mode: payload.coverageMode,
+      coverage_amount: payload.coverageMode === "scholarship" ? null : payload.coverageAmount,
+      coverage_backup_path: payload.backupImagePath || null,
+      coverage_created_at: new Date().toISOString(),
+      coverage_created_by: user?.id || null,
+      is_archived: false,
+    };
+
+    const { data, error } = await admin
+      .from("form_submissions")
+      .insert([submissionPayload])
+      .select()
+      .single();
+
+    if (error) return { error: error.message };
+
+    revalidatePath("/admin/formularios/inscripciones");
+    revalidatePath("/admin/finanzas");
+    return { success: true, submission: data };
+  } catch (error: any) {
+    console.error("Error en createManualFinancialRegistration:", error);
+    return { error: error.message || "No se pudo crear la inscripción manual." };
+  }
 }
 
 /**

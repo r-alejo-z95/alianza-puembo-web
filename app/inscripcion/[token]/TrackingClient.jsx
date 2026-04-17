@@ -28,6 +28,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { compressImage } from "@/lib/image-compression";
 import { get } from "react-hook-form";
+import { getSubmissionPaymentSummary } from "@/lib/finance/payment-summary.mjs";
 
 import { findNameInSubmission } from "@/lib/form-utils";
 
@@ -46,9 +47,9 @@ export default function TrackingClient({ submission }) {
   const paymentAmount = (payment) =>
     Number(payment.extracted_data?.amount ?? payment.amount_claimed ?? 0) || 0;
 
-  const totalVerified = sortedPayments
-    .filter((p) => p.status === "verified")
-    .reduce((acc, p) => acc + paymentAmount(p), 0);
+  const paymentSummary = getSubmissionPaymentSummary(sortedPayments);
+  const totalVerified = paymentSummary.totalVerified;
+  const totalSubmitted = paymentSummary.totalSubmitted;
 
   // Status config
   const statusConfig = {
@@ -109,7 +110,7 @@ export default function TrackingClient({ submission }) {
       }
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error(error.message || "Error al subir el comprobante");
+      toast.error(error.message || "Error al subir el comprobante", { duration: 30000 });
     } finally {
       setIsUploading(false);
     }
@@ -174,7 +175,7 @@ export default function TrackingClient({ submission }) {
                         Este portal es privado. Guarda tu código de seguimiento o el enlace que recibiste por correo para volver a consultar tu estado.
                     </p>
                     <div className="mt-4 p-3 bg-white rounded-xl border border-dashed border-gray-200 text-center">
-                        <code className="text-lg font-black tracking-widest text-[var(--puembo-green)]">
+                        <code className="block max-w-full break-all text-sm md:text-lg font-black tracking-widest text-[var(--puembo-green)]">
                             {submission.access_token}
                         </code>
                     </div>
@@ -189,11 +190,15 @@ export default function TrackingClient({ submission }) {
                 <div className="space-y-3">
                     <div className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
                         <span className="text-sm font-bold text-gray-600">Total Abonos ({sortedPayments.length})</span>
-                        <span className="text-lg font-black text-gray-900">${totalVerified.toFixed(2)}</span>
+                        <span className="text-lg font-black text-gray-900">${totalSubmitted.toFixed(2)}</span>
                     </div>
                     
                     {payments.length > 0 && (
                         <div className="grid grid-cols-2 gap-3">
+                            <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-center">
+                                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Entregado</p>
+                                <p className="text-base font-black text-blue-600">${totalSubmitted.toFixed(2)}</p>
+                            </div>
                             <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-center">
                                 <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Verificado</p>
                                 <p className="text-base font-black text-emerald-600">${totalVerified.toFixed(2)}</p>

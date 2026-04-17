@@ -200,6 +200,7 @@ export async function sendConfirmationEmail(
     totalAmount: number;
     amountPaid: number;
     remainingBalance: number;
+    hasPendingVerification?: boolean;
   },
 ) {
   try {
@@ -231,7 +232,7 @@ export async function sendConfirmationEmail(
             <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 20px 0;">
               <p style="margin: 0; font-weight: bold; color: #666;">Resumen de pago</p>
               <p style="margin: 8px 0 0 0;"><strong>Total:</strong> ${formatMoney(payload.totalAmount)}</p>
-              <p style="margin: 4px 0 0 0;"><strong>Pagado:</strong> ${formatMoney(payload.amountPaid)}</p>
+              <p style="margin: 4px 0 0 0;"><strong>Pagado:</strong> ${formatMoney(payload.amountPaid)}${payload.hasPendingVerification ? " (por verificar)" : ""}</p>
               <p style="margin: 4px 0 0 0;"><strong>Saldo pendiente:</strong> ${formatMoney(payload.remainingBalance)}</p>
             </div>
 

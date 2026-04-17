@@ -31,6 +31,20 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import Link from "next/link";
 import { findNameInSubmission } from "@/lib/form-utils";
+import {
+  getDisplayedSubmissionAmount,
+  getFinanceDisplayState,
+  getRevenueContribution,
+} from "@/lib/finance/status";
+
+function getFinanceBadgeClasses(financeState) {
+  if (financeState === "Conciliado") return "bg-emerald-100 text-emerald-700";
+  if (financeState === "Comprobante descartado - contactar usuario") return "bg-amber-100 text-amber-700";
+  if (financeState === "Cubierta por pago ya usado") return "bg-sky-100 text-sky-700";
+  if (financeState === "Pago en efectivo" || financeState === "Pago con tarjeta") return "bg-blue-100 text-blue-700";
+  if (financeState === "Beca") return "bg-violet-100 text-violet-700";
+  return "bg-amber-100 text-amber-700";
+}
 
 export default function AllSubmissionsManager({ initialSubmissions = [] }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -97,8 +111,7 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
   const selectedFormStats = useMemo(() => {
     if (formFilter === "all") return null;
     const totalConfirmedAmount = selectedFormSubmissions.reduce((acc, sub) => {
-      const verifiedPayments = (sub.form_submission_payments || []).filter((p) => p.status === "verified");
-      return acc + verifiedPayments.reduce((sum, payment) => sum + Number(payment.extracted_data?.amount || payment.amount_claimed || 0), 0);
+      return acc + getRevenueContribution(sub);
     }, 0);
 
     return {
@@ -335,11 +348,8 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
   const subscriberName = findNameInSubmission(sub);
   const formattedDate = format(parseISO(sub.created_at), "d MMM, yyyy", { locale: es });
   const formattedTime = format(parseISO(sub.created_at), "HH:mm 'hrs'");
-  const payments = sub.form_submission_payments || [];
-  const amountPaid = payments
-    .filter((p) => p.status !== "rejected")
-    .reduce((sum, payment) => sum + Number(payment.extracted_data?.amount || payment.amount_claimed || 0), 0);
-  const paymentStatus = payments.some((p) => p.status === "verified") ? "verified" : "not_verified";
+  const amountPaid = getDisplayedSubmissionAmount(sub);
+  const financeState = getFinanceDisplayState(sub);
 
   return (
     <TableRow className="group transition-all duration-300 border-b border-gray-50 hover:bg-gray-50/50">
@@ -377,9 +387,9 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
             <span className="text-base font-bold text-gray-900">${amountPaid.toFixed(2)}</span>
             <Badge className={cn(
               "rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
-              paymentStatus === "verified" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+              getFinanceBadgeClasses(financeState)
             )}>
-              {paymentStatus === "verified" ? "Verificado" : "No verificado"}
+              {financeState}
             </Badge>
           </div>
           <Button
@@ -411,11 +421,8 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
 function SubmissionCard({ sub, onCopy, isCopied }) {
     const subscriberName = findNameInSubmission(sub);
     const date = format(parseISO(sub.created_at), "d MMM", { locale: es });
-    const payments = sub.form_submission_payments || [];
-    const amountPaid = payments
-        .filter((p) => p.status !== "rejected")
-        .reduce((sum, payment) => sum + Number(payment.extracted_data?.amount || payment.amount_claimed || 0), 0);
-    const paymentStatus = payments.some((p) => p.status === "verified") ? "verified" : "not_verified";
+    const amountPaid = getDisplayedSubmissionAmount(sub);
+    const financeState = getFinanceDisplayState(sub);
     
     return (
         <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm space-y-4">
@@ -435,9 +442,9 @@ function SubmissionCard({ sub, onCopy, isCopied }) {
                     <p className="mt-1 text-xl font-bold text-gray-900">${amountPaid.toFixed(2)}</p>
                     <Badge className={cn(
                         "mt-2 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
-                        paymentStatus === "verified" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                        getFinanceBadgeClasses(financeState)
                     )}>
-                        {paymentStatus === "verified" ? "Verificado" : "No verificado"}
+                        {financeState}
                     </Badge>
                 </div>
                 <Button 

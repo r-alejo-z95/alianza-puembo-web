@@ -9,6 +9,7 @@ import { Loader2 } from "lucide-react";
 import { revalidateForms } from "@/lib/actions/cache";
 import { slugify } from "@/lib/utils";
 import { isFormSetupComplete } from "@/lib/forms/setup";
+import { prepareFinancialReceiptsBucket } from "@/lib/actions/forms";
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-z0-9.]/gi, "_").toLowerCase();
@@ -120,6 +121,11 @@ function BuilderContent() {
     const slug = form && form.title === title ? form.slug : slugify(title);
 
     try {
+      if (is_financial) {
+        const bucketRes = await prepareFinancialReceiptsBucket();
+        if (bucketRes?.error) throw new Error(bucketRes.error);
+      }
+
       // 0. Create Form if new
       if (!currentFormId) {
         const { data: newForm, error: formError } = await supabase

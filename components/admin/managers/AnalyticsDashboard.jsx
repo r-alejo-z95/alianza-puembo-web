@@ -49,6 +49,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { subDays, subHours, format } from "date-fns";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
+import { getFinanceDisplayState, getRevenueContribution } from "@/lib/finance/status";
 import { cn } from "@/lib/utils.ts";
 import { getFileSignedUrl } from "@/lib/actions";
 import { findNameInSubmission } from "@/lib/form-utils";
@@ -231,25 +232,10 @@ const CustomPieTooltip = ({ active, payload }) => {
 };
 
 function getConfirmedFinancialAmount(submissions = []) {
-  return submissions.reduce((total, submission) => {
-    const payments = Array.isArray(submission?.form_submission_payments)
-      ? submission.form_submission_payments
-      : [];
-
-    const confirmed = payments
-      .filter((payment) => payment?.status === "verified")
-      .reduce((sum, payment) => {
-        const rawAmount =
-          payment?.extracted_data?.amount ??
-          payment?.amount_claimed ??
-          0;
-
-        const amount = Number(rawAmount);
-        return sum + (Number.isFinite(amount) ? amount : 0);
-      }, 0);
-
-    return total + confirmed;
-  }, 0);
+  return submissions.reduce(
+    (total, submission) => total + getRevenueContribution(submission),
+    0,
+  );
 }
 
 function formatUsdAmount(amount) {
@@ -1100,6 +1086,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                     const name = findNameInSubmission(s);
                     const isExpanded = expandedId === s.id;
                     const cardNumber = idx + 1;
+                    const financeState = getFinanceDisplayState(s);
 
                     return (
                       <div
@@ -1154,6 +1141,16 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                         {/* Expanded detail */}
                         {isExpanded && (
                           <div className="border-t border-gray-50 px-5 md:px-8 py-6 space-y-0 animate-in slide-in-from-top-1 duration-200">
+                            {form.is_financial && financeState === "Comprobante descartado - contactar usuario" ? (
+                              <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                                Comprobante descartado. Contactar al usuario para solicitar el comprobante correcto.
+                              </div>
+                            ) : null}
+                            {form.is_financial && financeState === "Cubierta por pago ya usado" ? (
+                              <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+                                Esta inscripción quedó cubierta por un pago ya usado en otra inscripción.
+                              </div>
+                            ) : null}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                               {historicalFields.map((field) => {
                                 const fieldType = field.field_type || field.type;

@@ -15,6 +15,8 @@ import { revalidateForms, revalidateFormSubmissions } from "./actions/cache";
 import { extractReceiptData } from "@/lib/services/ai-reconciliation";
 import { INVALID_RECEIPT_MESSAGE, classifyFinancialReceipt } from "@/lib/services/receipt-validation";
 import crypto from "crypto";
+import { ensureFinanceReceiptsBucket } from "@/lib/finance/storage";
+import { getInstallmentEmailSummary } from "@/lib/finance/payment-summary.mjs";
 
 /**
  * Verifica un token de Cloudflare Turnstile.
@@ -739,7 +741,7 @@ export async function submitFormAction(payload: {
     let receiptPath = null;
 
     // 2. Si el formulario es financiero, procesar con IA
-    if (form.is_financial && form.financial_field_label) {
+    if (form.is_financial && (form.financial_field_id || form.financial_field_label)) {
       // Look up by field ID first (stable), fall back to label text for legacy forms
       const financialField = (form as any).form_fields?.find((f: any) => f.id === form.financial_field_id);
       const targetLabel = (financialField?.label ?? form.financial_field_label ?? "").trim();
@@ -778,6 +780,11 @@ export async function submitFormAction(payload: {
       } else {
         console.log("[Submit] No se encontró 'financial_receipt_path' en los datos recibidos.");
       }
+    }
+
+    if (form.is_financial && !receiptPath) {
+      console.warn("[Submit] Formulario financiero sin comprobante procesable. Se rechaza el envío.");
+      return { error: INVALID_RECEIPT_MESSAGE };
     }
 
     // 2.1. Validación crítica: comprobante inválido NO debe persistir en DB
@@ -841,7 +848,6 @@ export async function submitFormAction(payload: {
         extracted_data: aiExtractedData,
         status: receiptReviewStatus === "valid" ? 'pending' : 'manual_review'
       }]);
-      await revalidateFormSubmissions(formId);
     }
 
     // 3.2. Auto-disable form if max_responses just reached
@@ -865,27 +871,21 @@ export async function submitFormAction(payload: {
         .select("amount_claimed, extracted_data, status")
         .eq("submission_id", submission.id);
 
-      const amountPaid = (payments || []).reduce((acc: number, payment: any) => {
-        if (!["verified", "pending"].includes(payment.status)) return acc;
-
-        const hasStoredAmount = payment.amount_claimed !== null && payment.amount_claimed !== undefined;
-        const value = hasStoredAmount
-          ? Number(payment.amount_claimed || 0)
-          : Number(payment.extracted_data?.amount || 0);
-        return acc + (Number.isFinite(value) ? value : 0);
-      }, 0);
-
       const totalAmount = Number(form.total_amount || 0);
-      const remainingBalance = Math.max(totalAmount - amountPaid, 0);
+      const emailSummary = getInstallmentEmailSummary({
+        totalAmount,
+        payments: payments || [],
+      });
 
-      if (remainingBalance > 0) {
+      if (emailSummary.remainingBalance > 0) {
         sendConfirmationEmail(notificationEmail, {
           formTitle: form.title,
           accessToken: submission.access_token,
           paymentType: form.payment_type,
           totalAmount,
-          amountPaid,
-          remainingBalance,
+          amountPaid: emailSummary.amountPaid,
+          remainingBalance: emailSummary.remainingBalance,
+          hasPendingVerification: emailSummary.hasPendingVerification,
         }).catch(err => console.error("[Confirmation Email Error]:", err));
       }
     }
@@ -893,8 +893,14 @@ export async function submitFormAction(payload: {
     notifyFormSubmission(form.title, form.slug, form.user_id, user?.id)
       .catch(err => console.error("[Notification Error]:", err));
 
-    // Revalidar para que el admin vea la nueva respuesta inmediatamente
-    revalidateFormSubmissions(formId).catch(err => console.error("[Revalidate Error]:", err));
+    // Revalidar fuera del camino crítico de respuesta
+    after(async () => {
+      try {
+        await revalidateFormSubmissions(formId);
+      } catch (err) {
+        console.error("[Revalidate Error]:", err);
+      }
+    });
 
     return { success: true, submissionId: submission.id };
 
@@ -973,6 +979,11 @@ export async function uploadReceipt(formData: FormData) {
   if (!file || !formSlug) return { error: "Datos incompletos" };
 
   try {
+    const bucketResult = await ensureFinanceReceiptsBucket();
+    if (bucketResult?.error) {
+      throw new Error(bucketResult.error);
+    }
+
     const supabaseAdmin = createAdminClient();
     const date = new Date();
     const path = `${formSlug}/${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${crypto.randomUUID()}.${file.name.split('.').pop() || 'jpg'}`;

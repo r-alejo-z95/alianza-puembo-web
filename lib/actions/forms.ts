@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth/getSessionUser";
 import { slugify } from "@/lib/utils";
 import { revalidateForms } from "@/lib/actions/cache";
+import { ensureFinanceReceiptsBucket } from "@/lib/finance/storage";
 
 interface FormSetupValues {
   id?: string | null;
@@ -49,6 +50,13 @@ export async function saveFormSetup(
       description: values.description ?? null,
     };
 
+    if (values.is_financial) {
+      const bucketResult = await ensureFinanceReceiptsBucket();
+      if (bucketResult?.error) {
+        return { error: `No se pudo preparar el bucket de comprobantes: ${bucketResult.error}` };
+      }
+    }
+
     if (isEditing) {
       // Never change slug on edit — it's part of the public URL
       const { error } = await supabase
@@ -75,4 +83,21 @@ export async function saveFormSetup(
     console.error("[saveFormSetup]", e);
     return { error: e.message ?? "No se pudo guardar la configuración." };
   }
+}
+
+export async function prepareFinancialReceiptsBucket(): Promise<{ success?: true; error?: string }> {
+  const user = await getSessionUser();
+  if (!user) return { error: "Sesión expirada. Vuelve a iniciar sesión." };
+
+  const canManageForms = user.is_super_admin || user.permissions?.perm_forms || user.permissions?.perm_internal_forms;
+  if (!canManageForms) {
+    return { error: "No tienes permisos para preparar almacenamiento de formularios." };
+  }
+
+  const bucketResult = await ensureFinanceReceiptsBucket();
+  if (bucketResult?.error) {
+    return { error: bucketResult.error };
+  }
+
+  return { success: true };
 }

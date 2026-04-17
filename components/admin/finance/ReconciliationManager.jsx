@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { getRevenueContribution } from "@/lib/finance/status";
 import { 
   initBankReport,
   processBankChunk,
@@ -55,6 +56,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
   const [selectedBankAccountId, setSelectedBankAccountId] = useState("");
   const [selectedFormId, setSelectedFormId] = useState("");
   const [submissions, setSubmissions] = useState([]);
+  const [discardedItems, setDiscardedItems] = useState([]);
   const [isLoadingContext, setIsLoadingContext] = useState(false);
 
   const sortedBankAccounts = useMemo(
@@ -97,7 +99,10 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
 
   useEffect(() => {
     if (selectedFormId) loadFormData();
-    else setSubmissions([]);
+    else {
+      setSubmissions([]);
+      setDiscardedItems([]);
+    }
   }, [selectedFormId]);
 
   const loadGlobalLedger = async (accountId = selectedBankAccountId) => {
@@ -111,6 +116,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
     try {
       const res = await analyzeFormReceipts(selectedFormId);
       if (res.submissions) setSubmissions(res.submissions);
+      setDiscardedItems(res.discardedItems || []);
       await loadGlobalLedger(selectedBankAccountId);
     } catch (e) { console.error(e); } finally { setIsLoadingContext(false); }
   };
@@ -179,11 +185,10 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
     }
   };
 
-  const confirmedAmount = submissions.reduce((acc, sub) => {
-    const verifiedPayments = (sub.form_submission_payments || []).filter(p => p.status === 'verified');
-    const subTotal = verifiedPayments.reduce((pAcc, pCurr) => pAcc + Number(pCurr.extracted_data?.amount || 0), 0);
-    return acc + subTotal;
-  }, 0);
+  const confirmedAmount = submissions.reduce(
+    (acc, sub) => acc + getRevenueContribution(sub),
+    0,
+  );
 
   return (
     <div className="space-y-6 md:space-y-10 animate-in fade-in duration-700">
@@ -364,6 +369,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
       <ReconciliationWorkbench 
         bankTransactions={bankTransactions} 
         submissions={submissions}
+        discardedItems={discardedItems}
         onRefresh={loadFormData}
         isFormSelected={!!selectedFormId}
         selectedFormId={selectedFormId}

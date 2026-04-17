@@ -44,10 +44,10 @@ import {
   uploadReceipt,
   submitFormAction,
 } from "@/lib/actions";
-import { revalidateFormSubmissions } from "@/lib/actions/cache";
 import { compressImage } from "@/lib/image-compression";
 import { createClient } from "@/lib/supabase/client";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
+import { isFinancialReceiptField } from "@/lib/finance/financial-field.mjs";
 
 // --- Helpers ---
 
@@ -844,13 +844,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
           // 2. Subida para conciliación financiera
           let financialReceiptPath = null;
           
-          // Look up by field ID first (stable reference), fall back to label text for legacy forms
-          const financialField = form.form_fields?.find((f) => f.id === form.financial_field_id);
-          const financialFieldLabel = (financialField?.label ?? form.financial_field_label ?? "").trim();
-          const normalizedKey = key.trim().toLowerCase();
-          const normalizedLabel = financialFieldLabel.toLowerCase();
-
-          const isFinancialField = form.is_financial && !!financialFieldLabel && normalizedKey === normalizedLabel;
+          const isFinancialField = isFinancialReceiptField({ form, fieldDef, key });
           
           if (isFinancialField) {
             console.log(`[Form] Subiendo comprobante financiero: "${file.name}"`);
@@ -865,13 +859,14 @@ export default function FluentRenderer({ form, isPreview = false }) {
                 console.log(`[Form] Subida OK: ${financialReceiptPath}`);
               } else {
                 console.error(`[Form] Error suvida:`, uploadRes?.error);
-                // No detenemos el envío, pero lo logueamos
+                throw new Error(uploadRes?.error || "No se pudo subir el comprobante financiero.");
               }
             } catch (e) {
               console.error("[Form] Excepción subida:", e);
+              throw e;
             }
           } else if (form.is_financial) {
-             console.log(`[Form Debug] Campo "${key}" NO coincide con "${form.financial_field_label}"`);
+             console.log(`[Form Debug] Campo "${key}" no es el comprobante configurado.`);
           }
 
           const reader = new FileReader();
@@ -950,7 +945,6 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
       if (result.error) throw new Error(result.error);
 
-      await revalidateFormSubmissions(form.id);
       setSubmissionStatus("success");
       reset();
       setCaptchaToken(null);
@@ -958,7 +952,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
     } catch (e) {
       console.error("Submission Error:", e);
-      toast.error(e.message || "Error al enviar el formulario");
+      toast.error(e.message || "Error al enviar el formulario", { duration: 30000 });
       setSubmissionStatus("error");
     } finally {
       setSending(false);

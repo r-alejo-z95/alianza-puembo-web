@@ -138,13 +138,34 @@ export interface FormSubmission {
   notes?: string;
   access_token?: string;
   notification_email?: string;
+  is_manual?: boolean;
+  coverage_mode?: "bank_receipt" | "cash" | "card" | "scholarship" | "covered_by_used_payment" | null;
+  coverage_amount?: number | null;
+  coverage_created_at?: string | null;
+  coverage_created_by?: string | null;
+  coverage_backup_path?: string | null;
+  covered_by_submission_id?: string | null;
   profiles?: {
     full_name: string;
     email: string;
     avatar_url?: string;
   };
   forms?: Form;
-  form_submission_payments?: any[];
+  form_submission_payments?: Array<{
+    id: string;
+    submission_id: string;
+    bank_transaction_id?: string | null;
+    receipt_path?: string | null;
+    amount_claimed?: number | null;
+    status?: string | null;
+    reconciliation_notes?: string | null;
+    extracted_data?: Record<string, any> | null;
+    created_at?: string | null;
+    manual_disposition?: "incorrecto" | "duplicado" | null;
+    manual_disposition_at?: string | null;
+    manual_disposition_by?: string | null;
+    manual_disposition_notes?: string | null;
+  }>;
 }
 
 /**
@@ -177,7 +198,7 @@ export const getCachedFormSubmissions = async (formId: string) => {
       const supabase = createAdminClient();
       const { data, error } = await supabase
         .from("form_submissions")
-        .select("*, profiles(*), form_submission_payments(*)")
+        .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*)")
         .eq("form_id", id)
         .order("created_at", { ascending: false });
 
@@ -206,7 +227,7 @@ export async function getAllSubmissions() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("form_submissions")
-    .select("*, forms!inner(*), profiles(*), form_submission_payments(*)")
+    .select("*, forms!inner(*), profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*)")
     .eq("is_archived", false)
     .eq("forms.is_internal", false)
     .eq("forms.is_financial", true)
