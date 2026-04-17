@@ -33,6 +33,23 @@ function normalizeText(input: unknown) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+function normalizeHeaderKey(input: unknown) {
+  return normalizeText(input).replace(/[^a-z0-9]/g, "");
+}
+
+function isBancoPacificoStatement(headers: any[]) {
+  const headerKeys = new Set(headers.map((header) => normalizeHeaderKey(header)));
+  return [
+    "fechacontable",
+    "tipomov",
+    "nut",
+    "valor",
+    "concepto",
+    "saldodespmov",
+    "fechareal",
+  ].every((key) => headerKeys.has(key));
+}
+
 function getCellText(cell: unknown) {
   if (cell === null || cell === undefined) return "";
   if (typeof cell === "string") return cell;
@@ -72,8 +89,8 @@ function parseAmount(value: unknown) {
 
 function findHeaderIndex(headers: any[], patterns: string[]) {
   return headers.findIndex((header) => {
-    const headerText = normalizeText(header);
-    return patterns.some((pattern) => headerText.includes(normalizeText(pattern)));
+    const headerText = normalizeHeaderKey(header);
+    return patterns.some((pattern) => headerText.includes(normalizeHeaderKey(pattern)));
   });
 }
 
@@ -107,6 +124,74 @@ function parseDateValue(value: unknown) {
   return null;
 }
 
+function parseBancoPacificoStatement(rows: any[][], headers: any[], context?: { bankAccountName?: string; bankAccountNumber?: string }) {
+  if (!Array.isArray(rows) || rows.length === 0 || !Array.isArray(headers) || headers.length === 0) {
+    return [];
+  }
+
+  const headerKeys = headers.map((header) => normalizeHeaderKey(header));
+  const dateIdx = headerKeys.indexOf("fechareal");
+  const typeIdx = headerKeys.indexOf("tipomov");
+  const referenceIdx = headerKeys.indexOf("nut");
+  const amountIdx = headerKeys.indexOf("valor");
+  const descriptionIdx = headerKeys.indexOf("concepto");
+  const bankName = context?.bankAccountName || "Banco del Pacifico";
+
+  const parsed = [];
+
+  for (const row of rows) {
+    if (!Array.isArray(row)) continue;
+
+    const movementType = typeIdx >= 0 ? normalizeHeaderKey(getCellText(row[typeIdx])) : "";
+    if (movementType !== "nc") continue;
+
+    const description = descriptionIdx >= 0 ? getCellText(row[descriptionIdx]).trim() : "";
+    const rowText = row.map(getCellText).join(" ");
+    const movementContext = normalizeText([description, rowText].filter(Boolean).join(" "));
+    if (hasAnyKeyword(movementContext, [
+      "capitalizacion",
+      "capitalización",
+      "interes",
+      "intereses",
+      "impuesto",
+      "impuestos",
+      "cargo",
+      "cargos",
+      "comision",
+      "comisiones",
+      "reverso",
+      "reversion",
+      "reversión",
+      "anulacion",
+      "anulación",
+      "ajuste",
+      "mantenimiento",
+    ])) {
+      continue;
+    }
+
+    const date = parseDateValue(dateIdx >= 0 ? row[dateIdx] : null);
+    const amount = amountIdx >= 0 ? parseAmount(row[amountIdx]) : null;
+    if (!date || !amount || amount <= 0) continue;
+
+    parsed.push({
+      amount,
+      date,
+      reference: referenceIdx >= 0 ? getCellText(row[referenceIdx]).trim() : "",
+      description: description || rowText.trim(),
+      sender_name: null,
+      bank_name: bankName || null,
+      beneficiary_name: context?.bankAccountName || null,
+      beneficiary_account: context?.bankAccountNumber || null,
+      currency: "USD",
+      is_valid_receipt: true,
+      is_correct_beneficiary: true,
+    });
+  }
+
+  return parsed;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // EXCEL BANK STATEMENT PARSER (deterministic + AI fallback)
 // Processes structured rows from Excel/CSV exports of bank accounts.
@@ -114,6 +199,10 @@ function parseDateValue(value: unknown) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function parseBankStatementDeterministic(rows: any[][], headers: any[], context?: { bankAccountName?: string; bankAccountNumber?: string }) {
+  if (isBancoPacificoStatement(headers)) {
+    return parseBancoPacificoStatement(rows, headers, context);
+  }
+
   if (!Array.isArray(rows) || rows.length === 0 || !Array.isArray(headers) || headers.length === 0) {
     return [];
   }
@@ -143,7 +232,6 @@ function parseBankStatementDeterministic(rows: any[][], headers: any[], context?
     const typeValue = typeIdx >= 0 ? normalizeText(getCellText(row[typeIdx])) : "";
     const descValue = descriptionIdx >= 0 ? normalizeText(getCellText(row[descriptionIdx])) : "";
     const classificationText = [typeValue, descValue].filter(Boolean).join(" ") || normalizeText(rowText);
-
     if (hasAnyKeyword(classificationText, DEBIT_KEYWORDS) && !hasAnyKeyword(classificationText, CREDIT_KEYWORDS)) continue;
 
     const date = parseDateValue(dateIdx >= 0 ? row[dateIdx] : null);
@@ -212,7 +300,7 @@ export interface ExtractedReceiptData {
 }
 
 /**
- * Uses Gemini 2.0 Flash Lite to extract financial data from a receipt image.
+ * Uses Gemini 2.5 Flash Lite to extract financial data from a receipt image.
  */
 export async function extractReceiptData(
   imageBase64: string,
@@ -220,7 +308,7 @@ export async function extractReceiptData(
 ): Promise<ExtractedReceiptData> {
   try {
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash-lite", 
+      model: "gemini-2.5-flash-lite", 
     });
 
     const prompt = `
@@ -314,7 +402,7 @@ export async function parseBankStatementWithAI(
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
     
     const prompt = `
       Eres un auditor experto en Ecuador. Analiza estas filas de un extracto bancario y conviértelas en JSON.
