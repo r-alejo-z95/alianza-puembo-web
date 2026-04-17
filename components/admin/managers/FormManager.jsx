@@ -220,7 +220,7 @@ export default function FormManager({ initialForms = [], isInternal = false }) {
               >
                 <ClipboardList className="w-5 h-5 mr-2" />{" "}
                 <span className="text-xs uppercase tracking-widest">
-                  Inscripciones
+                  Inscripciones con pagos
                 </span>
               </Button>
             </Link>
