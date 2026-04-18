@@ -9,6 +9,7 @@ import { verifyPermission, verifySuperAdmin } from "@/lib/auth/guards";
 import { uploadReceipt } from "@/lib/actions";
 import { INVALID_RECEIPT_MESSAGE, classifyFinancialReceipt } from "@/lib/services/receipt-validation";
 import { normalizeFormKey } from "@/lib/form-response-history";
+import { findNameInSubmission } from "@/lib/form-utils";
 import {
   validateManualFinancialForm,
   validateManualRegistrationValues,
@@ -21,7 +22,11 @@ function buildDiscardedItems(submissions: any[] = []) {
       .map((payment: any) => ({
         ...payment,
         submissionId: submission.id,
-        submissionName: submission.profiles?.full_name || submission.notification_email || "Sin nombre",
+        submissionName:
+          submission.profiles?.full_name ||
+          findNameInSubmission(submission) ||
+          submission.notification_email ||
+          "Sin nombre",
         discardReason: payment.manual_disposition,
         coveredBySubmissionId: submission.covered_by_submission_id || null,
       })),

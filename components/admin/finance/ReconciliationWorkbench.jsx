@@ -349,6 +349,10 @@ export function ReconciliationWorkbench({
     try {
       const res = await getReceiptSignedUrl(payment.receipt_path);
       if (!isMountedRef.current || requestId !== receiptRequestIdRef.current) return;
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
       if (res.url) {
         setViewingReceipt({
           url: res.url,
@@ -356,7 +360,9 @@ export function ReconciliationWorkbench({
           aiData: payment.extracted_data,
           kind: getReceiptKind(payment.receipt_path),
         });
+        return;
       }
+      toast.error("No se pudo abrir la foto");
     } catch (e) {
       if (isMountedRef.current && requestId === receiptRequestIdRef.current) {
         toast.error("Error");
