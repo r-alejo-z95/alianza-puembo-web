@@ -2,7 +2,7 @@
 
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import * as XLSX from "xlsx";
-import { extractReceiptData, parseBankStatementWithAI } from "@/lib/services/ai-reconciliation";
+import { extractReceiptDataDetailed, parseBankStatementWithAI } from "@/lib/services/ai-reconciliation";
 import { revalidatePath } from "next/cache";
 import { revalidateFormSubmissions } from "@/lib/actions/cache";
 import { verifyPermission, verifySuperAdmin } from "@/lib/auth/guards";
@@ -295,7 +295,8 @@ export async function analyzeFormReceipts(formId: string) {
               if (!dlErr && fileBlob) {
                   try {
                       const buffer = await fileBlob.arrayBuffer();
-                      aiData = await extractReceiptData(Buffer.from(buffer).toString('base64'), fileBlob.type);
+                      const extraction = await extractReceiptDataDetailed(Buffer.from(buffer).toString('base64'), fileBlob.type);
+                      aiData = extraction.data;
                       console.log(`[analyzeFormReceipts] IA procesó correctamente: ${path}`);
                   } catch (e) {
                       console.error(`[analyzeFormReceipts] Error en extractReceiptData para ${path}:`, e);
@@ -810,6 +811,7 @@ export async function addMultipartPayment(payload: {
     // 2. Procesar con AI (Gemini)
     console.log(`[Multipart-Payment] Iniciando procesamiento AI para: ${receiptPath}`);
     let aiData = null;
+    let aiTransientFailure = false;
     const path = receiptPath.replace('finance_receipts/', '');
     
     const { data: fileBlob, error: dlErr } = await supabaseAdmin.storage
@@ -819,13 +821,17 @@ export async function addMultipartPayment(payload: {
     if (!dlErr && fileBlob) {
       try {
         const buffer = await fileBlob.arrayBuffer();
-        aiData = await extractReceiptData(Buffer.from(buffer).toString('base64'), fileBlob.type);
+        const extraction = await extractReceiptDataDetailed(Buffer.from(buffer).toString('base64'), fileBlob.type);
+        aiData = extraction.data;
+        aiTransientFailure = extraction.transientFailure;
       } catch (aiErr) {
         console.error("[Multipart-AI] Error Gemini:", aiErr);
         }
     }
 
-    const validation = classifyFinancialReceipt(aiData, destinationAccount);
+    const validation = aiTransientFailure
+      ? { status: "manual_review" as const, reason: "La validación automática falló temporalmente." }
+      : classifyFinancialReceipt(aiData, destinationAccount);
     if (validation.status === "invalid") {
       const { error: cleanupError } = await supabaseAdmin.storage
         .from("finance_receipts")
@@ -924,6 +930,7 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
 
     // 3. Run AI extraction before touching DB state
     let aiData = null;
+    let aiTransientFailure = false;
     const storagePath = fullPath.replace("finance_receipts/", "");
     const { data: fileBlob, error: dlErr } = await supabaseAdmin.storage
       .from("finance_receipts")
@@ -932,13 +939,17 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
     if (!dlErr && fileBlob) {
       try {
         const buffer = await fileBlob.arrayBuffer();
-        aiData = await extractReceiptData(Buffer.from(buffer).toString("base64"), fileBlob.type);
+        const extraction = await extractReceiptDataDetailed(Buffer.from(buffer).toString("base64"), fileBlob.type);
+        aiData = extraction.data;
+        aiTransientFailure = extraction.transientFailure;
       } catch (aiErr) {
         console.error("[Reprocess-AI] Error Gemini:", aiErr);
       }
     }
 
-    const validation = classifyFinancialReceipt(aiData, destinationAccount);
+    const validation = aiTransientFailure
+      ? { status: "manual_review" as const, reason: "La validación automática falló temporalmente." }
+      : classifyFinancialReceipt(aiData, destinationAccount);
     if (validation.status === "invalid") {
       const cleanupPath = fullPath.replace("finance_receipts/", "");
       const { error: cleanupError } = await supabaseAdmin.storage

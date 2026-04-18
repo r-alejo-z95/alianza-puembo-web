@@ -12,7 +12,7 @@ import { loginSchema } from "@/lib/schemas";
 import { sendSystemNotification, sendConfirmationEmail } from "@/lib/services/notifications";
 import { headers } from "next/headers";
 import { revalidateForms, revalidateFormSubmissions } from "./actions/cache";
-import { extractReceiptData } from "@/lib/services/ai-reconciliation";
+import { extractReceiptDataDetailed } from "@/lib/services/ai-reconciliation";
 import { INVALID_RECEIPT_MESSAGE, classifyFinancialReceipt } from "@/lib/services/receipt-validation";
 import crypto from "crypto";
 import { ensureFinanceReceiptsBucket } from "@/lib/finance/storage";
@@ -738,6 +738,7 @@ export async function submitFormAction(payload: {
     }
 
     let aiExtractedData = null;
+    let aiTransientFailure = false;
     let receiptPath = null;
 
     // 2. Si el formulario es financiero, procesar con IA
@@ -766,10 +767,12 @@ export async function submitFormAction(payload: {
           try {
             console.log(`[AI-Process] Archivo descargado. Enviando a Gemini...`);
             const buffer = await fileBlob.arrayBuffer();
-            aiExtractedData = await extractReceiptData(
+            const extraction = await extractReceiptDataDetailed(
               Buffer.from(buffer).toString('base64'), 
               fileBlob.type
             );
+            aiExtractedData = extraction.data;
+            aiTransientFailure = extraction.transientFailure;
             console.log(`[AI-Process] Gemini respondió con éxito.`);
           } catch (aiErr) {
             console.error("[AI-Process] Error en Gemini:", aiErr);
@@ -790,7 +793,9 @@ export async function submitFormAction(payload: {
     // 2.1. Validación crítica: comprobante inválido NO debe persistir en DB
     let receiptReviewStatus: "valid" | "manual_review" | "invalid" = "valid";
     if (form.is_financial && receiptPath) {
-      const validation = classifyFinancialReceipt(aiExtractedData, destinationAccount);
+      const validation = aiTransientFailure
+        ? { status: "manual_review" as const, reason: "La validación automática falló temporalmente." }
+        : classifyFinancialReceipt(aiExtractedData, destinationAccount);
       receiptReviewStatus = validation.status;
       if (validation.status === "invalid") {
         console.warn(`[Submit] Comprobante inválido detectado. Motivo: ${validation.reason || "N/A"}`);

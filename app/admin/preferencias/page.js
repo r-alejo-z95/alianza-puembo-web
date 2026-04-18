@@ -414,6 +414,29 @@ export default function PreferenciasPage() {
                     </div>
                   </CardContent>
                 </Card>
+                <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
+                  <div className="bg-black p-8">
+                    <div className="flex items-center gap-3">
+                      <ShieldAlert className="w-5 h-5 text-[var(--puembo-green)]" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">Auditoría Temporal</span>
+                    </div>
+                  </div>
+                  <CardContent className="p-8 md:p-10">
+                    <div className="flex items-center justify-between gap-6">
+                      <div className="space-y-1">
+                        <p className="text-xs font-black text-gray-900 uppercase tracking-widest">Auditar Comprobantes</p>
+                        <p className="text-[11px] text-gray-500 leading-relaxed max-w-sm">
+                          Ejecuta la lógica real actual de comprobantes sobre la carpeta local <span className="font-mono">/comprobantes</span>.
+                        </p>
+                      </div>
+                      <Link href="/admin/preferencias/auditar-comprobantes">
+                        <Button variant="outline" className="shrink-0 rounded-full border-gray-200 text-xs font-black uppercase tracking-widest h-10 px-5 hover:bg-black hover:text-white hover:border-black transition-all">
+                          Abrir <ChevronRight className="w-3.5 h-3.5 ml-1" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="equipo" className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">

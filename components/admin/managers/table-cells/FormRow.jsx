@@ -19,6 +19,7 @@ import {
   BarChart3,
   Hash,
   AlertTriangle,
+  SlidersHorizontal,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -72,6 +73,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
   const viewPath = form.is_internal
     ? `/admin/staff/proceso/${form.slug}`
     : `/formularios/${form.slug}`;
+  const setupPath = `/admin/formularios/nuevo?id=${form.id}`;
 
   const hasIncompleteFinancialConfig =
     form.is_financial && (!isFormSetupComplete(form) || !form.financial_field_label);
@@ -103,14 +105,44 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
         </Tooltip>
       </TooltipProvider>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => onEdit(form)}
-        className="rounded-xl flex-1 lg:flex-none text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)] transition-all duration-300"
-      >
-        <Edit className="w-4 h-4" />
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "rounded-xl flex-1 lg:flex-none transition-all duration-300",
+                hasIncompleteFinancialConfig
+                  ? "bg-amber-50 text-amber-700 hover:bg-amber-100 lg:hover:text-amber-700"
+                  : "text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)]",
+              )}
+            >
+              <Link href={setupPath}>
+                <SlidersHorizontal className="w-4 h-4" />
+              </Link>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Configurar</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onEdit(form)}
+              className="rounded-xl flex-1 lg:flex-none text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)] transition-all duration-300"
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Editar</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button

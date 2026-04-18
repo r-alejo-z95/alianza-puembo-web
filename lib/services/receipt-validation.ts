@@ -3,18 +3,35 @@ import type { ExtractedReceiptData } from "@/lib/services/ai-reconciliation";
 export const INVALID_RECEIPT_MESSAGE =
   "Parece que estás subiendo una imagen no válida. Sube un comprobante de transferencia o depósito. Recuerda que no puedes reservar tu inscripción sin el pago. Si deseas pagar con efectivo o tarjeta, acércate al equipo ministerial.";
 
+const NEGATIVE_KEYWORDS = {
+  identity_document: ["cedula", "identidad", "dni", "pasaporte", "numero de identificacion"],
+  invoice: [
+    "factura",
+    "invoice",
+    "ruc",
+    "iva",
+    "subtotal",
+    "cliente",
+    "clave de acceso",
+    "autorizacion sri",
+    "autorización sri",
+    "punto de emision",
+    "punto de emisión",
+  ],
+};
+
 const RECEIPT_KEYWORDS = [
   "transferencia",
+  "transferencia exitosa",
   "banco",
   "comprobante",
-  "documento",
-  "numero",
-  "número",
+  "referencia",
+  "movimiento",
   "cuenta",
   "deposito",
   "depósito",
-  "exitoso",
-  "exitosa",
+  "transaccion",
+  "transacción",
 ];
 
 const CASH_KEYWORDS = ["efectivo", "cash", "pago en efectivo"];
@@ -36,6 +53,91 @@ function normalizeText(input: string) {
 
 function normalizeDigits(input: string) {
   return input.replace(/\D/g, "");
+}
+
+function normalizeAccountPattern(input: string) {
+  return input
+    .replace(/\s+/g, "")
+    .replace(/[•●·]/g, "*")
+    .replace(/[xX]/g, "*")
+    .replace(/\./g, "*");
+}
+
+function getAccountNumberMatchScore(candidateAccountRaw: string, expectedNumber: string) {
+  const normalizedRaw = normalizeAccountPattern(candidateAccountRaw || "");
+  const candidateDigits = normalizeDigits(candidateAccountRaw || "");
+  if (!normalizedRaw || !expectedNumber) return 0;
+
+  const wildcardLike = /[*]/.test(normalizedRaw);
+
+  if (candidateDigits === expectedNumber) return 60;
+
+  if (wildcardLike) {
+    const regexSource = normalizedRaw
+      .split("")
+      .map((char) => (char === "*" ? "\\d*" : char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")))
+      .join("");
+    const pattern = new RegExp(`^${regexSource}$`);
+    if (pattern.test(expectedNumber)) return 55;
+  }
+
+  if (candidateDigits && expectedNumber.endsWith(candidateDigits) && candidateDigits.length >= 3) {
+    return candidateDigits.length >= 4 ? 45 : 40;
+  }
+
+  if (candidateDigits && expectedNumber.includes(candidateDigits) && candidateDigits.length >= 6) {
+    return 40;
+  }
+
+  return 0;
+}
+
+function detectNegativeSignals(extractedData: ExtractedReceiptData) {
+  const haystack = normalizeText(
+    [
+      extractedData.description,
+      extractedData.reference,
+      extractedData.bank_name,
+      extractedData.beneficiary_name,
+      extractedData.sender_name,
+      extractedData.ocr_summary,
+      ...(extractedData.rejection_signals || []),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+
+  const matches = [];
+  for (const [kind, keywords] of Object.entries(NEGATIVE_KEYWORDS)) {
+    if (keywords.some((keyword) => haystack.includes(normalizeText(keyword)))) {
+      matches.push(kind);
+    }
+  }
+  return matches;
+}
+
+function countBankSignals(extractedData: ExtractedReceiptData) {
+  const haystack = normalizeText(
+    [
+      extractedData.description,
+      extractedData.reference,
+      extractedData.bank_name,
+      extractedData.beneficiary_name,
+      extractedData.beneficiary_account,
+      extractedData.ocr_summary,
+      ...(extractedData.bank_signals || []),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+
+  let count = RECEIPT_KEYWORDS.filter((keyword) => haystack.includes(normalizeText(keyword))).length;
+  if (extractedData.bank_name) count += 1;
+  if (extractedData.reference) count += 1;
+  if (extractedData.beneficiary_account) count += 1;
+  if (["transfer", "deposit", "payment"].includes(extractedData.operation_type || "unknown")) count += 1;
+  if (extractedData.document_kind === "bank_receipt") count += 2;
+  return count;
 }
 
 function getBeneficiaryMatchScore(
@@ -76,10 +178,14 @@ function getBeneficiaryMatchScore(
   let score = 0;
 
   if (expectedNumber) {
-    if (candidateDigits === expectedNumber) {
-      score += 60;
-    } else if (candidateDigits.endsWith(expectedNumber.slice(-6)) || candidateDigits.includes(expectedNumber.slice(-4))) {
-      score += 40;
+    score += getAccountNumberMatchScore(extractedData.beneficiary_account || "", expectedNumber);
+
+    if (score === 0) {
+      if (candidateDigits === expectedNumber) {
+        score += 60;
+      } else if (candidateDigits.endsWith(expectedNumber.slice(-6)) || candidateDigits.includes(expectedNumber.slice(-4))) {
+        score += 40;
+      }
     }
   }
 
@@ -144,22 +250,20 @@ export function classifyFinancialReceipt(
     .join(" ");
 
   const haystack = normalizeText(textParts);
-  const keywordMatches = RECEIPT_KEYWORDS.filter((kw) =>
-    haystack.includes(normalizeText(kw)),
-  ).length;
   const hasCashLanguage = CASH_KEYWORDS.some((kw) =>
     haystack.includes(normalizeText(kw)),
   );
 
+  const documentKind = extractedData.document_kind || "unknown";
+  const negativeSignals = detectNegativeSignals(extractedData);
+  const bankSignalCount = countBankSignals(extractedData);
   const amount = Number(extractedData.amount ?? 0);
   const hasCoreFields =
     amount > 0 &&
     !!extractedData.date &&
-    (!!extractedData.bank_name || !!extractedData.beneficiary_account);
+    (!!extractedData.bank_name || !!extractedData.reference || !!extractedData.beneficiary_account);
 
   const beneficiaryMatch = getBeneficiaryMatchScore(extractedData, destinationAccount);
-  const hasReceiptSignals = keywordMatches > 0 || !!extractedData.bank_name || !!extractedData.beneficiary_account || !!extractedData.reference;
-  const hasStrongReceiptSignals = keywordMatches >= 2 || beneficiaryMatch.matched;
 
   if (hasCashLanguage) {
     return {
@@ -169,32 +273,53 @@ export function classifyFinancialReceipt(
     };
   }
 
-  if (!extractedData.is_valid_receipt && !hasReceiptSignals && !hasStrongReceiptSignals) {
+  if (["identity_document", "invoice", "non_bank_document"].includes(documentKind)) {
     return {
       status: "invalid",
-      reason: "La IA no lo identificó como comprobante y no hay señales bancarias suficientes.",
+      reason: `El documento parece ser ${documentKind} y no un comprobante bancario.`,
+      beneficiaryMatch,
+    };
+  }
+
+  if (negativeSignals.length > 0 && bankSignalCount < 3) {
+    return {
+      status: "invalid",
+      reason: "Se detectaron señales fuertes de documento no bancario.",
+      beneficiaryMatch,
+    };
+  }
+
+  if (bankSignalCount < 2 && !extractedData.is_valid_receipt) {
+    return {
+      status: "invalid",
+      reason: "No hay señales suficientes de transferencia o depósito bancario.",
       beneficiaryMatch,
     };
   }
 
   if (!hasCoreFields) {
     return {
-      status: "manual_review",
-      reason: "Faltan datos clave como monto, fecha o cuenta/banco en el comprobante.",
+      status: bankSignalCount >= 2 ? "manual_review" : "invalid",
+      reason: "Faltan datos transaccionales mínimos para tratarlo como comprobante bancario.",
       beneficiaryMatch,
     };
   }
 
-  if (!extractedData.is_valid_receipt || keywordMatches < 2 || !hasStrongReceiptSignals) {
+  if (
+    beneficiaryMatch.matched &&
+    extractedData.is_valid_receipt &&
+    bankSignalCount >= 4 &&
+    ["high", "medium"].includes(extractedData.receipt_confidence || "low")
+  ) {
     return {
-      status: "manual_review",
-      reason: "El comprobante parece válido pero requiere revisión manual.",
+      status: "valid",
       beneficiaryMatch,
     };
   }
 
   return {
-    status: "valid",
+    status: "manual_review",
+    reason: "Parece un documento bancario, pero no alcanza confianza suficiente para aprobarse automático.",
     beneficiaryMatch,
   };
 }

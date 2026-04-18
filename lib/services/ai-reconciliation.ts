@@ -297,21 +297,61 @@ export interface ExtractedReceiptData {
   currency: string | null;
   is_valid_receipt: boolean;
   is_correct_beneficiary: boolean; // Flag for security
+  document_kind?: "bank_receipt" | "invoice" | "identity_document" | "non_bank_document" | "unknown" | null;
+  operation_type?: "transfer" | "deposit" | "payment" | "unknown" | null;
+  receipt_confidence?: "high" | "medium" | "low" | null;
+  rejection_signals?: string[] | null;
+  bank_signals?: string[] | null;
+  ocr_summary?: string | null;
 }
 
-/**
- * Uses Gemini 2.5 Flash Lite to extract financial data from a receipt image.
- */
-export async function extractReceiptData(
-  imageBase64: string,
-  mimeType: string = "image/jpeg"
-): Promise<ExtractedReceiptData> {
-  try {
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash-lite", 
-    });
+export type ReceiptExtractionResult = {
+  data: ExtractedReceiptData | null;
+  transientFailure: boolean;
+};
 
-    const prompt = `
+function buildEmptyReceiptData(): ExtractedReceiptData {
+  return {
+    amount: null,
+    date: null,
+    reference: null,
+    description: null,
+    sender_name: null,
+    bank_name: null,
+    beneficiary_name: null,
+    beneficiary_account: null,
+    currency: null,
+    is_valid_receipt: false,
+    is_correct_beneficiary: false,
+    document_kind: "unknown",
+    operation_type: "unknown",
+    receipt_confidence: "low",
+    rejection_signals: [],
+    bank_signals: [],
+    ocr_summary: null,
+  };
+}
+
+export function isRetryableGeminiError(error: unknown) {
+  const message = String((error as any)?.message || error || "").toLowerCase();
+  return (
+    message.includes("503 service unavailable") ||
+    message.includes("429 too many requests") ||
+    message.includes("high demand") ||
+    message.includes("rate limit")
+  );
+}
+
+async function sleep(ms: number) {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function extractReceiptDataWithModel(
+  model: { generateContent: (input: any) => Promise<any> },
+  imageBase64: string,
+  mimeType: string = "image/jpeg",
+): Promise<ReceiptExtractionResult> {
+  const prompt = `
       Actúa como un auditor contable experto en Ecuador. Tu tarea es extraer información financiera de este comprobante de transferencia bancaria.
       
       Debes devolver un objeto JSON estrictamente con la siguiente estructura:
@@ -326,7 +366,13 @@ export async function extractReceiptData(
         "beneficiary_account": (número de cuenta de destino),
         "currency": (código de moneda, ej: "USD"),
         "is_valid_receipt": (booleano, true si parece un comprobante real),
-        "is_correct_beneficiary": (booleano)
+        "is_correct_beneficiary": (booleano),
+        "document_kind": ("bank_receipt" | "invoice" | "identity_document" | "non_bank_document" | "unknown"),
+        "operation_type": ("transfer" | "deposit" | "payment" | "unknown"),
+        "receipt_confidence": ("high" | "medium" | "low"),
+        "rejection_signals": (array de strings),
+        "bank_signals": (array de strings),
+        "ocr_summary": (resumen corto del documento)
       }
 
       Reglas de Auditoría para is_correct_beneficiary:
@@ -343,49 +389,82 @@ export async function extractReceiptData(
       1. En reference, busca números de "Comprobante", "Referencia", "Secuencial" o "Autorización".
       2. Si el comprobante muestra comisiones, cargos, valores debitados o totales debitados, ignóralos por completo.
       3. El campo amount debe contener únicamente el monto real transferido o depositado, nunca el total debitado con cargos.
-      4. Devuelve SOLO el JSON, sin bloques de código markdown ni texto adicional.
+      4. Si el documento parece cédula, factura, nota de venta u otro documento no bancario, refléjalo en document_kind y rejection_signals.
+      5. Marca bank_signals con palabras/señales concretas que indiquen que sí parece comprobante bancario.
+      6. Devuelve SOLO el JSON, sin bloques de código markdown ni texto adicional.
     `;
 
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          data: imageBase64,
-          mimeType,
-        },
-      },
-      { text: prompt }
-    ]);
+  const maxAttempts = 3;
 
-    const response = result.response;
-    let text = response.text().trim();
-    
-    if (text.startsWith("```json")) {
-      text = text.substring(7, text.length - 3).trim();
-    } else if (text.startsWith("```")) {
-      text = text.substring(3, text.length - 3).trim();
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      const result = await model.generateContent([
+        {
+          inlineData: {
+            data: imageBase64,
+            mimeType,
+          },
+        },
+        { text: prompt },
+      ]);
+
+      const response = result.response;
+      let text = response.text().trim();
+
+      if (text.startsWith("```json")) {
+        text = text.substring(7, text.length - 3).trim();
+      } else if (text.startsWith("```")) {
+        text = text.substring(3, text.length - 3).trim();
+      }
+
+      const parsed = JSON.parse(text);
+      return {
+        data: {
+          description: null,
+          ...parsed,
+        } as ExtractedReceiptData,
+        transientFailure: false,
+      };
+    } catch (error) {
+      const retryable = isRetryableGeminiError(error);
+      const isLastAttempt = attempt === maxAttempts;
+
+      if (!retryable || isLastAttempt) {
+        if (retryable) {
+          console.error("Error in AI extraction service after retries:", error);
+          return { data: null, transientFailure: true };
+        }
+
+        console.error("Error in AI extraction service:", error);
+        return { data: buildEmptyReceiptData(), transientFailure: false };
+      }
+
+      await sleep(500 * 2 ** (attempt - 1));
     }
-    
-    const parsed = JSON.parse(text);
-    return {
-      description: null,
-      ...parsed
-    } as ExtractedReceiptData;
-  } catch (error) {
-    console.error("Error in AI extraction service:", error);
-    return {
-      amount: null,
-      date: null,
-      reference: null,
-      description: null,
-      sender_name: null,
-      bank_name: null,
-      beneficiary_name: null,
-      beneficiary_account: null,
-      currency: null,
-      is_valid_receipt: false,
-      is_correct_beneficiary: false,
-    };
   }
+
+  return { data: null, transientFailure: true };
+}
+
+/**
+ * Uses Gemini 2.5 Flash Lite to extract financial data from a receipt image.
+ */
+export async function extractReceiptData(
+  imageBase64: string,
+  mimeType: string = "image/jpeg"
+): Promise<ExtractedReceiptData> {
+  const result = await extractReceiptDataDetailed(imageBase64, mimeType);
+  return result.data ?? buildEmptyReceiptData();
+}
+
+export async function extractReceiptDataDetailed(
+  imageBase64: string,
+  mimeType: string = "image/jpeg"
+): Promise<ReceiptExtractionResult> {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash-lite",
+  });
+  return extractReceiptDataWithModel(model, imageBase64, mimeType);
 }
 
 /**
