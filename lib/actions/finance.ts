@@ -14,6 +14,7 @@ import {
   validateManualFinancialForm,
   validateManualRegistrationValues,
 } from "@/lib/finance/manual-registration.mjs";
+import { applyManualPaymentToSubmission } from "@/lib/finance/manual-payment.mjs";
 
 function buildDiscardedItems(submissions: any[] = []) {
   return submissions.flatMap((submission) =>
@@ -625,7 +626,7 @@ export async function createManualFinancialRegistration(payload: {
 
     const { data: form, error: formError } = await admin
       .from("forms")
-      .select("id, is_financial, is_archived, form_fields!form_id(*)")
+      .select("id, is_financial, is_archived, financial_field_id, financial_field_label, form_fields!form_id(id, label, order_index)")
       .eq("id", payload.formId)
       .maybeSingle();
 
@@ -648,10 +649,18 @@ export async function createManualFinancialRegistration(payload: {
       };
     }
 
-    const submissionPayload = {
-      form_id: payload.formId,
+    const submissionValues = applyManualPaymentToSubmission({
+      form,
       data: payload.data,
       answers: payload.answers,
+      coverageMode: payload.coverageMode,
+      coverageAmount: payload.coverageAmount,
+    });
+
+    const submissionPayload = {
+      form_id: payload.formId,
+      data: submissionValues.data,
+      answers: submissionValues.answers,
       notification_email: payload.notificationEmail || null,
       user_agent: "admin-manual-registration",
       is_manual: true,
@@ -671,8 +680,12 @@ export async function createManualFinancialRegistration(payload: {
 
     if (error) return { error: error.message };
 
+    await revalidateFormSubmissions(payload.formId);
     revalidatePath("/admin/formularios/inscripciones");
     revalidatePath("/admin/finanzas");
+    if (data?.access_token) {
+      revalidatePath(`/inscripcion/${data.access_token}`);
+    }
     return { success: true, submission: data };
   } catch (error: any) {
     console.error("Error en createManualFinancialRegistration:", error);

@@ -36,6 +36,7 @@ import {
   getFinanceDisplayState,
   getRevenueContribution,
 } from "@/lib/finance/status";
+import { getValueDisplayText } from "@/lib/finance/manual-payment.mjs";
 
 function getFinanceBadgeClasses(financeState) {
   if (financeState === "Conciliado") return "bg-emerald-100 text-emerald-700";
@@ -83,7 +84,7 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
           ...((s.answers || []).map((answer) => answer?.value)),
           ...Object.values(s.data || {}),
         ]
-          .map(v => String(v).toLowerCase())
+          .map((v) => getValueDisplayText(v).toLowerCase())
           .join(" ");
         
         return (

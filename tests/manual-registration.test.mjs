@@ -122,5 +122,8 @@ test("validateManualFinancialForm rejects non-financial or archived forms", () =
 test("createManualFinancialRegistration disambiguates the forms to form_fields relation", () => {
   const financeActions = readFileSync(new URL("../lib/actions/finance.ts", import.meta.url), "utf8");
 
-  assert.match(financeActions, /\.select\("id, is_financial, is_archived, form_fields!form_id\(\*\)"\)/);
+  assert.match(
+    financeActions,
+    /\.select\("id, is_financial, is_archived, financial_field_id, financial_field_label, form_fields!form_id\(id, label, order_index\)"\)/,
+  );
 });

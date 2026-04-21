@@ -53,6 +53,7 @@ import { getFinanceDisplayState, getRevenueContribution } from "@/lib/finance/st
 import { cn } from "@/lib/utils.ts";
 import { getFileSignedUrl } from "@/lib/actions";
 import { findNameInSubmission } from "@/lib/form-utils";
+import { getValueDisplayText } from "@/lib/finance/manual-payment.mjs";
 import {
   buildHistoricalFormFields,
   getSubmissionValueForField,
@@ -273,11 +274,7 @@ function getExportCellValue(value, fileUrlMap) {
       : label;
   }
 
-  if (value && typeof value === "object") {
-    return value.name || value.label || value.url || JSON.stringify(value);
-  }
-
-  return String(value ?? "");
+  return getValueDisplayText(value);
 }
 
 function getExcelTextWidth(value) {
@@ -421,7 +418,8 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
       } else if (typeof val === "object" && val._type === "file") {
         counts["Archivos Recibidos"] = (counts["Archivos Recibidos"] || 0) + 1;
       } else {
-        counts[val] = (counts[val] || 0) + 1;
+        const displayValue = getValueDisplayText(val);
+        counts[displayValue] = (counts[displayValue] || 0) + 1;
       }
     });
     return {
@@ -996,7 +994,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                                 ) : typeof val === "object" && val._type === "file" ? (
                                   <FileDisplay val={val} urlCache={urlCacheRef.current} />
                                 ) : (
-                                  <p className="text-sm text-gray-700 leading-relaxed">{String(val)}</p>
+                                  <p className="text-sm text-gray-700 leading-relaxed">{getValueDisplayText(val)}</p>
                                 )}
                               </div>
                             );
@@ -1217,7 +1215,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                                         </div>
                                       ) : (
                                         <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words">
-                                          {String(val)}
+                                          {getValueDisplayText(val)}
                                         </p>
                                       )}
                                     </div>

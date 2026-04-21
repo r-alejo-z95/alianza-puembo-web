@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { compressImage } from "@/lib/image-compression";
 import { get } from "react-hook-form";
 import { getSubmissionPaymentSummary } from "@/lib/finance/payment-summary.mjs";
+import { getSubmissionTrackingPayments } from "@/lib/finance/manual-payment.mjs";
 
 import { findNameInSubmission } from "@/lib/form-utils";
 
@@ -37,7 +38,7 @@ export default function TrackingClient({ submission }) {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const form = submission.forms;
-  const payments = submission.form_submission_payments || [];
+  const payments = getSubmissionTrackingPayments(submission);
   const sortedPayments = [...payments].sort((a, b) => {
     const aTime = new Date(a.created_at).getTime();
     const bTime = new Date(b.created_at).getTime();
@@ -244,6 +245,11 @@ export default function TrackingClient({ submission }) {
                                 </div>
                                 <div>
                                     <p className="font-bold text-gray-900">Abono #{idx + 1}</p>
+                                    {payment.extracted_data?.label ? (
+                                      <p className="text-[10px] font-medium text-gray-500">
+                                        {payment.extracted_data.label}
+                                      </p>
+                                    ) : null}
                                     <p className="text-[10px] text-gray-400 uppercase font-black tracking-wider">
                                         {format(new Date(payment.created_at), "d MMM, HH:mm", { locale: es })}
                                         <span className="ml-2 text-blue-600">(${paymentAmount(payment).toFixed(2)})</span>
@@ -258,14 +264,16 @@ export default function TrackingClient({ submission }) {
                                 )}>
                                     {statusConfig[payment.status]?.label || payment.status}
                                 </Badge>
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="rounded-full hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)]"
-                                    onClick={() => viewReceipt(payment.receipt_path)}
-                                >
-                                    <ChevronRight className="w-5 h-5" />
-                                </Button>
+                                {payment.receipt_path ? (
+                                  <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="rounded-full hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)]"
+                                      onClick={() => viewReceipt(payment.receipt_path)}
+                                  >
+                                      <ChevronRight className="w-5 h-5" />
+                                  </Button>
+                                ) : null}
                             </div>
                         </motion.div>
                     ))
