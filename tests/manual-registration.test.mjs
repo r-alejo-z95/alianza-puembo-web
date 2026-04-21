@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   buildManualAnswers,
@@ -116,4 +117,10 @@ test("validateManualFinancialForm rejects non-financial or archived forms", () =
     validateManualFinancialForm({ id: "a", is_financial: true, is_archived: false }).valid,
     true,
   );
+});
+
+test("createManualFinancialRegistration disambiguates the forms to form_fields relation", () => {
+  const financeActions = readFileSync(new URL("../lib/actions/finance.ts", import.meta.url), "utf8");
+
+  assert.match(financeActions, /\.select\("id, is_financial, is_archived, form_fields!form_id\(\*\)"\)/);
 });

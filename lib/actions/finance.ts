@@ -625,7 +625,7 @@ export async function createManualFinancialRegistration(payload: {
 
     const { data: form, error: formError } = await admin
       .from("forms")
-      .select("id, is_financial, is_archived, form_fields(*)")
+      .select("id, is_financial, is_archived, form_fields!form_id(*)")
       .eq("id", payload.formId)
       .maybeSingle();
 
