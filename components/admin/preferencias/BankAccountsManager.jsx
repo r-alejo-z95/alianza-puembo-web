@@ -15,6 +15,7 @@ const EMPTY_FORM = {
   account_holder: "",
   account_number: "",
   account_type: "",
+  ruc: "",
   notes: "",
   is_active: true,
 };
@@ -86,6 +87,7 @@ export default function BankAccountsManager() {
       account_holder: formState.account_holder.trim(),
       account_number: formState.account_number.trim(),
       account_type: formState.account_type.trim(),
+      ruc: formState.ruc?.trim() || null,
       notes: formState.notes?.trim() || null,
       is_active: !!formState.is_active,
     };
@@ -111,6 +113,7 @@ export default function BankAccountsManager() {
       account_holder: account.account_holder || "",
       account_number: account.account_number || "",
       account_type: account.account_type || "",
+      ruc: account.ruc || "",
       notes: account.notes || "",
       is_active: !!account.is_active,
     });
@@ -130,6 +133,7 @@ export default function BankAccountsManager() {
       account_holder: formState.account_holder.trim(),
       account_number: formState.account_number.trim(),
       account_type: formState.account_type.trim(),
+      ruc: formState.ruc?.trim() || null,
       notes: formState.notes?.trim() || null,
       is_active: !!formState.is_active,
       updated_at: new Date().toISOString(),
@@ -248,6 +252,17 @@ export default function BankAccountsManager() {
                   className="h-11 rounded-xl bg-white border-gray-200"
                 />
               </div>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-gray-400 uppercase">RUC</Label>
+                <Input
+                  value={formState.ruc}
+                  onChange={(e) =>
+                    setFormState((p) => ({ ...p, ruc: e.target.value }))
+                  }
+                  placeholder="0991263217001"
+                  className="h-11 rounded-xl bg-white border-gray-200"
+                />
+              </div>
             </div>
 
             <div className="space-y-1.5">
@@ -321,6 +336,9 @@ export default function BankAccountsManager() {
                     {account.account_holder} - {account.account_type}
                   </p>
                   <p className="text-[11px] text-gray-500">Cuenta: {account.account_number}</p>
+                  {account.ruc && (
+                    <p className="text-[11px] text-gray-500">RUC: {account.ruc}</p>
+                  )}
                   {account.notes && (
                     <p className="text-[11px] text-gray-400 italic">{account.notes}</p>
                   )}

@@ -45,6 +45,7 @@ export interface BankAccount {
   account_holder: string;
   account_number: string;
   account_type: string;
+  ruc?: string | null;
   notes?: string | null;
   is_active: boolean;
   created_at: string;

@@ -8,6 +8,10 @@ import * as z from "zod";
 import { Loader2, ChevronRight, Settings2, CreditCard, Landmark } from "lucide-react";
 import { toast } from "sonner";
 import { saveFormSetup } from "@/lib/actions/forms";
+import {
+  buildPaymentDescription,
+  mergeFormDescription,
+} from "@/lib/forms/setup-description.mjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -68,22 +72,6 @@ const setupSchema = z
     }
   });
 
-function buildPaymentDescription(values, bankAccounts) {
-  if (!values.is_financial) return null;
-  const account = bankAccounts.find((a) => a.id === values.destination_account_id);
-  const accountStr = account
-    ? `${account.bank_name} — Cta. ${account.account_number}`
-    : null;
-  const amount = `$${Number(values.total_amount).toFixed(2)}`;
-  const dest = accountStr ? ` a ${accountStr}` : "";
-
-  if (values.payment_type === "installments") {
-    const n = values.max_installments ?? 1;
-    return `Debes realizar un pago de ${amount}${dest}. Puedes hacerlo en hasta ${n} ${n === 1 ? "cuota" : "cuotas"}.`;
-  }
-  return `Debes realizar un pago único de ${amount}${dest}.`;
-}
-
 function mapInitialValues(initialValues = {}) {
   return {
     id: initialValues.id ?? null,
@@ -132,7 +120,8 @@ export default function FormSetupWizard({
     setIsSaving(true);
 
     try {
-      const description = buildPaymentDescription(values, bankAccounts);
+      const paymentDescription = buildPaymentDescription(values, bankAccounts);
+      const description = mergeFormDescription(initialValues.description, paymentDescription);
       const result = await saveFormSetup({ ...values, id: defaultValues.id ?? null, description });
 
       if (result.error) {
@@ -378,4 +367,3 @@ export default function FormSetupWizard({
     </section>
   );
 }
-
