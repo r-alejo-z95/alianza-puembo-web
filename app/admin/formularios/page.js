@@ -1,5 +1,4 @@
 import FormManager from "@/components/admin/managers/FormManager";
-import { FormLandingNoticeDialog } from "@/components/admin/managers/FormLandingNoticeDialog";
 import { verifyPermission } from "@/lib/auth/guards";
 import {
   adminPageSection,
@@ -41,8 +40,6 @@ export default async function FormulariosAdminPage() {
           Administra formularios y registros desde aquí. Todo el flujo operativo vive dentro del panel.
         </p>
       </header>
-
-      <FormLandingNoticeDialog />
 
       <FormManager initialForms={initialForms} isInternal={false} />
     </section>
