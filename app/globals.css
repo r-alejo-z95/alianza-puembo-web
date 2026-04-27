@@ -383,3 +383,167 @@ body:has(#not-found-page) footer {
     box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
   }
 }
+
+/* ── LOM Devotional Reading Content ─────────────────────────────── */
+.lom-content {
+  font-family: var(--font-merriweather, Georgia, "Times New Roman", serif);
+  font-size: 1.075rem;
+  line-height: 2;
+  color: #3a2c1a;
+}
+
+@media (min-width: 768px) {
+  .lom-content {
+    font-size: 1.125rem;
+    line-height: 2.05;
+  }
+}
+
+.lom-content > * + * {
+  margin-top: 1.35em;
+}
+
+.lom-content p {
+  margin-top: 0;
+  margin-bottom: 1.4em;
+}
+
+.lom-content h1,
+.lom-content h2,
+.lom-content h3,
+.lom-content h4 {
+  font-family: var(--font-merriweather, Georgia, serif);
+  font-weight: 700;
+  color: #1a1209;
+  line-height: 1.3;
+  margin-top: 2.25em;
+  margin-bottom: 0.6em;
+}
+
+.lom-content h1 { font-size: 1.6rem; }
+.lom-content h2 { font-size: 1.35rem; }
+.lom-content h3 { font-size: 1.15rem; }
+.lom-content h4 { font-size: 1rem; letter-spacing: 0.05em; text-transform: uppercase; }
+
+.lom-content blockquote {
+  border-left: 3px solid hsl(92, 45.9%, 47.8%, 0.45);
+  background: rgba(44, 32, 16, 0.045);
+  padding: 1.1rem 1.5rem;
+  border-radius: 0 0.875rem 0.875rem 0;
+  margin: 2rem 0;
+  font-style: italic;
+  color: #4a3520;
+}
+
+.lom-content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.lom-content strong {
+  font-weight: 700;
+  color: #1a1209;
+}
+
+.lom-content em {
+  font-style: italic;
+}
+
+.lom-content del {
+  color: #9b856a;
+  text-decoration: line-through;
+}
+
+.lom-content code {
+  font-family: var(--font-mono, "Courier New", monospace);
+  font-size: 0.875em;
+  background: rgba(44, 32, 16, 0.07);
+  padding: 0.15em 0.45em;
+  border-radius: 0.3rem;
+  color: #2c2010;
+}
+
+.lom-content pre {
+  background: rgba(44, 32, 16, 0.07);
+  border-radius: 0.75rem;
+  padding: 1.15rem 1.25rem;
+  overflow: visible;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 1.75rem 0;
+}
+
+.lom-content pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.875rem;
+  color: #2c2010;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.lom-content ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 1.25em 0;
+}
+
+.lom-content ul li {
+  padding-left: 1.5em;
+  position: relative;
+  margin-bottom: 0.5em;
+}
+
+.lom-content ul li::before {
+  content: "·";
+  position: absolute;
+  left: 0.35em;
+  color: hsl(92, 45.9%, 47.8%);
+  font-weight: 900;
+  font-size: 1.1em;
+}
+
+.lom-content ol {
+  list-style: decimal;
+  padding-left: 1.5em;
+  margin: 1.25em 0;
+}
+
+.lom-content ol li {
+  margin-bottom: 0.5em;
+  padding-left: 0.25em;
+}
+
+.lom-content a {
+  color: hsl(92, 45.9%, 42%);
+  font-weight: 600;
+  text-decoration: none;
+  text-underline-offset: 3px;
+  overflow-wrap: break-word;
+}
+
+.lom-content a:hover {
+  text-decoration: underline;
+}
+
+.lom-content img {
+  border-radius: 1rem;
+  margin: 2rem auto;
+  max-width: 100%;
+  display: block;
+}
+
+.lom-content hr {
+  border: none;
+  border-top: 1px solid rgba(139, 115, 85, 0.25);
+  margin: 2.5rem 0;
+}
+
+/* Scroll-reveal animation for the reading pane */
+@keyframes lom-reveal {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.lom-reading-reveal {
+  animation: lom-reveal 0.8s ease-out 0.1s both;
+}
