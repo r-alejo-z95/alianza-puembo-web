@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useScreenSize } from "@/lib/hooks/useScreenSize";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,11 +16,11 @@ import {
   ExternalLink,
   Copy,
   Check,
-  User,
-  ArrowLeft,
   Filter,
   ChevronDown,
   Ticket,
+  Users,
+  DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO } from "date-fns";
@@ -47,46 +47,53 @@ function getFinanceBadgeClasses(financeState) {
   return "bg-amber-100 text-amber-700";
 }
 
+function getInitials(name) {
+  if (!name || name === "Inscrito") return "?";
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase() || "")
+    .join("");
+}
+
 export default function AllSubmissionsManager({ initialSubmissions = [] }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [copiedId, setCopiedId] = useState(null);
   const [formFilter, setFormFilter] = useState("all");
-  const [groupBy, setGroupBy] = useState("month"); // "month", "form"
-  
+  const [groupBy, setGroupBy] = useState("month");
+
   const { isLg } = useScreenSize();
   const itemsPerPage = isLg ? 12 : 6;
 
-  // Extract unique forms for the filter
   const uniqueForms = useMemo(() => {
     const forms = initialSubmissions.map((s) => s.forms).filter(Boolean);
     const seen = new Set();
-    return forms.filter((f) => {
-      const duplicate = seen.has(f.id);
-      seen.add(f.id);
-      return !duplicate;
-    }).sort((a, b) => a.title.localeCompare(b.title));
+    return forms
+      .filter((f) => {
+        const duplicate = seen.has(f.id);
+        seen.add(f.id);
+        return !duplicate;
+      })
+      .sort((a, b) => a.title.localeCompare(b.title));
   }, [initialSubmissions]);
 
   const processedSubmissions = useMemo(() => {
     let result = [...initialSubmissions];
-    
-    // Search Filter
+
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       result = result.filter((s) => {
         const formTitle = s.forms?.title?.toLowerCase() || "";
         const profileName = s.profiles?.full_name?.toLowerCase() || "";
         const subscriberName = findNameInSubmission(s).toLowerCase();
-        
-        // Search in JSON data values
         const dataValues = [
           ...((s.answers || []).map((answer) => answer?.value)),
           ...Object.values(s.data || {}),
         ]
           .map((v) => getValueDisplayText(v).toLowerCase())
           .join(" ");
-        
+
         return (
           formTitle.includes(searchLower) ||
           profileName.includes(searchLower) ||
@@ -96,7 +103,6 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
       });
     }
 
-    // Form Filter
     if (formFilter !== "all") {
       result = result.filter((s) => s.form_id === formFilter);
     }
@@ -111,10 +117,10 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
 
   const selectedFormStats = useMemo(() => {
     if (formFilter === "all") return null;
-    const totalConfirmedAmount = selectedFormSubmissions.reduce((acc, sub) => {
-      return acc + getRevenueContribution(sub);
-    }, 0);
-
+    const totalConfirmedAmount = selectedFormSubmissions.reduce(
+      (acc, sub) => acc + getRevenueContribution(sub),
+      0,
+    );
     return {
       totalRegistered: selectedFormSubmissions.length,
       totalConfirmedAmount,
@@ -122,7 +128,7 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
   }, [formFilter, selectedFormSubmissions]);
 
   const totalPages = Math.ceil(processedSubmissions.length / itemsPerPage);
-  
+
   const currentItems = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return processedSubmissions.slice(startIndex, startIndex + itemsPerPage);
@@ -132,7 +138,6 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
     const groups = {};
     currentItems.forEach((item) => {
       let groupKey = "Otros";
-      
       if (groupBy === "month") {
         const date = parseISO(item.created_at);
         groupKey = format(date, "MMMM yyyy", { locale: es });
@@ -140,11 +145,9 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
       } else if (groupBy === "form") {
         groupKey = item.forms?.title || "Sin Formulario";
       }
-      
       if (!groups[groupKey]) groups[groupKey] = [];
       groups[groupKey].push(item);
     });
-    
     return groups;
   }, [currentItems, groupBy]);
 
@@ -157,76 +160,50 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
   };
 
   return (
-    <div className="space-y-8 pb-20">
-      {/* Header Premium */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-4">
-        <div className="space-y-4">
-          <Link
-            href="/admin/formularios"
-            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-[var(--puembo-green)] transition-all group"
-          >
-            <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
-            Gestión de Formularios
-          </Link>
-          <div className="space-y-1">
-            <h1 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 tracking-tight leading-none">
-              Control de{" "}
-              <span className="text-[var(--puembo-green)] italic">
-                Inscripciones
-              </span>
-            </h1>
-            <p className="text-gray-400 font-light text-base max-w-xl">
-              Busca y gestiona todos los registros del portal. Envía enlaces de seguimiento a los participantes.
-            </p>
-          </div>
-        </div>
+    <div className="space-y-6">
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="bg-white p-1 rounded-full border border-gray-100 shadow-sm flex items-center">
-            <Button
-              variant={groupBy === "month" ? "green" : "ghost"}
-              size="sm"
-              onClick={() => setGroupBy("month")}
-              className="rounded-full h-8 px-4 text-[9px] font-black uppercase tracking-widest"
-            >
-              Mes
-            </Button>
-            <Button
-              variant={groupBy === "form" ? "green" : "ghost"}
-              size="sm"
-              onClick={() => setGroupBy("form")}
-              className="rounded-full h-8 px-4 text-[9px] font-black uppercase tracking-widest"
-            >
-              Evento
-            </Button>
-          </div>
-        </div>
-      </div>
-
+      {/* Stats cards */}
       {selectedFormStats && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="border-none shadow-sm rounded-[2rem] bg-gray-50 overflow-hidden ring-1 ring-gray-100">
-            <CardContent className="p-5 md:p-6 space-y-2">
-              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Inscritos</span>
-              <p className="text-2xl md:text-3xl font-serif font-bold text-gray-900">
+          <Card className="border-none shadow-md rounded-[2rem] bg-white overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--puembo-green)]/5 rounded-bl-[2rem]" />
+            <CardContent className="p-6 space-y-3 relative">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Inscritos
+                </span>
+                <div className="w-8 h-8 rounded-xl bg-[var(--puembo-green)]/10 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-[var(--puembo-green)]" />
+                </div>
+              </div>
+              <p className="text-3xl md:text-4xl font-serif font-bold text-gray-900 tabular-nums">
                 {selectedFormStats.totalRegistered}
               </p>
-              <p className="text-xs text-gray-500">Total de personas inscritas.</p>
+              <p className="text-xs text-gray-400 font-light">Total de personas inscritas</p>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-sm rounded-[2rem] bg-white overflow-hidden ring-1 ring-gray-100">
-            <CardContent className="p-5 md:p-6 space-y-2">
-              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Monto confirmado</span>
-              <p className="text-2xl md:text-3xl font-serif font-bold text-gray-900">
+
+          <Card className="border-none shadow-md rounded-[2rem] bg-white overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-[var(--puembo-green)]/5 rounded-bl-[2rem]" />
+            <CardContent className="p-6 space-y-3 relative">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Monto confirmado
+                </span>
+                <div className="w-8 h-8 rounded-xl bg-[var(--puembo-green)]/10 flex items-center justify-center">
+                  <DollarSign className="w-4 h-4 text-[var(--puembo-green)]" />
+                </div>
+              </div>
+              <p className="text-3xl md:text-4xl font-serif font-bold text-gray-900 tabular-nums">
                 ${selectedFormStats.totalConfirmedAmount.toFixed(2)}
               </p>
-              <p className="text-xs text-gray-500">Pagos verificados acumulados.</p>
+              <p className="text-xs text-gray-400 font-light">Pagos verificados acumulados</p>
             </CardContent>
           </Card>
         </div>
       )}
 
-      {/* Filtros Card */}
+      {/* Filter + results card */}
       <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
         <div className="p-6 md:p-8 border-b border-gray-50 bg-gray-50/30">
           <div className="flex flex-col lg:flex-row gap-4 items-center">
@@ -256,10 +233,10 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
               <select
                 value={formFilter}
                 onChange={(e) => {
-                    setFormFilter(e.target.value);
-                    setCurrentPage(1);
+                  setFormFilter(e.target.value);
+                  setCurrentPage(1);
                 }}
-                className="w-full pl-14 pr-10 h-16 rounded-full bg-white border-gray-200 focus:border-[var(--puembo-green)] transition-all text-sm font-bold appearance-none outline-none cursor-pointer text-gray-700 shadow-sm"
+                className="w-full pl-14 pr-10 h-16 rounded-full bg-white border border-gray-200 focus:border-[var(--puembo-green)] transition-all text-sm font-bold appearance-none outline-none cursor-pointer text-gray-700 shadow-sm"
               >
                 <option value="all">Todos los eventos</option>
                 {uniqueForms.map((f) => (
@@ -270,16 +247,35 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
               </select>
               <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 pointer-events-none" />
             </div>
+
+            <div className="bg-white p-1 rounded-full border border-gray-100 shadow-sm flex items-center shrink-0">
+              <Button
+                variant={groupBy === "month" ? "green" : "ghost"}
+                size="sm"
+                onClick={() => setGroupBy("month")}
+                className="rounded-full h-8 px-4 text-[9px] font-black uppercase tracking-widest"
+              >
+                Mes
+              </Button>
+              <Button
+                variant={groupBy === "form" ? "green" : "ghost"}
+                size="sm"
+                onClick={() => setGroupBy("form")}
+                className="rounded-full h-8 px-4 text-[9px] font-black uppercase tracking-widest"
+              >
+                Evento
+              </Button>
+            </div>
           </div>
         </div>
 
         <CardContent className="p-0">
           {processedSubmissions.length === 0 ? (
             <div className="py-32 text-center space-y-4">
-              <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Ticket className="w-10 h-10 text-gray-200" />
+              <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center mx-auto">
+                <Ticket className="w-9 h-9 text-gray-200" />
               </div>
-              <p className="text-gray-400 font-light italic text-xl font-serif px-8">
+              <p className="text-gray-400 font-light italic text-lg font-serif px-8">
                 {searchTerm || formFilter !== "all"
                   ? "No se encontraron resultados para tu búsqueda."
                   : "No hay inscripciones registradas en el portal."}
@@ -289,23 +285,23 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
             <div className="divide-y divide-gray-50">
               {Object.entries(groupedItems).map(([groupName, items]) => (
                 <div key={groupName} className="bg-white">
-                  {groupBy !== "none" && (
-                    <div className="px-8 pt-10 pb-4 bg-gray-50/30">
-                        <div className="flex items-center gap-4">
-                            <div className="h-px w-8 bg-[var(--puembo-green)]" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">{groupName}</span>
-                            <div className="h-px grow bg-gray-100/50" />
-                        </div>
+                  <div className="px-8 pt-8 pb-3 bg-gray-50/30">
+                    <div className="flex items-center gap-4">
+                      <div className="h-px w-8 bg-[var(--puembo-green)]" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+                        {groupName}
+                      </span>
+                      <div className="h-px grow bg-gray-100/60" />
                     </div>
-                  )}
+                  </div>
 
                   <div className="hidden lg:block overflow-x-auto">
                     <Table>
                       <TableBody>
                         {items.map((sub) => (
-                          <SubmissionRow 
-                            key={sub.id} 
-                            sub={sub} 
+                          <SubmissionRow
+                            key={sub.id}
+                            sub={sub}
                             isCopied={copiedId === sub.access_token}
                             onCopy={() => handleCopyLink(sub.access_token)}
                           />
@@ -314,15 +310,15 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
                     </Table>
                   </div>
 
-                  <div className="lg:hidden p-6 space-y-4">
-                     {items.map(sub => (
-                        <SubmissionCard 
-                            key={sub.id} 
-                            sub={sub}
-                            isCopied={copiedId === sub.access_token}
-                            onCopy={() => handleCopyLink(sub.access_token)}
-                        />
-                     ))}
+                  <div className="lg:hidden p-6 space-y-3">
+                    {items.map((sub) => (
+                      <SubmissionCard
+                        key={sub.id}
+                        sub={sub}
+                        isCopied={copiedId === sub.access_token}
+                        onCopy={() => handleCopyLink(sub.access_token)}
+                      />
+                    ))}
                   </div>
                 </div>
               ))}
@@ -347,70 +343,97 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
 
 function SubmissionRow({ sub, onCopy, isCopied }) {
   const subscriberName = findNameInSubmission(sub);
-  const formattedDate = format(parseISO(sub.created_at), "d MMM, yyyy", { locale: es });
-  const formattedTime = format(parseISO(sub.created_at), "HH:mm 'hrs'");
+  const initials = getInitials(subscriberName);
+  const formattedDate = format(parseISO(sub.created_at), "d MMM yyyy", { locale: es });
+  const formattedTime = format(parseISO(sub.created_at), "HH:mm");
   const amountPaid = getDisplayedSubmissionAmount(sub);
   const financeState = getFinanceDisplayState(sub);
+  const isManual = ["cash", "card", "scholarship"].includes(sub.coverage_mode);
 
   return (
-    <TableRow className="group transition-all duration-300 border-b border-gray-50 hover:bg-gray-50/50">
-      <TableCell className="px-4 py-6">
+    <TableRow className="group transition-all duration-200 border-b border-gray-50 hover:bg-[var(--puembo-green)]/[0.025]">
+      {/* Date */}
+      <TableCell className="px-6 py-5 w-32">
         <div className="flex flex-col">
-          <span className="text-xs font-bold text-gray-700">{formattedDate}</span>
-          <span className="text-[9px] font-black uppercase text-gray-400 tracking-tighter">{formattedTime}</span>
-        </div>
-      </TableCell>
-      <TableCell className="px-4 py-6">
-        <div className="flex flex-col max-w-[300px]">
-          <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest opacity-60 leading-tight mb-1">Evento</span>
-          <span className="font-bold text-gray-900 text-sm leading-tight truncate">
-            {sub.forms?.title || "Formulario Eliminado"}
+          <span className="text-xs font-bold text-gray-700 tabular-nums">{formattedDate}</span>
+          <span className="text-[9px] font-black uppercase text-gray-300 tracking-widest mt-0.5">
+            {formattedTime}
           </span>
         </div>
       </TableCell>
-      <TableCell className="pl-4 pr-2 py-6">
+
+      {/* Event */}
+      <TableCell className="px-4 py-5">
+        <div className="flex flex-col gap-1 max-w-[260px]">
+          <span className="font-bold text-gray-900 text-sm leading-tight truncate">
+            {sub.forms?.title || "Formulario eliminado"}
+          </span>
+          {isManual && (
+            <span className="inline-flex w-fit items-center px-2 py-0.5 rounded-full bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] text-[8px] font-black uppercase tracking-widest">
+              Manual
+            </span>
+          )}
+        </div>
+      </TableCell>
+
+      {/* Participant */}
+      <TableCell className="px-4 py-5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner shrink-0">
-             <User className="w-4 h-4" />
+          <div className="w-9 h-9 rounded-full bg-[var(--puembo-green)]/10 flex items-center justify-center shrink-0 border border-[var(--puembo-green)]/10">
+            <span className="text-[10px] font-black text-[var(--puembo-green)]">{initials}</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest opacity-60 leading-tight mb-1">Participante</span>
+            <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest leading-tight">
+              Participante
+            </span>
             <span className="font-bold text-gray-900 text-sm leading-tight">
               {subscriberName}
             </span>
           </div>
         </div>
       </TableCell>
-      <TableCell className="pl-2 pr-4 py-6 text-right">
-        <div className="flex items-center justify-end gap-2">
+
+      {/* Amount + actions */}
+      <TableCell className="px-4 pr-6 py-5 text-right">
+        <div className="flex items-center justify-end gap-3">
           <div className="flex flex-col items-end gap-1">
-            <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">Monto entregado</span>
-            <span className="text-base font-bold text-gray-900">${amountPaid.toFixed(2)}</span>
-            <Badge className={cn(
-              "rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
-              getFinanceBadgeClasses(financeState)
-            )}>
+            <span className="text-[9px] font-black uppercase tracking-widest text-gray-300">
+              Monto
+            </span>
+            <span className="text-base font-bold text-gray-900 tabular-nums">
+              ${amountPaid.toFixed(2)}
+            </span>
+            <Badge
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
+                getFinanceBadgeClasses(financeState),
+              )}
+            >
               {financeState}
             </Badge>
           </div>
+
           <Button
             variant="ghost"
             size="sm"
             className={cn(
-              "rounded-full h-10 px-6 font-black text-[9px] uppercase tracking-[0.2em] gap-2 transition-all",
-              isCopied ? "bg-emerald-50 text-emerald-600 scale-95" : "bg-gray-50 text-gray-600 hover:bg-gray-900 hover:text-white"
+              "rounded-full h-9 px-5 font-black text-[9px] uppercase tracking-widest gap-2 transition-all",
+              isCopied
+                ? "bg-emerald-50 text-emerald-600 scale-95"
+                : "bg-gray-50 text-gray-500 hover:bg-gray-900 hover:text-white",
             )}
             onClick={onCopy}
           >
             {isCopied ? (
               <><Check className="w-3.5 h-3.5" /> Copiado</>
             ) : (
-              <><Copy className="w-3.5 h-3.5" /> Link de Pago</>
+              <><Copy className="w-3.5 h-3.5" /> Link</>
             )}
           </Button>
+
           <Link href={`/inscripcion/${sub.access_token}`} target="_blank">
-            <div className="h-10 w-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-[var(--puembo-green)] hover:text-white hover:border-transparent transition-all shadow-sm">
-              <ExternalLink className="w-4 h-4" />
+            <div className="h-9 w-9 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-[var(--puembo-green)] hover:text-white hover:border-transparent transition-all shadow-sm">
+              <ExternalLink className="w-3.5 h-3.5" />
             </div>
           </Link>
         </div>
@@ -420,51 +443,82 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
 }
 
 function SubmissionCard({ sub, onCopy, isCopied }) {
-    const subscriberName = findNameInSubmission(sub);
-    const date = format(parseISO(sub.created_at), "d MMM", { locale: es });
-    const amountPaid = getDisplayedSubmissionAmount(sub);
-    const financeState = getFinanceDisplayState(sub);
-    
-    return (
-        <div className="bg-white rounded-3xl p-5 border border-gray-100 shadow-sm space-y-4">
-            <div className="flex items-start justify-between">
-                <div className="space-y-1 flex-1 min-w-0">
-                    <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest">{sub.forms?.title}</span>
-                    <h4 className="text-base font-bold text-gray-900 truncate">{subscriberName}</h4>
-                </div>
-                <div className="bg-gray-50 rounded-xl px-3 py-1 text-center shrink-0 border border-gray-100">
-                    <span className="text-[9px] font-black text-gray-400 block uppercase">{date}</span>
-                </div>
-            </div>
-            
-            <div className="flex gap-2">
-                <div className="flex-1 rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                    <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400">Monto entregado</span>
-                    <p className="mt-1 text-xl font-bold text-gray-900">${amountPaid.toFixed(2)}</p>
-                    <Badge className={cn(
-                        "mt-2 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
-                        getFinanceBadgeClasses(financeState)
-                    )}>
-                        {financeState}
-                    </Badge>
-                </div>
-                <Button 
-                    variant="outline" 
-                    className={cn(
-                        "flex-1 rounded-2xl h-12 text-[9px] font-black uppercase tracking-widest gap-2",
-                        isCopied && "border-emerald-500 text-emerald-600 bg-emerald-50"
-                    )}
-                    onClick={onCopy}
-                >
-                    {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    {isCopied ? "Copiado" : "Copiar Link"}
-                </Button>
-                <Button asChild variant="ghost" className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-400 shrink-0">
-                    <Link href={`/inscripcion/${sub.access_token}`} target="_blank">
-                        <ExternalLink className="w-4 h-4" />
-                    </Link>
-                </Button>
-            </div>
+  const subscriberName = findNameInSubmission(sub);
+  const initials = getInitials(subscriberName);
+  const date = format(parseISO(sub.created_at), "d MMM", { locale: es });
+  const amountPaid = getDisplayedSubmissionAmount(sub);
+  const financeState = getFinanceDisplayState(sub);
+  const isManual = ["cash", "card", "scholarship"].includes(sub.coverage_mode);
+
+  return (
+    <div className="bg-white rounded-[1.75rem] p-5 border border-gray-100 shadow-sm space-y-4">
+      {/* Header row */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-[var(--puembo-green)]/10 flex items-center justify-center shrink-0 border border-[var(--puembo-green)]/10">
+          <span className="text-[10px] font-black text-[var(--puembo-green)]">{initials}</span>
         </div>
-    );
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[9px] font-black text-[var(--puembo-green)] uppercase tracking-widest truncate">
+              {sub.forms?.title}
+            </span>
+            {isManual && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] text-[8px] font-black uppercase tracking-widest shrink-0">
+                Manual
+              </span>
+            )}
+          </div>
+          <h4 className="text-sm font-bold text-gray-900 truncate leading-tight mt-0.5">
+            {subscriberName}
+          </h4>
+        </div>
+        <div className="bg-gray-50 rounded-xl px-3 py-1.5 text-center shrink-0 border border-gray-100">
+          <span className="text-[9px] font-black text-gray-400 block uppercase tracking-widest">
+            {date}
+          </span>
+        </div>
+      </div>
+
+      {/* Amount + actions */}
+      <div className="flex gap-2 items-stretch">
+        <div className="flex-1 rounded-2xl border border-gray-100 bg-gray-50 p-3 space-y-1">
+          <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400">
+            Monto
+          </span>
+          <p className="text-xl font-bold text-gray-900 tabular-nums">${amountPaid.toFixed(2)}</p>
+          <Badge
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
+              getFinanceBadgeClasses(financeState),
+            )}
+          >
+            {financeState}
+          </Badge>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Button
+            variant="outline"
+            className={cn(
+              "flex-1 rounded-2xl px-4 text-[9px] font-black uppercase tracking-widest gap-2 h-auto",
+              isCopied && "border-emerald-500 text-emerald-600 bg-emerald-50",
+            )}
+            onClick={onCopy}
+          >
+            {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            {isCopied ? "Copiado" : "Link"}
+          </Button>
+          <Button
+            asChild
+            variant="ghost"
+            className="w-full rounded-2xl bg-gray-50 text-gray-400 h-auto py-3"
+          >
+            <Link href={`/inscripcion/${sub.access_token}`} target="_blank">
+              <ExternalLink className="w-4 h-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }
