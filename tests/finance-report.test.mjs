@@ -79,6 +79,12 @@ test("buildFinanceIncomeReport totals confirmed revenue and preserves receipt li
     "PENDIENTE",
     "TARJETA",
   ]);
+  assert.deepEqual(report.rows.map((row) => row.reconciliationStatus), [
+    "EFECTIVO",
+    "CONCILIADO",
+    "NO CONCILIADO",
+    "TARJETA",
+  ]);
   assert.equal(report.rows[1].bank, "Pichincha");
   assert.equal(report.rows[1].name, "Juan Perez");
   assert.equal(report.rows[1].reference, "NUT123");
@@ -156,4 +162,35 @@ test("buildFinanceIncomeReport resolves receiver account from each reconciled ba
   assert.equal(report.rows[1].bank, "Banco Guayaquil");
   assert.equal(report.rows[1].accountType, "Corriente");
   assert.equal(report.rows[1].accountNumber, "444555666");
+});
+
+test("buildFinanceIncomeReport marks verified payments without bank movement as not reconciled", () => {
+  const report = buildFinanceIncomeReport({
+    formTitle: "Retiro",
+    bankAccount: {
+      bank_name: "Banco General",
+      account_type: "Ahorros",
+      account_number: "999",
+    },
+    submissions: [
+      {
+        created_at: "2026-03-01T10:00:00.000Z",
+        data: { "Nombre y Apellido": "Ana Vera" },
+        form_submission_payments: [
+          {
+            receipt_path: "finance_receipts/ana.png",
+            status: "verified",
+            extracted_data: {
+              amount: 50,
+              date: "2026-03-03",
+              sender_name: "Papa Ana",
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  assert.equal(report.rows[0].observation, "CONCILIADO");
+  assert.equal(report.rows[0].reconciliationStatus, "NO CONCILIADO");
 });

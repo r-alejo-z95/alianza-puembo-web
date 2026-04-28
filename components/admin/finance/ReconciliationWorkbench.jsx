@@ -413,8 +413,8 @@ export function ReconciliationWorkbench({
   };
 
   const styleIncomeSheet = (worksheet, lastRow) => {
-    worksheet.mergeCells("A1:K1");
-    worksheet.mergeCells("A2:K2");
+    worksheet.mergeCells("A1:L1");
+    worksheet.mergeCells("A2:L2");
     worksheet.getRow(1).height = 22;
     worksheet.getRow(2).height = 22;
     [1, 2].forEach((rowNumber) => {
@@ -441,7 +441,7 @@ export function ReconciliationWorkbench({
       row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
         cell.font = { name: "Book Antiqua", size: 11 };
         cell.alignment = {
-          horizontal: [1, 2, 3, 4, 8, 9].includes(colNumber) ? "center" : "left",
+          horizontal: [1, 2, 3, 4, 8, 9, 10].includes(colNumber) ? "center" : "left",
           vertical: "middle",
           wrapText: true,
         };
@@ -454,6 +454,18 @@ export function ReconciliationWorkbench({
       });
       row.getCell(8).numFmt = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ ';
       row.getCell(9).numFmt = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ ';
+      const reconciliationCell = row.getCell(10);
+      reconciliationCell.font = { name: "Book Antiqua", size: 11, bold: true };
+      if (reconciliationCell.value === "CONCILIADO") {
+        reconciliationCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD9EAD3" } };
+        reconciliationCell.font = { name: "Book Antiqua", size: 11, bold: true, color: { argb: "FF166534" } };
+      } else if (reconciliationCell.value === "NO CONCILIADO") {
+        reconciliationCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFF2CC" } };
+        reconciliationCell.font = { name: "Book Antiqua", size: 11, bold: true, color: { argb: "FF92400E" } };
+      } else {
+        reconciliationCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE5E7EB" } };
+        reconciliationCell.font = { name: "Book Antiqua", size: 11, bold: true, color: { argb: "FF374151" } };
+      }
       row.getCell(1).numFmt = '[$-300A]d" de "mmmm" de "yyyy;@';
     }
   };
@@ -554,6 +566,7 @@ export function ReconciliationWorkbench({
         { width: 24 },
         { width: 16 },
         { width: 13 },
+        { width: 18 },
         { width: 24 },
         { width: 20 },
       ];
@@ -569,6 +582,7 @@ export function ReconciliationWorkbench({
         "CONCEPTO",
         "TRANSFERENCIA",
         "EVENTOS",
+        "CONCILIACION",
         "OBS",
         "COMPROBANTE",
       ];
@@ -585,16 +599,17 @@ export function ReconciliationWorkbench({
           row.concept,
           row.amount || null,
           row.eventTotal || null,
+          row.reconciliationStatus,
           [row.observation, row.reference ? `REF: ${row.reference}` : ""].filter(Boolean).join(" · "),
           receiptUrl ? { text: "Ver imagen/archivo", hyperlink: receiptUrl } : "",
         ]);
-        const linkCell = excelRow.getCell(11);
+        const linkCell = excelRow.getCell(12);
         if (linkCell.value && typeof linkCell.value === "object") {
           linkCell.font = { name: "Book Antiqua", size: 11, color: { argb: "FF0563C1" }, underline: true };
         }
       });
       styleIncomeSheet(income, Math.max(4, income.rowCount));
-      income.autoFilter = `A3:${getExcelColumnLetter(11)}3`;
+      income.autoFilter = `A3:${getExcelColumnLetter(12)}3`;
 
       setExportProgress(86);
       const buffer = await workbook.xlsx.writeBuffer();
