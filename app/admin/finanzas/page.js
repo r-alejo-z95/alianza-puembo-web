@@ -27,7 +27,7 @@ export default async function ReconciliationPage() {
       .order("title", { ascending: true }),
     supabase
       .from("bank_accounts")
-      .select("id, bank_name, account_number, account_holder, is_active")
+      .select("id, bank_name, account_type, account_number, account_holder, is_active")
       .eq("is_active", true)
       .order("bank_name", { ascending: true }),
   ]);

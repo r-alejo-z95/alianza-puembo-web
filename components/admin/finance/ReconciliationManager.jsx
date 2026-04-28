@@ -245,124 +245,83 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
         </DialogContent>
       </Dialog>
 
-      {/* HEADER CARD: CONSOLIDATED CONFIGURATION */}
-      <Card className="border-none shadow-2xl bg-white rounded-[2rem] md:rounded-[2.5rem] overflow-hidden">
-        <div className="flex flex-col lg:flex-row">
-          
-          {/* STEP 1: BANK INPUT (LEFT) */}
-          <div className="flex-1 p-6 md:p-10 space-y-6 md:space-y-8 bg-gray-50/30">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-blue-500">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                <span>Paso 1: Movimientos Diarios</span>
-              </div>
-              <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-900 leading-tight">Alimentar Historial</h3>
-              <p className="text-[10px] md:text-xs text-gray-400 font-medium">Sincroniza el extracto bancario.</p>
-            </div>
+      <Card className="border-none shadow-xl bg-white rounded-[1.5rem] overflow-hidden">
+        <div className="p-4 md:p-5 grid grid-cols-1 xl:grid-cols-[1fr_1fr_auto] gap-4 items-end">
+          <div className="space-y-2">
+            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Cuenta bancaria</span>
+            <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId} disabled={sortedBankAccounts.length === 0}>
+              <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-gray-50 font-bold text-xs">
+                <SelectValue placeholder={sortedBankAccounts.length > 0 ? "Selecciona una cuenta" : "No hay cuentas activas"} />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
+                {sortedBankAccounts.map((account) => (
+                  <SelectItem key={account.id} value={account.id} className="py-3 cursor-pointer rounded-xl font-medium text-xs">
+                    {account.bank_name}{account.account_number ? ` · ${account.account_number}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Cuenta bancaria</span>
-                <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId} disabled={sortedBankAccounts.length === 0}>
-                  <SelectTrigger className="h-12 md:h-14 rounded-2xl md:rounded-[2rem] border-gray-200 bg-white font-bold text-sm">
-                    <SelectValue placeholder={sortedBankAccounts.length > 0 ? "Selecciona una cuenta" : "No hay cuentas activas"} />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                    {sortedBankAccounts.map((account) => (
-                      <SelectItem key={account.id} value={account.id} className="py-3 md:py-4 cursor-pointer rounded-xl font-medium text-xs md:text-sm">
-                        {account.bank_name}{account.account_number ? ` · ${account.account_number}` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {sortedBankAccounts.length === 0 && (
-                  <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
-                    No hay cuentas bancarias activas. Configúralas en Preferencias antes de cargar extractos.
-                  </p>
-                )}
-              </div>
+          <div className="space-y-2">
+            <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Formulario a conciliar</span>
+            <Select value={selectedFormId} onValueChange={setSelectedFormId}>
+              <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-gray-50 font-bold text-xs">
+                <SelectValue placeholder="Selecciona un formulario" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
+                {sortedForms.map(f => <SelectItem key={f.id} value={f.id} className="py-3 cursor-pointer rounded-xl font-medium text-xs">{f.title}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
 
-              <div 
-                className={cn(
-                  "h-24 md:h-32 border-2 border-dashed rounded-2xl md:rounded-[2rem] flex flex-col items-center justify-center cursor-pointer transition-all gap-2 px-4 md:px-6",
-                  bankFile ? "border-[var(--puembo-green)] bg-[var(--puembo-green)]/5" : "border-gray-200 hover:border-blue-200 hover:bg-white"
-                )}
-                onClick={() => !bankFile && document.getElementById('bank-file-input').click()}
+          <div className="flex flex-col sm:flex-row xl:flex-col gap-2">
+            <button
+              type="button"
+              className={cn(
+                "h-11 min-w-52 rounded-xl border border-dashed px-4 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all",
+                bankFile ? "border-[var(--puembo-green)] bg-[var(--puembo-green)]/5 text-[var(--puembo-green)]" : "border-gray-200 text-gray-400 hover:bg-gray-50"
+              )}
+              onClick={() => !bankFile && document.getElementById('bank-file-input').click()}
+            >
+              {bankFile ? <FileSpreadsheet className="w-4 h-4" /> : <UploadCloud className="w-4 h-4" />}
+              <span className="truncate max-w-40">{bankFile ? bankFile.name : "Subir extracto"}</span>
+              <input id="bank-file-input" type="file" className="hidden" onChange={(e) => setBankFile(e.target.files[0])} />
+            </button>
+            {bankFile && (
+              <Button 
+                onClick={handleBankUpload} 
+                disabled={isUploadingBank || !selectedBankAccount}
+                variant="green"
+                className="h-11 rounded-xl font-black text-[10px] uppercase tracking-widest gap-2"
               >
-                {bankFile ? (
-                  <div className="flex flex-col items-center gap-1 text-center animate-in zoom-in-95">
-                    <FileSpreadsheet className="w-6 h-6 md:w-8 md:h-8 text-[var(--puembo-green)]" />
-                    <span className="text-[10px] md:text-xs font-bold text-gray-900 truncate max-w-[150px] md:max-w-[200px]">{bankFile.name}</span>
-                    <button onClick={(e) => { e.stopPropagation(); setBankFile(null); }} className="text-[9px] font-black uppercase text-red-500 tracking-widest hover:underline">Cambiar</button>
-                  </div>
-                ) : (
-                  <>
-                    <UploadCloud className="w-6 h-6 md:w-8 md:h-8 text-gray-200" />
-                    <span className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Subir Excel o CSV</span>
-                  </>
-                )}
-                <input id="bank-file-input" type="file" className="hidden" onChange={(e) => setBankFile(e.target.files[0])} />
-              </div>
-
-              {bankFile && (
-                <Button 
-                  onClick={handleBankUpload} 
-                  disabled={isUploadingBank || !selectedBankAccount}
-                  variant="green"
-                  className="w-full h-12 md:h-14 rounded-full font-bold shadow-lg shadow-[var(--puembo-green)]/20 text-xs uppercase tracking-widest"
-                >
-                  {isUploadingBank ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                  Sincronizar
-                </Button>
-              )}
-            </div>
+                {isUploadingBank ? <Loader2 className="animate-spin w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                Sincronizar
+              </Button>
+            )}
           </div>
-
-          <div className="hidden lg:block w-px bg-gradient-to-b from-transparent via-gray-100 to-transparent" />
-
-          {/* STEP 2: CONTEXT SELECTOR (RIGHT) */}
-          <div className="flex-1 p-6 md:p-10 space-y-6 md:space-y-8 bg-white relative">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-[9px] md:text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)]">
-                <div className="w-1.5 h-1.5 rounded-full bg-[var(--puembo-green)]" />
-                <span>Paso 2: Actividad</span>
-              </div>
-              <h3 className="text-xl md:text-2xl font-serif font-bold text-gray-900 leading-tight">Auditar Registro</h3>
-              <p className="text-[10px] md:text-xs text-gray-400 font-medium">Elige el formulario a validar.</p>
-            </div>
-
-            <div className="space-y-4 md:space-y-6">
-              <Select value={selectedFormId} onValueChange={setSelectedFormId}>
-                <SelectTrigger className="h-14 md:h-16 rounded-xl md:rounded-[1.5rem] border-gray-100 bg-gray-50/50 font-bold focus:ring-8 focus:ring-[var(--puembo-green)]/5 transition-all text-sm md:text-base">
-                  <SelectValue placeholder="Selecciona..." />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-                  {sortedForms.map(f => <SelectItem key={f.id} value={f.id} className="py-3 md:py-4 cursor-pointer rounded-xl font-medium text-xs md:text-base">{f.title}</SelectItem>)}
-                </SelectContent>
-              </Select>
-
-              {selectedFormId && (
-                <div className="grid grid-cols-2 gap-3 md:gap-4 animate-in slide-in-from-right-4 duration-500">
-                  <div className="p-4 md:p-5 bg-gray-50 rounded-xl md:rounded-[1.5rem] border border-gray-100">
-                    <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-1">Inscritos</span>
-                    <div className="flex items-center gap-2">
-                      <Database className="w-3 h-3 text-gray-400" />
-                      <span className="text-sm md:text-lg font-bold text-gray-900">{submissions.length}</span>
-                    </div>
-                  </div>
-                  <div className="p-4 md:p-5 bg-[var(--puembo-green)]/5 rounded-xl md:rounded-[1.5rem] border border-[var(--puembo-green)]/10">
-                    <span className="text-[8px] md:text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)] block mb-1">Recaudado</span>
-                    <div className="flex items-center gap-2">
-                      <Wallet className="w-3 h-3 text-[var(--puembo-green)]" />
-                      <span className="text-sm md:text-lg font-black text-[var(--puembo-green)] font-serif">${confirmedAmount.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
         </div>
+
+        {selectedFormId && (
+          <div className="border-t border-gray-100 px-4 md:px-5 py-3 grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50/50">
+            <div>
+              <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Inscritos</span>
+              <p className="text-lg font-black text-gray-900">{submissions.length}</p>
+            </div>
+            <div>
+              <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Pendientes</span>
+              <p className="text-lg font-black text-amber-600">{submissions.reduce((acc, sub) => acc + (sub.form_submission_payments || []).filter((p) => p.status !== "verified" && !p.manual_disposition).length, 0)}</p>
+            </div>
+            <div>
+              <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Movimientos libres</span>
+              <p className="text-lg font-black text-blue-600">{bankTransactions.filter((bt) => !bt.is_reconciled).length}</p>
+            </div>
+            <div>
+              <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Recaudado</span>
+              <p className="text-lg font-black text-[var(--puembo-green)] font-serif">${confirmedAmount.toFixed(2)}</p>
+            </div>
+          </div>
+        )}
       </Card>
 
       <div className="w-full">
@@ -373,6 +332,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
         onRefresh={loadFormData}
         isFormSelected={!!selectedFormId}
         selectedFormId={selectedFormId}
+        selectedFormTitle={selectedForm?.title || ""}
         selectedBankAccount={selectedBankAccount}
         selectedDestinationAccount={selectedDestinationAccount}
       />

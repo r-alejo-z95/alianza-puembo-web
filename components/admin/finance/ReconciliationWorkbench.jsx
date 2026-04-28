@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ExcelJS from "exceljs";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +49,12 @@ import {
   ChevronDown,
   ChevronUp,
   PencilLine,
+  Download,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  RotateCw,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO, addDays, subDays, isSameDay } from "date-fns";
@@ -57,6 +64,7 @@ import { compareReceiptBeneficiary } from "@/lib/services/receipt-validation";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DiscardReceiptDialog } from "./DiscardReceiptDialog";
+import { buildFinanceIncomeReport } from "@/lib/finance/income-report.mjs";
 
 import { findNameInSubmission } from "@/lib/form-utils";
 
@@ -255,6 +263,7 @@ export function ReconciliationWorkbench({
   discardedItems = [],
   onRefresh,
   isFormSelected = false,
+  selectedFormTitle = "",
   selectedBankAccount = null,
   selectedDestinationAccount = null,
 }) {
@@ -271,6 +280,10 @@ export function ReconciliationWorkbench({
   const [pageSize, setPageSize] = useState("25");
   const [viewingReceipt, setViewingReceipt] = useState(null);
   const [isLoadingImage, setIsLoadingImage] = useState(false);
+  const [receiptZoom, setReceiptZoom] = useState(1);
+  const [receiptRotation, setReceiptRotation] = useState(0);
+  const [isExportingReport, setIsExportingReport] = useState(false);
+  const [showLedger, setShowLedger] = useState(false);
   const isMountedRef = useRef(true);
   const receiptRequestIdRef = useRef(0);
   
@@ -360,6 +373,8 @@ export function ReconciliationWorkbench({
           aiData: payment.extracted_data,
           kind: getReceiptKind(payment.receipt_path),
         });
+        setReceiptZoom(1);
+        setReceiptRotation(0);
         return;
       }
       toast.error("No se pudo abrir la foto");
@@ -371,6 +386,213 @@ export function ReconciliationWorkbench({
       if (isMountedRef.current && requestId === receiptRequestIdRef.current) {
         setIsLoadingImage(false);
       }
+    }
+  };
+
+  const formatExcelDate = (value) => {
+    if (!value) return null;
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+
+  const getExcelColumnLetter = (columnNumber) => {
+    let n = columnNumber;
+    let letter = "";
+    while (n > 0) {
+      const rem = (n - 1) % 26;
+      letter = String.fromCharCode(65 + rem) + letter;
+      n = Math.floor((n - 1) / 26);
+    }
+    return letter;
+  };
+
+  const styleIncomeSheet = (worksheet, lastRow) => {
+    worksheet.mergeCells("A1:G1");
+    worksheet.mergeCells("A2:G2");
+    worksheet.getRow(1).height = 22;
+    worksheet.getRow(2).height = 22;
+    [1, 2].forEach((rowNumber) => {
+      worksheet.getRow(rowNumber).eachCell({ includeEmpty: true }, (cell) => {
+        cell.font = { name: "Book Antiqua", size: 12, bold: true };
+        cell.alignment = { horizontal: "center", vertical: "middle" };
+      });
+    });
+
+    worksheet.getRow(3).eachCell((cell) => {
+      cell.font = { name: "Book Antiqua", size: 11, bold: true };
+      cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF00FDFF" } };
+      cell.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+      cell.border = {
+        top: { style: "thin" },
+        left: { style: "thin" },
+        right: { style: "thin" },
+        bottom: { style: "thin" },
+      };
+    });
+
+    for (let rowNumber = 4; rowNumber <= lastRow; rowNumber += 1) {
+      const row = worksheet.getRow(rowNumber);
+      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        cell.font = { name: "Book Antiqua", size: 11 };
+        cell.alignment = {
+          horizontal: [1, 2, 3, 4, 7, 8].includes(colNumber) ? "center" : "left",
+          vertical: "middle",
+          wrapText: true,
+        };
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          right: { style: "thin" },
+          bottom: { style: "thin" },
+        };
+      });
+      row.getCell(7).numFmt = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ ';
+      row.getCell(8).numFmt = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ ';
+      row.getCell(1).numFmt = '[$-300A]d" de "mmmm" de "yyyy;@';
+    }
+  };
+
+  const handleExportIncomeReport = async () => {
+    if (!isFormSelected || isExportingReport) return;
+    setIsExportingReport(true);
+    try {
+      const report = buildFinanceIncomeReport({
+        formTitle: selectedFormTitle || "Ingresos",
+        bankAccount: selectedBankAccount,
+        submissions,
+      });
+
+      const receiptUrlMap = new Map();
+      const receiptPaths = [...new Set(report.rows.map((row) => row.receiptPath).filter(Boolean))];
+      for (const path of receiptPaths) {
+        const res = await getReceiptSignedUrl(path);
+        if (res?.url) receiptUrlMap.set(path, res.url);
+      }
+
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = "Alianza Puembo";
+      workbook.created = new Date();
+
+      const summary = workbook.addWorksheet("RESUMEN", {
+        views: [{ zoomScale: 115, zoomScaleNormal: 115 }],
+      });
+      summary.columns = [
+        { width: 2 },
+        { width: 4 },
+        { width: 24 },
+        { width: 14 },
+        { width: 36 },
+      ];
+      summary.getCell("B2").value = "IGLESIA ALIANZA PUEMBO";
+      summary.getCell("B3").value = selectedFormTitle || "INGRESOS";
+      summary.getCell("B4").value = new Date();
+      summary.getCell("B4").numFmt = 'd" de "mmmm" de "yyyy';
+      summary.getRow(6).values = [null, null, "CONCEPTOS", "VALORES", "OBSERVACIONES"];
+      const summaryRows = [
+        ["1", "INGRESOS CONFIRMADOS", report.summary.confirmedTotal, "Banco verificado + efectivo + tarjeta"],
+        ["2", "BANCO CONCILIADO", report.summary.bankVerifiedTotal, ""],
+        ["3", "EFECTIVO", report.summary.cashTotal, ""],
+        ["4", "TARJETA", report.summary.cardTotal, ""],
+        ["5", "PENDIENTE DE CONCILIAR", report.summary.pendingTotal, "No suma al total confirmado"],
+        ["", "TOTALES", report.summary.confirmedTotal, ""],
+      ];
+      summaryRows.forEach((row, index) => {
+        const excelRow = summary.getRow(7 + index);
+        excelRow.getCell(2).value = row[0];
+        excelRow.getCell(3).value = row[1];
+        excelRow.getCell(4).value = row[2];
+        excelRow.getCell(5).value = row[3];
+      });
+      for (let rowNumber = 2; rowNumber <= 12; rowNumber += 1) {
+        summary.getRow(rowNumber).eachCell({ includeEmpty: true }, (cell) => {
+          cell.font = { name: "Aptos Narrow", size: 11, bold: rowNumber <= 6 || rowNumber === 12 };
+          cell.alignment = { horizontal: rowNumber === 6 ? "center" : "left", vertical: "middle" };
+          if (rowNumber >= 6) {
+            cell.border = {
+              top: { style: "thin" },
+              left: { style: "thin" },
+              right: { style: "thin" },
+              bottom: { style: "thin" },
+            };
+          }
+        });
+      }
+      ["C6", "D6", "E6"].forEach((addr) => {
+        summary.getCell(addr).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFD9EAD3" } };
+      });
+      ["D7", "D8", "D9", "D10", "D11", "D12"].forEach((addr) => {
+        summary.getCell(addr).numFmt = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ ';
+      });
+
+      const income = workbook.addWorksheet("Inscripciones", {
+        views: [{ zoomScale: 90, zoomScaleNormal: 90, state: "frozen", ySplit: 3 }],
+      });
+      income.columns = [
+        { width: 24 },
+        { width: 14 },
+        { width: 8 },
+        { width: 13 },
+        { width: 34 },
+        { width: 24 },
+        { width: 16 },
+        { width: 13 },
+        { width: 24 },
+        { width: 20 },
+      ];
+      income.getRow(1).values = ["REPORTE DIARIO DE INGRESOS "];
+      income.getRow(2).values = ["IGLESIA ALIANZA PUEMBO"];
+      income.getRow(3).values = [
+        "FECHA",
+        "BANCO",
+        "CUENTA",
+        "NO.CUENTA",
+        "NOMBRE",
+        "CONCEPTO",
+        "TRANSFERENCIA",
+        "EVENTOS",
+        "OBS",
+        "COMPROBANTE",
+      ];
+
+      report.rows.forEach((row) => {
+        const receiptUrl = row.receiptPath ? receiptUrlMap.get(row.receiptPath) : null;
+        const excelRow = income.addRow([
+          formatExcelDate(row.date) || row.date || "",
+          row.bank,
+          row.accountType,
+          row.accountNumber,
+          row.name,
+          row.concept,
+          row.amount || null,
+          row.eventTotal || null,
+          [row.observation, row.reference ? `REF: ${row.reference}` : ""].filter(Boolean).join(" · "),
+          receiptUrl ? { text: "Ver imagen/archivo", hyperlink: receiptUrl } : "",
+        ]);
+        const linkCell = excelRow.getCell(10);
+        if (linkCell.value && typeof linkCell.value === "object") {
+          linkCell.font = { name: "Book Antiqua", size: 11, color: { argb: "FF0563C1" }, underline: true };
+        }
+      });
+      styleIncomeSheet(income, Math.max(4, income.rowCount));
+      income.autoFilter = `A3:${getExcelColumnLetter(10)}3`;
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const slug = (selectedFormTitle || "finanzas").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      a.href = url;
+      a.download = `ingresos-${slug}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Reporte descargado");
+    } catch (error) {
+      console.error("Error exportando reporte financiero:", error);
+      toast.error("No se pudo generar el Excel");
+    } finally {
+      setIsExportingReport(false);
     }
   };
 
@@ -684,9 +906,9 @@ export function ReconciliationWorkbench({
   );
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-8">
       {/* 1. BANK LEDGER */}
-      <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
+      <Card className="order-2 border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
         <CardHeader className="p-6 md:p-8 bg-gray-900 text-white space-y-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 overflow-hidden">
             <div className="flex items-center gap-4 shrink-0">
@@ -704,6 +926,15 @@ export function ReconciliationWorkbench({
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowLedger((prev) => !prev)}
+                className="h-8 rounded-full px-4 text-[8px] font-black uppercase tracking-widest bg-white text-black hover:bg-white/90"
+              >
+                {showLedger ? "Ocultar movimientos" : "Abrir movimientos"}
+              </Button>
               <div className="flex items-center gap-1 bg-white/5 p-1 rounded-full border border-white/10 shrink-0">
                 {['all', 'available', 'reconciled'].map(s => (
                   <Button key={s} variant="ghost" size="sm" className={cn("h-7 rounded-full px-3 text-[8px] font-black uppercase tracking-widest transition-all", bankStatusFilter === s ? "bg-white text-black hover:bg-white" : "text-gray-400 hover:text-white")} onClick={() => setBankStatusFilter(s)}>{s === 'all' ? 'Todos' : s === 'available' ? 'Libres' : 'Listos'}</Button>
@@ -727,7 +958,7 @@ export function ReconciliationWorkbench({
             ))}
           </div>
         </CardHeader>
-        <div className="max-h-[450px] overflow-y-auto scrollbar-none bg-gray-50/30">
+        {showLedger && <div className="max-h-[450px] overflow-y-auto scrollbar-none bg-gray-50/30">
           <Table>
             <TableHeader className="bg-gray-50/80 sticky top-0 z-10 backdrop-blur-md shadow-sm">
               <TableRow className="border-b border-gray-100">
@@ -751,19 +982,40 @@ export function ReconciliationWorkbench({
             </TableBody>
           </Table>
           {filteredAndSortedBank.length === 0 && <div className="py-20 text-center text-gray-400 italic text-xs">No se encontraron movimientos en el pool bancario.</div>}
-        </div>
+        </div>}
       </Card>
 
       {/* 2. AUDIT SECTION */}
       {isFormSelected ? (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="order-1 w-full space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-2">
             <TabsList className="bg-gray-100/80 p-1 rounded-full h-auto self-start border border-gray-200/50 backdrop-blur-sm">
               <TabsTrigger value="pending" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Abonos Pendientes <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-amber-100 text-amber-700 border-none">{pendingItems.length}</Badge></TabsTrigger>
               <TabsTrigger value="verified" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Conciliados <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-emerald-100 text-emerald-700 border-none">{verifiedItems.length}</Badge></TabsTrigger>
               <TabsTrigger value="discarded" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Descartados <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-rose-100 text-rose-700 border-none">{discardedItems.length}</Badge></TabsTrigger>
             </TabsList>
-            <div className="relative group w-full sm:w-80"><Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 transition-colors group-focus-within:text-[var(--puembo-green)]" /><Input placeholder="Filtrar por nombre..." className="pl-11 h-11 rounded-full bg-white border-gray-100 text-xs shadow-sm focus:ring-4 focus:ring-green-500/5 transition-all" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleExportIncomeReport}
+                disabled={isExportingReport || submissions.length === 0}
+                className="h-11 rounded-full px-5 text-[10px] font-black uppercase tracking-widest gap-2 border-gray-200"
+              >
+                {isExportingReport ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                Descargar Excel
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowLedger((prev) => !prev)}
+                className="h-11 rounded-full px-5 text-[10px] font-black uppercase tracking-widest gap-2 border-gray-200"
+              >
+                <Banknote className="w-3.5 h-3.5" />
+                Movimientos
+              </Button>
+              <div className="relative group w-full sm:w-80"><Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 transition-colors group-focus-within:text-[var(--puembo-green)]" /><Input placeholder="Filtrar por nombre..." className="pl-11 h-11 rounded-full bg-white border-gray-100 text-xs shadow-sm focus:ring-4 focus:ring-green-500/5 transition-all" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
+            </div>
           </div>
           <TabsContent value="pending" className="outline-none space-y-4">
             <AnimatePresence mode="popLayout">
@@ -807,7 +1059,7 @@ export function ReconciliationWorkbench({
           </TabsContent>
         </Tabs>
       ) : (
-        <div className="py-32 text-center bg-white rounded-[4rem] border-2 border-dashed border-gray-50 shadow-inner flex flex-col items-center justify-center"><Database className="w-14 h-14 text-gray-200 mb-6" /><h4 className="text-2xl font-serif font-bold text-gray-400">Paso 2: Auditar Actividad</h4><p className="text-gray-300 text-[10px] uppercase tracking-[0.3em] font-black mt-3">Selecciona un formulario financiero arriba para comenzar</p></div>
+        <div className="order-1 py-32 text-center bg-white rounded-[4rem] border-2 border-dashed border-gray-50 shadow-inner flex flex-col items-center justify-center"><Database className="w-14 h-14 text-gray-200 mb-6" /><h4 className="text-2xl font-serif font-bold text-gray-400">Bandeja de conciliación</h4><p className="text-gray-300 text-[10px] uppercase tracking-[0.3em] font-black mt-3">Selecciona un formulario financiero arriba para revisar pendientes</p></div>
       )}
 
       {/* 3. MANUAL AUDIT MODAL */}
@@ -964,31 +1216,50 @@ export function ReconciliationWorkbench({
 
       {/* 4. RECEIPT VIEWER */}
       <Dialog open={!!viewingReceipt} onOpenChange={() => setViewingReceipt(null)}>
-        <DialogContent className="max-w-4xl w-[95vw] rounded-[2rem] p-6 md:p-8 overflow-hidden border-none shadow-2xl bg-black/95 flex flex-col h-[90vh]">
+        <DialogContent className="max-w-none w-[98vw] h-[96vh] rounded-[1.5rem] p-0 overflow-hidden border-none shadow-2xl bg-black/95 flex flex-col" hideClose>
           <DialogTitle className="sr-only">Visor de Comprobante</DialogTitle>
-          <div className="absolute top-6 right-6 z-50"><Button variant="ghost" size="icon" onClick={() => setViewingReceipt(null)} className="rounded-full bg-white/10 hover:bg-white/20 text-white h-12 w-12 transition-all"><X className="w-6 h-6" /></Button></div>
-          <div className="flex flex-col flex-1 overflow-hidden">
-            {viewingReceipt && (
-              <div className="space-y-6 w-full text-center flex flex-col h-full">
-                <div className="space-y-2 shrink-0 pt-8">
-                  <h4 className="text-white font-serif font-bold text-2xl md:text-3xl">{viewingReceipt.title}</h4>
-                  <div className="flex flex-wrap justify-center gap-3 mt-2">
-                    <Badge variant="secondary" className="bg-white/10 text-white border-none uppercase tracking-[0.2em] text-[9px] font-black px-4 py-1.5 rounded-full backdrop-blur-md">Beneficiario: {viewingReceipt.aiData?.beneficiary_name || 'Iglesia Alianza Puembo'}</Badge>
-                    <Badge variant="secondary" className="bg-white/10 text-white border-none uppercase tracking-[0.2em] text-[9px] font-black px-4 py-1.5 rounded-full backdrop-blur-md font-mono">Cuenta: {viewingReceipt.aiData?.beneficiary_account || '***'}</Badge>
-                  </div>
+          {viewingReceipt && (
+            <>
+              <div className="h-16 px-4 md:px-6 border-b border-white/10 bg-black/80 text-white flex items-center justify-between gap-4 shrink-0">
+                <div className="min-w-0">
+                  <h4 className="font-serif font-bold text-lg md:text-xl truncate">{viewingReceipt.title}</h4>
+                  <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-white/45 truncate">
+                    {viewingReceipt.aiData?.date || "Sin fecha"} · ${Number(viewingReceipt.aiData?.amount || 0).toFixed(2)} · {viewingReceipt.aiData?.reference || "Sin referencia"}
+                  </p>
                 </div>
-                <div className="flex-1 min-h-0 w-full relative flex items-center justify-center p-4 bg-white/5 rounded-3xl border border-white/10">
+                <div className="flex items-center gap-2 shrink-0">
+                  {viewingReceipt.kind === "image" && (
+                    <>
+                      <Button variant="ghost" size="icon" onClick={() => setReceiptZoom((value) => Math.max(0.5, Number((value - 0.25).toFixed(2))))} className="rounded-full bg-white/10 hover:bg-white/20 text-white h-10 w-10"><ZoomOut className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => setReceiptZoom((value) => Math.min(4, Number((value + 0.25).toFixed(2))))} className="rounded-full bg-white/10 hover:bg-white/20 text-white h-10 w-10"><ZoomIn className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => { setReceiptZoom(1); setReceiptRotation(0); }} className="rounded-full bg-white/10 hover:bg-white/20 text-white h-10 w-10"><RotateCcw className="w-4 h-4" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => setReceiptRotation((value) => (value + 90) % 360)} className="rounded-full bg-white/10 hover:bg-white/20 text-white h-10 w-10"><RotateCw className="w-4 h-4" /></Button>
+                    </>
+                  )}
+                  <Button variant="ghost" size="icon" asChild className="rounded-full bg-white/10 hover:bg-white/20 text-white h-10 w-10">
+                    <a href={viewingReceipt.url} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4" /></a>
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => setViewingReceipt(null)} className="rounded-full bg-white/10 hover:bg-white/20 text-white h-10 w-10"><X className="w-5 h-5" /></Button>
+                </div>
+              </div>
+
+              <div className="flex-1 min-h-0 w-full overflow-auto bg-neutral-950">
+                <div className="min-h-full min-w-full flex items-center justify-center p-4 md:p-8">
                   {viewingReceipt.kind === "pdf" ? (
                     <iframe
                       src={viewingReceipt.url}
                       title="Comprobante bancario"
-                      className="w-full h-full rounded-lg bg-white"
+                      className="w-full h-[calc(96vh-6rem)] rounded-lg bg-white"
                     />
                   ) : viewingReceipt.kind === "image" ? (
                     <img
                       src={viewingReceipt.url}
                       alt="Recibo bancario"
-                      className="max-w-full max-h-full object-contain shadow-2xl rounded-lg"
+                      className="max-w-none object-contain shadow-2xl rounded-lg transition-transform duration-200 origin-center"
+                      style={{
+                        width: `${receiptZoom * 100}%`,
+                        transform: `rotate(${receiptRotation}deg)`,
+                      }}
                     />
                   ) : (
                     <div className="text-center space-y-4">
@@ -1007,8 +1278,8 @@ export function ReconciliationWorkbench({
                   )}
                 </div>
               </div>
-            )}
-          </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
