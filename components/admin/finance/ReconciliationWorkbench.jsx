@@ -539,7 +539,7 @@ export function ReconciliationWorkbench({
         { width: 24 },
         { width: 20 },
       ];
-      income.getRow(1).values = ["REPORTE DIARIO DE INGRESOS "];
+      income.getRow(1).values = ["REPORTE DE INGRESOS "];
       income.getRow(2).values = ["IGLESIA ALIANZA PUEMBO"];
       income.getRow(3).values = [
         "FECHA",
@@ -988,33 +988,38 @@ export function ReconciliationWorkbench({
       {/* 2. AUDIT SECTION */}
       {isFormSelected ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="order-1 w-full space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 px-2">
-            <TabsList className="bg-gray-100/80 p-1 rounded-full h-auto self-start border border-gray-200/50 backdrop-blur-sm">
-              <TabsTrigger value="pending" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Abonos Pendientes <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-amber-100 text-amber-700 border-none">{pendingItems.length}</Badge></TabsTrigger>
-              <TabsTrigger value="verified" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Conciliados <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-emerald-100 text-emerald-700 border-none">{verifiedItems.length}</Badge></TabsTrigger>
-              <TabsTrigger value="discarded" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Descartados <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-rose-100 text-rose-700 border-none">{discardedItems.length}</Badge></TabsTrigger>
-            </TabsList>
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleExportIncomeReport}
-                disabled={isExportingReport || submissions.length === 0}
-                className="h-11 rounded-full px-5 text-[10px] font-black uppercase tracking-widest gap-2 border-gray-200"
-              >
-                {isExportingReport ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-                Descargar Excel
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowLedger((prev) => !prev)}
-                className="h-11 rounded-full px-5 text-[10px] font-black uppercase tracking-widest gap-2 border-gray-200"
-              >
-                <Banknote className="w-3.5 h-3.5" />
-                Movimientos
-              </Button>
-              <div className="relative group w-full sm:w-80"><Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 transition-colors group-focus-within:text-[var(--puembo-green)]" /><Input placeholder="Filtrar por nombre..." className="pl-11 h-11 rounded-full bg-white border-gray-100 text-xs shadow-sm focus:ring-4 focus:ring-green-500/5 transition-all" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} /></div>
+          <div className="flex flex-col gap-4 px-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+              <TabsList className="bg-gray-100/80 p-1 rounded-full h-auto self-start border border-gray-200/50 backdrop-blur-sm">
+                <TabsTrigger value="pending" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Abonos Pendientes <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-amber-100 text-amber-700 border-none">{pendingItems.length}</Badge></TabsTrigger>
+                <TabsTrigger value="verified" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Conciliados <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-emerald-100 text-emerald-700 border-none">{verifiedItems.length}</Badge></TabsTrigger>
+                <TabsTrigger value="discarded" className="rounded-full py-2 px-8 font-bold text-[10px] uppercase tracking-widest gap-2">Descartados <Badge variant="secondary" className="rounded-full px-2 py-0 h-4 text-[9px] bg-rose-100 text-rose-700 border-none">{discardedItems.length}</Badge></TabsTrigger>
+              </TabsList>
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleExportIncomeReport}
+                  disabled={isExportingReport || submissions.length === 0}
+                  className="h-11 rounded-full px-5 text-[10px] font-black uppercase tracking-widest gap-2 border-gray-200"
+                >
+                  {isExportingReport ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                  Descargar Excel
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowLedger((prev) => !prev)}
+                  className="h-11 rounded-full px-5 text-[10px] font-black uppercase tracking-widest gap-2 border-gray-200"
+                >
+                  <Banknote className="w-3.5 h-3.5" />
+                  Movimientos
+                </Button>
+              </div>
+            </div>
+            <div className="relative group w-full sm:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 transition-colors group-focus-within:text-[var(--puembo-green)]" />
+              <Input placeholder="Filtrar por nombre..." className="pl-11 h-11 rounded-full bg-white border-gray-100 text-xs shadow-sm focus:ring-4 focus:ring-green-500/5 transition-all" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
           <TabsContent value="pending" className="outline-none space-y-4">
