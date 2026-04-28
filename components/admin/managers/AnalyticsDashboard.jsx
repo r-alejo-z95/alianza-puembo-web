@@ -36,6 +36,7 @@ import {
   ChevronDown,
   DollarSign,
   Loader2,
+  ShieldAlert,
 } from "lucide-react";
 import {
   Select,
@@ -44,7 +45,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { subDays, subHours, format } from "date-fns";
@@ -660,7 +662,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
           className="max-w-md rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden bg-white"
           overlayClassName="bg-black/60 backdrop-blur-md"
         >
-          <DialogTitle className="sr-only">Exportando Excel</DialogTitle>
+          <DialogTitle className="sr-only">Exportando reporte de analíticas</DialogTitle>
           <div className="p-6 md:p-7 space-y-5">
             <div className="flex items-start gap-4">
               <div className="w-14 h-14 rounded-2xl bg-[var(--puembo-green)]/10 flex items-center justify-center shrink-0 border border-[var(--puembo-green)]/10">
@@ -671,55 +673,34 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                   Descarga en progreso
                 </p>
                 <h2 className="text-2xl font-serif font-bold text-gray-900 leading-tight mt-1">
-                  Exportando Excel
+                  Exportando reporte de analíticas
                 </h2>
-                <p className="text-sm text-gray-500 mt-2">
-                  El panel queda bloqueado hasta completar el archivo.
-                </p>
+                <DialogDescription className="text-sm text-gray-500 mt-2">
+                  Estamos preparando el Excel de respuestas y firmando los archivos.
+                </DialogDescription>
               </div>
             </div>
 
-            <div className="rounded-[1.5rem] border border-gray-100 bg-gray-50 p-5">
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  <p className="text-[9px] font-black uppercase tracking-[0.35em] text-gray-400">
-                    Progreso
-                  </p>
-                  <p className="text-4xl font-serif font-bold leading-none mt-2 text-gray-900">
-                    {reportProgress}%
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[9px] font-black uppercase tracking-[0.35em] text-gray-400">
-                    Registros
-                  </p>
-                  <p className="text-lg font-bold mt-1 text-gray-900">
-                    {reportRecords}
-                  </p>
-                </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Progreso
+                </span>
+                <span className="text-sm font-black text-[var(--puembo-green)]">
+                  {reportProgress}%
+                </span>
               </div>
-              <div className="mt-5 h-2 rounded-full bg-white overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-[var(--puembo-green)] transition-all duration-300"
-                  style={{ width: `${reportProgress}%` }}
-                />
-              </div>
+              <Progress value={reportProgress} className="h-3" />
+              <p className="text-[10px] text-gray-400 font-medium">
+                {reportRecords} registros incluidos en el reporte.
+              </p>
             </div>
 
-            <div className="rounded-[1.5rem] border border-gray-100 p-4 md:p-5 bg-white">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-white shrink-0">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">
-                    Formulario
-                  </p>
-                  <p className="text-sm font-bold text-gray-900 truncate">
-                    {form.title}
-                  </p>
-                </div>
-              </div>
+            <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex items-start gap-3 text-left">
+              <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-[10px] leading-relaxed text-amber-700 font-medium">
+                No cierres ni recargues esta ventana hasta que el archivo termine de descargarse.
+              </p>
             </div>
           </div>
         </DialogContent>

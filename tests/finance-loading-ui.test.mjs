@@ -24,3 +24,16 @@ test("finance manager surfaces loading state when switching forms", () => {
   assert.match(manager, /Cargando formulario financiero/);
   assert.match(manager, /isLoadingContext=\{isLoadingContext\}/);
 });
+
+test("analytics export uses the same blocking progress dialog pattern as finance export", () => {
+  const analytics = readFileSync(
+    new URL("../components/admin/managers/AnalyticsDashboard.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(analytics, /Exportando reporte de analíticas/);
+  assert.match(analytics, /Estamos preparando el Excel de respuestas y firmando los archivos/);
+  assert.match(analytics, /Progress value=\{reportProgress\}/);
+  assert.match(analytics, /No cierres ni recargues esta ventana/);
+  assert.match(analytics, /ShieldAlert/);
+});
