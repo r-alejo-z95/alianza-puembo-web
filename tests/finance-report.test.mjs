@@ -75,12 +75,85 @@ test("buildFinanceIncomeReport totals confirmed revenue and preserves receipt li
 
   assert.deepEqual(report.rows.map((row) => row.observation), [
     "EFECTIVO",
-    "TARJETA",
     "CONCILIADO",
     "PENDIENTE",
+    "TARJETA",
   ]);
-  assert.equal(report.rows[2].bank, "Banco del Pacifico");
-  assert.equal(report.rows[2].name, "Juan Perez");
-  assert.equal(report.rows[2].reference, "NUT123");
-  assert.equal(report.rows[2].receiptPath, "finance_receipts/bank.png");
+  assert.equal(report.rows[1].bank, "Pichincha");
+  assert.equal(report.rows[1].name, "Juan Perez");
+  assert.equal(report.rows[1].reference, "NUT123");
+  assert.equal(report.rows[1].receiptPath, "finance_receipts/bank.png");
+});
+
+test("buildFinanceIncomeReport resolves receiver account from each reconciled bank movement and sorts by registrant", () => {
+  const report = buildFinanceIncomeReport({
+    formTitle: "Retiro",
+    bankAccount: {
+      id: "fallback-account",
+      bank_name: "Banco Fallback",
+      account_type: "Corriente",
+      account_number: "000",
+    },
+    bankAccounts: [
+      {
+        id: "acc-ahorros",
+        bank_name: "Banco Pichincha",
+        account_type: "Ahorros",
+        account_number: "111222333",
+      },
+      {
+        id: "acc-corriente",
+        bank_name: "Banco Guayaquil",
+        account_type: "Corriente",
+        account_number: "444555666",
+      },
+    ],
+    bankTransactions: [
+      { id: "tx-2", bank_account_id: "acc-corriente" },
+      { id: "tx-1", bank_account_id: "acc-ahorros" },
+    ],
+    submissions: [
+      {
+        created_at: "2026-03-02T10:00:00.000Z",
+        data: { "Nombre y Apellido": "Zoe Mora" },
+        form_submission_payments: [
+          {
+            receipt_path: "finance_receipts/zoe.png",
+            status: "verified",
+            bank_transaction_id: "tx-2",
+            extracted_data: {
+              amount: 75,
+              date: "2026-03-04",
+              sender_name: "Empresa Zoe",
+            },
+          },
+        ],
+      },
+      {
+        created_at: "2026-03-01T10:00:00.000Z",
+        data: { "Nombre y Apellido": "Ana Vera" },
+        form_submission_payments: [
+          {
+            receipt_path: "finance_receipts/ana.png",
+            status: "verified",
+            bank_transaction_id: "tx-1",
+            extracted_data: {
+              amount: 50,
+              date: "2026-03-03",
+              sender_name: "Papa Ana",
+            },
+          },
+        ],
+      },
+    ],
+  });
+
+  assert.deepEqual(report.rows.map((row) => row.registrantName), ["Ana Vera", "Zoe Mora"]);
+  assert.equal(report.rows[0].payerName, "Papa Ana");
+  assert.equal(report.rows[0].bank, "Banco Pichincha");
+  assert.equal(report.rows[0].accountType, "Ahorros");
+  assert.equal(report.rows[0].accountNumber, "111222333");
+  assert.equal(report.rows[1].bank, "Banco Guayaquil");
+  assert.equal(report.rows[1].accountType, "Corriente");
+  assert.equal(report.rows[1].accountNumber, "444555666");
 });

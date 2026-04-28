@@ -49,6 +49,7 @@ import { ReconciliationWorkbench } from "./ReconciliationWorkbench";
 
 export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
   const [bankTransactions, setBankTransactions] = useState([]);
+  const [allBankTransactions, setAllBankTransactions] = useState([]);
   const [isUploadingBank, setIsUploadingBank] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState("");
@@ -92,6 +93,10 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
   }, [selectedBankAccountId]);
 
   useEffect(() => {
+    loadAllBankLedger();
+  }, []);
+
+  useEffect(() => {
     if (!selectedBankAccountId && sortedBankAccounts.length > 0) {
       setSelectedBankAccountId(sortedBankAccounts[0].id);
     }
@@ -110,6 +115,11 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
     if (res.transactions) setBankTransactions(res.transactions);
   };
 
+  const loadAllBankLedger = async () => {
+    const res = await getGlobalTransactions(null);
+    if (res.transactions) setAllBankTransactions(res.transactions);
+  };
+
   const loadFormData = async () => {
     if (!selectedFormId) return;
     setIsLoadingContext(true);
@@ -117,7 +127,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
       const res = await analyzeFormReceipts(selectedFormId);
       if (res.submissions) setSubmissions(res.submissions);
       setDiscardedItems(res.discardedItems || []);
-      await loadGlobalLedger(selectedBankAccountId);
+      await Promise.all([loadGlobalLedger(selectedBankAccountId), loadAllBankLedger()]);
     } catch (e) { console.error(e); } finally { setIsLoadingContext(false); }
   };
 
@@ -173,7 +183,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
       await finalizeBankReport();
       
       toast.success("Historial actualizado correctamente");
-      await loadGlobalLedger(selectedBankAccountId);
+      await Promise.all([loadGlobalLedger(selectedBankAccountId), loadAllBankLedger()]);
       setBankFile(null);
       
       // Small delay to let the user see 100%
@@ -334,6 +344,8 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
         selectedFormId={selectedFormId}
         selectedFormTitle={selectedForm?.title || ""}
         selectedBankAccount={selectedBankAccount}
+        bankAccounts={sortedBankAccounts}
+        bankTransactionsForExport={allBankTransactions}
         selectedDestinationAccount={selectedDestinationAccount}
       />
       </div>

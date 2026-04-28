@@ -50,6 +50,10 @@ import Link from "next/link";
 import { subDays, subHours, format } from "date-fns";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 import { getFinanceDisplayState, getRevenueContribution } from "@/lib/finance/status";
+import {
+  buildFinancialAnalyticsPaymentColumns,
+  getFinancialAnalyticsPaymentFilePaths,
+} from "@/lib/finance/analytics-export.mjs";
 import { cn } from "@/lib/utils.ts";
 import { getFileSignedUrl } from "@/lib/actions";
 import { findNameInSubmission } from "@/lib/form-utils";
@@ -458,8 +462,9 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
       const dataFields = historicalFields.filter(
         (f) => f.type !== "section_header" && f.type !== "separator" && f.type !== "section"
       );
-      const headers = ["Timestamp", ...dataFields.map((f) => getFieldHeaderLabel(f))];
+      const baseHeaders = ["Timestamp", ...dataFields.map((f) => getFieldHeaderLabel(f))];
       const exportRows = filteredSubmissions.map((submission) => ({
+        submissionId: submission.id,
         timestamp: formatInEcuador(submission.created_at, "dd/MM/yyyy HH:mm"),
         values: dataFields.map((field) => getSubmissionValueForField(submission, field)),
       }));
@@ -472,6 +477,9 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
           if (path) filePaths.add(path);
         });
       });
+      if (form.is_financial) {
+        getFinancialAnalyticsPaymentFilePaths(filteredSubmissions).forEach((path) => filePaths.add(path));
+      }
 
       const fileUrlMap = new Map();
       const filePathList = Array.from(filePaths);
@@ -498,6 +506,11 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
         updateProgress();
       }
 
+      const financialPaymentColumns = form.is_financial
+        ? buildFinancialAnalyticsPaymentColumns(filteredSubmissions, fileUrlMap)
+        : { headers: [], valuesBySubmissionId: new Map() };
+      const headers = [...baseHeaders, ...financialPaymentColumns.headers];
+
       const columnWidths = headers.map((header, colIndex) => {
         const values = [header];
 
@@ -510,9 +523,12 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
         }
 
         exportRows.forEach((row) => {
-          const cellValue = colIndex === 0
-            ? row.timestamp
-            : getExportCellValue(row.values[colIndex - 1], fileUrlMap);
+          const rowValues = [
+            row.timestamp,
+            ...row.values.map((value) => getExportCellValue(value, fileUrlMap)),
+            ...(financialPaymentColumns.valuesBySubmissionId.get(row.submissionId) || []),
+          ];
+          const cellValue = rowValues[colIndex];
           values.push(cellValue);
         });
 
@@ -590,6 +606,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
         const excelRow = worksheet.addRow([
           row.timestamp,
           ...row.values.map((value) => getExportCellValue(value, fileUrlMap)),
+          ...(financialPaymentColumns.valuesBySubmissionId.get(row.submissionId) || []),
         ]);
 
         excelRow.eachCell((cell, colNumber) => {
@@ -599,7 +616,7 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
               underline: true,
             };
           }
-          cell.alignment = { vertical: "top", wrapText: false };
+          cell.alignment = { vertical: "top", wrapText: form.is_financial && colNumber > baseHeaders.length };
         });
         completedSteps += 1;
         updateProgress();

@@ -265,6 +265,8 @@ export function ReconciliationWorkbench({
   isFormSelected = false,
   selectedFormTitle = "",
   selectedBankAccount = null,
+  bankAccounts = [],
+  bankTransactionsForExport = [],
   selectedDestinationAccount = null,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
@@ -407,8 +409,8 @@ export function ReconciliationWorkbench({
   };
 
   const styleIncomeSheet = (worksheet, lastRow) => {
-    worksheet.mergeCells("A1:G1");
-    worksheet.mergeCells("A2:G2");
+    worksheet.mergeCells("A1:K1");
+    worksheet.mergeCells("A2:K2");
     worksheet.getRow(1).height = 22;
     worksheet.getRow(2).height = 22;
     [1, 2].forEach((rowNumber) => {
@@ -435,7 +437,7 @@ export function ReconciliationWorkbench({
       row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
         cell.font = { name: "Book Antiqua", size: 11 };
         cell.alignment = {
-          horizontal: [1, 2, 3, 4, 7, 8].includes(colNumber) ? "center" : "left",
+          horizontal: [1, 2, 3, 4, 8, 9].includes(colNumber) ? "center" : "left",
           vertical: "middle",
           wrapText: true,
         };
@@ -446,8 +448,8 @@ export function ReconciliationWorkbench({
           bottom: { style: "thin" },
         };
       });
-      row.getCell(7).numFmt = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ ';
       row.getCell(8).numFmt = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ ';
+      row.getCell(9).numFmt = '_ * #,##0.00_ ;_ * -#,##0.00_ ;_ * "-"??_ ;_ @_ ';
       row.getCell(1).numFmt = '[$-300A]d" de "mmmm" de "yyyy;@';
     }
   };
@@ -459,6 +461,8 @@ export function ReconciliationWorkbench({
       const report = buildFinanceIncomeReport({
         formTitle: selectedFormTitle || "Ingresos",
         bankAccount: selectedBankAccount,
+        bankAccounts,
+        bankTransactions: bankTransactionsForExport.length > 0 ? bankTransactionsForExport : bankTransactions,
         submissions,
       });
 
@@ -530,9 +534,10 @@ export function ReconciliationWorkbench({
       income.columns = [
         { width: 24 },
         { width: 14 },
-        { width: 8 },
+        { width: 12 },
         { width: 13 },
-        { width: 34 },
+        { width: 30 },
+        { width: 28 },
         { width: 24 },
         { width: 16 },
         { width: 13 },
@@ -546,7 +551,8 @@ export function ReconciliationWorkbench({
         "BANCO",
         "CUENTA",
         "NO.CUENTA",
-        "NOMBRE",
+        "INSCRITO",
+        "PAGO SEGUN COMPROBANTE",
         "CONCEPTO",
         "TRANSFERENCIA",
         "EVENTOS",
@@ -561,20 +567,21 @@ export function ReconciliationWorkbench({
           row.bank,
           row.accountType,
           row.accountNumber,
-          row.name,
+          row.registrantName,
+          row.payerName,
           row.concept,
           row.amount || null,
           row.eventTotal || null,
           [row.observation, row.reference ? `REF: ${row.reference}` : ""].filter(Boolean).join(" · "),
           receiptUrl ? { text: "Ver imagen/archivo", hyperlink: receiptUrl } : "",
         ]);
-        const linkCell = excelRow.getCell(10);
+        const linkCell = excelRow.getCell(11);
         if (linkCell.value && typeof linkCell.value === "object") {
           linkCell.font = { name: "Book Antiqua", size: 11, color: { argb: "FF0563C1" }, underline: true };
         }
       });
       styleIncomeSheet(income, Math.max(4, income.rowCount));
-      income.autoFilter = `A3:${getExcelColumnLetter(10)}3`;
+      income.autoFilter = `A3:${getExcelColumnLetter(11)}3`;
 
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], {

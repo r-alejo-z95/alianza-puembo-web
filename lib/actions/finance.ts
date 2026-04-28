@@ -199,6 +199,33 @@ export async function getGlobalTransactions(selectedBankAccountId?: string | nul
 
   if (txError) return { error: txError.message };
 
+  const reportAccountById = new Map<string, string>();
+  const transactionReportIds = Array.from(new Set((transactions || []).map((tx: any) => tx.report_id).filter(Boolean)));
+
+  if (transactionReportIds.length > 0) {
+    const accountColumns = ["bank_account_id", "account_id"];
+    for (const column of accountColumns) {
+      const { data: reports, error } = await supabase
+        .from("bank_reports")
+        .select(`id, ${column}`)
+        .in("id", transactionReportIds);
+
+      if (!error) {
+        (reports || []).forEach((report: any) => {
+          if (report?.id && report?.[column]) {
+            reportAccountById.set(report.id, report[column]);
+          }
+        });
+        continue;
+      }
+
+      const message = String(error.message || "").toLowerCase();
+      if (!message.includes("column") && !message.includes("does not exist") && !message.includes("unknown")) {
+        return { error: error.message };
+      }
+    }
+  }
+
   // 2. Get all reconciled IDs across ALL payments in the database
   const { data: reconciled, error: recError } = await supabase
     .from("form_submission_payments")
@@ -209,6 +236,7 @@ export async function getGlobalTransactions(selectedBankAccountId?: string | nul
 
   const enhancedTransactions = transactions.map(tx => ({
     ...tx,
+    bank_account_id: reportAccountById.get(tx.report_id) || tx.bank_account_id || tx.account_id || null,
     is_reconciled: reconciledIds.has(tx.id)
   }));
 
