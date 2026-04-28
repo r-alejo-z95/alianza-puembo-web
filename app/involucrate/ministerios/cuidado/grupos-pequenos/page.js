@@ -21,7 +21,7 @@ export default function GruposPequenos() {
     imageAlt: "Personas en un grupo pequeño",
     imagePosition: "right",
     buttonText: "Encuentra un Grupo Pequeño",
-    buttonLink: "https://forms.office.com/Pages/ResponsePage.aspx?id=TmWoelp7PUyMjKoX21uYwVMTAcOtIU5Nr5xM06Zvtd9UNURNTktFVkUwNzY5NDk4RkxNUEwxTUJBSS4u",
+    buttonLink: "https://www.alianzapuembo.org/formularios/formulario-de-inscripcion-para-gp",
     buttonVariant: "green",
   };
 
