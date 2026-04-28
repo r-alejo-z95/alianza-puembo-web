@@ -123,6 +123,8 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
   const loadFormData = async () => {
     if (!selectedFormId) return;
     setIsLoadingContext(true);
+    setSubmissions([]);
+    setDiscardedItems([]);
     try {
       const res = await analyzeFormReceipts(selectedFormId);
       if (res.submissions) setSubmissions(res.submissions);
@@ -275,7 +277,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
 
           <div className="space-y-2">
             <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Formulario a conciliar</span>
-            <Select value={selectedFormId} onValueChange={setSelectedFormId}>
+            <Select value={selectedFormId} onValueChange={setSelectedFormId} disabled={isLoadingContext}>
               <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-gray-50 font-bold text-xs">
                 <SelectValue placeholder="Selecciona un formulario" />
               </SelectTrigger>
@@ -312,7 +314,25 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
           </div>
         </div>
 
-        {selectedFormId && (
+        {isLoadingContext && (
+          <div className="border-t border-gray-100 px-4 md:px-5 py-4 bg-white">
+            <div className="rounded-2xl border border-[var(--puembo-green)]/10 bg-[var(--puembo-green)]/5 p-4 flex items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm border border-[var(--puembo-green)]/10 shrink-0">
+                <Loader2 className="w-5 h-5 text-[var(--puembo-green)] animate-spin" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--puembo-green)]">
+                  Cargando formulario financiero
+                </p>
+                <p className="text-xs text-gray-500 font-medium">
+                  Estamos revisando comprobantes, abonos y movimientos vinculados. Esto puede tardar unos segundos.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedFormId && !isLoadingContext && (
           <div className="border-t border-gray-100 px-4 md:px-5 py-3 grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50/50">
             <div>
               <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Inscritos</span>
@@ -347,6 +367,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
         bankAccounts={sortedBankAccounts}
         bankTransactionsForExport={allBankTransactions}
         selectedDestinationAccount={selectedDestinationAccount}
+        isLoadingContext={isLoadingContext}
       />
       </div>
 

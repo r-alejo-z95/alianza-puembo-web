@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   Table, 
@@ -62,7 +63,7 @@ import { es } from "date-fns/locale";
 import { discardPaymentReceipt, reconcilePayment, getReceiptSignedUrl, updatePaymentReview } from "@/lib/actions/finance";
 import { compareReceiptBeneficiary } from "@/lib/services/receipt-validation";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DiscardReceiptDialog } from "./DiscardReceiptDialog";
 import { buildFinanceIncomeReport } from "@/lib/finance/income-report.mjs";
 
@@ -268,6 +269,7 @@ export function ReconciliationWorkbench({
   bankAccounts = [],
   bankTransactionsForExport = [],
   selectedDestinationAccount = null,
+  isLoadingContext = false,
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("pending");
@@ -285,6 +287,8 @@ export function ReconciliationWorkbench({
   const [receiptZoom, setReceiptZoom] = useState(1);
   const [receiptRotation, setReceiptRotation] = useState(0);
   const [isExportingReport, setIsExportingReport] = useState(false);
+  const [exportProgress, setExportProgress] = useState(0);
+  const [exportRecords, setExportRecords] = useState(0);
   const [showLedger, setShowLedger] = useState(false);
   const isMountedRef = useRef(true);
   const receiptRequestIdRef = useRef(0);
@@ -457,7 +461,13 @@ export function ReconciliationWorkbench({
   const handleExportIncomeReport = async () => {
     if (!isFormSelected || isExportingReport) return;
     setIsExportingReport(true);
+    setExportProgress(4);
+    setExportRecords(submissions.length);
+
+    await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+
     try {
+      setExportProgress(12);
       const report = buildFinanceIncomeReport({
         formTitle: selectedFormTitle || "Ingresos",
         bankAccount: selectedBankAccount,
@@ -468,11 +478,14 @@ export function ReconciliationWorkbench({
 
       const receiptUrlMap = new Map();
       const receiptPaths = [...new Set(report.rows.map((row) => row.receiptPath).filter(Boolean))];
-      for (const path of receiptPaths) {
+      for (let index = 0; index < receiptPaths.length; index += 1) {
+        const path = receiptPaths[index];
         const res = await getReceiptSignedUrl(path);
         if (res?.url) receiptUrlMap.set(path, res.url);
+        setExportProgress(Math.min(62, 18 + Math.round(((index + 1) / Math.max(1, receiptPaths.length)) * 44)));
       }
 
+      setExportProgress(68);
       const workbook = new ExcelJS.Workbook();
       workbook.creator = "Alianza Puembo";
       workbook.created = new Date();
@@ -583,6 +596,7 @@ export function ReconciliationWorkbench({
       styleIncomeSheet(income, Math.max(4, income.rowCount));
       income.autoFilter = `A3:${getExcelColumnLetter(11)}3`;
 
+      setExportProgress(86);
       const buffer = await workbook.xlsx.writeBuffer();
       const blob = new Blob([buffer], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -594,12 +608,17 @@ export function ReconciliationWorkbench({
       a.download = `ingresos-${slug}-${new Date().toISOString().slice(0, 10)}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
+      setExportProgress(100);
       toast.success("Reporte descargado");
     } catch (error) {
       console.error("Error exportando reporte financiero:", error);
       toast.error("No se pudo generar el Excel");
     } finally {
-      setIsExportingReport(false);
+      setTimeout(() => {
+        setIsExportingReport(false);
+        setExportProgress(0);
+        setExportRecords(0);
+      }, 600);
     }
   };
 
@@ -914,6 +933,56 @@ export function ReconciliationWorkbench({
 
   return (
     <div className="flex flex-col gap-8">
+      <Dialog open={isExportingReport} onOpenChange={() => {}}>
+        <DialogContent
+          hideClose
+          className="max-w-md rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden bg-white"
+          overlayClassName="bg-black/60 backdrop-blur-md"
+        >
+          <DialogTitle className="sr-only">Exportando reporte financiero</DialogTitle>
+          <div className="p-6 md:p-7 space-y-5">
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-[var(--puembo-green)]/10 flex items-center justify-center shrink-0 border border-[var(--puembo-green)]/10">
+                <Loader2 className="w-7 h-7 text-[var(--puembo-green)] animate-spin" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.45em] text-gray-400">
+                  Descarga en progreso
+                </p>
+                <h2 className="text-2xl font-serif font-bold text-gray-900 leading-tight mt-1">
+                  Exportando reporte financiero
+                </h2>
+                <DialogDescription className="text-sm text-gray-500 mt-2">
+                  Estamos preparando el Excel de ingresos y firmando los comprobantes.
+                </DialogDescription>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Progreso
+                </span>
+                <span className="text-sm font-black text-[var(--puembo-green)]">
+                  {exportProgress}%
+                </span>
+              </div>
+              <Progress value={exportProgress} className="h-3" />
+              <p className="text-[10px] text-gray-400 font-medium">
+                {exportRecords} inscripciones incluidas en el reporte.
+              </p>
+            </div>
+
+            <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex items-start gap-3 text-left">
+              <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-[10px] leading-relaxed text-amber-700 font-medium">
+                No cierres ni recargues esta ventana hasta que el archivo termine de descargarse.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* 1. BANK LEDGER */}
       <Card className="order-2 border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
         <CardHeader className="p-6 md:p-8 bg-gray-900 text-white space-y-6">
@@ -993,7 +1062,26 @@ export function ReconciliationWorkbench({
       </Card>
 
       {/* 2. AUDIT SECTION */}
-      {isFormSelected ? (
+      {isFormSelected && isLoadingContext ? (
+        <Card className="order-1 border border-gray-100 shadow-xl bg-white rounded-[2rem] overflow-hidden">
+          <div className="p-8 md:p-10 flex flex-col md:flex-row md:items-center gap-5">
+            <div className="w-14 h-14 rounded-2xl bg-[var(--puembo-green)]/10 flex items-center justify-center border border-[var(--puembo-green)]/10">
+              <Loader2 className="w-7 h-7 text-[var(--puembo-green)] animate-spin" />
+            </div>
+            <div className="space-y-2">
+              <p className="text-[9px] font-black uppercase tracking-[0.35em] text-gray-400">
+                Cargando formulario financiero
+              </p>
+              <h3 className="text-2xl font-serif font-bold text-gray-900">
+                Auditando comprobantes y movimientos
+              </h3>
+              <p className="text-sm text-gray-500 max-w-2xl">
+                Estamos preparando los abonos, descartados y conciliaciones para este formulario.
+              </p>
+            </div>
+          </div>
+        </Card>
+      ) : isFormSelected ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="order-1 w-full space-y-8">
           <div className="flex flex-col gap-4 px-2">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
