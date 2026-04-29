@@ -88,35 +88,64 @@ export function NotificationBell({ userId }) {
   useEffect(() => {
     if (!userId) return undefined;
 
+    let isMounted = true;
+    let channel;
+
     fetchNotifications();
 
-    const channel = supabase
-      .channel(`realtime_notifications:${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications" },
-        (payload) => {
-          if (!payload.new.user_id || payload.new.user_id === userId) {
-            setNotifications((prev) => {
-              if (prev.some((notification) => notification.id === payload.new.id)) {
-                return prev;
-              }
+    const {
+      data: { subscription: authSubscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.access_token) {
+        supabase.realtime.setAuth(session.access_token);
+      }
+    });
 
-              return [payload.new, ...prev].slice(0, 15);
-            });
-            setUnreadCount((count) => count + (payload.new.read ? 0 : 1));
-            playNotificationSound(payload.new.id);
+    const subscribeToNotifications = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!isMounted || !session?.access_token) return;
+
+      supabase.realtime.setAuth(session.access_token);
+
+      channel = supabase
+        .channel(`realtime_notifications:${userId}`)
+        .on(
+          "postgres_changes",
+          { event: "INSERT", schema: "public", table: "notifications" },
+          (payload) => {
+            if (!payload.new.user_id || payload.new.user_id === userId) {
+              setNotifications((prev) => {
+                if (prev.some((notification) => notification.id === payload.new.id)) {
+                  return prev;
+                }
+
+                return [payload.new, ...prev].slice(0, 15);
+              });
+              setUnreadCount((count) => count + (payload.new.read ? 0 : 1));
+              playNotificationSound(payload.new.id);
+              fetchNotifications();
+            }
+          },
+        )
+        .subscribe((status) => {
+          if (status === "SUBSCRIBED") {
             fetchNotifications();
           }
-        }
-      )
-      .subscribe((status) => {
-        if (status === "SUBSCRIBED") {
-          fetchNotifications();
-        }
-      });
+        });
+    };
 
-    return () => { supabase.removeChannel(channel); };
+    subscribeToNotifications();
+
+    return () => {
+      isMounted = false;
+      authSubscription.unsubscribe();
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, [userId, supabase, fetchNotifications, playNotificationSound]);
 
   const markAsRead = async (id) => {
