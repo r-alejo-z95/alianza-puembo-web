@@ -268,7 +268,7 @@ export default function RecycleBin({
                         <div className="min-w-0 flex-1">
                           <p className="font-bold text-gray-900 truncate text-base mb-0.5">
                             {type === "submissions" 
-                              ? (item.profiles?.full_name || item.profiles?.email || "Registro operativo")
+                              ? (item.title || item.profiles?.full_name || item.profiles?.email || item.notification_email || "Respuesta archivada")
                               : (item.title ||
                                 item.passage_reference ||
                                 (item.week_number
@@ -338,9 +338,9 @@ export default function RecycleBin({
           <DialogDescription className="text-gray-500 mb-10 text-center text-base leading-relaxed">
             Esta acción es{" "}
             <span className="font-bold text-gray-900">irreversible</span>. Se
-            borrará permanentemente{" "}
+              borrará permanentemente{" "}
             <span className="italic font-medium">
-              "{confirmDelete?.title || "este elemento"}"
+              "{confirmDelete?.title || confirmDelete?.notification_email || "este elemento"}"
             </span>
             .
           </DialogDescription>

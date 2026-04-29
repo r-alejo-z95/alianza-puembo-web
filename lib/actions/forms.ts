@@ -156,6 +156,56 @@ async function getManageableSubmission(submissionId: string) {
   return { supabase, submission, form };
 }
 
+async function getManageableForm(formId: string) {
+  const user = await getSessionUser();
+  if (!user) return { error: "Sesión expirada. Vuelve a iniciar sesión." };
+
+  if (!user.is_super_admin && !user.permissions?.perm_forms) {
+    return { error: "No tienes permisos para gestionar respuestas." };
+  }
+
+  const supabase = createAdminClient();
+  const { data: form, error: formError } = await supabase
+    .from("forms")
+    .select("id, user_id, is_internal, is_archived, form_fields!form_id(*)")
+    .eq("id", formId)
+    .maybeSingle();
+
+  if (formError) {
+    console.error("[getManageableForm] form lookup failed:", formError);
+    return { error: "No se pudo cargar el formulario." };
+  }
+
+  if (!form || form.is_archived) {
+    return { error: "El formulario ya no está disponible." };
+  }
+
+  if (form.is_internal) {
+    return { error: "Esta acción solo aplica a formularios públicos." };
+  }
+
+  if (!canManageSubmissionResponses(user, form)) {
+    return { error: "Solo el creador del formulario o un super admin puede modificar estas respuestas." };
+  }
+
+  return { supabase, form };
+}
+
+async function getSubmissionWithRelations(supabase: any, submissionId: string) {
+  const { data, error } = await supabase
+    .from("form_submissions")
+    .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*)")
+    .eq("id", submissionId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[getSubmissionWithRelations] lookup failed:", error);
+    return null;
+  }
+
+  return data;
+}
+
 export async function updateFormSubmissionResponse({
   submissionId,
   values,
@@ -230,5 +280,92 @@ export async function archiveFormSubmissionResponse(
   } catch (e: any) {
     console.error("[archiveFormSubmissionResponse]", e);
     return { error: e.message ?? "No se pudo eliminar la respuesta." };
+  }
+}
+
+export async function getArchivedFormSubmissionResponses(
+  formId: string,
+): Promise<{ submissions?: any[]; error?: string }> {
+  try {
+    if (!formId) return { error: "Formulario inválido." };
+
+    const context = await getManageableForm(formId);
+    if ("error" in context) return { error: context.error };
+
+    const { supabase } = context;
+    const { data, error } = await supabase
+      .from("form_submissions")
+      .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*)")
+      .eq("form_id", formId)
+      .eq("is_archived", true)
+      .order("archived_at", { ascending: false });
+
+    if (error) throw error;
+
+    return { submissions: data ?? [] };
+  } catch (e: any) {
+    console.error("[getArchivedFormSubmissionResponses]", e);
+    return { error: e.message ?? "No se pudo cargar la papelera." };
+  }
+}
+
+export async function restoreArchivedFormSubmissionResponse(
+  submissionId: string,
+): Promise<{ success?: true; submission?: any; error?: string }> {
+  try {
+    if (!submissionId) return { error: "Respuesta inválida." };
+
+    const context = await getManageableSubmission(submissionId);
+    if ("error" in context) return { error: context.error };
+
+    const { supabase, submission } = context;
+    const { error } = await supabase
+      .from("form_submissions")
+      .update({ is_archived: false, archived_at: null })
+      .eq("id", submissionId)
+      .eq("form_id", (submission as any).form_id);
+
+    if (error) throw error;
+
+    await revalidateFormSubmissions((submission as any).form_id);
+
+    return {
+      success: true,
+      submission: await getSubmissionWithRelations(supabase, submissionId),
+    };
+  } catch (e: any) {
+    console.error("[restoreArchivedFormSubmissionResponse]", e);
+    return { error: e.message ?? "No se pudo restaurar la respuesta." };
+  }
+}
+
+export async function permanentlyDeleteFormSubmissionResponse(
+  submissionId: string,
+): Promise<{ success?: true; error?: string }> {
+  try {
+    if (!submissionId) return { error: "Respuesta inválida." };
+
+    const context = await getManageableSubmission(submissionId);
+    if ("error" in context) return { error: context.error };
+
+    const { supabase, submission } = context;
+    if (!(submission as any).is_archived) {
+      return { error: "Solo puedes eliminar definitivamente respuestas archivadas." };
+    }
+
+    const { error } = await supabase
+      .from("form_submissions")
+      .delete()
+      .eq("id", submissionId)
+      .eq("form_id", (submission as any).form_id);
+
+    if (error) throw error;
+
+    await revalidateFormSubmissions((submission as any).form_id);
+
+    return { success: true };
+  } catch (e: any) {
+    console.error("[permanentlyDeleteFormSubmissionResponse]", e);
+    return { error: e.message ?? "No se pudo eliminar definitivamente la respuesta." };
   }
 }

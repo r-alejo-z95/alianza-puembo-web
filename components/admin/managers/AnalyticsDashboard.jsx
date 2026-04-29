@@ -60,6 +60,9 @@ import { toast } from "sonner";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 import {
   archiveFormSubmissionResponse,
+  getArchivedFormSubmissionResponses,
+  permanentlyDeleteFormSubmissionResponse,
+  restoreArchivedFormSubmissionResponse,
   updateFormSubmissionResponse,
 } from "@/lib/actions/forms";
 import { getFinanceDisplayState, getRevenueContribution } from "@/lib/finance/status";
@@ -80,6 +83,7 @@ import {
   buildEditableSubmissionValues,
   getEditableSubmissionFields,
 } from "@/lib/forms/submission-admin.mjs";
+import RecycleBin from "./RecycleBin";
 
 // ------------------------------------------------------------------
 // FileDisplay — cached signed URL + modal viewer
@@ -346,12 +350,19 @@ export default function AnalyticsDashboard({
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [archiveTarget, setArchiveTarget] = useState(null);
   const [isArchiving, setIsArchiving] = useState(false);
+  const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
+  const [archivedSubmissions, setArchivedSubmissions] = useState([]);
+  const [loadingArchivedSubmissions, setLoadingArchivedSubmissions] = useState(false);
 
   useEffect(() => {
     setSubmissions(initialSubmissions);
   }, [initialSubmissions]);
 
   const allSubmissions = submissions;
+  const decorateArchivedSubmission = (submission) => ({
+    ...submission,
+    title: findNameInSubmission(submission),
+  });
 
   // Shared URL cache — signed URLs are valid 1h, no need to re-fetch on re-render
   const urlCacheRef = useRef(new Map());
@@ -764,6 +775,14 @@ export default function AnalyticsDashboard({
       }
 
       setSubmissions((current) => current.filter((submission) => submission.id !== archiveTarget.id));
+      setArchivedSubmissions((current) => [
+        decorateArchivedSubmission({
+          ...archiveTarget,
+          is_archived: true,
+          archived_at: new Date().toISOString(),
+        }),
+        ...current.filter((submission) => submission.id !== archiveTarget.id),
+      ]);
       if (expandedId === archiveTarget.id) setExpandedId(null);
       toast.success("Respuesta movida a la papelera");
       setArchiveTarget(null);
@@ -772,6 +791,94 @@ export default function AnalyticsDashboard({
     } finally {
       setIsArchiving(false);
     }
+  };
+
+  const loadArchivedSubmissions = async () => {
+    if (!canManageResponses) return;
+    setLoadingArchivedSubmissions(true);
+
+    try {
+      const result = await getArchivedFormSubmissionResponses(form.id);
+      if (result?.error) {
+        toast.error(result.error);
+        return;
+      }
+      setArchivedSubmissions((result.submissions || []).map(decorateArchivedSubmission));
+    } catch (error) {
+      toast.error("No se pudo cargar la papelera.");
+    } finally {
+      setLoadingArchivedSubmissions(false);
+    }
+  };
+
+  const openRecycleBin = () => {
+    setIsRecycleBinOpen(true);
+    loadArchivedSubmissions();
+  };
+
+  const handleRestoreArchivedSubmission = async (id) => {
+    const archivedItem = archivedSubmissions.find((submission) => submission.id === id);
+
+    try {
+      const result = await restoreArchivedFormSubmissionResponse(id);
+      if (result?.error) {
+        toast.error(result.error);
+        return false;
+      }
+
+      const restoredSubmission = result.submission || archivedItem;
+      if (restoredSubmission) {
+        setSubmissions((current) => [
+          { ...restoredSubmission, is_archived: false, archived_at: null },
+          ...current.filter((submission) => submission.id !== id),
+        ]);
+      }
+      setArchivedSubmissions((current) => current.filter((submission) => submission.id !== id));
+      toast.success("Respuesta restaurada");
+      return true;
+    } catch (error) {
+      toast.error("No se pudo restaurar la respuesta.");
+      return false;
+    }
+  };
+
+  const handlePermanentlyDeleteArchivedSubmission = async (id) => {
+    try {
+      const result = await permanentlyDeleteFormSubmissionResponse(id);
+      if (result?.error) {
+        toast.error(result.error);
+        return false;
+      }
+
+      setArchivedSubmissions((current) => current.filter((submission) => submission.id !== id));
+      toast.success("Respuesta eliminada definitivamente");
+      return true;
+    } catch (error) {
+      toast.error("No se pudo eliminar definitivamente.");
+      return false;
+    }
+  };
+
+  const handleBulkRestoreArchivedSubmissions = async (ids) => {
+    let allSucceeded = true;
+    for (const id of ids) {
+      const success = await handleRestoreArchivedSubmission(id);
+      if (!success) allSucceeded = false;
+    }
+    return allSucceeded;
+  };
+
+  const handleBulkDeleteArchivedSubmissions = async (ids) => {
+    let allSucceeded = true;
+    for (const id of ids) {
+      const success = await handlePermanentlyDeleteArchivedSubmission(id);
+      if (!success) allSucceeded = false;
+    }
+    return allSucceeded;
+  };
+
+  const handleEmptyArchivedSubmissions = async () => {
+    return handleBulkDeleteArchivedSubmissions(archivedSubmissions.map((submission) => submission.id));
   };
 
   const renderEditFieldControl = (field) => {
@@ -998,6 +1105,19 @@ export default function AnalyticsDashboard({
         </DialogContent>
       </Dialog>
 
+      <RecycleBin
+        open={isRecycleBinOpen}
+        onOpenChange={setIsRecycleBinOpen}
+        type="submissions"
+        items={archivedSubmissions}
+        onRestore={handleRestoreArchivedSubmission}
+        onDelete={handlePermanentlyDeleteArchivedSubmission}
+        onBulkRestore={handleBulkRestoreArchivedSubmissions}
+        onBulkDelete={handleBulkDeleteArchivedSubmissions}
+        onEmptyTrash={handleEmptyArchivedSubmissions}
+        loading={loadingArchivedSubmissions}
+      />
+
       {/* ── Header ── */}
       <div className="space-y-6 pt-2">
         <Link
@@ -1031,6 +1151,16 @@ export default function AnalyticsDashboard({
 
           {/* Controls */}
           <div className="flex flex-wrap items-center gap-3 shrink-0">
+            {canManageResponses && (
+              <button
+                onClick={openRecycleBin}
+                className="cursor-pointer flex items-center gap-2 h-10 px-5 rounded-full border border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-red-500 hover:border-red-200 hover:bg-red-50/50 transition-all"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Papelera
+              </button>
+            )}
+
             {filteredSubmissions.length > 0 && (
               <button
                 onClick={exportToXLSX}

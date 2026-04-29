@@ -134,6 +134,9 @@ test("submission response management is wired through server actions and analyti
 
   assert.match(formsActions, /updateFormSubmissionResponse/);
   assert.match(formsActions, /archiveFormSubmissionResponse/);
+  assert.match(formsActions, /getArchivedFormSubmissionResponses/);
+  assert.match(formsActions, /restoreArchivedFormSubmissionResponse/);
+  assert.match(formsActions, /permanentlyDeleteFormSubmissionResponse/);
   assert.match(formsActions, /canManageSubmissionResponses/);
   assert.match(formsActions, /buildSubmissionResponseUpdate/);
   assert.doesNotMatch(formsActions, /forms\(id, user_id, is_internal, is_archived, form_fields!form_id/);
@@ -144,6 +147,11 @@ test("submission response management is wired through server actions and analyti
   assert.match(analyticsDashboard, /canManageResponses/);
   assert.match(analyticsDashboard, /updateFormSubmissionResponse/);
   assert.match(analyticsDashboard, /archiveFormSubmissionResponse/);
+  assert.match(analyticsDashboard, /RecycleBin/);
+  assert.match(analyticsDashboard, /Papelera/);
+  assert.match(analyticsDashboard, /getArchivedFormSubmissionResponses/);
+  assert.match(analyticsDashboard, /restoreArchivedFormSubmissionResponse/);
+  assert.match(analyticsDashboard, /permanentlyDeleteFormSubmissionResponse/);
   assert.match(rootActions, /submissionCount[\s\S]*\.eq\("is_archived", false\)/);
   assert.match(rootActions, /newCount[\s\S]*\.eq\("is_archived", false\)/);
 });
