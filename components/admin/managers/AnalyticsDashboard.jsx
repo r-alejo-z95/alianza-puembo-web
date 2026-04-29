@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import ExcelJS from "exceljs";
 import {
   BarChart,
@@ -37,6 +37,9 @@ import {
   DollarSign,
   Loader2,
   ShieldAlert,
+  Pencil,
+  Save,
+  Trash2,
 } from "lucide-react";
 import {
   Select,
@@ -46,11 +49,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { subDays, subHours, format } from "date-fns";
+import { toast } from "sonner";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
+import {
+  archiveFormSubmissionResponse,
+  updateFormSubmissionResponse,
+} from "@/lib/actions/forms";
 import { getFinanceDisplayState, getRevenueContribution } from "@/lib/finance/status";
 import {
   buildFinancialAnalyticsPaymentColumns,
@@ -65,6 +76,10 @@ import {
   getSubmissionValueForField,
   getHistoricalFieldDisplay,
 } from "@/lib/form-response-history";
+import {
+  buildEditableSubmissionValues,
+  getEditableSubmissionFields,
+} from "@/lib/forms/submission-admin.mjs";
 
 // ------------------------------------------------------------------
 // FileDisplay — cached signed URL + modal viewer
@@ -295,10 +310,30 @@ function isExcelHyperlinkCell(value) {
   return Boolean(value && typeof value === "object" && value.hyperlink);
 }
 
+function getFieldOptions(field) {
+  if (!field?.options) return [];
+  try {
+    const options = typeof field.options === "string" ? JSON.parse(field.options) : field.options;
+    return Array.isArray(options) ? options : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function getFieldOptionLabel(option) {
+  if (option && typeof option === "object") return String(option.label ?? option.value ?? "");
+  return String(option ?? "");
+}
+
 // ------------------------------------------------------------------
 // Main Component
 // ------------------------------------------------------------------
-export default function AnalyticsDashboard({ form, submissions: allSubmissions }) {
+export default function AnalyticsDashboard({
+  form,
+  submissions: initialSubmissions = [],
+  canManageResponses = false,
+}) {
+  const [submissions, setSubmissions] = useState(initialSubmissions);
   const [dateFilter, setDateFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("summary");
   const [searchQuery, setSearchQuery] = useState("");
@@ -306,12 +341,27 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [reportProgress, setReportProgress] = useState(0);
   const [reportRecords, setReportRecords] = useState(0);
+  const [editingSubmission, setEditingSubmission] = useState(null);
+  const [editValues, setEditValues] = useState({});
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [archiveTarget, setArchiveTarget] = useState(null);
+  const [isArchiving, setIsArchiving] = useState(false);
+
+  useEffect(() => {
+    setSubmissions(initialSubmissions);
+  }, [initialSubmissions]);
+
+  const allSubmissions = submissions;
 
   // Shared URL cache — signed URLs are valid 1h, no need to re-fetch on re-render
   const urlCacheRef = useRef(new Map());
   const historicalFields = useMemo(
     () => buildHistoricalFormFields(form, allSubmissions),
     [form, allSubmissions],
+  );
+  const editableFields = useMemo(
+    () => (editingSubmission ? getEditableSubmissionFields(form, editingSubmission) : []),
+    [editingSubmission, form],
   );
 
   // 1. Period filter — always ascending (oldest first = #1)
@@ -651,6 +701,152 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
     }
   }
 
+  const openEditDialog = (submission) => {
+    setEditingSubmission(submission);
+    setEditValues(buildEditableSubmissionValues(form, submission));
+  };
+
+  const closeEditDialog = () => {
+    if (isSavingEdit) return;
+    setEditingSubmission(null);
+    setEditValues({});
+  };
+
+  const updateEditValue = (fieldId, value) => {
+    setEditValues((current) => ({ ...current, [fieldId]: value }));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingSubmission) return;
+    setIsSavingEdit(true);
+
+    try {
+      const result = await updateFormSubmissionResponse({
+        submissionId: editingSubmission.id,
+        values: editValues,
+      });
+
+      if (result?.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      setSubmissions((current) =>
+        current.map((submission) =>
+          submission.id === editingSubmission.id
+            ? {
+                ...submission,
+                data: result.submission?.data ?? submission.data,
+                answers: result.submission?.answers ?? submission.answers,
+              }
+            : submission,
+        ),
+      );
+      toast.success("Respuesta actualizada");
+      setEditingSubmission(null);
+      setEditValues({});
+    } catch (error) {
+      toast.error("No se pudo actualizar la respuesta.");
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  const handleArchiveSubmission = async () => {
+    if (!archiveTarget) return;
+    setIsArchiving(true);
+
+    try {
+      const result = await archiveFormSubmissionResponse(archiveTarget.id);
+      if (result?.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      setSubmissions((current) => current.filter((submission) => submission.id !== archiveTarget.id));
+      if (expandedId === archiveTarget.id) setExpandedId(null);
+      toast.success("Respuesta movida a la papelera");
+      setArchiveTarget(null);
+    } catch (error) {
+      toast.error("No se pudo eliminar la respuesta.");
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
+  const renderEditFieldControl = (field) => {
+    const fieldType = field.field_type || field.type || "text";
+    const options = getFieldOptions(field).map(getFieldOptionLabel).filter(Boolean);
+    const value = editValues[field.id];
+
+    if (fieldType === "textarea") {
+      return (
+        <Textarea
+          value={String(value ?? "")}
+          onChange={(event) => updateEditValue(field.id, event.target.value)}
+          className="min-h-28 rounded-2xl border-gray-100 bg-gray-50/60 text-sm font-medium focus-visible:ring-[var(--puembo-green)]/20"
+        />
+      );
+    }
+
+    if (fieldType === "checkbox" && options.length > 0) {
+      const selectedValues = Array.isArray(value) ? value : [];
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {options.map((option) => {
+            const checked = selectedValues.includes(option);
+            return (
+              <label
+                key={option}
+                className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50/60 px-4 py-3 text-sm font-bold text-gray-700"
+              >
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={(nextChecked) => {
+                    updateEditValue(
+                      field.id,
+                      nextChecked
+                        ? [...selectedValues, option]
+                        : selectedValues.filter((item) => item !== option),
+                    );
+                  }}
+                  className="rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+                />
+                <span className="min-w-0 break-words">{option}</span>
+              </label>
+            );
+          })}
+        </div>
+      );
+    }
+
+    if ((fieldType === "select" || fieldType === "radio") && options.length > 0) {
+      return (
+        <select
+          value={String(value ?? "")}
+          onChange={(event) => updateEditValue(field.id, event.target.value)}
+          className="h-12 w-full rounded-2xl border border-gray-100 bg-gray-50/60 px-4 text-sm font-bold text-gray-700 outline-none focus:border-[var(--puembo-green)] focus:ring-4 focus:ring-[var(--puembo-green)]/10"
+        >
+          <option value="">Sin seleccionar</option>
+          {options.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    return (
+      <Input
+        type={fieldType === "date" ? "date" : fieldType === "number" ? "number" : fieldType === "email" ? "email" : "text"}
+        value={String(value ?? "")}
+        onChange={(event) => updateEditValue(field.id, event.target.value)}
+        className="h-12 rounded-2xl border-gray-100 bg-gray-50/60 text-sm font-medium focus-visible:ring-[var(--puembo-green)]/20"
+      />
+    );
+  };
+
   // ------------------------------------------------------------------
   // Render
   // ------------------------------------------------------------------
@@ -702,6 +898,102 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                 No cierres ni recargues esta ventana hasta que el archivo termine de descargarse.
               </p>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!editingSubmission} onOpenChange={(open) => { if (!open) closeEditDialog(); }}>
+        <DialogContent className="max-w-3xl rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden bg-white">
+          <DialogTitle className="sr-only">Editar respuesta</DialogTitle>
+          <div className="p-6 md:p-8 border-b border-gray-50 bg-gray-50/40">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--puembo-green)]/10 flex items-center justify-center text-[var(--puembo-green)] shrink-0">
+                <Pencil className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+                  Gestión de respuesta
+                </p>
+                <h2 className="text-2xl md:text-3xl font-serif font-bold text-gray-900 leading-tight mt-1">
+                  Editar información entregada
+                </h2>
+                <DialogDescription className="text-sm text-gray-500 mt-2">
+                  Los campos de archivo e imagen no se pueden modificar desde aquí.
+                </DialogDescription>
+              </div>
+            </div>
+          </div>
+
+          <div className="max-h-[60vh] overflow-y-auto p-6 md:p-8 space-y-5">
+            {editableFields.length === 0 ? (
+              <div className="rounded-[2rem] border-2 border-dashed border-gray-100 py-12 text-center">
+                <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">
+                  No hay campos editables en esta respuesta
+                </p>
+              </div>
+            ) : (
+              editableFields.map((field) => (
+                <div key={field.id} className="space-y-2">
+                  <label className="block text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">
+                    {field.label}
+                  </label>
+                  {renderEditFieldControl(field)}
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="p-6 md:p-8 border-t border-gray-50 bg-white flex flex-col sm:flex-row justify-end gap-3">
+            <button
+              type="button"
+              onClick={closeEditDialog}
+              disabled={isSavingEdit}
+              className="h-12 rounded-full px-6 border border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveEdit}
+              disabled={isSavingEdit || editableFields.length === 0}
+              className="h-12 rounded-full px-6 bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-[var(--puembo-green)] transition-colors disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            >
+              {isSavingEdit ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Guardar cambios
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!archiveTarget} onOpenChange={(open) => { if (!open && !isArchiving) setArchiveTarget(null); }}>
+        <DialogContent className="max-w-md rounded-[2rem] border-none shadow-2xl p-8 text-center bg-white">
+          <div className="mx-auto w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-red-500 mb-6">
+            <Trash2 className="w-7 h-7" />
+          </div>
+          <DialogTitle className="text-2xl font-serif font-bold text-gray-900 text-center">
+            ¿Eliminar respuesta?
+          </DialogTitle>
+          <DialogDescription className="text-sm text-gray-500 mt-3 text-center">
+            La respuesta se moverá a la papelera y dejará de aparecer en analíticas y exportaciones.
+          </DialogDescription>
+          <div className="grid grid-cols-1 gap-3 mt-8">
+            <button
+              type="button"
+              onClick={handleArchiveSubmission}
+              disabled={isArchiving}
+              className="h-12 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-colors inline-flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {isArchiving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              Mover a papelera
+            </button>
+            <button
+              type="button"
+              onClick={() => setArchiveTarget(null)}
+              disabled={isArchiving}
+              className="h-12 rounded-full text-gray-400 text-[10px] font-black uppercase tracking-widest hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
           </div>
         </DialogContent>
       </Dialog>
@@ -1137,6 +1429,31 @@ export default function AnalyticsDashboard({ form, submissions: allSubmissions }
                         {/* Expanded detail */}
                         {isExpanded && (
                           <div className="border-t border-gray-50 px-5 md:px-8 py-6 space-y-0 animate-in slide-in-from-top-1 duration-200">
+                            {canManageResponses ? (
+                              <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-gray-100 bg-gray-50/50 px-4 py-3">
+                                <p className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">
+                                  Gestión del creador
+                                </p>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => openEditDialog(s)}
+                                    className="h-10 rounded-full px-4 bg-white border border-gray-100 text-[9px] font-black uppercase tracking-widest text-gray-600 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)]/30 transition-all inline-flex items-center gap-2"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                    Editar
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setArchiveTarget(s)}
+                                    className="h-10 rounded-full px-4 bg-white border border-red-100 text-[9px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all inline-flex items-center gap-2"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    Eliminar
+                                  </button>
+                                </div>
+                              </div>
+                            ) : null}
                             {form.is_financial && financeState === "Comprobante descartado - contactar usuario" ? (
                               <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                                 Comprobante descartado. Contactar al usuario para solicitar el comprobante correcto.

@@ -139,6 +139,8 @@ export interface FormSubmission {
   notes?: string;
   access_token?: string;
   notification_email?: string;
+  is_archived?: boolean;
+  archived_at?: string | null;
   is_manual?: boolean;
   coverage_mode?: "bank_receipt" | "cash" | "card" | "scholarship" | "covered_by_used_payment" | null;
   coverage_amount?: number | null;
@@ -201,6 +203,7 @@ export const getCachedFormSubmissions = async (formId: string) => {
         .from("form_submissions")
         .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*)")
         .eq("form_id", id)
+        .eq("is_archived", false)
         .order("created_at", { ascending: false });
 
       if (error) {

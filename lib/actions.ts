@@ -731,7 +731,8 @@ export async function submitFormAction(payload: {
       const { count: submissionCount } = await supabaseAdmin
         .from("form_submissions")
         .select("id", { count: "exact", head: true })
-        .eq("form_id", formId);
+        .eq("form_id", formId)
+        .eq("is_archived", false);
 
       if ((submissionCount ?? 0) >= form.max_responses) {
         // Auto-disable the form since limit is reached
@@ -868,7 +869,8 @@ export async function submitFormAction(payload: {
       const { count: newCount } = await supabaseAdmin
         .from("form_submissions")
         .select("id", { count: "exact", head: true })
-        .eq("form_id", formId);
+        .eq("form_id", formId)
+        .eq("is_archived", false);
 
       if ((newCount ?? 0) >= form.max_responses) {
         await supabaseAdmin.from("forms").update({ enabled: false, closed_by_limit: true }).eq("id", formId);

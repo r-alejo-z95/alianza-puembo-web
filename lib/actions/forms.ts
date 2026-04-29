@@ -3,8 +3,12 @@
 import { createAdminClient } from "@/lib/supabase/server";
 import { getSessionUser } from "@/lib/auth/getSessionUser";
 import { slugify } from "@/lib/utils";
-import { revalidateForms } from "@/lib/actions/cache";
+import { revalidateFormSubmissions, revalidateForms } from "@/lib/actions/cache";
 import { ensureFinanceReceiptsBucket } from "@/lib/finance/storage";
+import {
+  buildSubmissionResponseUpdate,
+  canManageSubmissionResponses,
+} from "@/lib/forms/submission-admin.mjs";
 
 interface FormSetupValues {
   id?: string | null;
@@ -100,4 +104,118 @@ export async function prepareFinancialReceiptsBucket(): Promise<{ success?: true
   }
 
   return { success: true };
+}
+
+async function getManageableSubmission(submissionId: string) {
+  const user = await getSessionUser();
+  if (!user) return { error: "Sesión expirada. Vuelve a iniciar sesión." };
+
+  if (!user.is_super_admin && !user.permissions?.perm_forms) {
+    return { error: "No tienes permisos para gestionar respuestas." };
+  }
+
+  const supabase = createAdminClient();
+  const { data: submission, error } = await supabase
+    .from("form_submissions")
+    .select(
+      "id, form_id, data, answers, is_archived, forms(id, user_id, is_internal, is_archived, form_fields!form_id(id, label, type, field_type, order_index, options))",
+    )
+    .eq("id", submissionId)
+    .single();
+
+  if (error || !submission) {
+    return { error: "No se encontró la respuesta." };
+  }
+
+  const form = (submission as any).forms;
+  if (!form || form.is_archived) {
+    return { error: "El formulario ya no está disponible." };
+  }
+
+  if (form.is_internal) {
+    return { error: "Esta acción solo aplica a formularios públicos." };
+  }
+
+  if (!canManageSubmissionResponses(user, form)) {
+    return { error: "Solo el creador del formulario o un super admin puede modificar estas respuestas." };
+  }
+
+  return { supabase, submission, form };
+}
+
+export async function updateFormSubmissionResponse({
+  submissionId,
+  values,
+}: {
+  submissionId: string;
+  values: Record<string, any>;
+}): Promise<{ success?: true; submission?: { id: string; data: any; answers: any[] }; error?: string }> {
+  try {
+    if (!submissionId) return { error: "Respuesta inválida." };
+
+    const context = await getManageableSubmission(submissionId);
+    if ("error" in context) return { error: context.error };
+
+    const { supabase, submission, form } = context;
+    if ((submission as any).is_archived) {
+      return { error: "No puedes editar una respuesta archivada." };
+    }
+
+    const update = buildSubmissionResponseUpdate({
+      form,
+      submission,
+      values: values ?? {},
+    });
+
+    const { error } = await supabase
+      .from("form_submissions")
+      .update({ data: update.data, answers: update.answers })
+      .eq("id", submissionId)
+      .eq("form_id", (submission as any).form_id);
+
+    if (error) throw error;
+
+    await revalidateFormSubmissions((submission as any).form_id);
+
+    return {
+      success: true,
+      submission: {
+        id: submissionId,
+        data: update.data,
+        answers: update.answers,
+      },
+    };
+  } catch (e: any) {
+    console.error("[updateFormSubmissionResponse]", e);
+    return { error: e.message ?? "No se pudo actualizar la respuesta." };
+  }
+}
+
+export async function archiveFormSubmissionResponse(
+  submissionId: string,
+): Promise<{ success?: true; error?: string }> {
+  try {
+    if (!submissionId) return { error: "Respuesta inválida." };
+
+    const context = await getManageableSubmission(submissionId);
+    if ("error" in context) return { error: context.error };
+
+    const { supabase, submission } = context;
+    const archivedAt = new Date().toISOString();
+
+    const { error } = await supabase
+      .from("form_submissions")
+      .update({ is_archived: true, archived_at: archivedAt })
+      .eq("id", submissionId)
+      .eq("form_id", (submission as any).form_id);
+
+    if (error) throw error;
+
+    await revalidateFormSubmissions((submission as any).form_id);
+
+    return { success: true };
+  } catch (e: any) {
+    console.error("[archiveFormSubmissionResponse]", e);
+    return { error: e.message ?? "No se pudo eliminar la respuesta." };
+  }
 }

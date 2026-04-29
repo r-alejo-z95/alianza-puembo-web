@@ -1,8 +1,11 @@
 import AnalyticsDashboard from "@/components/admin/managers/AnalyticsDashboard";
 import { notFound } from "next/navigation";
 import { getFormBySlug, getCachedFormSubmissions } from "@/lib/data/forms";
+import { verifyPermission } from "@/lib/auth/guards";
+import { canManageSubmissionResponses } from "@/lib/forms/submission-admin.mjs";
 
 export default async function FormAnalyticsPage({ params }) {
+  const user = await verifyPermission("perm_forms");
   const { slug } = await params;
 
   // 1. Obtener el formulario y sus campos (Cached)
@@ -20,6 +23,7 @@ export default async function FormAnalyticsPage({ params }) {
       <AnalyticsDashboard 
         form={form} 
         submissions={submissions || []} 
+        canManageResponses={canManageSubmissionResponses(user, form)}
       />
     </div>
   );
