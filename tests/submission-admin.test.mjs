@@ -136,6 +136,8 @@ test("submission response management is wired through server actions and analyti
   assert.match(formsActions, /archiveFormSubmissionResponse/);
   assert.match(formsActions, /canManageSubmissionResponses/);
   assert.match(formsActions, /buildSubmissionResponseUpdate/);
+  assert.doesNotMatch(formsActions, /forms\(id, user_id, is_internal, is_archived, form_fields!form_id/);
+  assert.match(formsActions, /\.from\("forms"\)[\s\S]*form_fields!form_id\(\*\)[\s\S]*\.eq\("id", \(submission as any\)\.form_id\)/);
   assert.match(formsData, /getCachedFormSubmissions[\s\S]*\.eq\("is_archived", false\)/);
   assert.match(analyticsPage, /verifyPermission\("perm_forms"\)/);
   assert.match(analyticsPage, /canManageResponses=/);

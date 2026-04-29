@@ -115,19 +115,32 @@ async function getManageableSubmission(submissionId: string) {
   }
 
   const supabase = createAdminClient();
-  const { data: submission, error } = await supabase
+  const { data: submission, error: submissionError } = await supabase
     .from("form_submissions")
-    .select(
-      "id, form_id, data, answers, is_archived, forms(id, user_id, is_internal, is_archived, form_fields!form_id(id, label, type, field_type, order_index, options))",
-    )
+    .select("id, form_id, data, answers, is_archived")
     .eq("id", submissionId)
-    .single();
+    .maybeSingle();
 
-  if (error || !submission) {
+  if (submissionError) {
+    console.error("[getManageableSubmission] submission lookup failed:", submissionError);
     return { error: "No se encontró la respuesta." };
   }
 
-  const form = (submission as any).forms;
+  if (!submission) {
+    return { error: "No se encontró la respuesta." };
+  }
+
+  const { data: form, error: formError } = await supabase
+    .from("forms")
+    .select("id, user_id, is_internal, is_archived, form_fields!form_id(*)")
+    .eq("id", (submission as any).form_id)
+    .maybeSingle();
+
+  if (formError) {
+    console.error("[getManageableSubmission] form lookup failed:", formError);
+    return { error: "No se pudo cargar el formulario de la respuesta." };
+  }
+
   if (!form || form.is_archived) {
     return { error: "El formulario ya no está disponible." };
   }
