@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { 
   Bell, 
   BellDot, 
   CheckCircle2, 
   Trash2, 
   ExternalLink, 
-  X, 
   MessageSquare, 
   HandHelping, 
   FileText,
@@ -26,12 +25,53 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 
+const soundedNotificationIds = new Set();
+
 export function NotificationBell({ userId }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
+
+  const playNotificationSound = useCallback((notificationId) => {
+    if (typeof window === "undefined") return;
+    if (notificationId && soundedNotificationIds.has(notificationId)) return;
+
+    if (notificationId) {
+      soundedNotificationIds.add(notificationId);
+      window.setTimeout(() => soundedNotificationIds.delete(notificationId), 60000);
+    }
+
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+
+      const audioContext = new AudioContext();
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        1320,
+        audioContext.currentTime + 0.08,
+      );
+      gain.gain.setValueAtTime(0.001, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.16, audioContext.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.22);
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.24);
+      oscillator.onended = () => audioContext.close();
+    } catch {
+      // Some browsers block audio until the admin has interacted with the page.
+    }
+  }, []);
 
   const fetchNotifications = useCallback(async () => {
+    if (!userId) return;
+
     const { data, error } = await supabase
       .from("notifications")
       .select("*")
@@ -46,24 +86,38 @@ export function NotificationBell({ userId }) {
   }, [userId, supabase]);
 
   useEffect(() => {
+    if (!userId) return undefined;
+
     fetchNotifications();
 
     const channel = supabase
-      .channel("realtime_notifications")
+      .channel(`realtime_notifications:${userId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications" },
         (payload) => {
           if (!payload.new.user_id || payload.new.user_id === userId) {
-            setNotifications((prev) => [payload.new, ...prev].slice(0, 15));
-            setUnreadCount((count) => count + 1);
+            setNotifications((prev) => {
+              if (prev.some((notification) => notification.id === payload.new.id)) {
+                return prev;
+              }
+
+              return [payload.new, ...prev].slice(0, 15);
+            });
+            setUnreadCount((count) => count + (payload.new.read ? 0 : 1));
+            playNotificationSound(payload.new.id);
+            fetchNotifications();
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          fetchNotifications();
+        }
+      });
 
     return () => { supabase.removeChannel(channel); };
-  }, [userId, supabase, fetchNotifications]);
+  }, [userId, supabase, fetchNotifications, playNotificationSound]);
 
   const markAsRead = async (id) => {
     setNotifications((prev) =>
