@@ -324,6 +324,25 @@ export function classifyFinancialReceipt(
   };
 }
 
+export function resolveFinancialReceiptValidation({
+  extractedData,
+  transientFailure,
+  destinationAccount,
+}: {
+  extractedData: ExtractedReceiptData | null;
+  transientFailure?: boolean;
+  destinationAccount?: DestinationBankAccountLike | null;
+}): { status: ReceiptReviewStatus; reason?: string; beneficiaryMatch?: { score: number; confidence: "high" | "medium" | "low" | "none"; matched: boolean } } {
+  if (transientFailure) {
+    return {
+      status: "invalid",
+      reason: "La validación automática falló temporalmente. Intenta subir el comprobante nuevamente en unos minutos.",
+    };
+  }
+
+  return classifyFinancialReceipt(extractedData, destinationAccount);
+}
+
 export function validateFinancialReceipt(
   extractedData: ExtractedReceiptData | null,
   destinationAccount?: DestinationBankAccountLike | null,

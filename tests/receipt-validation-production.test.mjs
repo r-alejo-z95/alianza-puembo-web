@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-const { classifyFinancialReceipt } = await import("../lib/services/receipt-validation.ts");
+const {
+  classifyFinancialReceipt,
+  resolveFinancialReceiptValidation,
+} = await import("../lib/services/receipt-validation.ts");
 const {
   extractReceiptDataWithModel,
   isRetryableGeminiError,
@@ -124,6 +127,23 @@ test("production receipt validation accepts a strong bank receipt with account m
   );
 
   assert.equal(result.status, "valid");
+});
+
+test("strict financial receipt validation rejects transient extraction failures", () => {
+  assert.equal(typeof resolveFinancialReceiptValidation, "function");
+
+  const result = resolveFinancialReceiptValidation({
+    extractedData: null,
+    transientFailure: true,
+    destinationAccount: {
+      bank_name: "Pichincha",
+      account_holder: null,
+      account_number: "2208033009",
+    },
+  });
+
+  assert.equal(result.status, "invalid");
+  assert.match(result.reason, /temporalmente/i);
 });
 
 test("beneficiary account matching recognizes masked and truncated account variants", () => {

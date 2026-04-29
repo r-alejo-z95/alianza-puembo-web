@@ -48,6 +48,11 @@ import { compressImage } from "@/lib/image-compression";
 import { createClient } from "@/lib/supabase/client";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 import { isFinancialReceiptField } from "@/lib/finance/financial-field.mjs";
+import {
+  isSupportedReceiptMimeType,
+  MAX_RECEIPT_FILE_SIZE_BYTES,
+  RECEIPT_FILE_ACCEPT,
+} from "@/lib/finance/receipt-file";
 
 // --- Helpers ---
 
@@ -427,7 +432,7 @@ const FieldInput = ({
           <Input
             id={fieldId}
             type="file"
-            accept={field.type === "image" ? "image/*" : undefined}
+            accept={field.type === "image" ? "image/*" : RECEIPT_FILE_ACCEPT}
             className="hidden"
             {...register(fieldName, { required: isRequired })}
           />
@@ -442,7 +447,7 @@ const FieldInput = ({
                 <div className="text-center space-y-1 md:space-y-2">
                   <p className="font-black text-[10px] md:text-[11px] uppercase tracking-[0.2em] md:tracking-[0.25em] text-gray-600 group-hover:text-[var(--puembo-green)]">
                     Haz clic para subir{" "}
-                    {field.type === "image" ? "una foto" : "un archivo"}
+                    {field.type === "image" ? "una foto" : "una imagen o PDF"}
                   </p>
 
                   <p className="text-[9px] md:text-[10px] font-medium opacity-60">
@@ -831,6 +836,18 @@ export default function FluentRenderer({ form, isPreview = false }) {
         if (value instanceof FileList && value.length > 0) {
           let file = value[0];
           console.log(`[Form] Procesando archivo para: ${key}`);
+
+          if (file.size > MAX_RECEIPT_FILE_SIZE_BYTES) {
+            throw new Error("El archivo no puede superar 5MB.");
+          }
+
+          if (fieldType === "image" && !file.type.startsWith("image/")) {
+            throw new Error("Solo se permiten imágenes en este campo.");
+          }
+
+          if (!isSupportedReceiptMimeType(file.type)) {
+            throw new Error("Solo se permiten imágenes o PDF.");
+          }
 
           if (file.type.startsWith("image/")) {
             try {

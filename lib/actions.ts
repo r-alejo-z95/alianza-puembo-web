@@ -13,10 +13,15 @@ import { sendSystemNotification, sendConfirmationEmail } from "@/lib/services/no
 import { headers } from "next/headers";
 import { revalidateForms, revalidateFormSubmissions } from "./actions/cache";
 import { extractReceiptDataDetailed } from "@/lib/services/ai-reconciliation";
-import { INVALID_RECEIPT_MESSAGE, classifyFinancialReceipt } from "@/lib/services/receipt-validation";
+import { INVALID_RECEIPT_MESSAGE, resolveFinancialReceiptValidation } from "@/lib/services/receipt-validation";
 import crypto from "crypto";
 import { ensureFinanceReceiptsBucket } from "@/lib/finance/storage";
 import { getInstallmentEmailSummary } from "@/lib/finance/payment-summary.mjs";
+import {
+  getReceiptFileExtension,
+  isSupportedReceiptMimeType,
+  MAX_RECEIPT_FILE_SIZE_BYTES,
+} from "@/lib/finance/receipt-file";
 
 /**
  * Verifica un token de Cloudflare Turnstile.
@@ -793,9 +798,11 @@ export async function submitFormAction(payload: {
     // 2.1. Validación crítica: comprobante inválido NO debe persistir en DB
     let receiptReviewStatus: "valid" | "manual_review" | "invalid" = "valid";
     if (form.is_financial && receiptPath) {
-      const validation = aiTransientFailure
-        ? { status: "manual_review" as const, reason: "La validación automática falló temporalmente." }
-        : classifyFinancialReceipt(aiExtractedData, destinationAccount);
+      const validation = resolveFinancialReceiptValidation({
+        extractedData: aiExtractedData,
+        transientFailure: aiTransientFailure,
+        destinationAccount,
+      });
       receiptReviewStatus = validation.status;
       if (validation.status === "invalid") {
         console.warn(`[Submit] Comprobante inválido detectado. Motivo: ${validation.reason || "N/A"}`);
@@ -814,7 +821,8 @@ export async function submitFormAction(payload: {
           }
         }
 
-        return { error: INVALID_RECEIPT_MESSAGE };
+        const errorMessage = aiTransientFailure ? validation.reason : INVALID_RECEIPT_MESSAGE;
+        return { error: errorMessage || INVALID_RECEIPT_MESSAGE };
       }
     }
 
@@ -982,6 +990,12 @@ export async function uploadReceipt(formData: FormData) {
   const formSlug = formData.get("formSlug") as string;
   
   if (!file || !formSlug) return { error: "Datos incompletos" };
+  if (!isSupportedReceiptMimeType(file.type)) {
+    return { error: "Tipo de archivo no permitido. Sube una imagen o PDF." };
+  }
+  if (file.size > MAX_RECEIPT_FILE_SIZE_BYTES) {
+    return { error: "El archivo no puede superar 5MB." };
+  }
 
   try {
     const bucketResult = await ensureFinanceReceiptsBucket();
@@ -991,7 +1005,8 @@ export async function uploadReceipt(formData: FormData) {
 
     const supabaseAdmin = createAdminClient();
     const date = new Date();
-    const path = `${formSlug}/${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${crypto.randomUUID()}.${file.name.split('.').pop() || 'jpg'}`;
+    const extension = getReceiptFileExtension(file.name, file.type);
+    const path = `${formSlug}/${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${crypto.randomUUID()}.${extension}`;
 
     console.log(`[Bucket-Upload] Intentando subir a: finance_receipts/${path}`);
 
