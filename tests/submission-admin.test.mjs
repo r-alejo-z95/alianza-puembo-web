@@ -137,10 +137,14 @@ test("submission response management is wired through server actions and analyti
   assert.match(formsActions, /getArchivedFormSubmissionResponses/);
   assert.match(formsActions, /restoreArchivedFormSubmissionResponse/);
   assert.match(formsActions, /permanentlyDeleteFormSubmissionResponse/);
+  assert.match(formsActions, /createFormSubmissionAdminComment/);
+  assert.match(formsActions, /updateFormSubmissionAdminComment/);
+  assert.match(formsActions, /deleteFormSubmissionAdminComment/);
   assert.match(formsActions, /canManageSubmissionResponses/);
   assert.match(formsActions, /buildSubmissionResponseUpdate/);
   assert.doesNotMatch(formsActions, /forms\(id, user_id, is_internal, is_archived, form_fields!form_id/);
   assert.match(formsActions, /\.from\("forms"\)[\s\S]*form_fields!form_id\(\*\)[\s\S]*\.eq\("id", \(submission as any\)\.form_id\)/);
+  assert.match(formsData, /form_submission_admin_comments/);
   assert.match(formsData, /getCachedFormSubmissions[\s\S]*\.eq\("is_archived", false\)/);
   assert.match(analyticsPage, /verifyPermission\("perm_forms"\)/);
   assert.match(analyticsPage, /canManageResponses=/);
@@ -152,6 +156,11 @@ test("submission response management is wired through server actions and analyti
   assert.match(analyticsDashboard, /getArchivedFormSubmissionResponses/);
   assert.match(analyticsDashboard, /restoreArchivedFormSubmissionResponse/);
   assert.match(analyticsDashboard, /permanentlyDeleteFormSubmissionResponse/);
+  assert.match(analyticsDashboard, /createFormSubmissionAdminComment/);
+  assert.match(analyticsDashboard, /updateFormSubmissionAdminComment/);
+  assert.match(analyticsDashboard, /deleteFormSubmissionAdminComment/);
+  assert.match(analyticsDashboard, /Observaciones internas/);
+  assert.match(analyticsDashboard, /Resumen de observaciones/);
   assert.match(rootActions, /submissionCount[\s\S]*\.eq\("is_archived", false\)/);
   assert.match(rootActions, /newCount[\s\S]*\.eq\("is_archived", false\)/);
 });

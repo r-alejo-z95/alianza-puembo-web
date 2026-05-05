@@ -153,7 +153,7 @@ async function getManageableSubmission(submissionId: string) {
     return { error: "Solo el creador del formulario o un super admin puede modificar estas respuestas." };
   }
 
-  return { supabase, submission, form };
+  return { supabase, submission, form, user };
 }
 
 async function getManageableForm(formId: string) {
@@ -188,18 +188,40 @@ async function getManageableForm(formId: string) {
     return { error: "Solo el creador del formulario o un super admin puede modificar estas respuestas." };
   }
 
-  return { supabase, form };
+  return { supabase, form, user };
 }
 
 async function getSubmissionWithRelations(supabase: any, submissionId: string) {
   const { data, error } = await supabase
     .from("form_submissions")
-    .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*)")
+    .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*), form_submission_admin_comments(*, profiles:profiles!form_submission_admin_comments_created_by_fkey(full_name, email))")
     .eq("id", submissionId)
     .maybeSingle();
 
   if (error) {
     console.error("[getSubmissionWithRelations] lookup failed:", error);
+    return null;
+  }
+
+  if (!data) return null;
+
+  return {
+    ...data,
+    form_submission_admin_comments: [
+      ...(data.form_submission_admin_comments ?? []),
+    ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
+  };
+}
+
+async function getSubmissionAdminCommentWithProfile(supabase: any, commentId: string) {
+  const { data, error } = await supabase
+    .from("form_submission_admin_comments")
+    .select("*, profiles:profiles!form_submission_admin_comments_created_by_fkey(full_name, email)")
+    .eq("id", commentId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[getSubmissionAdminCommentWithProfile] lookup failed:", error);
     return null;
   }
 
@@ -295,14 +317,21 @@ export async function getArchivedFormSubmissionResponses(
     const { supabase } = context;
     const { data, error } = await supabase
       .from("form_submissions")
-      .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*)")
+      .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*), form_submission_admin_comments(*, profiles:profiles!form_submission_admin_comments_created_by_fkey(full_name, email))")
       .eq("form_id", formId)
       .eq("is_archived", true)
       .order("archived_at", { ascending: false });
 
     if (error) throw error;
 
-    return { submissions: data ?? [] };
+    return {
+      submissions: (data ?? []).map((submission: any) => ({
+        ...submission,
+        form_submission_admin_comments: [
+          ...(submission.form_submission_admin_comments ?? []),
+        ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
+      })),
+    };
   } catch (e: any) {
     console.error("[getArchivedFormSubmissionResponses]", e);
     return { error: e.message ?? "No se pudo cargar la papelera." };
@@ -367,5 +396,136 @@ export async function permanentlyDeleteFormSubmissionResponse(
   } catch (e: any) {
     console.error("[permanentlyDeleteFormSubmissionResponse]", e);
     return { error: e.message ?? "No se pudo eliminar definitivamente la respuesta." };
+  }
+}
+
+export async function createFormSubmissionAdminComment({
+  submissionId,
+  body,
+}: {
+  submissionId: string;
+  body: string;
+}): Promise<{ success?: true; comment?: any; error?: string }> {
+  try {
+    if (!submissionId) return { error: "Respuesta inválida." };
+    const trimmedBody = String(body ?? "").trim();
+    if (!trimmedBody) return { error: "La observación no puede estar vacía." };
+
+    const context = await getManageableSubmission(submissionId);
+    if ("error" in context) return { error: context.error };
+
+    const { supabase, submission, user } = context;
+    if ((submission as any).is_archived) {
+      return { error: "No puedes comentar una respuesta archivada." };
+    }
+
+    const { data, error } = await supabase
+      .from("form_submission_admin_comments")
+      .insert({
+        submission_id: submissionId,
+        body: trimmedBody,
+        created_by: user.id,
+      })
+      .select("id")
+      .single();
+
+    if (error) throw error;
+
+    await revalidateFormSubmissions((submission as any).form_id);
+
+    return {
+      success: true,
+      comment: await getSubmissionAdminCommentWithProfile(supabase, data.id),
+    };
+  } catch (e: any) {
+    console.error("[createFormSubmissionAdminComment]", e);
+    return { error: e.message ?? "No se pudo guardar la observación." };
+  }
+}
+
+export async function updateFormSubmissionAdminComment({
+  submissionId,
+  commentId,
+  body,
+}: {
+  submissionId: string;
+  commentId: string;
+  body: string;
+}): Promise<{ success?: true; comment?: any; error?: string }> {
+  try {
+    if (!submissionId || !commentId) return { error: "Observación inválida." };
+    const trimmedBody = String(body ?? "").trim();
+    if (!trimmedBody) return { error: "La observación no puede estar vacía." };
+
+    const context = await getManageableSubmission(submissionId);
+    if ("error" in context) return { error: context.error };
+
+    const { supabase, submission } = context;
+    if ((submission as any).is_archived) {
+      return { error: "No puedes editar observaciones de una respuesta archivada." };
+    }
+
+    const { data: existing, error: lookupError } = await supabase
+      .from("form_submission_admin_comments")
+      .select("id, submission_id")
+      .eq("id", commentId)
+      .eq("submission_id", submissionId)
+      .maybeSingle();
+
+    if (lookupError) throw lookupError;
+    if (!existing) return { error: "No se encontró la observación." };
+
+    const { error } = await supabase
+      .from("form_submission_admin_comments")
+      .update({ body: trimmedBody, updated_at: new Date().toISOString() })
+      .eq("id", commentId)
+      .eq("submission_id", submissionId);
+
+    if (error) throw error;
+
+    await revalidateFormSubmissions((submission as any).form_id);
+
+    return {
+      success: true,
+      comment: await getSubmissionAdminCommentWithProfile(supabase, commentId),
+    };
+  } catch (e: any) {
+    console.error("[updateFormSubmissionAdminComment]", e);
+    return { error: e.message ?? "No se pudo actualizar la observación." };
+  }
+}
+
+export async function deleteFormSubmissionAdminComment({
+  submissionId,
+  commentId,
+}: {
+  submissionId: string;
+  commentId: string;
+}): Promise<{ success?: true; error?: string }> {
+  try {
+    if (!submissionId || !commentId) return { error: "Observación inválida." };
+
+    const context = await getManageableSubmission(submissionId);
+    if ("error" in context) return { error: context.error };
+
+    const { supabase, submission } = context;
+    if ((submission as any).is_archived) {
+      return { error: "No puedes eliminar observaciones de una respuesta archivada." };
+    }
+
+    const { error } = await supabase
+      .from("form_submission_admin_comments")
+      .delete()
+      .eq("id", commentId)
+      .eq("submission_id", submissionId);
+
+    if (error) throw error;
+
+    await revalidateFormSubmissions((submission as any).form_id);
+
+    return { success: true };
+  } catch (e: any) {
+    console.error("[deleteFormSubmissionAdminComment]", e);
+    return { error: e.message ?? "No se pudo eliminar la observación." };
   }
 }

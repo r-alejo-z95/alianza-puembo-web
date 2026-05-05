@@ -141,6 +141,18 @@ export interface FormSubmission {
   notification_email?: string;
   is_archived?: boolean;
   archived_at?: string | null;
+  form_submission_admin_comments?: Array<{
+    id: string;
+    submission_id: string;
+    body: string;
+    created_by?: string | null;
+    created_at: string;
+    updated_at: string;
+    profiles?: {
+      full_name?: string | null;
+      email?: string | null;
+    } | null;
+  }>;
   is_manual?: boolean;
   coverage_mode?: "bank_receipt" | "cash" | "card" | "scholarship" | "covered_by_used_payment" | null;
   coverage_amount?: number | null;
@@ -201,7 +213,7 @@ export const getCachedFormSubmissions = async (formId: string) => {
       const supabase = createAdminClient();
       const { data, error } = await supabase
         .from("form_submissions")
-        .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*)")
+        .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*), form_submission_admin_comments(*, profiles:profiles!form_submission_admin_comments_created_by_fkey(full_name, email))")
         .eq("form_id", id)
         .eq("is_archived", false)
         .order("created_at", { ascending: false });
@@ -211,7 +223,12 @@ export const getCachedFormSubmissions = async (formId: string) => {
         return [];
       }
 
-      return data as FormSubmission[];
+      return (data ?? []).map((submission: any) => ({
+        ...submission,
+        form_submission_admin_comments: [
+          ...(submission.form_submission_admin_comments ?? []),
+        ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
+      })) as FormSubmission[];
     },
     [`form-submissions-${formId}`],
     {
@@ -231,7 +248,7 @@ export async function getAllSubmissions() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("form_submissions")
-    .select("*, forms!inner(*), profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*)")
+    .select("*, forms!inner(*), profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*), form_submission_admin_comments(*, profiles:profiles!form_submission_admin_comments_created_by_fkey(full_name, email))")
     .eq("is_archived", false)
     .eq("forms.is_internal", false)
     .eq("forms.is_financial", true)
@@ -242,5 +259,10 @@ export async function getAllSubmissions() {
     return [];
   }
 
-  return data as FormSubmission[];
+  return (data ?? []).map((submission: any) => ({
+    ...submission,
+    form_submission_admin_comments: [
+      ...(submission.form_submission_admin_comments ?? []),
+    ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
+  })) as FormSubmission[];
 }

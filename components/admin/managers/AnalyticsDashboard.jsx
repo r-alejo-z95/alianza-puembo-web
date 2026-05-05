@@ -40,6 +40,8 @@ import {
   Pencil,
   Save,
   Trash2,
+  MessageSquare,
+  Check,
 } from "lucide-react";
 import {
   Select,
@@ -60,9 +62,12 @@ import { toast } from "sonner";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 import {
   archiveFormSubmissionResponse,
+  createFormSubmissionAdminComment,
+  deleteFormSubmissionAdminComment,
   getArchivedFormSubmissionResponses,
   permanentlyDeleteFormSubmissionResponse,
   restoreArchivedFormSubmissionResponse,
+  updateFormSubmissionAdminComment,
   updateFormSubmissionResponse,
 } from "@/lib/actions/forms";
 import { getFinanceDisplayState, getRevenueContribution } from "@/lib/finance/status";
@@ -314,6 +319,30 @@ function isExcelHyperlinkCell(value) {
   return Boolean(value && typeof value === "object" && value.hyperlink);
 }
 
+function getSubmissionAdminComments(submission) {
+  return [...(submission?.form_submission_admin_comments ?? [])].sort(
+    (a, b) => new Date(a.created_at) - new Date(b.created_at),
+  );
+}
+
+function getCommentAuthorLabel(comment) {
+  return comment?.profiles?.full_name || comment?.profiles?.email || "Admin";
+}
+
+function formatCommentsForExport(submission) {
+  const comments = getSubmissionAdminComments(submission);
+  if (comments.length === 0) return "";
+
+  return comments
+    .map((comment) => {
+      const date = comment.created_at
+        ? formatInEcuador(comment.created_at, "dd/MM/yyyy HH:mm")
+        : "Sin fecha";
+      return `${date} - ${getCommentAuthorLabel(comment)}: ${comment.body}`;
+    })
+    .join("\n\n");
+}
+
 function getFieldOptions(field) {
   if (!field?.options) return [];
   try {
@@ -353,6 +382,10 @@ export default function AnalyticsDashboard({
   const [isRecycleBinOpen, setIsRecycleBinOpen] = useState(false);
   const [archivedSubmissions, setArchivedSubmissions] = useState([]);
   const [loadingArchivedSubmissions, setLoadingArchivedSubmissions] = useState(false);
+  const [commentDrafts, setCommentDrafts] = useState({});
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [commentEditDrafts, setCommentEditDrafts] = useState({});
+  const [savingCommentKey, setSavingCommentKey] = useState(null);
 
   useEffect(() => {
     setSubmissions(initialSubmissions);
@@ -416,6 +449,13 @@ export default function AnalyticsDashboard({
   }, [filteredSubmissions, searchQuery]);
 
   const totalSubmissions = filteredSubmissions.length;
+  const submissionsWithComments = useMemo(
+    () =>
+      filteredSubmissions.filter(
+        (submission) => getSubmissionAdminComments(submission).length > 0,
+      ),
+    [filteredSubmissions],
+  );
   const confirmedFinancialAmount = useMemo(
     () => (form.is_financial ? getConfirmedFinancialAmount(filteredSubmissions) : 0),
     [filteredSubmissions, form.is_financial],
@@ -530,6 +570,7 @@ export default function AnalyticsDashboard({
         submissionId: submission.id,
         timestamp: formatInEcuador(submission.created_at, "dd/MM/yyyy HH:mm"),
         values: dataFields.map((field) => getSubmissionValueForField(submission, field)),
+        adminComments: formatCommentsForExport(submission),
       }));
 
       const filePaths = new Set();
@@ -572,7 +613,7 @@ export default function AnalyticsDashboard({
       const financialPaymentColumns = form.is_financial
         ? buildFinancialAnalyticsPaymentColumns(filteredSubmissions, fileUrlMap)
         : { headers: [], valuesBySubmissionId: new Map() };
-      const headers = [...baseHeaders, ...financialPaymentColumns.headers];
+      const headers = [...baseHeaders, ...financialPaymentColumns.headers, "Observaciones internas"];
 
       const columnWidths = headers.map((header, colIndex) => {
         const values = [header];
@@ -590,6 +631,7 @@ export default function AnalyticsDashboard({
             row.timestamp,
             ...row.values.map((value) => getExportCellValue(value, fileUrlMap)),
             ...(financialPaymentColumns.valuesBySubmissionId.get(row.submissionId) || []),
+            row.adminComments,
           ];
           const cellValue = rowValues[colIndex];
           values.push(cellValue);
@@ -670,6 +712,7 @@ export default function AnalyticsDashboard({
           row.timestamp,
           ...row.values.map((value) => getExportCellValue(value, fileUrlMap)),
           ...(financialPaymentColumns.valuesBySubmissionId.get(row.submissionId) || []),
+          row.adminComments,
         ]);
 
         excelRow.eachCell((cell, colNumber) => {
@@ -679,7 +722,10 @@ export default function AnalyticsDashboard({
               underline: true,
             };
           }
-          cell.alignment = { vertical: "top", wrapText: form.is_financial && colNumber > baseHeaders.length };
+          cell.alignment = {
+            vertical: "top",
+            wrapText: (form.is_financial && colNumber > baseHeaders.length) || colNumber === headers.length,
+          };
         });
         completedSteps += 1;
         updateProgress();
@@ -879,6 +925,101 @@ export default function AnalyticsDashboard({
 
   const handleEmptyArchivedSubmissions = async () => {
     return handleBulkDeleteArchivedSubmissions(archivedSubmissions.map((submission) => submission.id));
+  };
+
+  const updateSubmissionComments = (submissionId, updater) => {
+    setSubmissions((current) =>
+      current.map((submission) => {
+        if (submission.id !== submissionId) return submission;
+        const comments = updater(getSubmissionAdminComments(submission));
+        return {
+          ...submission,
+          form_submission_admin_comments: comments,
+        };
+      }),
+    );
+  };
+
+  const handleCreateComment = async (submissionId) => {
+    const body = String(commentDrafts[submissionId] ?? "").trim();
+    if (!body) {
+      toast.error("Escribe una observación antes de guardarla.");
+      return;
+    }
+
+    setSavingCommentKey(`create:${submissionId}`);
+    try {
+      const result = await createFormSubmissionAdminComment({ submissionId, body });
+      if (result?.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      if (result.comment) {
+        updateSubmissionComments(submissionId, (comments) => [...comments, result.comment]);
+      }
+      setCommentDrafts((current) => ({ ...current, [submissionId]: "" }));
+      toast.success("Observación guardada");
+    } catch (error) {
+      toast.error("No se pudo guardar la observación.");
+    } finally {
+      setSavingCommentKey(null);
+    }
+  };
+
+  const handleStartEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setCommentEditDrafts((current) => ({ ...current, [comment.id]: comment.body ?? "" }));
+  };
+
+  const handleUpdateComment = async (submissionId, commentId) => {
+    const body = String(commentEditDrafts[commentId] ?? "").trim();
+    if (!body) {
+      toast.error("La observación no puede estar vacía.");
+      return;
+    }
+
+    setSavingCommentKey(`update:${commentId}`);
+    try {
+      const result = await updateFormSubmissionAdminComment({ submissionId, commentId, body });
+      if (result?.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      if (result.comment) {
+        updateSubmissionComments(submissionId, (comments) =>
+          comments.map((comment) => (comment.id === commentId ? result.comment : comment)),
+        );
+      }
+      setEditingCommentId(null);
+      toast.success("Observación actualizada");
+    } catch (error) {
+      toast.error("No se pudo actualizar la observación.");
+    } finally {
+      setSavingCommentKey(null);
+    }
+  };
+
+  const handleDeleteComment = async (submissionId, commentId) => {
+    setSavingCommentKey(`delete:${commentId}`);
+    try {
+      const result = await deleteFormSubmissionAdminComment({ submissionId, commentId });
+      if (result?.error) {
+        toast.error(result.error);
+        return;
+      }
+
+      updateSubmissionComments(submissionId, (comments) =>
+        comments.filter((comment) => comment.id !== commentId),
+      );
+      if (editingCommentId === commentId) setEditingCommentId(null);
+      toast.success("Observación eliminada");
+    } catch (error) {
+      toast.error("No se pudo eliminar la observación.");
+    } finally {
+      setSavingCommentKey(null);
+    }
   };
 
   const renderEditFieldControl = (field) => {
@@ -1293,6 +1434,63 @@ export default function AnalyticsDashboard({
             </CardContent>
           </Card>
 
+          {submissionsWithComments.length > 0 ? (
+            <Card className="border border-gray-100 shadow-xl bg-white rounded-[2rem] overflow-hidden">
+              <CardHeader className="px-8 pt-7 pb-5 border-b border-gray-50">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <MessageSquare className="w-4 h-4 text-[var(--puembo-green)]" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.35em] text-[var(--puembo-green)]">
+                        Resumen de observaciones
+                      </span>
+                    </div>
+                    <CardTitle className="text-xl font-serif font-bold text-gray-900 leading-tight">
+                      Comentarios internos recientes
+                    </CardTitle>
+                  </div>
+                  <span className="rounded-full border border-gray-100 bg-gray-50 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    {submissionsWithComments.length}
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent className="px-8 py-6 space-y-4">
+                {submissionsWithComments.slice(0, 6).map((submission) => {
+                  const comments = getSubmissionAdminComments(submission);
+                  const latestComment = comments[comments.length - 1];
+                  return (
+                    <button
+                      key={submission.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab("individual");
+                        setExpandedId(submission.id);
+                      }}
+                      className="w-full rounded-2xl border border-gray-100 bg-gray-50/50 px-4 py-3 text-left hover:border-[var(--puembo-green)]/30 hover:bg-white transition-all"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-gray-900 truncate">
+                            {findNameInSubmission(submission)}
+                          </p>
+                          <p className="text-[10px] font-medium text-gray-400 mt-0.5">
+                            {formatInEcuador(submission.created_at, "d MMM yyyy · HH:mm")}
+                          </p>
+                        </div>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                          {comments.length} observación{comments.length !== 1 ? "es" : ""}
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm leading-relaxed text-gray-600 line-clamp-2">
+                        {latestComment?.body}
+                      </p>
+                    </button>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          ) : null}
+
           {/* Per-field charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {historicalFields
@@ -1668,6 +1866,141 @@ export default function AnalyticsDashboard({
                                 );
                               })}
                             </div>
+
+                            {canManageResponses ? (
+                              <div className="mt-8 rounded-[1.5rem] border border-gray-100 bg-gray-50/50 p-4 md:p-5 space-y-4">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="flex items-center gap-2">
+                                    <MessageSquare className="w-4 h-4 text-[var(--puembo-green)]" />
+                                    <p className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-500">
+                                      Observaciones internas
+                                    </p>
+                                  </div>
+                                  <span className="text-[9px] font-black uppercase tracking-widest text-gray-300">
+                                    {getSubmissionAdminComments(s).length}
+                                  </span>
+                                </div>
+
+                                <div className="space-y-3">
+                                  {getSubmissionAdminComments(s).length === 0 ? (
+                                    <div className="rounded-2xl border border-dashed border-gray-200 bg-white px-4 py-5 text-center">
+                                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">
+                                        Sin observaciones internas
+                                      </p>
+                                    </div>
+                                  ) : (
+                                    getSubmissionAdminComments(s).map((comment) => {
+                                      const isEditingComment = editingCommentId === comment.id;
+                                      const isSavingUpdate = savingCommentKey === `update:${comment.id}`;
+                                      const isDeleting = savingCommentKey === `delete:${comment.id}`;
+
+                                      return (
+                                        <div
+                                          key={comment.id}
+                                          className="rounded-2xl border border-gray-100 bg-white px-4 py-3"
+                                        >
+                                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                                            <div className="min-w-0">
+                                              <p className="text-xs font-bold text-gray-800">
+                                                {getCommentAuthorLabel(comment)}
+                                              </p>
+                                              <p className="text-[10px] font-medium text-gray-400">
+                                                {formatInEcuador(comment.created_at, "d MMM yyyy · HH:mm")}
+                                              </p>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                              {isEditingComment ? (
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleUpdateComment(s.id, comment.id)}
+                                                  disabled={isSavingUpdate}
+                                                  className="h-8 w-8 rounded-full bg-black text-white hover:bg-[var(--puembo-green)] transition-colors disabled:opacity-50 inline-flex items-center justify-center"
+                                                  title="Guardar observación"
+                                                >
+                                                  {isSavingUpdate ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                  ) : (
+                                                    <Check className="w-3.5 h-3.5" />
+                                                  )}
+                                                </button>
+                                              ) : (
+                                                <button
+                                                  type="button"
+                                                  onClick={() => handleStartEditComment(comment)}
+                                                  className="h-8 w-8 rounded-full border border-gray-100 text-gray-400 hover:text-[var(--puembo-green)] hover:border-[var(--puembo-green)]/30 transition-colors inline-flex items-center justify-center"
+                                                  title="Editar observación"
+                                                >
+                                                  <Pencil className="w-3.5 h-3.5" />
+                                                </button>
+                                              )}
+                                              <button
+                                                type="button"
+                                                onClick={() => handleDeleteComment(s.id, comment.id)}
+                                                disabled={isDeleting}
+                                                className="h-8 w-8 rounded-full border border-red-100 text-red-400 hover:bg-red-50 transition-colors disabled:opacity-50 inline-flex items-center justify-center"
+                                                title="Eliminar observación"
+                                              >
+                                                {isDeleting ? (
+                                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                ) : (
+                                                  <Trash2 className="w-3.5 h-3.5" />
+                                                )}
+                                              </button>
+                                            </div>
+                                          </div>
+
+                                          {isEditingComment ? (
+                                            <Textarea
+                                              value={commentEditDrafts[comment.id] ?? ""}
+                                              onChange={(event) =>
+                                                setCommentEditDrafts((current) => ({
+                                                  ...current,
+                                                  [comment.id]: event.target.value,
+                                                }))
+                                              }
+                                              className="mt-3 min-h-24 rounded-2xl border-gray-100 bg-gray-50/70 text-sm focus-visible:ring-[var(--puembo-green)]/20"
+                                            />
+                                          ) : (
+                                            <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-gray-700">
+                                              {comment.body}
+                                            </p>
+                                          )}
+                                        </div>
+                                      );
+                                    })
+                                  )}
+                                </div>
+
+                                <div className="rounded-2xl border border-gray-100 bg-white p-3 space-y-3">
+                                  <Textarea
+                                    value={commentDrafts[s.id] ?? ""}
+                                    onChange={(event) =>
+                                      setCommentDrafts((current) => ({
+                                        ...current,
+                                        [s.id]: event.target.value,
+                                      }))
+                                    }
+                                    placeholder="Agregar una observación interna..."
+                                    className="min-h-24 rounded-xl border-gray-100 bg-gray-50/60 text-sm focus-visible:ring-[var(--puembo-green)]/20"
+                                  />
+                                  <div className="flex justify-end">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCreateComment(s.id)}
+                                      disabled={savingCommentKey === `create:${s.id}`}
+                                      className="h-10 rounded-full bg-black px-5 text-[9px] font-black uppercase tracking-widest text-white hover:bg-[var(--puembo-green)] transition-colors disabled:opacity-50 inline-flex items-center gap-2"
+                                    >
+                                      {savingCommentKey === `create:${s.id}` ? (
+                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                      ) : (
+                                        <MessageSquare className="w-3.5 h-3.5" />
+                                      )}
+                                      Agregar
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : null}
                           </div>
                         )}
                       </div>
