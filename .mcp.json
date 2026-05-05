@@ -1,17 +1,5 @@
 {
   "mcpServers": {
-    "mempalace": {
-      "type": "stdio",
-      "command": "python3",
-      "args": [
-        "-m",
-        "mempalace.mcp_server"
-      ],
-      "env": {
-        "HOME": "/Users/ramon-psn/.codex/memories/mempalace-home",
-        "PYTHONPATH": "/Users/ramon-psn/.codex/memories/mempalace-shim:/Users/ramon-psn/Library/Python/3.9/lib/python/site-packages"
-      }
-    },
     "supabase": {
       "url": "https://mcp.supabase.com/mcp?project_ref=gxziassnnbwnbzfrzcnx&features=storage%2Cfunctions%2Cdevelopment%2Cdebugging%2Cdatabase%2Cdocs"
     }
