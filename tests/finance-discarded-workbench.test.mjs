@@ -26,6 +26,22 @@ test("discarded receipts can be viewed, edited, and restored from the discarded 
   assert.match(workbench, /Restaurar y guardar/);
 });
 
+test("receipt photo buttons show loading feedback and prevent repeated clicks", () => {
+  assert.match(workbench, /loadingReceiptId/);
+  assert.match(workbench, /setLoadingReceiptId\(payment\.id\)/);
+  assert.match(workbench, /isReceiptDisabled/);
+  assert.match(workbench, /disabled=\{isReceiptDisabled\}/);
+  assert.match(workbench, /Cargando\.\.\./);
+  assert.match(workbench, /animate-spin/);
+});
+
+test("receipt viewer opens immediately with a loading state while the signed URL is prepared", () => {
+  assert.match(workbench, /isLoading:\s*true/);
+  assert.match(workbench, /Preparando comprobante/);
+  assert.match(workbench, /Estamos firmando el archivo/);
+  assert.match(workbench, /viewingReceipt\.isLoading/);
+});
+
 test("finance receipt viewer signs private receipt files with the admin client", () => {
   const start = financeActions.indexOf("export async function getReceiptSignedUrl");
   const end = financeActions.indexOf("/**\n * Agrega un nuevo abono", start);

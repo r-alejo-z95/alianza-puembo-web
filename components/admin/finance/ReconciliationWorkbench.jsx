@@ -297,7 +297,7 @@ export function ReconciliationWorkbench({
   const [modalSearch, setModalSearch] = useState("");
   const [pageSize, setPageSize] = useState("25");
   const [viewingReceipt, setViewingReceipt] = useState(null);
-  const [isLoadingImage, setIsLoadingImage] = useState(false);
+  const [loadingReceiptId, setLoadingReceiptId] = useState(null);
   const [receiptZoom, setReceiptZoom] = useState(1);
   const [receiptRotation, setReceiptRotation] = useState(0);
   const [isExportingReport, setIsExportingReport] = useState(false);
@@ -378,13 +378,24 @@ export function ReconciliationWorkbench({
 
   const handleViewReceipt = async (payment, submissionName) => {
     if (!payment.receipt_path) return toast.error("Sin imagen");
+    if (loadingReceiptId) return;
     const requestId = ++receiptRequestIdRef.current;
-    setIsLoadingImage(true);
+    setLoadingReceiptId(payment.id);
+    setViewingReceipt({
+      isLoading: true,
+      url: null,
+      title: submissionName || "Comprobante",
+      aiData: payment.extracted_data,
+      kind: getReceiptKind(payment.receipt_path),
+    });
+    setReceiptZoom(1);
+    setReceiptRotation(0);
     try {
       const res = await getReceiptSignedUrl(payment.receipt_path);
       if (!isMountedRef.current || requestId !== receiptRequestIdRef.current) return;
       if (res.error) {
         toast.error(res.error);
+        setViewingReceipt(null);
         return;
       }
       if (res.url) {
@@ -399,13 +410,15 @@ export function ReconciliationWorkbench({
         return;
       }
       toast.error("No se pudo abrir la foto");
+      setViewingReceipt(null);
     } catch (e) {
       if (isMountedRef.current && requestId === receiptRequestIdRef.current) {
         toast.error("Error");
+        setViewingReceipt(null);
       }
     } finally {
       if (isMountedRef.current && requestId === receiptRequestIdRef.current) {
-        setIsLoadingImage(false);
+        setLoadingReceiptId(null);
       }
     }
   };
@@ -865,6 +878,23 @@ export function ReconciliationWorkbench({
     }
   };
 
+  const renderReceiptButton = (item) => {
+    const isReceiptLoading = loadingReceiptId === item.id;
+    const isReceiptDisabled = !!loadingReceiptId;
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 min-w-24 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 text-[var(--puembo-green)] hover:bg-green-50 disabled:opacity-70"
+        onClick={() => handleViewReceipt(item, item.submissionName)}
+        disabled={isReceiptDisabled}
+      >
+        {isReceiptLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+        {isReceiptLoading ? "Cargando..." : "Ver Foto"}
+      </Button>
+    );
+  };
+
   const renderPaymentItem = (item) => (
     <motion.div key={item.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 50, scale: 0.95 }}>
       <Card className={cn("border-none shadow-lg overflow-hidden transition-all hover:shadow-xl mb-4 rounded-[1.5rem]", item.status === 'verified' ? "ring-1 ring-[var(--puembo-green)] bg-emerald-50/10" : "bg-white")}>
@@ -915,7 +945,7 @@ export function ReconciliationWorkbench({
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="text-[9px] font-bold text-gray-400 uppercase bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">REF: <span className="text-gray-900">{item.extracted_data?.reference || 'N/A'}</span></div>
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 text-[var(--puembo-green)] hover:bg-green-50" onClick={() => handleViewReceipt(item, item.submissionName)}><Eye className="w-3.5 h-3.5" /> Ver Foto</Button>
+                {renderReceiptButton(item)}
                 <Button variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-gray-200 text-gray-700 hover:bg-gray-50" onClick={() => openEdit(item)}><PencilLine className="w-3.5 h-3.5" /> Editar datos</Button>
                 {item.status !== "verified" && (
                   <Button variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => setDiscardTarget(item)}>Descartar</Button>
@@ -1186,7 +1216,7 @@ export function ReconciliationWorkbench({
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 text-[var(--puembo-green)] hover:bg-green-50" onClick={() => handleViewReceipt(item, item.submissionName)}><Eye className="w-3.5 h-3.5" /> Ver Foto</Button>
+                    {renderReceiptButton(item)}
                     <Button variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-gray-200 text-gray-700 hover:bg-gray-50" onClick={() => openEdit(item)}><PencilLine className="w-3.5 h-3.5" /> Editar datos</Button>
                   </div>
                 </div>
@@ -1354,7 +1384,14 @@ export function ReconciliationWorkbench({
       />
 
       {/* 4. RECEIPT VIEWER */}
-      <Dialog open={!!viewingReceipt} onOpenChange={() => setViewingReceipt(null)}>
+      <Dialog
+        open={!!viewingReceipt}
+        onOpenChange={() => {
+          receiptRequestIdRef.current += 1;
+          setLoadingReceiptId(null);
+          setViewingReceipt(null);
+        }}
+      >
         <DialogContent className="max-w-none w-[98vw] h-[96vh] rounded-[1.5rem] p-0 overflow-hidden border-none shadow-2xl bg-black/95 flex flex-col" hideClose>
           <DialogTitle className="sr-only">Visor de Comprobante</DialogTitle>
           {viewingReceipt && (
@@ -1384,7 +1421,17 @@ export function ReconciliationWorkbench({
 
               <div className="flex-1 min-h-0 w-full overflow-auto bg-neutral-950">
                 <div className="min-h-full min-w-full flex items-center justify-center p-4 md:p-8">
-                  {viewingReceipt.kind === "pdf" ? (
+                  {viewingReceipt.isLoading ? (
+                    <div className="flex flex-col items-center justify-center text-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-8 py-10">
+                      <Loader2 className="w-10 h-10 animate-spin text-[var(--puembo-green)]" />
+                      <div className="space-y-1">
+                        <p className="text-white font-serif text-2xl font-bold">Preparando comprobante</p>
+                        <p className="text-white/45 text-[10px] font-black uppercase tracking-widest">
+                          Estamos firmando el archivo para abrirlo de forma segura
+                        </p>
+                      </div>
+                    </div>
+                  ) : viewingReceipt.kind === "pdf" ? (
                     <iframe
                       src={viewingReceipt.url}
                       title="Comprobante bancario"
