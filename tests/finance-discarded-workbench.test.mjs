@@ -12,6 +12,11 @@ const financeActions = readFileSync(
   "utf8",
 );
 
+const reconciliationManager = readFileSync(
+  new URL("../components/admin/finance/ReconciliationManager.jsx", import.meta.url),
+  "utf8",
+);
+
 test("finance search is labeled as search and filters the active reconciliation tab", () => {
   assert.match(workbench, /placeholder="Buscar\.\.\."/);
   assert.match(workbench, /filteredPendingItems/);
@@ -48,6 +53,27 @@ test("finance movements opens as a side sheet instead of an embedded ledger card
   assert.match(workbench, /Movimientos bancarios/);
   assert.doesNotMatch(workbench, /<Card className="order-2/);
   assert.doesNotMatch(workbench, /<CardTitle className="text-xl md:text-2xl font-serif font-bold tracking-tight">Extracto Bancario<\/CardTitle>/);
+});
+
+test("finance movements panel uses a mobile drawer and desktop sheet", () => {
+  assert.match(workbench, /useScreenSize/);
+  assert.match(workbench, /const \{ isLg \} = useScreenSize\(\)/);
+  assert.match(workbench, /isLg \? \(/);
+  assert.match(workbench, /<Sheet open=\{isMovementsSheetOpen\}/);
+  assert.match(workbench, /<Drawer open=\{isMovementsSheetOpen\}/);
+  assert.match(workbench, /<DrawerContent/);
+  assert.match(workbench, /<DrawerHeader/);
+  assert.match(workbench, /<DrawerTitle/);
+});
+
+test("finance movements panel can change the active bank account context", () => {
+  assert.match(workbench, /selectedBankAccountId = ""/);
+  assert.match(workbench, /onSelectedBankAccountIdChange/);
+  assert.match(workbench, /value=\{selectedBankAccountId\}/);
+  assert.match(workbench, /onValueChange=\{onSelectedBankAccountIdChange\}/);
+  assert.match(workbench, /bankAccounts\.map\(\(account\) =>/);
+  assert.match(reconciliationManager, /selectedBankAccountId=\{selectedBankAccountId\}/);
+  assert.match(reconciliationManager, /onSelectedBankAccountIdChange=\{setSelectedBankAccountId\}/);
 });
 
 test("finance movements sheet keeps ledger controls and read-only movement list", () => {

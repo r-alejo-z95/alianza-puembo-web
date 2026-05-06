@@ -364,6 +364,8 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
         selectedFormId={selectedFormId}
         selectedFormTitle={selectedForm?.title || ""}
         selectedBankAccount={selectedBankAccount}
+        selectedBankAccountId={selectedBankAccountId}
+        onSelectedBankAccountIdChange={setSelectedBankAccountId}
         bankAccounts={sortedBankAccounts}
         bankTransactionsForExport={allBankTransactions}
         selectedDestinationAccount={selectedDestinationAccount}

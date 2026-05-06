@@ -17,6 +17,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { 
   Table, 
   TableBody, 
@@ -65,6 +72,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useScreenSize } from "@/lib/hooks/useScreenSize";
 import { format, parseISO, addDays, subDays, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { discardPaymentReceipt, reconcilePayment, getReceiptSignedUrl, updatePaymentReview } from "@/lib/actions/finance";
@@ -287,11 +295,14 @@ export function ReconciliationWorkbench({
   isFormSelected = false,
   selectedFormTitle = "",
   selectedBankAccount = null,
+  selectedBankAccountId = "",
+  onSelectedBankAccountIdChange,
   bankAccounts = [],
   bankTransactionsForExport = [],
   selectedDestinationAccount = null,
   isLoadingContext = false,
 }) {
+  const { isLg } = useScreenSize();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("pending");
   const [manualMatch, setManualMatch] = useState(null); // { paymentId, submission }
@@ -1006,6 +1017,178 @@ export function ReconciliationWorkbench({
     </motion.div>
   );
 
+  const movementsPanelContent = (
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="bg-gray-900 px-6 py-5 text-white">
+        <div className="flex items-center gap-3 pr-8">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--puembo-green)] text-black shadow-lg">
+            <Banknote className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-serif text-2xl font-bold text-white">Movimientos bancarios</p>
+            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-gray-400">
+              Pool de ingresos históricos
+            </p>
+          </div>
+        </div>
+        {selectedBankAccount && (
+          <p className="mt-4 pr-8 text-[10px] font-bold tracking-wide text-gray-300">
+            Cuenta activa: {selectedBankAccount.bank_name}
+            {selectedBankAccount.account_type ? ` · ${selectedBankAccount.account_type}` : ""}
+            {selectedBankAccount.account_number ? ` · ${selectedBankAccount.account_number}` : ""}
+          </p>
+        )}
+        {bankAccounts.length > 0 && (
+          <div className="mt-4 max-w-xl pr-8">
+            <p className="mb-2 text-[8px] font-black uppercase tracking-[0.24em] text-gray-500">
+              Cambiar cuenta activa
+            </p>
+            <Select value={selectedBankAccountId} onValueChange={onSelectedBankAccountIdChange}>
+              <SelectTrigger className="h-10 w-full rounded-xl border-white/10 bg-white/10 text-left text-xs font-bold text-white shadow-none focus:ring-white/20">
+                <SelectValue placeholder="Selecciona una cuenta" />
+              </SelectTrigger>
+              <SelectContent>
+                {bankAccounts.map((account) => (
+                  <SelectItem key={account.id} value={account.id}>
+                    {account.bank_name} {account.account_number ? `- ${account.account_number}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
+      <div className="border-b border-gray-100 bg-white px-5 py-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {[
+            { label: "Visible", val: `$${stats.totalAmount.toFixed(2)}`, icon: Coins, color: "text-[var(--puembo-green)]" },
+            { label: "Disponible", val: `$${stats.availableAmount.toFixed(2)}`, icon: History, color: "text-amber-500" },
+            { label: "Libres", val: stats.availableCount, icon: Database, color: "text-blue-500" },
+            { label: "Conciliados", val: stats.reconciledCount, icon: CheckCircle2, color: "text-emerald-500" },
+          ].map((st, i) => (
+            <div key={i} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
+              <div className={cn("rounded-lg bg-white p-2 shadow-sm", st.color)}>
+                <st.icon className="h-3.5 w-3.5" />
+              </div>
+              <div>
+                <span className="mb-1 block text-[7px] font-black uppercase leading-none text-gray-400">{st.label}</span>
+                <span className="block font-serif text-sm font-black text-gray-900">{st.val}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex shrink-0 items-center gap-1 overflow-x-auto rounded-full border border-gray-100 bg-gray-50 p-1">
+            {["all", "available", "reconciled"].map((s) => (
+              <Button
+                key={s}
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-8 rounded-full px-3 text-[8px] font-black uppercase tracking-widest transition-all",
+                  bankStatusFilter === s
+                    ? "bg-gray-900 text-white hover:bg-gray-900 hover:text-white"
+                    : "text-gray-400 hover:text-gray-900",
+                )}
+                onClick={() => setBankStatusFilter(s)}
+              >
+                {s === "all" ? "Todos" : s === "available" ? "Libres" : "Conciliados"}
+              </Button>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex shrink-0 items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 px-3 py-1.5">
+              <Filter className="h-3 w-3 text-gray-400" />
+              <Select value={pageSize} onValueChange={setPageSize}>
+                <SelectTrigger className="h-7 w-28 border-none bg-transparent p-0 text-[9px] font-black uppercase tracking-widest text-gray-700 focus:ring-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="25">Ver 25</SelectItem>
+                  <SelectItem value="50">Ver 50</SelectItem>
+                  <SelectItem value="100">Ver 100</SelectItem>
+                  <SelectItem value="9999">Ver Todos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Filtrar movimientos..."
+                className="h-10 rounded-xl border-gray-100 bg-gray-50 pl-10 text-xs shadow-inner focus:ring-0"
+                value={bankSearch}
+                onChange={(e) => setBankSearch(e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto bg-gray-50/30">
+        <Table>
+          <TableHeader className="sticky top-0 z-10 bg-gray-50/95 shadow-sm backdrop-blur-md">
+            <TableRow className="border-b border-gray-100">
+              <TableHead onClick={() => handleSort("date")} className="w-[120px] cursor-pointer px-5 py-4 text-center text-[9px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:text-gray-900">
+                <div className="flex items-center justify-center gap-1.5">Fecha <ArrowUpDown className="h-2.5 w-2.5" /></div>
+              </TableHead>
+              <TableHead onClick={() => handleSort("description")} className="cursor-pointer px-5 py-4 text-[9px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:text-gray-900">
+                <div className="flex items-center gap-1.5">Descripción / Origen <ArrowUpDown className="h-2.5 w-2.5" /></div>
+              </TableHead>
+              <TableHead onClick={() => handleSort("amount")} className="w-[120px] cursor-pointer px-5 py-4 text-right text-[9px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:text-gray-900">
+                <div className="flex items-center justify-end gap-1.5">Monto <ArrowUpDown className="h-2.5 w-2.5" /></div>
+              </TableHead>
+              <TableHead className="w-[120px] px-5 py-4 text-center text-[9px] font-black uppercase tracking-widest text-gray-400">
+                Estado
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAndSortedBank.slice(0, parseInt(pageSize)).map((bt) => (
+              <TableRow key={bt.id} className={cn("border-b border-gray-50 bg-white transition-all", bt.is_reconciled ? "opacity-60 grayscale-[0.4]" : "hover:bg-gray-50")}>
+                <TableCell className="px-5 py-3 text-center text-[10px] font-bold text-gray-500">
+                  {format(parseISO(bt.date), "dd/MM/yy")}
+                </TableCell>
+                <TableCell className="min-w-[220px] px-5 py-3">
+                  <div className="flex flex-col">
+                    <span className="block max-w-[320px] truncate text-[10px] font-bold uppercase leading-tight text-gray-900">
+                      {bt.description}
+                    </span>
+                    <span className="mt-0.5 font-mono text-[8px] font-black tracking-tighter text-emerald-600">
+                      REF: {bt.reference || "-"}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="px-5 py-3 text-right font-serif text-sm font-black tracking-tight text-gray-900">
+                  ${bt.amount?.toFixed(2)}
+                </TableCell>
+                <TableCell className="px-5 py-3 text-center">
+                  {bt.is_reconciled ? (
+                    <Badge className="rounded-full border-none bg-emerald-500/10 px-3 py-0.5 text-[8px] font-black text-emerald-600">
+                      Conciliado
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="rounded-full border-amber-200 px-3 py-0.5 text-[8px] font-black text-amber-500">
+                      Libre
+                    </Badge>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        {filteredAndSortedBank.length === 0 && (
+          <div className="py-20 text-center text-xs italic text-gray-400">
+            No se encontraron movimientos en el pool bancario.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex flex-col gap-8">
       <Dialog open={isExportingReport} onOpenChange={() => {}}>
@@ -1058,162 +1241,27 @@ export function ReconciliationWorkbench({
         </DialogContent>
       </Dialog>
 
-      <Sheet open={isMovementsSheetOpen} onOpenChange={setIsMovementsSheetOpen}>
-        <SheetContent side="right" className="w-full border-l border-gray-200 bg-white p-0 sm:max-w-3xl">
-          <div className="flex h-full min-h-0 flex-col">
-            <div className="bg-gray-900 px-6 py-5 text-white">
-              <SheetHeader className="p-0 text-left">
-                <div className="flex items-center gap-3 pr-8">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--puembo-green)] text-black shadow-lg">
-                    <Banknote className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <SheetTitle className="font-serif text-2xl font-bold text-white">Movimientos bancarios</SheetTitle>
-                    <SheetDescription className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-gray-400">
-                      Pool de ingresos históricos
-                    </SheetDescription>
-                  </div>
-                </div>
-              </SheetHeader>
-              {selectedBankAccount && (
-                <p className="mt-4 pr-8 text-[10px] font-bold tracking-wide text-gray-300">
-                  Cuenta activa: {selectedBankAccount.bank_name}
-                  {selectedBankAccount.account_type ? ` · ${selectedBankAccount.account_type}` : ""}
-                  {selectedBankAccount.account_number ? ` · ${selectedBankAccount.account_number}` : ""}
-                </p>
-              )}
-            </div>
-
-            <div className="border-b border-gray-100 bg-white px-5 py-4">
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                {[
-                  { label: "Visible", val: `$${stats.totalAmount.toFixed(2)}`, icon: Coins, color: "text-[var(--puembo-green)]" },
-                  { label: "Disponible", val: `$${stats.availableAmount.toFixed(2)}`, icon: History, color: "text-amber-500" },
-                  { label: "Libres", val: stats.availableCount, icon: Database, color: "text-blue-500" },
-                  { label: "Conciliados", val: stats.reconciledCount, icon: CheckCircle2, color: "text-emerald-500" },
-                ].map((st, i) => (
-                  <div key={i} className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3">
-                    <div className={cn("rounded-lg bg-white p-2 shadow-sm", st.color)}>
-                      <st.icon className="h-3.5 w-3.5" />
-                    </div>
-                    <div>
-                      <span className="mb-1 block text-[7px] font-black uppercase leading-none text-gray-400">{st.label}</span>
-                      <span className="block font-serif text-sm font-black text-gray-900">{st.val}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex shrink-0 items-center gap-1 rounded-full border border-gray-100 bg-gray-50 p-1">
-                  {["all", "available", "reconciled"].map((s) => (
-                    <Button
-                      key={s}
-                      variant="ghost"
-                      size="sm"
-                      className={cn(
-                        "h-8 rounded-full px-3 text-[8px] font-black uppercase tracking-widest transition-all",
-                        bankStatusFilter === s
-                          ? "bg-gray-900 text-white hover:bg-gray-900 hover:text-white"
-                          : "text-gray-400 hover:text-gray-900",
-                      )}
-                      onClick={() => setBankStatusFilter(s)}
-                    >
-                      {s === "all" ? "Todos" : s === "available" ? "Libres" : "Conciliados"}
-                    </Button>
-                  ))}
-                </div>
-
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <div className="flex shrink-0 items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 px-3 py-1.5">
-                    <Filter className="h-3 w-3 text-gray-400" />
-                    <Select value={pageSize} onValueChange={setPageSize}>
-                      <SelectTrigger className="h-7 w-28 border-none bg-transparent p-0 text-[9px] font-black uppercase tracking-widest text-gray-700 focus:ring-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="25">Ver 25</SelectItem>
-                        <SelectItem value="50">Ver 50</SelectItem>
-                        <SelectItem value="100">Ver 100</SelectItem>
-                        <SelectItem value="9999">Ver Todos</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="relative w-full sm:w-72">
-                    <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                    <Input
-                      placeholder="Filtrar movimientos..."
-                      className="h-10 rounded-xl border-gray-100 bg-gray-50 pl-10 text-xs shadow-inner focus:ring-0"
-                      value={bankSearch}
-                      onChange={(e) => setBankSearch(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="min-h-0 flex-1 overflow-y-auto bg-gray-50/30">
-              <Table>
-                <TableHeader className="sticky top-0 z-10 bg-gray-50/95 shadow-sm backdrop-blur-md">
-                  <TableRow className="border-b border-gray-100">
-                    <TableHead onClick={() => handleSort("date")} className="w-[120px] cursor-pointer px-5 py-4 text-center text-[9px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:text-gray-900">
-                      <div className="flex items-center justify-center gap-1.5">Fecha <ArrowUpDown className="h-2.5 w-2.5" /></div>
-                    </TableHead>
-                    <TableHead onClick={() => handleSort("description")} className="cursor-pointer px-5 py-4 text-[9px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:text-gray-900">
-                      <div className="flex items-center gap-1.5">Descripción / Origen <ArrowUpDown className="h-2.5 w-2.5" /></div>
-                    </TableHead>
-                    <TableHead onClick={() => handleSort("amount")} className="w-[120px] cursor-pointer px-5 py-4 text-right text-[9px] font-black uppercase tracking-widest text-gray-400 transition-colors hover:text-gray-900">
-                      <div className="flex items-center justify-end gap-1.5">Monto <ArrowUpDown className="h-2.5 w-2.5" /></div>
-                    </TableHead>
-                    <TableHead className="w-[120px] px-5 py-4 text-center text-[9px] font-black uppercase tracking-widest text-gray-400">
-                      Estado
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredAndSortedBank.slice(0, parseInt(pageSize)).map((bt) => (
-                    <TableRow key={bt.id} className={cn("border-b border-gray-50 bg-white transition-all", bt.is_reconciled ? "opacity-60 grayscale-[0.4]" : "hover:bg-gray-50")}>
-                      <TableCell className="px-5 py-3 text-center text-[10px] font-bold text-gray-500">
-                        {format(parseISO(bt.date), "dd/MM/yy")}
-                      </TableCell>
-                      <TableCell className="min-w-[220px] px-5 py-3">
-                        <div className="flex flex-col">
-                          <span className="block max-w-[320px] truncate text-[10px] font-bold uppercase leading-tight text-gray-900">
-                            {bt.description}
-                          </span>
-                          <span className="mt-0.5 font-mono text-[8px] font-black tracking-tighter text-emerald-600">
-                            REF: {bt.reference || "-"}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="px-5 py-3 text-right font-serif text-sm font-black tracking-tight text-gray-900">
-                        ${bt.amount?.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="px-5 py-3 text-center">
-                        {bt.is_reconciled ? (
-                          <Badge className="rounded-full border-none bg-emerald-500/10 px-3 py-0.5 text-[8px] font-black text-emerald-600">
-                            Conciliado
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="rounded-full border-amber-200 px-3 py-0.5 text-[8px] font-black text-amber-500">
-                            Libre
-                          </Badge>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {filteredAndSortedBank.length === 0 && (
-                <div className="py-20 text-center text-xs italic text-gray-400">
-                  No se encontraron movimientos en el pool bancario.
-                </div>
-              )}
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+      {isLg ? (
+        <Sheet open={isMovementsSheetOpen} onOpenChange={setIsMovementsSheetOpen}>
+          <SheetContent side="right" className="w-full border-l border-gray-200 bg-white p-0 sm:max-w-3xl">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Movimientos bancarios</SheetTitle>
+              <SheetDescription>Pool de ingresos históricos</SheetDescription>
+            </SheetHeader>
+            {movementsPanelContent}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Drawer open={isMovementsSheetOpen} onOpenChange={setIsMovementsSheetOpen}>
+          <DrawerContent className="max-h-[92vh] bg-white p-0">
+            <DrawerHeader className="sr-only">
+              <DrawerTitle>Movimientos bancarios</DrawerTitle>
+              <DrawerDescription>Pool de ingresos históricos</DrawerDescription>
+            </DrawerHeader>
+            {movementsPanelContent}
+          </DrawerContent>
+        </Drawer>
+      )}
 
       {/* 2. AUDIT SECTION */}
       {isFormSelected && isLoadingContext ? (
