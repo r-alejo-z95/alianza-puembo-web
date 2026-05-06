@@ -571,7 +571,7 @@ export async function updatePaymentReview(
   try {
     const { data: currentPayment, error: fetchErr } = await supabase
       .from("form_submission_payments")
-      .select("id, submission_id, extracted_data, amount_claimed, status, reconciliation_notes")
+      .select("id, submission_id, extracted_data, amount_claimed, status, reconciliation_notes, manual_disposition")
       .eq("id", paymentId)
       .single();
 
@@ -591,21 +591,46 @@ export async function updatePaymentReview(
       ...(payload.extractedData || {}),
     };
 
+    const restoresDiscardedPayment = !!currentPayment.manual_disposition;
+    const paymentUpdate: Record<string, any> = {
+      extracted_data: mergedExtractedData,
+      amount_claimed:
+        payload.amountClaimed !== undefined && payload.amountClaimed !== null
+          ? payload.amountClaimed
+          : currentPayment.amount_claimed,
+      status: payload.status || currentPayment.status || "manual_review",
+      reconciliation_notes:
+        payload.notes !== undefined ? payload.notes : currentPayment.reconciliation_notes,
+    };
+
+    if (restoresDiscardedPayment) {
+      Object.assign(paymentUpdate, {
+        manual_disposition: null,
+        manual_disposition_at: null,
+        manual_disposition_by: null,
+        manual_disposition_notes: null,
+        bank_transaction_id: null,
+      });
+    }
+
     const { error: updateErr } = await supabase
       .from("form_submission_payments")
-      .update({
-        extracted_data: mergedExtractedData,
-        amount_claimed:
-          payload.amountClaimed !== undefined && payload.amountClaimed !== null
-            ? payload.amountClaimed
-            : currentPayment.amount_claimed,
-        status: payload.status || currentPayment.status || "manual_review",
-        reconciliation_notes:
-          payload.notes !== undefined ? payload.notes : currentPayment.reconciliation_notes,
-      })
+      .update(paymentUpdate)
       .eq("id", paymentId);
 
     if (updateErr) throw updateErr;
+
+    if (restoresDiscardedPayment) {
+      const { error: submissionRestoreErr } = await supabase
+        .from("form_submissions")
+        .update({
+          coverage_mode: "bank_receipt",
+          covered_by_submission_id: null,
+        })
+        .eq("id", currentPayment.submission_id);
+
+      if (submissionRestoreErr) throw submissionRestoreErr;
+    }
 
     await revalidateFormSubmissions(submission.form_id);
     revalidatePath("/admin/finanzas");
@@ -797,8 +822,9 @@ export async function getFinancialSummary() {
  * Gets temporary URL for visual audit.
  */
 export async function getReceiptSignedUrl(fullPath: string) {
+  await verifyPermission("perm_finanzas");
   if (fullPath.includes('..')) return { error: "Ruta inválida" };
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const path = fullPath.replace('finance_receipts/', '');
   const { data, error } = await supabase.storage.from("finance_receipts").createSignedUrl(path, 600);
   return error ? { error: error.message } : { url: data.signedUrl };

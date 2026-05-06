@@ -258,6 +258,20 @@ function getReceiptKind(receiptPath = "") {
   return "unknown";
 }
 
+function paymentMatchesSearch(item, search) {
+  if (!search) return true;
+  const haystack = [
+    item.submissionName,
+    item.extracted_data?.sender_name,
+    item.extracted_data?.reference,
+    item.extracted_data?.bank_name,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(search);
+}
+
 export function ReconciliationWorkbench({ 
   bankTransactions = [], 
   submissions = [], 
@@ -307,6 +321,7 @@ export function ReconciliationWorkbench({
     () => (editingItem ? compareReceiptBeneficiary(editingItem.extracted_data || {}, selectedDestinationAccount) : null),
     [editingItem, selectedDestinationAccount],
   );
+  const isEditingDiscardedItem = !!editingItem?.manual_disposition;
 
   useEffect(() => {
     return () => {
@@ -792,10 +807,18 @@ export function ReconciliationWorkbench({
 
   const pendingItems = useMemo(() => reconcilablePayments.filter(p => p.status !== 'verified' && !processingIds.has(p.id)).sort((a, b) => a.matchPriority - b.matchPriority), [reconcilablePayments, processingIds]);
   const verifiedItems = useMemo(() => reconcilablePayments.filter(p => p.status === 'verified'), [reconcilablePayments]);
+  const filteredPendingItems = useMemo(() => {
+    const s = searchTerm.trim().toLowerCase();
+    return pendingItems.filter((item) => paymentMatchesSearch(item, s));
+  }, [pendingItems, searchTerm]);
+  const filteredVerifiedItems = useMemo(() => {
+    const s = searchTerm.trim().toLowerCase();
+    return verifiedItems.filter((item) => paymentMatchesSearch(item, s));
+  }, [verifiedItems, searchTerm]);
   const visibleDiscardedItems = useMemo(
     () => discardedItems.filter((item) => {
-      const s = searchTerm.toLowerCase();
-      return !s || (item.submissionName || "").toLowerCase().includes(s);
+      const s = searchTerm.trim().toLowerCase();
+      return paymentMatchesSearch(item, s);
     }),
     [discardedItems, searchTerm],
   );
@@ -1129,16 +1152,16 @@ export function ReconciliationWorkbench({
             </div>
             <div className="relative group w-full sm:w-80">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 transition-colors group-focus-within:text-[var(--puembo-green)]" />
-              <Input placeholder="Filtrar por nombre..." className="pl-11 h-11 rounded-full bg-white border-gray-100 text-xs shadow-sm focus:ring-4 focus:ring-green-500/5 transition-all" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <Input placeholder="Buscar..." className="pl-11 h-11 rounded-full bg-white border-gray-100 text-xs shadow-sm focus:ring-4 focus:ring-green-500/5 transition-all" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           </div>
           <TabsContent value="pending" className="outline-none space-y-4">
             <AnimatePresence mode="popLayout">
-              {pendingItems.filter(item => { const s = searchTerm.toLowerCase(); return (item.submissionName || "").toLowerCase().includes(s); }).map(item => renderPaymentItem(item))}
+              {filteredPendingItems.map(item => renderPaymentItem(item))}
             </AnimatePresence>
-            {pendingItems.length === 0 && (<div className="py-24 text-center bg-white rounded-[3rem] border border-dashed border-gray-100 shadow-inner"><CheckCircle2 className="w-12 h-12 text-[var(--puembo-green)]/30 mx-auto mb-6" /><h4 className="text-2xl font-serif font-bold text-gray-400">¡Conciliación al Día!</h4><p className="text-gray-300 text-[10px] uppercase tracking-widest font-black mt-2">No hay pagos pendientes por auditar</p></div>)}
+            {filteredPendingItems.length === 0 && (<div className="py-24 text-center bg-white rounded-[3rem] border border-dashed border-gray-100 shadow-inner"><CheckCircle2 className="w-12 h-12 text-[var(--puembo-green)]/30 mx-auto mb-6" /><h4 className="text-2xl font-serif font-bold text-gray-400">¡Conciliación al Día!</h4><p className="text-gray-300 text-[10px] uppercase tracking-widest font-black mt-2">No hay pagos pendientes por auditar</p></div>)}
           </TabsContent>
-          <TabsContent value="verified" className="outline-none space-y-4"><AnimatePresence mode="popLayout">{verifiedItems.map(item => renderPaymentItem(item))}</AnimatePresence></TabsContent>
+          <TabsContent value="verified" className="outline-none space-y-4"><AnimatePresence mode="popLayout">{filteredVerifiedItems.map(item => renderPaymentItem(item))}</AnimatePresence></TabsContent>
           <TabsContent value="discarded" className="outline-none space-y-4">
             {visibleDiscardedItems.map((item) => (
               <Card key={item.id} className="border-none shadow-lg rounded-[1.5rem] bg-white">
@@ -1164,6 +1187,7 @@ export function ReconciliationWorkbench({
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 text-[var(--puembo-green)] hover:bg-green-50" onClick={() => handleViewReceipt(item, item.submissionName)}><Eye className="w-3.5 h-3.5" /> Ver Foto</Button>
+                    <Button variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-gray-200 text-gray-700 hover:bg-gray-50" onClick={() => openEdit(item)}><PencilLine className="w-3.5 h-3.5" /> Editar datos</Button>
                   </div>
                 </div>
               </Card>
@@ -1288,10 +1312,10 @@ export function ReconciliationWorkbench({
               <div className="space-y-1 min-w-0">
                 <Badge className="bg-[var(--puembo-green)] text-black border-none font-black text-[8px] uppercase tracking-widest px-3 py-1 rounded-full">Editar datos</Badge>
                 <DialogTitle className="text-xl md:text-2xl font-serif font-bold leading-tight truncate">
-                  Corregir comprobante
+                  {isEditingDiscardedItem ? "Restaurar comprobante" : "Corregir comprobante"}
                 </DialogTitle>
                 <p className="text-xs text-gray-400">
-                  Ajusta aquí la información extraída por IA.
+                  {isEditingDiscardedItem ? "Corrige los datos y guárdalo para devolverlo a la bandeja activa." : "Ajusta aquí la información extraída por IA."}
                 </p>
               </div>
               <div className="text-right shrink-0">
@@ -1312,7 +1336,7 @@ export function ReconciliationWorkbench({
               selectedDestinationAccount={selectedDestinationAccount}
               onSave={handleSaveEditing}
               isSaving={isSavingEditing}
-              saveLabel="Guardar cambios"
+              saveLabel={isEditingDiscardedItem ? "Restaurar y guardar" : "Guardar cambios"}
             />
           </div>
         </DialogContent>

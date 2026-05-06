@@ -1,0 +1,43 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const workbench = readFileSync(
+  new URL("../components/admin/finance/ReconciliationWorkbench.jsx", import.meta.url),
+  "utf8",
+);
+
+const financeActions = readFileSync(
+  new URL("../lib/actions/finance.ts", import.meta.url),
+  "utf8",
+);
+
+test("finance search is labeled as search and filters the active reconciliation tab", () => {
+  assert.match(workbench, /placeholder="Buscar\.\.\."/);
+  assert.match(workbench, /filteredPendingItems/);
+  assert.match(workbench, /filteredVerifiedItems/);
+  assert.match(workbench, /visibleDiscardedItems/);
+  assert.match(workbench, /filteredVerifiedItems\.map\(item => renderPaymentItem\(item\)\)/);
+});
+
+test("discarded receipts can be viewed, edited, and restored from the discarded tab", () => {
+  assert.match(workbench, /handleViewReceipt\(item, item\.submissionName\)/);
+  assert.match(workbench, /openEdit\(item\)/);
+  assert.match(workbench, /Restaurar y guardar/);
+});
+
+test("finance receipt viewer signs private receipt files with the admin client", () => {
+  const start = financeActions.indexOf("export async function getReceiptSignedUrl");
+  const end = financeActions.indexOf("/**\n * Agrega un nuevo abono", start);
+  const getReceiptSignedUrl = financeActions.slice(start, end);
+
+  assert.match(getReceiptSignedUrl, /await verifyPermission\("perm_finanzas"\)/);
+  assert.match(getReceiptSignedUrl, /createAdminClient\(\)/);
+});
+
+test("saving review changes for a discarded payment clears manual disposition state", () => {
+  assert.match(financeActions, /manual_disposition/);
+  assert.match(financeActions, /manual_disposition:\s*null/);
+  assert.match(financeActions, /manual_disposition_at:\s*null/);
+  assert.match(financeActions, /covered_by_submission_id:\s*null/);
+});
