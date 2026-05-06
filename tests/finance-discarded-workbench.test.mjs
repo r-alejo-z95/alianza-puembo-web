@@ -42,6 +42,24 @@ test("receipt viewer opens immediately with a loading state while the signed URL
   assert.match(workbench, /viewingReceipt\.isLoading/);
 });
 
+test("finance movements opens as a side sheet instead of an embedded ledger card", () => {
+  assert.match(workbench, /Sheet open=\{isMovementsSheetOpen\}/);
+  assert.match(workbench, /setIsMovementsSheetOpen\(true\)/);
+  assert.match(workbench, /Movimientos bancarios/);
+  assert.doesNotMatch(workbench, /<Card className="order-2/);
+  assert.doesNotMatch(workbench, /<CardTitle className="text-xl md:text-2xl font-serif font-bold tracking-tight">Extracto Bancario<\/CardTitle>/);
+});
+
+test("finance movements sheet keeps ledger controls and read-only movement list", () => {
+  assert.match(workbench, /SheetContent/);
+  assert.match(workbench, /SheetHeader/);
+  assert.match(workbench, /SheetTitle/);
+  assert.match(workbench, /Filtrar movimientos/);
+  assert.match(workbench, /bankStatusFilter === s/);
+  assert.match(workbench, /filteredAndSortedBank\.slice\(0, parseInt\(pageSize\)\)\.map/);
+  assert.match(workbench, /No se encontraron movimientos en el pool bancario/);
+});
+
 test("finance receipt viewer signs private receipt files with the admin client", () => {
   const start = financeActions.indexOf("export async function getReceiptSignedUrl");
   const end = financeActions.indexOf("/**\n * Agrega un nuevo abono", start);
