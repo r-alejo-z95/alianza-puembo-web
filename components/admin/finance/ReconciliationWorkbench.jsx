@@ -81,6 +81,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DiscardReceiptDialog } from "./DiscardReceiptDialog";
 import { buildFinanceIncomeReport } from "@/lib/finance/income-report.mjs";
+import { buildFinanceReceiptAccessUrl } from "@/lib/finance/receipt-links.mjs";
 
 import { findNameInSubmission } from "@/lib/form-utils";
 
@@ -538,8 +539,8 @@ export function ReconciliationWorkbench({
       const receiptPaths = [...new Set(report.rows.map((row) => row.receiptPath).filter(Boolean))];
       for (let index = 0; index < receiptPaths.length; index += 1) {
         const path = receiptPaths[index];
-        const res = await getReceiptSignedUrl(path);
-        if (res?.url) receiptUrlMap.set(path, res.url);
+        const receiptUrl = buildFinanceReceiptAccessUrl(window.location.origin, path);
+        if (receiptUrl) receiptUrlMap.set(path, receiptUrl);
         setExportProgress(Math.min(62, 18 + Math.round(((index + 1) / Math.max(1, receiptPaths.length)) * 44)));
       }
 

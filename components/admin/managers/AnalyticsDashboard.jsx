@@ -75,6 +75,7 @@ import {
   buildFinancialAnalyticsPaymentColumns,
   getFinancialAnalyticsPaymentFilePaths,
 } from "@/lib/finance/analytics-export.mjs";
+import { buildFinanceReceiptAccessUrl, normalizeFinanceReceiptPath } from "@/lib/finance/receipt-links.mjs";
 import { cn } from "@/lib/utils.ts";
 import { getFileSignedUrl } from "@/lib/actions";
 import { findNameInSubmission } from "@/lib/form-utils";
@@ -599,9 +600,17 @@ export default function AnalyticsDashboard({
       if (totalFiles > 0) {
         for (let index = 0; index < filePathList.length; index += 1) {
           const path = filePathList[index];
-          const result = await getFileSignedUrl(path);
-          if (result?.url) {
-            fileUrlMap.set(path, result.url);
+          const receiptPath = String(path || "").startsWith("finance_receipts/")
+            ? normalizeFinanceReceiptPath(path)
+            : null;
+          if (receiptPath) {
+            const receiptUrl = buildFinanceReceiptAccessUrl(window.location.origin, receiptPath);
+            if (receiptUrl) fileUrlMap.set(path, receiptUrl);
+          } else {
+            const result = await getFileSignedUrl(path);
+            if (result?.url) {
+              fileUrlMap.set(path, result.url);
+            }
           }
           completedSteps += 1;
           updateProgress();
