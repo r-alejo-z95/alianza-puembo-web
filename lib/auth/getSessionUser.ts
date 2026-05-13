@@ -36,6 +36,10 @@ export async function getSessionUser(): Promise<AdminUser | null> {
 
   return {
     ...user,
+    user_metadata: {
+      ...(user.user_metadata ?? {}),
+      ...(profile.full_name ? { full_name: profile.full_name, name: profile.full_name } : {}),
+    },
     is_super_admin: !!profile.is_super_admin,
     permissions: {
       perm_events: !!profile.perm_events,

@@ -53,6 +53,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useAdminProfiles } from "@/lib/hooks/useAdminProfiles";
+import { updateOwnAdminProfile } from "@/lib/actions/admin-profiles";
 import {
   Accordion,
   AccordionContent,
@@ -132,14 +133,25 @@ export default function PreferenciasPage() {
         if (error) throw error;
       }
 
-      if (data.full_name && data.full_name !== user?.full_name) {
-        const { error } = await supabase.from('profiles').update({ full_name: data.full_name }).eq('id', user.id);
-        if (error) throw error;
+      const fullName = data.full_name?.trim();
+      if (fullName && fullName !== user?.full_name) {
+        const result = await updateOwnAdminProfile({ full_name: fullName });
+        if (!result.ok) throw new Error(result.error);
+        setUser((prev) => ({
+          ...prev,
+          full_name: result.value,
+          user_metadata: {
+            ...(prev?.user_metadata || {}),
+            full_name: result.value,
+            name: result.value,
+          },
+        }));
+        form.setValue("full_name", result.value);
       }
 
       toast.success("Perfil actualizado con éxito.");
     } catch (error) {
-      toast.error("Error al actualizar perfil.");
+      toast.error(error?.message || "Error al actualizar perfil.");
     } finally {
       setSubmitting(false);
     }
