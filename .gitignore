@@ -50,10 +50,10 @@ CLAUDE.md
 claude.md
 .claude
 
-.temp
+supabase/.temp
 .vscode
 
-supabase/migrations
+supabase/migrations-legacy-untracked
 supabase/functions/sheets-drive-integration/original-index.ts
 
 .roo
