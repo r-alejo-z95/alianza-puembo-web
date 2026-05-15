@@ -15,6 +15,8 @@ import {
   validateManualRegistrationValues,
 } from "@/lib/finance/manual-registration.mjs";
 import { applyManualPaymentToSubmission } from "@/lib/finance/manual-payment.mjs";
+import { buildActiveReconciledTransactionIds } from "@/lib/finance/submission-lifecycle.mjs";
+import { getSubmissionPaymentSummary } from "@/lib/finance/payment-summary.mjs";
 
 function buildDiscardedItems(submissions: any[] = []) {
   return submissions.flatMap((submission) =>
@@ -226,13 +228,16 @@ export async function getGlobalTransactions(selectedBankAccountId?: string | nul
     }
   }
 
-  // 2. Get all reconciled IDs across ALL payments in the database
+  // 2. Get reconciled IDs only from active submissions. Archived responses stay restorable,
+  // but they must not occupy bank movements while they are in the recycle bin.
   const { data: reconciled, error: recError } = await supabase
     .from("form_submission_payments")
-    .select("bank_transaction_id")
+    .select("bank_transaction_id, form_submissions!inner(is_archived)")
     .not("bank_transaction_id", "is", null);
 
-  const reconciledIds = new Set(reconciled?.map(r => r.bank_transaction_id) || []);
+  if (recError) return { error: recError.message };
+
+  const reconciledIds = buildActiveReconciledTransactionIds(reconciled || []);
 
   const enhancedTransactions = transactions.map(tx => ({
     ...tx,
@@ -851,6 +856,7 @@ export async function addMultipartPayment(payload: {
       .select("id, form_id")
       .eq("id", submissionId)
       .eq("access_token", accessToken)
+      .eq("is_archived", false)
       .single();
 
     if (subError || !submission) {
@@ -866,9 +872,20 @@ export async function addMultipartPayment(payload: {
 
     const { data: form } = await supabaseAdmin
       .from("forms")
-      .select("destination_account_id, financial_field_id, financial_field_label")
+      .select("destination_account_id, financial_field_id, financial_field_label, total_amount")
       .eq("id", submission.form_id)
       .maybeSingle();
+
+    const { data: existingPayments } = await supabaseAdmin
+      .from("form_submission_payments")
+      .select("amount_claimed, extracted_data, status, manual_disposition")
+      .eq("submission_id", submissionId);
+
+    const totalAmount = Number(form?.total_amount || 0);
+    const summary = getSubmissionPaymentSummary(existingPayments || []);
+    if (totalAmount > 0 && summary.totalSubmitted >= totalAmount) {
+      return { error: "El total de esta inscripción ya está cubierto. No necesitas subir otro abono." };
+    }
 
     if (form?.destination_account_id) {
       const { data: account } = await supabaseAdmin

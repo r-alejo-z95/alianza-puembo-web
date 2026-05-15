@@ -80,6 +80,22 @@ const getJumpTarget = (field, values) => {
   return null;
 };
 
+const buildClientSubmissionOutcome = ({
+  status = "error",
+  title = "No pudimos procesar tu envío",
+  message = "Ocurrió un error al procesar el formulario.",
+  steps = [],
+  primaryAction,
+  secondaryAction,
+} = {}) => ({
+  status,
+  title,
+  message,
+  steps,
+  primaryAction: primaryAction || { label: status === "success" ? "Continuar" : "Intentar de nuevo" },
+  secondaryAction,
+});
+
 // --- Logic Hook ---
 function useFormLogic(form) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -528,7 +544,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
   const [sending, setSending] = useState(false);
 
-  const [submissionStatus, setSubmissionStatus] = useState(null);
+  const [submissionResult, setSubmissionResult] = useState(null);
 
   const [captchaToken, setCaptchaToken] = useState(null);
 
@@ -759,17 +775,36 @@ export default function FluentRenderer({ form, isPreview = false }) {
     }
 
     if (form?.enabled === false) {
-      toast.error("Formulario cerrado.");
+      setSubmissionResult(buildClientSubmissionOutcome({
+        status: "closed",
+        title: "Formulario cerrado",
+        message: "Este formulario ya no está recibiendo respuestas.",
+        steps: [
+          "Si ya tienes una inscripción, entra al portal de seguimiento.",
+          "Si crees que esto es un error, comunícate con el equipo organizador.",
+        ],
+        primaryAction: { label: "Ir a seguimiento", href: "/inscripcion" },
+      }));
       return;
     }
 
     const needsCaptcha = !form.is_internal && !isPreview;
     if (needsCaptcha && !captchaToken) {
-      toast.error("Verificación de seguridad requerida.");
+      setSubmissionResult(buildClientSubmissionOutcome({
+        status: "security",
+        title: "Falta la verificación",
+        message: "Necesitamos confirmar que el envío no es automatizado antes de recibir el formulario.",
+        steps: [
+          "Completa la verificación de seguridad al final del formulario.",
+          "Luego presiona enviar nuevamente.",
+        ],
+        primaryAction: { label: "Completar verificación" },
+      }));
       return;
     }
 
     setSending(true);
+    setSubmissionResult(null);
 
     try {
       // 1. Identificar campos visibles en este envío específico
@@ -960,17 +995,46 @@ export default function FluentRenderer({ form, isPreview = false }) {
         notificationEmail: data["notification-email-field"] || data["Correo para Notificaciones"]
       });
 
-      if (result.error) throw new Error(result.error);
+      if (result.error) {
+        setSubmissionResult(
+          result.outcome ||
+            buildClientSubmissionOutcome({
+              status: "error",
+              title: "No pudimos recibir tu respuesta",
+              message: result.error,
+              steps: ["Revisa la información del formulario e intenta nuevamente."],
+            }),
+        );
+        return;
+      }
 
-      setSubmissionStatus("success");
+      setSubmissionResult(
+        result.outcome ||
+          buildClientSubmissionOutcome({
+            status: "success",
+            title: "Recibido con éxito",
+            message: "Tu respuesta fue registrada correctamente.",
+            steps: ["Puedes cerrar esta ventana o enviar una nueva respuesta."],
+            primaryAction: { label: "Nueva respuesta", reload: true },
+            secondaryAction: { label: "Ir al inicio", href: "/" },
+          }),
+      );
       reset();
       setCaptchaToken(null);
       setCaptchaKey((p) => p + 1);
 
     } catch (e) {
       console.error("Submission Error:", e);
-      toast.error(e.message || "Error al enviar el formulario", { duration: 30000 });
-      setSubmissionStatus("error");
+      setSubmissionResult(buildClientSubmissionOutcome({
+        status: "error",
+        title: "No pudimos procesar tu envío",
+        message: e.message || "Error al enviar el formulario",
+        steps: [
+          "Revisa tu conexión e intenta nuevamente.",
+          "Si estabas subiendo un archivo, confirma que sea imagen o PDF menor a 5MB.",
+          "Si el problema continúa, comunícate con el equipo organizador.",
+        ],
+      }));
     } finally {
       setSending(false);
     }
@@ -1021,6 +1085,25 @@ export default function FluentRenderer({ form, isPreview = false }) {
     () => !form.is_internal && !isPreview,
     [form.is_internal, isPreview],
   );
+
+  const handleSubmissionResultAction = (action) => {
+    if (!action) {
+      setSubmissionResult(null);
+      return;
+    }
+
+    if (action.reload) {
+      window.location.reload();
+      return;
+    }
+
+    if (action.href) {
+      router.push(action.href);
+      return;
+    }
+
+    setSubmissionResult(null);
+  };
 
   return (
     <div className="w-full max-w-3xl mx-auto px-5 md:px-0 pb-32">
@@ -1099,6 +1182,37 @@ export default function FluentRenderer({ form, isPreview = false }) {
                   className="border-b border-(--puembo-green) p-6 md:p-8 prose prose-base md:prose-lg mx-auto text-gray-800 font-medium leading-relaxed whitespace-pre-wrap tiptap-content"
                   dangerouslySetInnerHTML={{ __html: form.description }}
                 />
+              )}
+
+              {!form.is_internal && form.is_financial && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="rounded-[1.5rem] border border-[var(--puembo-green)]/20 bg-[var(--puembo-green)]/5 p-5 md:p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-11 h-11 rounded-2xl bg-white text-[var(--puembo-green)] flex items-center justify-center shadow-sm shrink-0">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-black text-gray-900">
+                        ¿Ya estoy inscrito o necesito subir otro abono?
+                      </p>
+                      <p className="text-xs text-gray-600 leading-relaxed font-medium">
+                        No llenes este formulario otra vez. Usa seguimiento para revisar tu inscripción y subir comprobantes adicionales.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="rounded-full h-11 px-5 text-[10px] font-black uppercase tracking-widest border-[var(--puembo-green)]/30 text-[var(--puembo-green)] hover:bg-white"
+                    onClick={() => router.push("/inscripcion")}
+                  >
+                    Ya estoy inscrito
+                  </Button>
+                </motion.div>
               )}
             </div>
           )}
@@ -1252,7 +1366,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
       </AnimatePresence>
 
       {/* Pantalla de Bloqueo durante el Envío */}
-      <Dialog open={sending && submissionStatus === null}>
+      <Dialog open={sending && submissionResult === null}>
         <DialogContent className="sm:max-w-md rounded-[3rem] border-none p-0 overflow-hidden shadow-2xl [&>button]:hidden bg-white/80 backdrop-blur-xl">
           <div className="p-16 text-center flex flex-col items-center gap-8">
             <div className="relative">
@@ -1332,84 +1446,105 @@ export default function FluentRenderer({ form, isPreview = false }) {
       </div>
 
       <Dialog
-        open={submissionStatus !== null}
-        onOpenChange={(v) =>
-          !v && submissionStatus === "error" && setSubmissionStatus(null)
-        }
+        open={submissionResult !== null}
+        onOpenChange={(v) => {
+          if (!v && submissionResult?.status !== "success") setSubmissionResult(null);
+        }}
       >
-        <DialogContent className="sm:max-w-md rounded-[3rem] border-none p-0 overflow-hidden shadow-2xl [&>button]:hidden">
+        <DialogContent className="sm:max-w-lg rounded-[2rem] border-none p-0 overflow-hidden shadow-2xl [&>button]:hidden">
           <div
             className={cn(
-              "p-12 text-center space-y-8",
-              submissionStatus === "success"
+              "p-8 md:p-10 text-center space-y-6",
+              submissionResult?.status === "success"
                 ? "bg-green-50/50"
+                : submissionResult?.status === "duplicate"
+                  ? "bg-amber-50/70"
                 : "bg-red-50/50",
             )}
           >
             <div
               className={cn(
-                "w-24 h-24 rounded-[2rem] flex items-center justify-center mx-auto shadow-xl rotate-6 transition-transform hover:rotate-0 duration-500",
-                submissionStatus === "success"
+                "w-20 h-20 rounded-[1.5rem] flex items-center justify-center mx-auto shadow-xl rotate-3",
+                submissionResult?.status === "success"
                   ? "bg-white text-[var(--puembo-green)]"
+                  : submissionResult?.status === "duplicate"
+                    ? "bg-white text-amber-600"
                   : "bg-white text-red-500",
               )}
             >
-              {submissionStatus === "success" ? (
-                <CheckCircle2 className="w-12 h-12 -rotate-6" />
+              {submissionResult?.status === "success" ? (
+                <CheckCircle2 className="w-10 h-10 -rotate-3" />
+              ) : submissionResult?.status === "duplicate" ? (
+                <AlertCircle className="w-10 h-10 -rotate-3" />
               ) : (
-                <XCircle className="w-12 h-12 -rotate-6" />
+                <XCircle className="w-10 h-10 -rotate-3" />
               )}
             </div>
 
             <div className="space-y-4">
               <DialogTitle
                 className={cn(
-                  "text-3xl font-serif font-black",
-                  submissionStatus === "success"
+                  "text-2xl md:text-3xl font-serif font-black",
+                  submissionResult?.status === "success"
                     ? "text-[var(--puembo-green)]"
+                    : submissionResult?.status === "duplicate"
+                      ? "text-amber-700"
                     : "text-red-600",
                 )}
               >
-                {submissionStatus === "success"
-                  ? "¡Recibido con éxito!"
-                  : "Algo salió mal"}
+                {submissionResult?.title}
               </DialogTitle>
 
-              <DialogDescription className="text-gray-600 font-semibold text-lg leading-relaxed">
-                {submissionStatus === "success"
-                  ? "Tu respuesta ha sido registrada correctamente. Gracias por ser parte de la familia Alianza Puembo."
-                  : "No pudimos procesar tu envío. Por favor revisa tu conexión e inténtalo una vez más."}
+              <DialogDescription className="text-gray-600 font-semibold text-base md:text-lg leading-relaxed">
+                {submissionResult?.message}
               </DialogDescription>
             </div>
           </div>
 
-          <div className="p-8 bg-white flex flex-col gap-4">
-            {submissionStatus === "success" ? (
-              <>
-                <Button
-                  onClick={() => window.location.reload()}
-                  variant="outline"
-                  className="w-full rounded-2xl h-14 text-[11px] font-black uppercase tracking-widest border-2 hover:bg-gray-50"
-                >
-                  Nueva Respuesta
-                </Button>
+          <div className="p-6 md:p-8 bg-white flex flex-col gap-5">
+            {submissionResult?.steps?.length > 0 && (
+              <div className="rounded-2xl border border-gray-100 bg-gray-50/80 p-5 text-left">
+                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400 mb-3">
+                  Pasos a seguir
+                </p>
+                <ol className="space-y-2">
+                  {submissionResult.steps.map((step, index) => (
+                    <li key={index} className="flex gap-3 text-sm text-gray-600 leading-relaxed font-medium">
+                      <span className="w-5 h-5 rounded-full bg-white text-[10px] font-black text-[var(--puembo-green)] flex items-center justify-center shrink-0 border border-gray-100">
+                        {index + 1}
+                      </span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
 
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={() => handleSubmissionResultAction(submissionResult?.primaryAction)}
+                className={cn(
+                  "w-full rounded-2xl h-14 text-[11px] font-black uppercase tracking-widest shadow-lg",
+                  submissionResult?.status === "success"
+                    ? "bg-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/90 text-white shadow-[var(--puembo-green)]/20"
+                    : submissionResult?.status === "duplicate"
+                      ? "bg-amber-600 hover:bg-amber-700 text-white shadow-amber-200"
+                      : "bg-red-500 hover:bg-red-600 text-white shadow-red-200",
+                )}
+              >
+                {submissionResult?.primaryAction?.label || "Intentar de nuevo"}
+              </Button>
+
+              {submissionResult?.secondaryAction && (
                 <Button
-                  onClick={() => router.push("/")}
+                  onClick={() => handleSubmissionResultAction(submissionResult.secondaryAction)}
                   variant="ghost"
                   className="w-full rounded-2xl h-14 text-[11px] font-black uppercase tracking-widest text-gray-400"
                 >
-                  Volver al Inicio
+                  {submissionResult.secondaryAction.label}
                 </Button>
-              </>
-            ) : (
-              <Button
-                onClick={() => setSubmissionStatus(null)}
-                className="w-full rounded-2xl h-14 bg-red-500 hover:bg-red-600 text-white text-[11px] font-black uppercase tracking-widest shadow-lg shadow-red-200"
-              >
-                Intentar de Nuevo
-              </Button>
-            )}
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

@@ -36,6 +36,7 @@ import { findNameInSubmission } from "@/lib/form-utils";
 export default function TrackingClient({ submission }) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadResult, setUploadResult] = useState(null);
 
   const form = submission.forms;
   const payments = getSubmissionTrackingPayments(submission);
@@ -51,6 +52,9 @@ export default function TrackingClient({ submission }) {
   const paymentSummary = getSubmissionPaymentSummary(sortedPayments);
   const totalVerified = paymentSummary.totalVerified;
   const totalSubmitted = paymentSummary.totalSubmitted;
+  const totalAmount = Number(form?.total_amount || 0);
+  const remainingBalance = totalAmount > 0 ? Math.max(totalAmount - totalSubmitted, 0) : null;
+  const canUploadAdditionalPayment = remainingBalance === null || remainingBalance > 0;
 
   // Status config
   const statusConfig = {
@@ -83,6 +87,7 @@ export default function TrackingClient({ submission }) {
     if (!selectedFile) return;
 
     setIsUploading(true);
+    setUploadResult(null);
     try {
       // Comprimir la imagen antes de subirla
       const fileToUpload = await compressImage(selectedFile);
@@ -104,14 +109,22 @@ export default function TrackingClient({ submission }) {
       });
 
       if (paymentRes.success) {
-        toast.success("Comprobante subido correctamente. Nuestro equipo lo validará pronto.");
+        setUploadResult({
+          status: "success",
+          title: "Comprobante recibido",
+          message: "Nuestro equipo validará este abono y actualizará tu estado de pago.",
+        });
         setSelectedFile(null);
       } else {
         throw new Error(paymentRes.error);
       }
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error(error.message || "Error al subir el comprobante", { duration: 30000 });
+      setUploadResult({
+        status: "error",
+        title: "No pudimos subir el comprobante",
+        message: error.message || "Revisa el archivo e intenta nuevamente.",
+      });
     } finally {
       setIsUploading(false);
     }
@@ -206,6 +219,12 @@ export default function TrackingClient({ submission }) {
                             </div>
                         </div>
                     )}
+                    {remainingBalance !== null && (
+                        <div className="p-4 bg-[var(--puembo-green)]/5 rounded-2xl border border-[var(--puembo-green)]/10 text-center">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]">Saldo pendiente</p>
+                            <p className="text-lg font-black text-gray-900">${remainingBalance.toFixed(2)}</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </CardContent>
@@ -293,8 +312,28 @@ export default function TrackingClient({ submission }) {
                     <p className="text-xs text-gray-500 font-medium leading-relaxed mb-4">
                         ¿Has realizado un pago adicional? Sube tu comprobante bancario aquí para que lo validemos.
                     </p>
+
+                    {uploadResult ? (
+                        <div className={cn(
+                            "rounded-2xl border p-4",
+                            uploadResult.status === "success"
+                                ? "bg-[var(--puembo-green)]/5 border-[var(--puembo-green)]/20 text-gray-700"
+                                : "bg-red-50 border-red-100 text-red-700"
+                        )}>
+                            <p className="text-sm font-black">{uploadResult.title}</p>
+                            <p className="text-xs leading-relaxed font-medium mt-1">{uploadResult.message}</p>
+                        </div>
+                    ) : null}
                     
-                    {!selectedFile ? (
+                    {!canUploadAdditionalPayment ? (
+                        <div className="rounded-3xl border border-emerald-100 bg-emerald-50 p-6 text-center">
+                            <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-3" />
+                            <p className="text-sm font-black text-gray-900">El total ya está cubierto</p>
+                            <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                                No necesitas subir otro abono para esta inscripción.
+                            </p>
+                        </div>
+                    ) : !selectedFile ? (
                         <label className="flex flex-col items-center justify-center w-full aspect-square rounded-3xl border-2 border-dashed border-gray-200 bg-gray-50/50 hover:bg-gray-50 hover:border-[var(--puembo-green)] transition-all cursor-pointer group">
                             <div className="p-4 bg-white rounded-2xl shadow-sm group-hover:scale-110 transition-transform">
                                 <Upload className="w-6 h-6 text-gray-400 group-hover:text-[var(--puembo-green)]" />

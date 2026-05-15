@@ -9,6 +9,7 @@ import {
   buildSubmissionResponseUpdate,
   canManageSubmissionResponses,
 } from "@/lib/forms/submission-admin.mjs";
+import { collectFinanceReceiptPathsFromSubmission } from "@/lib/finance/submission-lifecycle.mjs";
 
 interface FormSetupValues {
   id?: string | null;
@@ -117,7 +118,7 @@ async function getManageableSubmission(submissionId: string) {
   const supabase = createAdminClient();
   const { data: submission, error: submissionError } = await supabase
     .from("form_submissions")
-    .select("id, form_id, data, answers, is_archived")
+    .select("id, form_id, data, answers, is_archived, coverage_backup_path, form_submission_payments(receipt_path)")
     .eq("id", submissionId)
     .maybeSingle();
 
@@ -382,6 +383,8 @@ export async function permanentlyDeleteFormSubmissionResponse(
       return { error: "Solo puedes eliminar definitivamente respuestas archivadas." };
     }
 
+    const receiptPaths = collectFinanceReceiptPathsFromSubmission(submission);
+
     const { error } = await supabase
       .from("form_submissions")
       .delete()
@@ -389,6 +392,16 @@ export async function permanentlyDeleteFormSubmissionResponse(
       .eq("form_id", (submission as any).form_id);
 
     if (error) throw error;
+
+    if (receiptPaths.length > 0) {
+      const { error: storageError } = await supabase.storage
+        .from("finance_receipts")
+        .remove(receiptPaths);
+
+      if (storageError) {
+        console.error("[permanentlyDeleteFormSubmissionResponse] receipt cleanup failed:", storageError);
+      }
+    }
 
     await revalidateFormSubmissions((submission as any).form_id);
 

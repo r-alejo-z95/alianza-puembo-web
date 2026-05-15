@@ -204,10 +204,6 @@ export async function sendConfirmationEmail(
   },
 ) {
   try {
-    if (payload.remainingBalance <= 0) {
-      return { success: true, skipped: true };
-    }
-
     const trackingUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://alianzapuembo.org"}/inscripcion/${payload.accessToken}`;
     const formatMoney = (value: number) =>
       new Intl.NumberFormat("es-EC", {
@@ -236,7 +232,11 @@ export async function sendConfirmationEmail(
               <p style="margin: 4px 0 0 0;"><strong>Saldo pendiente:</strong> ${formatMoney(payload.remainingBalance)}</p>
             </div>
 
-            <p>Si necesitas realizar pagos parciales o subir comprobantes adicionales, puedes hacerlo desde nuestro portal de seguimiento:</p>
+            ${
+              payload.remainingBalance > 0
+                ? `<p>Si necesitas realizar pagos parciales o subir comprobantes adicionales, puedes hacerlo desde nuestro portal de seguimiento:</p>`
+                : `<p>Puedes consultar el estado de tu inscripción y comprobante desde nuestro portal de seguimiento:</p>`
+            }
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${trackingUrl}" style="background-color: #8fc641; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
@@ -244,7 +244,13 @@ export async function sendConfirmationEmail(
               </a>
             </div>
 
-            <p style="font-size: 14px; color: #666;">Puedes usar este enlace para registrar nuevos abonos hasta completar el total.</p>
+            <p style="font-size: 14px; color: #666;">
+              ${
+                payload.remainingBalance > 0
+                  ? "Puedes usar este enlace para registrar nuevos abonos hasta completar el total."
+                  : "Guarda este enlace para consultar cualquier actualización de tu inscripción."
+              }
+            </p>
             
             <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />
             <p style="font-size: 14px; color: #666;">
@@ -258,6 +264,82 @@ export async function sendConfirmationEmail(
     return { success: true };
   } catch (error) {
     console.error("Error sending confirmation email:", error);
+    return { success: false, error };
+  }
+}
+
+/**
+ * Reenvía enlaces de seguimiento sin revelar en pantalla si el correo existe.
+ */
+export async function sendSubmissionTrackingLinksEmail(
+  email: string,
+  payload: {
+    submissions: Array<{
+      formTitle: string;
+      accessToken: string;
+      createdAt?: string | null;
+      remainingBalance?: number | null;
+    }>;
+  },
+) {
+  try {
+    const submissions = payload.submissions || [];
+    if (submissions.length === 0) {
+      return { success: true, skipped: true };
+    }
+
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://alianzapuembo.org";
+    const formatMoney = (value: number) =>
+      new Intl.NumberFormat("es-EC", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      }).format(value || 0);
+
+    const rows = submissions
+      .map((submission) => {
+        const trackingUrl = `${siteUrl}/inscripcion/${submission.accessToken}`;
+        const balance = Number(submission.remainingBalance ?? 0);
+        return `
+          <div style="border: 1px solid #eee; border-radius: 12px; padding: 18px; margin: 14px 0;">
+            <p style="margin: 0 0 6px 0; font-weight: bold; color: #222;">${submission.formTitle}</p>
+            ${
+              balance > 0
+                ? `<p style="margin: 0 0 12px 0; color: #666; font-size: 14px;">Saldo pendiente aproximado: ${formatMoney(balance)}</p>`
+                : `<p style="margin: 0 0 12px 0; color: #666; font-size: 14px;">Inscripción activa.</p>`
+            }
+            <a href="${trackingUrl}" style="background-color: #8fc641; color: white; padding: 12px 18px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+              Abrir seguimiento
+            </a>
+          </div>
+        `;
+      })
+      .join("");
+
+    await resend.emails.send({
+      from: "Iglesia Alianza Puembo <notificaciones@alianzapuembo.org>",
+      to: [email],
+      subject: "Tus enlaces de seguimiento de inscripción",
+      html: `
+        <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
+          <div style="background-color: #000; padding: 20px; text-align: center;">
+            <img src="https://alianzapuembo.org/brand/logo-puembo-white.png" alt="Alianza Puembo" style="height: 40px;">
+          </div>
+          <div style="padding: 40px;">
+            <h2 style="color: #8fc641;">Enlaces de seguimiento</h2>
+            <p>Recibimos una solicitud para recuperar tus enlaces de inscripción. Si necesitas subir otro abono, abre el seguimiento correspondiente y carga el nuevo comprobante ahí.</p>
+            ${rows}
+            <p style="font-size: 13px; color: #777; margin-top: 28px;">
+              Si no solicitaste este correo, puedes ignorarlo.
+            </p>
+          </div>
+        </div>
+      `,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error sending tracking links email:", error);
     return { success: false, error };
   }
 }

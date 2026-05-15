@@ -3,6 +3,7 @@ import Info from "@/components/public/homepage/Info";
 import Grupos from "@/components/public/homepage/Grupos";
 import Ubicacion from "@/components/public/homepage/Ubicacion";
 import TheFour from "@/components/public/homepage/TheFour";
+import InscriptionAccess from "@/components/public/homepage/InscriptionAccess";
 import { getYouTubeChannelStatus } from "@/lib/youtube";
 import { getCachedSettings } from "@/lib/data/settings";
 
@@ -32,6 +33,7 @@ export default async function Home() {
       />
       <TheFour />
       <Info />
+      <InscriptionAccess />
       <Grupos />
       <Ubicacion youtubeStatus={youtubeStatus} />
     </>

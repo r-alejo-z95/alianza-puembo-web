@@ -9,7 +9,11 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { loginSchema } from "@/lib/schemas";
-import { sendSystemNotification, sendConfirmationEmail } from "@/lib/services/notifications";
+import {
+  sendSystemNotification,
+  sendConfirmationEmail,
+  sendSubmissionTrackingLinksEmail,
+} from "@/lib/services/notifications";
 import { headers } from "next/headers";
 import { revalidateForms, revalidateFormSubmissions } from "./actions/cache";
 import { extractReceiptDataDetailed } from "@/lib/services/ai-reconciliation";
@@ -17,6 +21,8 @@ import { INVALID_RECEIPT_MESSAGE, resolveFinancialReceiptValidation } from "@/li
 import crypto from "crypto";
 import { ensureFinanceReceiptsBucket } from "@/lib/finance/storage";
 import { getInstallmentEmailSummary } from "@/lib/finance/payment-summary.mjs";
+import { detectFinancialSubmissionConflict } from "@/lib/finance/submission-dedupe.mjs";
+import { findNameInSubmission } from "@/lib/form-utils";
 import {
   getReceiptFileExtension,
   isSupportedReceiptMimeType,
@@ -679,6 +685,78 @@ export async function initializeGoogleIntegration(
   }
 }
 
+function buildSubmissionOutcome({
+  status,
+  title,
+  message,
+  steps = [],
+  primaryAction,
+  secondaryAction,
+}: {
+  status: "success" | "error" | "duplicate" | "closed" | "security";
+  title: string;
+  message: string;
+  steps?: string[];
+  primaryAction?: { label: string; href?: string; reload?: boolean };
+  secondaryAction?: { label: string; href?: string; reload?: boolean };
+}) {
+  return { status, title, message, steps, primaryAction, secondaryAction };
+}
+
+async function cleanupUploadedFinanceReceipt(supabaseAdmin: any, receiptPath?: string | null) {
+  const storagePath = String(receiptPath || "").startsWith("finance_receipts/")
+    ? String(receiptPath).replace("finance_receipts/", "")
+    : String(receiptPath || "");
+
+  if (!storagePath || storagePath.includes("..")) return;
+
+  const { error } = await supabaseAdmin.storage
+    .from("finance_receipts")
+    .remove([storagePath]);
+
+  if (error) {
+    console.error(`[Submit] Error limpiando comprobante (${storagePath}): ${error.message}`);
+  }
+}
+
+async function loadActiveFinancialSubmissionsForConflict(supabaseAdmin: any, formId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("form_submissions")
+    .select("id, access_token, notification_email, data, answers, created_at, is_archived, form_submission_payments(id, receipt_path, amount_claimed, extracted_data, status, manual_disposition)")
+    .eq("form_id", formId)
+    .eq("is_archived", false);
+
+  if (error) {
+    console.error("[Submit] Error consultando inscripciones activas:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+function buildTrackingEmailSubmission(form: any, submission: any, remainingBalance?: number | null) {
+  return {
+    formTitle: form?.title || "Inscripción",
+    accessToken: submission?.access_token,
+    createdAt: submission?.created_at || null,
+    remainingBalance: remainingBalance ?? null,
+  };
+}
+
+async function sendConflictTrackingEmail(form: any, conflict: any) {
+  const email = conflict?.matchedSubmission?.notification_email;
+  const accessToken = conflict?.matchedSubmission?.access_token;
+  if (!email || !accessToken) return false;
+
+  const result = await sendSubmissionTrackingLinksEmail(email, {
+    submissions: [
+      buildTrackingEmailSubmission(form, conflict.matchedSubmission, conflict.remainingBalance),
+    ],
+  });
+
+  return !!result?.success;
+}
+
 /**
  * Acción centralizada para enviar respuestas de formularios.
  * Procesa archivos, extrae info con AI y guarda en DB de forma atómica en el servidor.
@@ -739,7 +817,20 @@ export async function submitFormAction(payload: {
         await supabaseAdmin.from("forms").update({ enabled: false }).eq("id", formId);
         revalidateTag("forms");
         console.log(`[Submit] Límite de respuestas alcanzado para ${form.slug}. Formulario deshabilitado.`);
-        return { error: "Este formulario ya no acepta más respuestas. Ha alcanzado el límite de inscripciones.", closed: true };
+        return {
+          error: "Este formulario ya no acepta más respuestas. Ha alcanzado el límite de inscripciones.",
+          closed: true,
+          outcome: buildSubmissionOutcome({
+            status: "closed",
+            title: "Cupos completos",
+            message: "Este formulario llegó al límite de inscripciones activas y ya no puede recibir nuevas respuestas.",
+            steps: [
+              "Si ya tienes una inscripción y necesitas revisar tu estado, entra al portal de seguimiento.",
+              "Si crees que esto es un error, comunícate con el equipo organizador.",
+            ],
+            primaryAction: { label: "Ir a seguimiento", href: "/inscripcion" },
+          }),
+        };
       }
     }
 
@@ -793,7 +884,21 @@ export async function submitFormAction(payload: {
 
     if (form.is_financial && !receiptPath) {
       console.warn("[Submit] Formulario financiero sin comprobante procesable. Se rechaza el envío.");
-      return { error: INVALID_RECEIPT_MESSAGE };
+      return {
+        error: INVALID_RECEIPT_MESSAGE,
+        outcome: buildSubmissionOutcome({
+          status: "error",
+          title: "No pudimos validar el comprobante",
+          message: "El formulario financiero necesita un comprobante bancario legible para registrar la inscripción.",
+          steps: [
+            "Sube una imagen o PDF del comprobante de transferencia.",
+            "Verifica que se vean el monto, fecha, referencia y cuenta de destino.",
+            "Si ya estabas inscrito y solo quieres subir otro abono, entra al portal de seguimiento.",
+          ],
+          primaryAction: { label: "Intentar de nuevo" },
+          secondaryAction: { label: "Ir a seguimiento", href: "/inscripcion" },
+        }),
+      };
     }
 
     // 2.1. Validación crítica: comprobante inválido NO debe persistir en DB
@@ -808,22 +913,67 @@ export async function submitFormAction(payload: {
       if (validation.status === "invalid") {
         console.warn(`[Submit] Comprobante inválido detectado. Motivo: ${validation.reason || "N/A"}`);
 
-        const storagePath = receiptPath.startsWith("finance_receipts/")
-          ? receiptPath.replace("finance_receipts/", "")
-          : receiptPath;
-
-        if (storagePath) {
-          const { error: cleanupError } = await supabaseAdmin.storage
-            .from("finance_receipts")
-            .remove([storagePath]);
-
-          if (cleanupError) {
-            console.error(`[Submit] Error limpiando comprobante inválido (${storagePath}): ${cleanupError.message}`);
-          }
-        }
+        await cleanupUploadedFinanceReceipt(supabaseAdmin, receiptPath);
 
         const errorMessage = aiTransientFailure ? validation.reason : INVALID_RECEIPT_MESSAGE;
-        return { error: errorMessage || INVALID_RECEIPT_MESSAGE };
+        return {
+          error: errorMessage || INVALID_RECEIPT_MESSAGE,
+          outcome: buildSubmissionOutcome({
+            status: "error",
+            title: "Comprobante no aceptado",
+            message: errorMessage || INVALID_RECEIPT_MESSAGE,
+            steps: [
+              "Sube un comprobante real de transferencia o depósito, no capturas de documentos personales ni facturas.",
+              "Asegúrate de que se lean el monto, fecha, referencia y datos de la cuenta de destino.",
+              "Si ya estabas inscrito, usa el portal de seguimiento para subir un nuevo abono.",
+            ],
+            primaryAction: { label: "Corregir comprobante" },
+            secondaryAction: { label: "Ir a seguimiento", href: "/inscripcion" },
+          }),
+        };
+      }
+    }
+
+    if (form.is_financial && receiptPath) {
+      const activeSubmissions = await loadActiveFinancialSubmissionsForConflict(supabaseAdmin, formId);
+      const conflict = detectFinancialSubmissionConflict({
+        incoming: {
+          notificationEmail,
+          participantName: findNameInSubmission({ data: rawData, answers }),
+          receiptData: aiExtractedData || {},
+        },
+        existingSubmissions: activeSubmissions,
+        totalAmount: Number(form.total_amount || 0),
+      });
+
+      if (conflict) {
+        await cleanupUploadedFinanceReceipt(supabaseAdmin, receiptPath);
+        const emailSent = await sendConflictTrackingEmail(form, conflict);
+        const isDuplicateReceipt = conflict.type === "duplicate_receipt";
+
+        return {
+          error: isDuplicateReceipt
+            ? "Este comprobante ya fue registrado en una inscripción activa."
+            : "Ya encontramos una inscripción activa con este correo.",
+          outcome: buildSubmissionOutcome({
+            status: "duplicate",
+            title: isDuplicateReceipt
+              ? "Este comprobante ya fue registrado"
+              : "Ya tienes una inscripción activa",
+            message: isDuplicateReceipt
+              ? "No creamos otra respuesta porque ese comprobante ya está asociado a una inscripción activa."
+              : "No creamos otra respuesta para evitar duplicar tu inscripción. Si necesitas hacer otro abono, usa tu enlace de seguimiento.",
+            steps: [
+              emailSent
+                ? "Te reenviamos el enlace de seguimiento al correo registrado en la inscripción."
+                : "Entra al portal de seguimiento con tu token o solicita recuperar el enlace por correo.",
+              "Desde el seguimiento puedes revisar el estado de pago y subir comprobantes adicionales.",
+              "Si esta inscripción no es tuya o necesitas ayuda, comunícate con el equipo organizador.",
+            ],
+            primaryAction: { label: "Ir a seguimiento", href: "/inscripcion" },
+            secondaryAction: { label: "Corregir y volver" },
+          }),
+        };
       }
     }
 
@@ -917,11 +1067,133 @@ export async function submitFormAction(payload: {
       }
     });
 
-    return { success: true, submissionId: submission.id };
+    const isFinancialSuccess = !!form.is_financial;
+    return {
+      success: true,
+      submissionId: submission.id,
+      accessToken: submission.access_token,
+      outcome: buildSubmissionOutcome({
+        status: "success",
+        title: isFinancialSuccess ? "Inscripción recibida" : "Respuesta recibida",
+        message: isFinancialSuccess
+          ? "Registramos tu inscripción y tu comprobante quedó pendiente de validación."
+          : "Tu respuesta fue registrada correctamente.",
+        steps: isFinancialSuccess
+          ? [
+              "Guarda tu enlace de seguimiento para revisar el estado de tu inscripción.",
+              "Si necesitas hacer otro abono, no llenes el formulario otra vez: súbelo desde seguimiento.",
+              "También enviamos el enlace al correo que indicaste, si el correo fue válido.",
+            ]
+          : [
+              "Puedes cerrar esta ventana o enviar una nueva respuesta si corresponde.",
+            ],
+        primaryAction: isFinancialSuccess && submission.access_token
+          ? { label: "Ver seguimiento", href: `/inscripcion/${submission.access_token}` }
+          : { label: "Nueva respuesta", reload: true },
+        secondaryAction: { label: "Ir al inicio", href: "/" },
+      }),
+    };
 
   } catch (error: any) {
     console.error("Error crítico en submitFormAction:", error);
-    return { error: error.message || "Error al procesar el envío" };
+    return {
+      error: error.message || "Error al procesar el envío",
+      outcome: buildSubmissionOutcome({
+        status: "error",
+        title: "No pudimos procesar tu envío",
+        message: error.message || "Ocurrió un error al procesar el formulario.",
+        steps: [
+          "Revisa tu conexión e intenta nuevamente.",
+          "Si estabas subiendo un comprobante, confirma que sea imagen o PDF menor a 5MB.",
+          "Si el problema continúa, comunícate con el equipo organizador.",
+        ],
+        primaryAction: { label: "Intentar de nuevo" },
+      }),
+    };
+  }
+}
+
+export async function requestSubmissionTrackingLinks(email: string) {
+  const parsed = z.string().email().safeParse(String(email || "").trim().toLowerCase());
+  if (!parsed.success) {
+    return {
+      error: "Ingresa un correo electrónico válido.",
+      outcome: buildSubmissionOutcome({
+        status: "error",
+        title: "Correo inválido",
+        message: "Necesitamos un correo válido para buscar inscripciones activas.",
+        steps: ["Revisa que el correo esté escrito completo, por ejemplo nombre@correo.com."],
+        primaryAction: { label: "Corregir correo" },
+      }),
+    };
+  }
+
+  const normalizedEmail = parsed.data;
+  const supabaseAdmin = createAdminClient();
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("form_submissions")
+      .select("id, access_token, created_at, form_submission_payments(amount_claimed, extracted_data, status, manual_disposition), forms!inner(title, total_amount, is_financial, is_internal)")
+      .eq("is_archived", false)
+      .eq("forms.is_financial", true)
+      .eq("forms.is_internal", false)
+      .ilike("notification_email", normalizedEmail);
+
+    if (error) {
+      console.error("[requestSubmissionTrackingLinks] lookup failed:", error);
+    }
+
+    const submissions = (data || [])
+      .filter((submission: any) => submission?.access_token)
+      .map((submission: any) => {
+        const form = Array.isArray(submission.forms) ? submission.forms[0] : submission.forms;
+        const summary = getInstallmentEmailSummary({
+          totalAmount: Number(form?.total_amount || 0),
+          payments: submission.form_submission_payments || [],
+        });
+
+        return {
+          formTitle: form?.title || "Inscripción",
+          accessToken: submission.access_token,
+          createdAt: submission.created_at,
+          remainingBalance: summary.remainingBalance,
+        };
+      });
+
+    if (submissions.length > 0) {
+      await sendSubmissionTrackingLinksEmail(normalizedEmail, { submissions });
+    }
+
+    return {
+      success: true,
+      outcome: buildSubmissionOutcome({
+        status: "success",
+        title: "Revisa tu correo",
+        message: "Si encontramos inscripciones activas con ese correo, te enviaremos los enlaces de seguimiento.",
+        steps: [
+          "Busca un correo de Iglesia Alianza Puembo en tu bandeja de entrada.",
+          "Revisa spam o promociones si no lo ves en unos minutos.",
+          "Desde el enlace puedes subir abonos adicionales sin llenar otra inscripción.",
+        ],
+        primaryAction: { label: "Entendido" },
+      }),
+    };
+  } catch (error: any) {
+    console.error("[requestSubmissionTrackingLinks]", error);
+    return {
+      success: true,
+      outcome: buildSubmissionOutcome({
+        status: "success",
+        title: "Solicitud recibida",
+        message: "Si encontramos inscripciones activas con ese correo, te enviaremos los enlaces de seguimiento.",
+        steps: [
+          "Si no llega el correo, revisa que hayas usado el mismo correo de tu inscripción.",
+          "Si necesitas ayuda, comunícate con el equipo organizador.",
+        ],
+        primaryAction: { label: "Entendido" },
+      }),
+    };
   }
 }
 

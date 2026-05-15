@@ -194,6 +194,7 @@ export async function getSubmissionByToken(token: string): Promise<FormSubmissio
     .from("form_submissions")
     .select("*, forms(*), form_submission_payments(*)")
     .eq("access_token", token)
+    .eq("is_archived", false)
     .single();
 
   if (error || !data) {
