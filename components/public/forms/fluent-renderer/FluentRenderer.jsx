@@ -1204,7 +1204,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
                     </div>
                     <div className="space-y-1">
                       <p className="text-sm font-black text-gray-900">
-                        ¿Ya estoy inscrito o necesito subir otro abono?
+                        ¿Ya estas inscrito o necesitas subir otro abono?
                       </p>
                       <p className="text-xs text-gray-600 leading-relaxed font-medium">
                         No llenes este formulario otra vez. Usa seguimiento para revisar tu inscripción y subir comprobantes adicionales.
