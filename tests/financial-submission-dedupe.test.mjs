@@ -63,6 +63,61 @@ test("detectFinancialSubmissionConflict blocks reused receipt references on acti
   assert.equal(conflict?.matchedSubmission.id, "sub-1");
 });
 
+test("detectFinancialSubmissionConflict asks for confirmation when a reused receipt can cover another inscription", () => {
+  const conflict = detectFinancialSubmissionConflict({
+    incoming: {
+      notificationEmail: "family@example.com",
+      participantName: "Otra Persona",
+      receiptData: {
+        amount: "40.00",
+        date: "2026-04-17",
+        reference: "trx-998877",
+      },
+    },
+    existingSubmissions: [existingSubmission],
+    totalAmount: 20,
+  });
+
+  assert.equal(conflict?.type, "duplicate_receipt");
+  assert.equal(conflict?.action, "confirm_shared_payment");
+  assert.equal(conflict?.sharedPayment?.eligible, true);
+  assert.equal(conflict?.sharedPayment?.capacity, 2);
+  assert.equal(conflict?.sharedPayment?.usedSlots, 1);
+  assert.equal(conflict?.sharedPayment?.availableSlots, 1);
+});
+
+test("detectFinancialSubmissionConflict blocks reused receipts when the shared payment capacity is already used", () => {
+  const conflict = detectFinancialSubmissionConflict({
+    incoming: {
+      notificationEmail: "third@example.com",
+      participantName: "Tercera Persona",
+      receiptData: {
+        amount: "40.00",
+        date: "2026-04-17",
+        reference: "trx-998877",
+      },
+    },
+    existingSubmissions: [
+      existingSubmission,
+      {
+        id: "sub-2",
+        is_archived: false,
+        coverage_mode: "covered_by_used_payment",
+        covered_by_submission_id: "sub-1",
+        form_submission_payments: [],
+      },
+    ],
+    totalAmount: 20,
+  });
+
+  assert.equal(conflict?.type, "duplicate_receipt");
+  assert.equal(conflict?.action, "block");
+  assert.equal(conflict?.sharedPayment?.eligible, false);
+  assert.equal(conflict?.sharedPayment?.capacity, 2);
+  assert.equal(conflict?.sharedPayment?.usedSlots, 2);
+  assert.equal(conflict?.sharedPayment?.availableSlots, 0);
+});
+
 test("detectFinancialSubmissionConflict recovers an existing partial inscription by email and fuzzy name", () => {
   const conflict = detectFinancialSubmissionConflict({
     incoming: {
@@ -105,6 +160,9 @@ test("submit action handles financial conflicts before creating new submissions"
   const actions = readFileSync(new URL("../lib/actions.ts", import.meta.url), "utf8");
 
   assert.match(actions, /detectFinancialSubmissionConflict/);
+  assert.match(actions, /sharedPaymentConfirmation/);
+  assert.match(actions, /coverage_mode:\s*"covered_by_used_payment"/);
+  assert.match(actions, /manual_disposition:\s*sharedPaymentCoverage \? "duplicado" : null/);
   assert.match(actions, /sendSubmissionTrackingLinksEmail/);
   assert.match(actions, /cleanupUploadedFinanceReceipt/);
   assert.match(actions, /outcome:\s*buildSubmissionOutcome/);

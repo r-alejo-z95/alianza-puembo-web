@@ -28,3 +28,14 @@ test("public inscription lookup portal and homepage entry are wired", () => {
   assert.match(formRenderer, /Ya estoy inscrito/);
   assert.match(formRenderer, /\/inscripcion/);
 });
+
+test("public form result modal can confirm a shared payment and resubmit current values", () => {
+  const renderer = readFileSync(
+    new URL("../components/public/forms/fluent-renderer/FluentRenderer.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(renderer, /confirmSharedPayment/);
+  assert.match(renderer, /getValues\(\)/);
+  assert.match(renderer, /sharedPaymentConfirmation:\s*options\.sharedPaymentConfirmation \|\| null/);
+});

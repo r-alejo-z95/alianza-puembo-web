@@ -768,7 +768,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
     }
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data, options = {}) => {
     if (isPreview) {
       toast.success("Vista previa: Formulario válido");
       return;
@@ -992,7 +992,8 @@ export default function FluentRenderer({ form, isPreview = false }) {
         processedDataForGoogle: processedDataForGoogle,
         userAgent: navigator.userAgent,
         isInternal: form.is_internal && !!user?.id,
-        notificationEmail: data["notification-email-field"] || data["Correo para Notificaciones"]
+        notificationEmail: data["notification-email-field"] || data["Correo para Notificaciones"],
+        sharedPaymentConfirmation: options.sharedPaymentConfirmation || null,
       });
 
       if (result.error) {
@@ -1099,6 +1100,12 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
     if (action.href) {
       router.push(action.href);
+      return;
+    }
+
+    if (action.confirmSharedPayment) {
+      setSubmissionResult(null);
+      onSubmit(getValues(), { sharedPaymentConfirmation: action.confirmSharedPayment });
       return;
     }
 

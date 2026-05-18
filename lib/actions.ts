@@ -697,7 +697,16 @@ function buildSubmissionOutcome({
   title: string;
   message: string;
   steps?: string[];
-  primaryAction?: { label: string; href?: string; reload?: boolean };
+  primaryAction?: {
+    label: string;
+    href?: string;
+    reload?: boolean;
+    confirmSharedPayment?: {
+      accepted: boolean;
+      matchedSubmissionId: string;
+      matchedPaymentId: string;
+    };
+  };
   secondaryAction?: { label: string; href?: string; reload?: boolean };
 }) {
   return { status, title, message, steps, primaryAction, secondaryAction };
@@ -722,7 +731,7 @@ async function cleanupUploadedFinanceReceipt(supabaseAdmin: any, receiptPath?: s
 async function loadActiveFinancialSubmissionsForConflict(supabaseAdmin: any, formId: string) {
   const { data, error } = await supabaseAdmin
     .from("form_submissions")
-    .select("id, access_token, notification_email, data, answers, created_at, is_archived, form_submission_payments(id, receipt_path, amount_claimed, extracted_data, status, manual_disposition)")
+    .select("id, access_token, notification_email, data, answers, created_at, is_archived, coverage_mode, covered_by_submission_id, form_submission_payments(id, receipt_path, amount_claimed, extracted_data, status, manual_disposition)")
     .eq("form_id", formId)
     .eq("is_archived", false);
 
@@ -757,6 +766,15 @@ async function sendConflictTrackingEmail(form: any, conflict: any) {
   return !!result?.success;
 }
 
+function matchesSharedPaymentConfirmation(conflict: any, confirmation: any) {
+  return (
+    conflict?.action === "confirm_shared_payment" &&
+    confirmation?.accepted === true &&
+    confirmation?.matchedSubmissionId === conflict?.matchedSubmission?.id &&
+    confirmation?.matchedPaymentId === conflict?.matchedPayment?.id
+  );
+}
+
 /**
  * Acción centralizada para enviar respuestas de formularios.
  * Procesa archivos, extrae info con AI y guarda en DB de forma atómica en el servidor.
@@ -769,8 +787,22 @@ export async function submitFormAction(payload: {
   userAgent: string;
   isInternal: boolean;
   notificationEmail?: string;
+  sharedPaymentConfirmation?: {
+    accepted?: boolean;
+    matchedSubmissionId?: string;
+    matchedPaymentId?: string;
+  } | null;
 }) {
-  const { formId, rawData, answers = [], processedDataForGoogle, userAgent, isInternal, notificationEmail } = payload;
+  const {
+    formId,
+    rawData,
+    answers = [],
+    processedDataForGoogle,
+    userAgent,
+    isInternal,
+    notificationEmail,
+    sharedPaymentConfirmation,
+  } = payload;
   console.log(`[Submit] Iniciando procesamiento para formulario: ${formId}`);
 
   try {
@@ -837,6 +869,11 @@ export async function submitFormAction(payload: {
     let aiExtractedData = null;
     let aiTransientFailure = false;
     let receiptPath = null;
+    let sharedPaymentCoverage: {
+      matchedSubmissionId: string;
+      matchedPaymentId: string;
+      matchedPaymentStatus?: string | null;
+    } | null = null;
 
     // 2. Si el formulario es financiero, procesar con IA
     if (form.is_financial && (form.financial_field_id || form.financial_field_label)) {
@@ -947,33 +984,70 @@ export async function submitFormAction(payload: {
       });
 
       if (conflict) {
-        await cleanupUploadedFinanceReceipt(supabaseAdmin, receiptPath);
-        const emailSent = await sendConflictTrackingEmail(form, conflict);
         const isDuplicateReceipt = conflict.type === "duplicate_receipt";
+        const canConfirmSharedPayment = conflict.action === "confirm_shared_payment";
+        const confirmedSharedPayment = matchesSharedPaymentConfirmation(conflict, sharedPaymentConfirmation);
 
-        return {
-          error: isDuplicateReceipt
-            ? "Este comprobante ya fue registrado en una inscripción activa."
-            : "Ya encontramos una inscripción activa con este correo.",
-          outcome: buildSubmissionOutcome({
-            status: "duplicate",
-            title: isDuplicateReceipt
-              ? "Este comprobante ya fue registrado"
-              : "Ya tienes una inscripción activa",
-            message: isDuplicateReceipt
-              ? "No creamos otra respuesta porque ese comprobante ya está asociado a una inscripción activa."
-              : "No creamos otra respuesta para evitar duplicar tu inscripción. Si necesitas hacer otro abono, usa tu enlace de seguimiento.",
-            steps: [
-              emailSent
-                ? "Te reenviamos el enlace de seguimiento al correo registrado en la inscripción."
-                : "Entra al portal de seguimiento con tu token o solicita recuperar el enlace por correo.",
-              "Desde el seguimiento puedes revisar el estado de pago y subir comprobantes adicionales.",
-              "Si esta inscripción no es tuya o necesitas ayuda, comunícate con el equipo organizador.",
-            ],
-            primaryAction: { label: "Ir a seguimiento", href: "/inscripcion" },
-            secondaryAction: { label: "Corregir y volver" },
-          }),
-        };
+        if (confirmedSharedPayment) {
+          sharedPaymentCoverage = {
+            matchedSubmissionId: conflict.matchedSubmission.id,
+            matchedPaymentId: conflict.matchedPayment.id,
+            matchedPaymentStatus: conflict.matchedPayment.status || null,
+          };
+        } else {
+          await cleanupUploadedFinanceReceipt(supabaseAdmin, receiptPath);
+
+          if (canConfirmSharedPayment) {
+            return {
+              error: "Este comprobante ya fue registrado, pero puede cubrir otra inscripción.",
+              outcome: buildSubmissionOutcome({
+                status: "duplicate",
+                title: "¿Este pago cubre a esta persona?",
+                message: "Este comprobante ya fue usado en otra inscripción. Como el monto alcanza para más personas, podemos registrar esta inscripción vinculada al mismo pago.",
+                steps: [
+                  `Este comprobante puede cubrir ${conflict.sharedPayment.capacity} inscripción${conflict.sharedPayment.capacity === 1 ? "" : "es"} en total.`,
+                  `Ya está usado por ${conflict.sharedPayment.usedSlots}; queda ${conflict.sharedPayment.availableSlots} cupo disponible.`,
+                  "Si confirmas, no se contará otro ingreso: solo se guardará esta inscripción como cubierta por el pago compartido.",
+                ],
+                primaryAction: {
+                  label: "Sí, registrar con este pago",
+                  confirmSharedPayment: {
+                    accepted: true,
+                    matchedSubmissionId: conflict.matchedSubmission.id,
+                    matchedPaymentId: conflict.matchedPayment.id,
+                  },
+                },
+                secondaryAction: { label: "Subir otro comprobante" },
+              }),
+            };
+          }
+
+          const emailSent = await sendConflictTrackingEmail(form, conflict);
+
+          return {
+            error: isDuplicateReceipt
+              ? "Este comprobante ya fue registrado en una inscripción activa."
+              : "Ya encontramos una inscripción activa con este correo.",
+            outcome: buildSubmissionOutcome({
+              status: "duplicate",
+              title: isDuplicateReceipt
+                ? "Este comprobante ya fue registrado"
+                : "Ya tienes una inscripción activa",
+              message: isDuplicateReceipt
+                ? "No creamos otra respuesta porque ese comprobante ya está asociado a una inscripción activa."
+                : "No creamos otra respuesta para evitar duplicar tu inscripción. Si necesitas hacer otro abono, usa tu enlace de seguimiento.",
+              steps: [
+                emailSent
+                  ? "Te reenviamos el enlace de seguimiento al correo registrado en la inscripción."
+                  : "Entra al portal de seguimiento con tu token o solicita recuperar el enlace por correo.",
+                "Desde el seguimiento puedes revisar el estado de pago y subir comprobantes adicionales.",
+                "Si esta inscripción no es tuya o necesitas ayuda, comunícate con el equipo organizador.",
+              ],
+              primaryAction: { label: "Ir a seguimiento", href: "/inscripcion" },
+              secondaryAction: { label: "Corregir y volver" },
+            }),
+          };
+        }
       }
     }
 
@@ -985,6 +1059,14 @@ export async function submitFormAction(payload: {
       user_agent: userAgent,
       notification_email: notificationEmail,
     };
+
+    if (sharedPaymentCoverage) {
+      Object.assign(submissionData, {
+        coverage_mode: "covered_by_used_payment",
+        covered_by_submission_id: sharedPaymentCoverage.matchedSubmissionId,
+        coverage_created_at: new Date().toISOString(),
+      });
+    }
 
     if (isInternal && user?.id) {
       submissionData.user_id = user.id;
@@ -1009,8 +1091,21 @@ export async function submitFormAction(payload: {
         submission_id: submission.id,
         receipt_path: receiptPath,
         amount_claimed: Number(aiExtractedData?.amount || 0),
-        extracted_data: aiExtractedData,
-        status: receiptReviewStatus === "valid" ? 'pending' : 'manual_review'
+        extracted_data: sharedPaymentCoverage
+          ? {
+              ...(aiExtractedData || {}),
+              shared_payment: {
+                covered_by_submission_id: sharedPaymentCoverage.matchedSubmissionId,
+                covered_by_payment_id: sharedPaymentCoverage.matchedPaymentId,
+              },
+            }
+          : aiExtractedData,
+        status: receiptReviewStatus === "valid" ? 'pending' : 'manual_review',
+        manual_disposition: sharedPaymentCoverage ? "duplicado" : null,
+        manual_disposition_at: sharedPaymentCoverage ? new Date().toISOString() : null,
+        manual_disposition_notes: sharedPaymentCoverage
+          ? "Comprobante compartido confirmado por el usuario durante la inscripción pública."
+          : null,
       }]);
     }
 
@@ -1037,12 +1132,18 @@ export async function submitFormAction(payload: {
         .eq("submission_id", submission.id);
 
       const totalAmount = Number(form.total_amount || 0);
-      const emailSummary = getInstallmentEmailSummary({
-        totalAmount,
-        payments: payments || [],
-      });
+      const emailSummary = sharedPaymentCoverage
+        ? {
+            amountPaid: totalAmount,
+            remainingBalance: 0,
+            hasPendingVerification: sharedPaymentCoverage.matchedPaymentStatus !== "verified",
+          }
+        : getInstallmentEmailSummary({
+            totalAmount,
+            payments: payments || [],
+          });
 
-      if (emailSummary.remainingBalance > 0) {
+      if (sharedPaymentCoverage || emailSummary.remainingBalance > 0) {
         sendConfirmationEmail(notificationEmail, {
           formTitle: form.title,
           accessToken: submission.access_token,
@@ -1068,6 +1169,8 @@ export async function submitFormAction(payload: {
     });
 
     const isFinancialSuccess = !!form.is_financial;
+    const isSharedPaymentSuccess = !!sharedPaymentCoverage;
+    const sharedPaymentIsVerified = sharedPaymentCoverage?.matchedPaymentStatus === "verified";
     return {
       success: true,
       submissionId: submission.id,
@@ -1075,10 +1178,22 @@ export async function submitFormAction(payload: {
       outcome: buildSubmissionOutcome({
         status: "success",
         title: isFinancialSuccess ? "Inscripción recibida" : "Respuesta recibida",
-        message: isFinancialSuccess
+        message: isSharedPaymentSuccess
+          ? sharedPaymentIsVerified
+            ? "Registramos tu inscripción como cubierta por un comprobante compartido ya validado."
+            : "Registramos tu inscripción como cubierta por un comprobante compartido pendiente de validación."
+          : isFinancialSuccess
           ? "Registramos tu inscripción y tu comprobante quedó pendiente de validación."
           : "Tu respuesta fue registrada correctamente.",
-        steps: isFinancialSuccess
+        steps: isSharedPaymentSuccess
+          ? [
+              "Guarda tu enlace de seguimiento para revisar el estado de esta inscripción.",
+              sharedPaymentIsVerified
+                ? "El comprobante principal ya fue validado; no se contará como doble ingreso."
+                : "Finanzas validará el comprobante principal una sola vez; no se contará como doble ingreso.",
+              "También enviamos el enlace al correo que indicaste, si el correo fue válido.",
+            ]
+          : isFinancialSuccess
           ? [
               "Guarda tu enlace de seguimiento para revisar el estado de tu inscripción.",
               "Si necesitas hacer otro abono, no llenes el formulario otra vez: súbelo desde seguimiento.",
