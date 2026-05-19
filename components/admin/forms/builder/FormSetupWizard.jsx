@@ -35,6 +35,12 @@ const setupSchema = z
     max_installments: z.number().int().min(1).nullable().optional(),
     total_amount: z.number().positive("El monto total debe ser mayor a 0").nullable().optional(),
     destination_account_id: z.string().nullable().optional(),
+    payment_reminder_interval_days: z.union([
+      z.literal(3),
+      z.literal(7),
+      z.literal(14),
+      z.literal(30),
+    ]).nullable().optional(),
   })
   .superRefine((data, ctx) => {
     if (!data.is_financial) return;
@@ -86,6 +92,7 @@ function mapInitialValues(initialValues = {}) {
         ? null
         : Number(initialValues.total_amount),
     destination_account_id: initialValues.destination_account_id ?? null,
+    payment_reminder_interval_days: initialValues.payment_reminder_interval_days ?? null,
   };
 }
 
@@ -337,6 +344,36 @@ export default function FormSetupWizard({
                           {form.formState.errors.destination_account_id.message}
                         </p>
                       )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                        Recordatorios de pago
+                      </Label>
+                      <Select
+                        value={form.watch("payment_reminder_interval_days")?.toString() || "off"}
+                        onValueChange={(value) =>
+                          form.setValue(
+                            "payment_reminder_interval_days",
+                            value === "off" ? null : Number(value),
+                            { shouldValidate: true },
+                          )
+                        }
+                      >
+                        <SelectTrigger className="h-11 rounded-xl bg-white border-gray-200">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="off">Desactivado</SelectItem>
+                          <SelectItem value="3">Cada 3 dias</SelectItem>
+                          <SelectItem value="7">Cada 7 dias</SelectItem>
+                          <SelectItem value="14">Cada 14 dias</SelectItem>
+                          <SelectItem value="30">Cada 30 dias</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-[10px] text-gray-500 leading-relaxed">
+                        El primer recordatorio se enviará después de la frecuencia elegida si aún queda saldo pendiente.
+                      </p>
                     </div>
                   </div>
                 )}

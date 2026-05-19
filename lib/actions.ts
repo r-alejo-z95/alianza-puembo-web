@@ -21,6 +21,7 @@ import { INVALID_RECEIPT_MESSAGE, resolveFinancialReceiptValidation } from "@/li
 import crypto from "crypto";
 import { ensureFinanceReceiptsBucket } from "@/lib/finance/storage";
 import { getInstallmentEmailSummary } from "@/lib/finance/payment-summary.mjs";
+import { getSubmissionBalanceSummary } from "@/lib/finance/submission-balance.mjs";
 import { detectFinancialSubmissionConflict } from "@/lib/finance/submission-dedupe.mjs";
 import { findNameInSubmission } from "@/lib/form-utils";
 import {
@@ -1249,7 +1250,7 @@ export async function requestSubmissionTrackingLinks(email: string) {
   try {
     const { data, error } = await supabaseAdmin
       .from("form_submissions")
-      .select("id, access_token, created_at, form_submission_payments(amount_claimed, extracted_data, status, manual_disposition), forms!inner(title, total_amount, is_financial, is_internal)")
+      .select("id, access_token, created_at, coverage_mode, coverage_amount, covered_by_submission_id, form_submission_payments(amount_claimed, extracted_data, status, manual_disposition, created_at), forms!inner(title, total_amount, is_financial, is_internal)")
       .eq("is_archived", false)
       .eq("forms.is_financial", true)
       .eq("forms.is_internal", false)
@@ -1263,9 +1264,9 @@ export async function requestSubmissionTrackingLinks(email: string) {
       .filter((submission: any) => submission?.access_token)
       .map((submission: any) => {
         const form = Array.isArray(submission.forms) ? submission.forms[0] : submission.forms;
-        const summary = getInstallmentEmailSummary({
+        const summary = getSubmissionBalanceSummary({
           totalAmount: Number(form?.total_amount || 0),
-          payments: submission.form_submission_payments || [],
+          submission,
         });
 
         return {

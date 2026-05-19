@@ -108,6 +108,7 @@ function BuilderContent() {
       max_installments,
       total_amount,
       destination_account_id,
+      payment_reminder_interval_days,
     } = formData;
     // Derive the current label from the selected field ID (keeps financial_field_label in sync for legacy lookups)
     const financialField = fields?.find((f) => f.id === financial_field_id);
@@ -144,6 +145,7 @@ function BuilderContent() {
             max_installments: is_financial && payment_type === "installments" ? max_installments ?? null : null,
             total_amount: is_financial ? total_amount ?? null : null,
             destination_account_id: is_financial ? destination_account_id ?? null : null,
+            payment_reminder_interval_days: is_financial ? payment_reminder_interval_days ?? null : null,
           }])
           .select()
           .single();
@@ -271,6 +273,7 @@ function BuilderContent() {
           max_installments: is_financial && payment_type === "installments" ? max_installments ?? null : null,
           total_amount: is_financial ? total_amount ?? null : null,
           destination_account_id: is_financial ? destination_account_id ?? null : null,
+          payment_reminder_interval_days: is_financial ? payment_reminder_interval_days ?? null : null,
         })
         .eq("id", currentFormId);
       if (metaErr) throw metaErr;

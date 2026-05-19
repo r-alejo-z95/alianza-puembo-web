@@ -319,7 +319,11 @@ const FormHeader = ({
                       checked={field.value}
                       onCheckedChange={(val) => {
                         field.onChange(val);
-                        if (!val) { setValue("financial_field_id", ""); setValue("financial_field_label", ""); }
+                        if (!val) {
+                          setValue("financial_field_id", "");
+                          setValue("financial_field_label", "");
+                          setValue("payment_reminder_interval_days", null);
+                        }
                       }}
                       className="data-[state=checked]:bg-amber-500"
                     />
@@ -387,9 +391,40 @@ const FormHeader = ({
                             </div>
                           );
                         }}
-                      />
-                    </>
-                  )}
+	                      />
+	                      <Controller
+	                        control={control}
+	                        name="payment_reminder_interval_days"
+	                        render={({ field }) => (
+	                          <div className="space-y-1.5 pt-2">
+	                            <Label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+	                              Recordatorios de pago
+	                            </Label>
+	                            <Select
+	                              value={field.value?.toString() || "off"}
+	                              onValueChange={(value) =>
+	                                field.onChange(value === "off" ? null : Number(value))
+	                              }
+	                            >
+	                              <SelectTrigger className="h-10 w-full bg-white text-xs font-medium rounded-xl border-amber-200/50">
+	                                <SelectValue />
+	                              </SelectTrigger>
+	                              <SelectContent align="left">
+	                                <SelectItem value="off">Desactivado</SelectItem>
+	                                <SelectItem value="3">Cada 3 dias</SelectItem>
+	                                <SelectItem value="7">Cada 7 dias</SelectItem>
+	                                <SelectItem value="14">Cada 14 dias</SelectItem>
+	                                <SelectItem value="30">Cada 30 dias</SelectItem>
+	                              </SelectContent>
+	                            </Select>
+	                            <p className="text-[10px] text-gray-500 leading-relaxed">
+	                              Se enviará solo si queda saldo pendiente real.
+	                            </p>
+	                          </div>
+	                        )}
+	                      />
+	                    </>
+	                  )}
                 </div>
               ) : (
                 <p className="hidden md:block text-[10px] text-gray-500 leading-relaxed px-6 pb-6 -mt-2">

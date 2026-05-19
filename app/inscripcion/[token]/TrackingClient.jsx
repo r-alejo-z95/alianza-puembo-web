@@ -27,8 +27,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { compressImage } from "@/lib/image-compression";
-import { get } from "react-hook-form";
-import { getSubmissionPaymentSummary } from "@/lib/finance/payment-summary.mjs";
+import { getSubmissionBalanceSummary } from "@/lib/finance/submission-balance.mjs";
 import { getSubmissionTrackingPayments } from "@/lib/finance/manual-payment.mjs";
 
 import { findNameInSubmission } from "@/lib/form-utils";
@@ -49,11 +48,17 @@ export default function TrackingClient({ submission }) {
   const paymentAmount = (payment) =>
     Number(payment.extracted_data?.amount ?? payment.amount_claimed ?? 0) || 0;
 
-  const paymentSummary = getSubmissionPaymentSummary(sortedPayments);
-  const totalVerified = paymentSummary.totalVerified;
-  const totalSubmitted = paymentSummary.totalSubmitted;
   const totalAmount = Number(form?.total_amount || 0);
-  const remainingBalance = totalAmount > 0 ? Math.max(totalAmount - totalSubmitted, 0) : null;
+  const balanceSummary = getSubmissionBalanceSummary({
+    submission: {
+      ...submission,
+      form_submission_payments: sortedPayments,
+    },
+    totalAmount,
+  });
+  const totalVerified = balanceSummary.verifiedAmount;
+  const totalSubmitted = balanceSummary.submittedAmount;
+  const remainingBalance = totalAmount > 0 ? balanceSummary.remainingBalance : null;
   const canUploadAdditionalPayment = remainingBalance === null || remainingBalance > 0;
 
   // Status config

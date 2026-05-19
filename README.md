@@ -69,8 +69,28 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
 NEXT_PUBLIC_GOOGLE_MAP_ID=your_google_maps_map_id
 NEXT_PUBLIC_YOUTUBE_API_KEY=your_youtube_api_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 RESEND_API_KEY=your_resend_api_key
+CRON_SECRET=your_cron_secret
 ```
+
+### Scheduled Jobs
+
+Payment reminder emails are triggered by Vercel Cron through:
+
+```http
+GET /api/cron/payment-reminders
+```
+
+The project config in `vercel.json` runs this job every day at `13:00 UTC`
+(`08:00` in Ecuador). The endpoint requires:
+
+```http
+Authorization: Bearer <CRON_SECRET>
+```
+
+Vercel sends that header automatically when `CRON_SECRET` is configured in the
+project environment.
 
 ### Run the project locally
 

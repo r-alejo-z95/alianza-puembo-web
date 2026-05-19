@@ -32,6 +32,7 @@ export interface Form {
   max_installments?: number | null;
   total_amount?: number | string | null;
   destination_account_id?: string | null;
+  payment_reminder_interval_days?: number | null;
   financial_field_label?: string | null;
   financial_field_id?: string | null;
   created_at: string;
@@ -160,6 +161,7 @@ export interface FormSubmission {
   coverage_created_by?: string | null;
   coverage_backup_path?: string | null;
   covered_by_submission_id?: string | null;
+  payment_reminder_last_sent_at?: string | null;
   profiles?: {
     full_name: string;
     email: string;

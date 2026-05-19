@@ -202,6 +202,12 @@ const formSchema = z.object({
   max_installments: z.number().int().min(1).optional().nullable(),
   total_amount: z.number().positive().optional().nullable(),
   destination_account_id: z.string().optional().nullable(),
+  payment_reminder_interval_days: z.union([
+    z.literal(3),
+    z.literal(7),
+    z.literal(14),
+    z.literal(30),
+  ]).optional().nullable(),
   financial_field_label: z.string().optional().nullable(),
   financial_field_id: z.string().optional().nullable(),
   max_responses: z.number().int().min(1).optional().nullable(),
@@ -262,6 +268,7 @@ export default function FormBuilder({
     max_installments: null,
     total_amount: null,
     destination_account_id: "",
+    payment_reminder_interval_days: null,
     financial_field_label: "",
     financial_field_id: "",
     fields: [],
@@ -331,6 +338,7 @@ export default function FormBuilder({
       max_installments: null,
       total_amount: null,
       destination_account_id: "",
+      payment_reminder_interval_days: null,
       financial_field_label: "",
       financial_field_id: "",
       max_responses: null,
@@ -387,6 +395,7 @@ export default function FormBuilder({
             ? null
             : Number(initialForm.total_amount),
         destination_account_id: initialForm.destination_account_id || "",
+        payment_reminder_interval_days: initialForm.payment_reminder_interval_days ?? null,
         financial_field_label: initialForm.financial_field_label || "",
         financial_field_id: migratedFieldId,
         max_responses: initialForm.max_responses ?? null,
@@ -808,6 +817,14 @@ export default function FormBuilder({
                       <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]/70 mb-1">Cuenta destino</p>
                       <p className="font-semibold text-[var(--puembo-green)] break-words">
                         {destinationAccountLabel}
+                      </p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]/70 mb-1">Recordatorios de pago</p>
+                      <p className="font-semibold text-[var(--puembo-green)]">
+                        {pendingSaveData?.payment_reminder_interval_days
+                          ? `Cada ${pendingSaveData.payment_reminder_interval_days} dias`
+                          : "Desactivados"}
                       </p>
                     </div>
                   </div>

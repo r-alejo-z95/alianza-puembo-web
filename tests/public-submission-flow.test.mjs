@@ -39,3 +39,16 @@ test("public form result modal can confirm a shared payment and resubmit current
   assert.match(renderer, /getValues\(\)/);
   assert.match(renderer, /sharedPaymentConfirmation:\s*options\.sharedPaymentConfirmation \|\| null/);
 });
+
+test("tracking and recovery flows use canonical submission balance summaries", () => {
+  const trackingClient = readFileSync(
+    new URL("../app/inscripcion/[token]/TrackingClient.jsx", import.meta.url),
+    "utf8",
+  );
+  const actions = readFileSync(new URL("../lib/actions.ts", import.meta.url), "utf8");
+
+  assert.match(trackingClient, /getSubmissionBalanceSummary/);
+  assert.doesNotMatch(trackingClient, /getSubmissionPaymentSummary/);
+  assert.match(actions, /getSubmissionBalanceSummary/);
+  assert.match(actions, /coverage_mode,\s*coverage_amount,\s*covered_by_submission_id/);
+});

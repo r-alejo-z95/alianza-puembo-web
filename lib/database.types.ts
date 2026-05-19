@@ -477,6 +477,7 @@ export type Database = {
           is_archived: boolean | null
           is_manual: boolean
           notification_email: string | null
+          payment_reminder_last_sent_at: string | null
           status: string | null
           submission_status: string
           user_agent: string | null
@@ -502,6 +503,7 @@ export type Database = {
           is_archived?: boolean | null
           is_manual?: boolean
           notification_email?: string | null
+          payment_reminder_last_sent_at?: string | null
           status?: string | null
           submission_status?: string
           user_agent?: string | null
@@ -527,6 +529,7 @@ export type Database = {
           is_archived?: boolean | null
           is_manual?: boolean
           notification_email?: string | null
+          payment_reminder_last_sent_at?: string | null
           status?: string | null
           submission_status?: string
           user_agent?: string | null
@@ -584,6 +587,7 @@ export type Database = {
           last_synced_at: string | null
           max_installments: number | null
           max_responses: number | null
+          payment_reminder_interval_days: number | null
           payment_type: string | null
           slug: string | null
           title: string
@@ -611,6 +615,7 @@ export type Database = {
           last_synced_at?: string | null
           max_installments?: number | null
           max_responses?: number | null
+          payment_reminder_interval_days?: number | null
           payment_type?: string | null
           slug?: string | null
           title: string
@@ -638,6 +643,7 @@ export type Database = {
           last_synced_at?: string | null
           max_installments?: number | null
           max_responses?: number | null
+          payment_reminder_interval_days?: number | null
           payment_type?: string | null
           slug?: string | null
           title?: string

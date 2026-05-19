@@ -21,6 +21,7 @@ interface FormSetupValues {
   max_installments?: number | null;
   total_amount?: number | null;
   destination_account_id?: string | null;
+  payment_reminder_interval_days?: number | null;
   description?: string | null;
 }
 
@@ -51,6 +52,9 @@ export async function saveFormSetup(
       total_amount: values.is_financial ? (values.total_amount ?? null) : null,
       destination_account_id: values.is_financial
         ? (values.destination_account_id ?? null)
+        : null,
+      payment_reminder_interval_days: values.is_financial
+        ? (values.payment_reminder_interval_days ?? null)
         : null,
       description: values.description ?? null,
     };

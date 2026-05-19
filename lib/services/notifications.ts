@@ -268,6 +268,71 @@ export async function sendConfirmationEmail(
   }
 }
 
+export async function sendPaymentReminderEmail(
+  email: string,
+  payload: {
+    formTitle: string;
+    accessToken: string;
+    totalAmount: number;
+    submittedAmount: number;
+    remainingBalance: number;
+    hasPendingVerification?: boolean;
+  },
+) {
+  try {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://alianzapuembo.org";
+    const trackingUrl = `${siteUrl}/inscripcion/${payload.accessToken}`;
+    const formatMoney = (value: number) =>
+      new Intl.NumberFormat("es-EC", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      }).format(value || 0);
+
+    await resend.emails.send({
+      from: "Iglesia Alianza Puembo <notificaciones@alianzapuembo.org>",
+      to: [email],
+      subject: `Recordatorio de pago: ${payload.formTitle}`,
+      html: `
+        <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
+          <div style="background-color: #000; padding: 20px; text-align: center;">
+            <img src="https://alianzapuembo.org/brand/logo-puembo-white.png" alt="Alianza Puembo" style="height: 40px;">
+          </div>
+          <div style="padding: 40px;">
+            <h2 style="color: #8fc641;">Recordatorio de pago</h2>
+            <p>Te escribimos porque tu inscripción para <strong>${payload.formTitle}</strong> todavía registra un saldo pendiente.</p>
+
+            <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 20px 0;">
+              <p style="margin: 0; font-weight: bold; color: #666;">Resumen de pago</p>
+              <p style="margin: 8px 0 0 0;"><strong>Total:</strong> ${formatMoney(payload.totalAmount)}</p>
+              <p style="margin: 4px 0 0 0;"><strong>Abonos subidos:</strong> ${formatMoney(payload.submittedAmount)}${payload.hasPendingVerification ? " (incluye comprobantes por verificar)" : ""}</p>
+              <p style="margin: 4px 0 0 0;"><strong>Saldo pendiente:</strong> ${formatMoney(payload.remainingBalance)}</p>
+            </div>
+
+            <p>Si ya realizaste un nuevo abono, abre tu seguimiento y sube el comprobante para que el sistema actualice tu saldo.</p>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${trackingUrl}" style="background-color: #8fc641; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                Ir a mi inscripción
+              </a>
+            </div>
+
+            <p style="font-size: 14px; color: #666;">
+              Atentamente,<br/>
+              <strong>Equipo Alianza Puembo</strong>
+            </p>
+          </div>
+        </div>
+      `,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error sending payment reminder email:", error);
+    return { success: false, error };
+  }
+}
+
 /**
  * Reenvía enlaces de seguimiento sin revelar en pantalla si el correo existe.
  */
