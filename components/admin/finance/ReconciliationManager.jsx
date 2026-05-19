@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import * as XLSX from "xlsx";
 import { 
   Select, 
@@ -59,6 +59,8 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
   const [submissions, setSubmissions] = useState([]);
   const [discardedItems, setDiscardedItems] = useState([]);
   const [isLoadingContext, setIsLoadingContext] = useState(false);
+  const [isLoadingBankAccount, setIsLoadingBankAccount] = useState(false);
+  const bankLedgerRequestIdRef = useRef(0);
 
   const sortedBankAccounts = useMemo(
     () => [...bankAccounts].sort((a, b) => (a.bank_name || "").localeCompare(b.bank_name || "")),
@@ -111,8 +113,18 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
   }, [selectedFormId]);
 
   const loadGlobalLedger = async (accountId = selectedBankAccountId) => {
-    const res = await getGlobalTransactions(accountId || null);
-    if (res.transactions) setBankTransactions(res.transactions);
+    const requestId = bankLedgerRequestIdRef.current + 1;
+    bankLedgerRequestIdRef.current = requestId;
+    setIsLoadingBankAccount(true);
+    try {
+      const res = await getGlobalTransactions(accountId || null);
+      if (bankLedgerRequestIdRef.current !== requestId) return;
+      if (res.transactions) setBankTransactions(res.transactions);
+    } finally {
+      if (bankLedgerRequestIdRef.current === requestId) {
+        setIsLoadingBankAccount(false);
+      }
+    }
   };
 
   const loadAllBankLedger = async () => {
@@ -131,6 +143,33 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
       setDiscardedItems(res.discardedItems || []);
       await Promise.all([loadGlobalLedger(selectedBankAccountId), loadAllBankLedger()]);
     } catch (e) { console.error(e); } finally { setIsLoadingContext(false); }
+  };
+
+  const handlePaymentReconciled = (paymentId, transactionId) => {
+    setSubmissions((currentSubmissions) =>
+      currentSubmissions.map((submission) => ({
+        ...submission,
+        form_submission_payments: (submission.form_submission_payments || []).map((payment) =>
+          payment.id === paymentId
+            ? {
+                ...payment,
+                bank_transaction_id: transactionId,
+                status: "verified",
+                reconciliation_notes:
+                  payment.reconciliation_notes || `Conciliado manualmente el ${new Date().toISOString()}`,
+              }
+            : payment,
+        ),
+      })),
+    );
+
+    const markTransactionUsed = (transactions) =>
+      transactions.map((transaction) =>
+        transaction.id === transactionId ? { ...transaction, is_reconciled: true } : transaction,
+      );
+
+    setBankTransactions(markTransactionUsed);
+    setAllBankTransactions(markTransactionUsed);
   };
 
   const handleBankUpload = async () => {
@@ -263,7 +302,14 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
             <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">Cuenta bancaria</span>
             <Select value={selectedBankAccountId} onValueChange={setSelectedBankAccountId} disabled={sortedBankAccounts.length === 0}>
               <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-gray-50 font-bold text-xs">
-                <SelectValue placeholder={sortedBankAccounts.length > 0 ? "Selecciona una cuenta" : "No hay cuentas activas"} />
+                {isLoadingBankAccount ? (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)]">
+                    <Loader2 className="h-3 w-3 animate-spin text-[var(--puembo-green)]" />
+                    Cambiando cuenta
+                  </span>
+                ) : (
+                  <SelectValue placeholder={sortedBankAccounts.length > 0 ? "Selecciona una cuenta" : "No hay cuentas activas"} />
+                )}
               </SelectTrigger>
               <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
                 {sortedBankAccounts.map((account) => (
@@ -302,6 +348,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
             </button>
             {bankFile && (
               <Button 
+                type="button"
                 onClick={handleBankUpload} 
                 disabled={isUploadingBank || !selectedBankAccount}
                 variant="green"
@@ -344,7 +391,9 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
             </div>
             <div>
               <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Movimientos libres</span>
-              <p className="text-lg font-black text-blue-600">{bankTransactions.filter((bt) => !bt.is_reconciled).length}</p>
+              <p className={cn("text-lg font-black text-blue-600 transition-opacity", isLoadingBankAccount && "opacity-45")}>
+                {bankTransactions.filter((bt) => !bt.is_reconciled).length}
+              </p>
             </div>
             <div>
               <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Recaudado</span>
@@ -360,6 +409,7 @@ export function ReconciliationManager({ forms = [], bankAccounts = [] }) {
         submissions={submissions}
         discardedItems={discardedItems}
         onRefresh={loadFormData}
+        onPaymentReconciled={handlePaymentReconciled}
         isFormSelected={!!selectedFormId}
         selectedFormId={selectedFormId}
         selectedFormTitle={selectedForm?.title || ""}

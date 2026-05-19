@@ -256,6 +256,7 @@ function ReviewEditorFields({
 
       <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-end">
         <Button
+          type="button"
           onClick={onSave}
           disabled={isSaving}
           className="rounded-full h-10 px-5 font-black text-[10px] uppercase tracking-widest"
@@ -293,6 +294,7 @@ export function ReconciliationWorkbench({
   submissions = [], 
   discardedItems = [],
   onRefresh,
+  onPaymentReconciled,
   isFormSelected = false,
   selectedFormTitle = "",
   selectedBankAccount = null,
@@ -387,6 +389,11 @@ export function ReconciliationWorkbench({
     });
     return ids;
   }, [bankTransactions, submissions]);
+
+  const reconciledTransactionById = useMemo(() => {
+    const transactions = bankTransactionsForExport.length > 0 ? bankTransactionsForExport : bankTransactions;
+    return new Map(transactions.map((transaction) => [transaction.id, transaction]));
+  }, [bankTransactions, bankTransactionsForExport]);
 
   const handleSort = (key) => {
     setSortConfig(prev => ({
@@ -793,7 +800,7 @@ export function ReconciliationWorkbench({
             const suggestions = [];
 
             if (pay.status === 'verified' && pay.bank_transaction_id) {
-                match = bankTransactions.find(bt => bt.id === pay.bank_transaction_id);
+                match = reconciledTransactionById.get(pay.bank_transaction_id);
                 matchType = 'verified';
                 matchPriority = -1;
             } else {
@@ -835,7 +842,7 @@ export function ReconciliationWorkbench({
         });
     });
     return list;
-  }, [bankTransactions, submissions, usedTransactionIds]);
+  }, [bankTransactions, submissions, usedTransactionIds, reconciledTransactionById]);
 
   const pendingItems = useMemo(() => reconcilablePayments.filter(p => p.status !== 'verified' && !processingIds.has(p.id)).sort((a, b) => a.matchPriority - b.matchPriority), [reconcilablePayments, processingIds]);
   const verifiedItems = useMemo(() => reconcilablePayments.filter(p => p.status === 'verified'), [reconcilablePayments]);
@@ -861,7 +868,11 @@ export function ReconciliationWorkbench({
       const res = await reconcilePayment(paymentId, transactionId);
       if (res.success) { 
         toast.success("Abono conciliado"); 
-        await onRefresh(); 
+        if (onPaymentReconciled) {
+          onPaymentReconciled(paymentId, transactionId);
+        } else {
+          await onRefresh?.();
+        }
         setManualMatch(null); 
         setModalSearch(""); 
       } else { 
@@ -902,6 +913,7 @@ export function ReconciliationWorkbench({
     const isReceiptDisabled = !!loadingReceiptId;
     return (
       <Button
+        type="button"
         variant="ghost"
         size="sm"
         className="h-8 min-w-24 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 text-[var(--puembo-green)] hover:bg-green-50 disabled:opacity-70"
@@ -965,9 +977,9 @@ export function ReconciliationWorkbench({
               <div className="text-[9px] font-bold text-gray-400 uppercase bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">REF: <span className="text-gray-900">{item.extracted_data?.reference || 'N/A'}</span></div>
               <div className="flex items-center gap-2">
                 {renderReceiptButton(item)}
-                <Button variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-gray-200 text-gray-700 hover:bg-gray-50" onClick={() => openEdit(item)}><PencilLine className="w-3.5 h-3.5" /> Editar datos</Button>
+                <Button type="button" variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-gray-200 text-gray-700 hover:bg-gray-50" onClick={() => openEdit(item)}><PencilLine className="w-3.5 h-3.5" /> Editar datos</Button>
                 {item.status !== "verified" && (
-                  <Button variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => setDiscardTarget(item)}>Descartar</Button>
+                  <Button type="button" variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-rose-200 text-rose-600 hover:bg-rose-50" onClick={() => setDiscardTarget(item)}>Descartar</Button>
                 )}
               </div>
             </div>
@@ -992,8 +1004,8 @@ export function ReconciliationWorkbench({
                 </div>
                 <p className="text-2xl font-serif font-black text-[var(--puembo-green)]">+ ${item.match.amount.toFixed(2)}</p>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <Button size="sm" variant="green" className="flex-1 rounded-full h-10 font-black text-[10px] uppercase tracking-widest shadow-lg" onClick={() => handleVerify(item.id, item.match.id)} disabled={item.status === 'verified'}>{item.status === 'verified' ? '¡Conciliado!' : 'Conciliar con esta'}</Button>
-                  {item.status !== 'verified' && <Button onClick={() => openReview(item)} variant="outline" className="flex-1 rounded-full h-10 text-[9px] font-black uppercase tracking-widest gap-2"><Search className="w-3 h-3" /> Revisar</Button>}
+                  <Button type="button" size="sm" variant="green" className="flex-1 rounded-full h-10 font-black text-[10px] uppercase tracking-widest shadow-lg" onClick={() => handleVerify(item.id, item.match.id)} disabled={item.status === 'verified'}>{item.status === 'verified' ? '¡Conciliado!' : 'Conciliar con esta'}</Button>
+                  {item.status !== 'verified' && <Button type="button" onClick={() => openReview(item)} variant="outline" className="flex-1 rounded-full h-10 text-[9px] font-black uppercase tracking-widest gap-2"><Search className="w-3 h-3" /> Revisar</Button>}
                 </div>
               </div>
             ) : (
@@ -1003,6 +1015,7 @@ export function ReconciliationWorkbench({
                 </p>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button
+                    type="button"
                     onClick={() => openReview(item)}
                     variant="outline"
                     className="flex-1 rounded-full h-10 text-[9px] font-black uppercase tracking-widest gap-2 border-orange-200 text-orange-600 hover:bg-orange-50"
@@ -1084,6 +1097,7 @@ export function ReconciliationWorkbench({
           <div className="flex shrink-0 items-center gap-1 overflow-x-auto rounded-full border border-gray-100 bg-gray-50 p-1">
             {["all", "available", "reconciled"].map((s) => (
               <Button
+                type="button"
                 key={s}
                 variant="ghost"
                 size="sm"
@@ -1352,7 +1366,7 @@ export function ReconciliationWorkbench({
                   </div>
                   <div className="flex items-center gap-2">
                     {renderReceiptButton(item)}
-                    <Button variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-gray-200 text-gray-700 hover:bg-gray-50" onClick={() => openEdit(item)}><PencilLine className="w-3.5 h-3.5" /> Editar datos</Button>
+                    <Button type="button" variant="outline" size="sm" className="h-8 rounded-full px-3 text-[9px] font-black uppercase tracking-widest gap-1.5 border-gray-200 text-gray-700 hover:bg-gray-50" onClick={() => openEdit(item)}><PencilLine className="w-3.5 h-3.5" /> Editar datos</Button>
                   </div>
                 </div>
               </Card>
@@ -1465,7 +1479,7 @@ export function ReconciliationWorkbench({
 
           <div className="py-3 px-8 bg-white border-t border-gray-100 flex justify-between items-center shrink-0">
              <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest hidden sm:block italic">Haz clic en un movimiento para confirmar la vinculación.</p>
-             <Button variant="ghost" onClick={() => { setManualMatch(null); setModalSearch(""); }} className="rounded-full px-8 h-10 font-black text-[10px] uppercase tracking-widest text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all ml-auto">Cancelar Búsqueda</Button>
+             <Button type="button" variant="ghost" onClick={() => { setManualMatch(null); setModalSearch(""); }} className="rounded-full px-8 h-10 font-black text-[10px] uppercase tracking-widest text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all ml-auto">Cancelar Búsqueda</Button>
           </div>
         </DialogContent>
       </Dialog>
