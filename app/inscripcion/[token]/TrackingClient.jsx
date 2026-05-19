@@ -13,29 +13,50 @@ import {
   ShieldCheck,
   CreditCard,
   History,
-  Loader2
+  Loader2,
+  X,
+  ZoomOut,
+  ZoomIn,
+  RotateCcw,
+  RotateCw
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { uploadReceipt } from "@/lib/actions";
-import { addMultipartPayment, getReceiptSignedUrl } from "@/lib/actions/finance";
+import { addMultipartPayment, getTrackingReceiptSignedUrl } from "@/lib/actions/finance";
 import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { compressImage } from "@/lib/image-compression";
 import { getSubmissionBalanceSummary } from "@/lib/finance/submission-balance.mjs";
-import { getSubmissionTrackingPayments } from "@/lib/finance/manual-payment.mjs";
+import {
+  getActiveTrackingPayments,
+  getSubmissionTrackingPayments,
+  getTrackingPaymentAmount,
+} from "@/lib/finance/manual-payment.mjs";
+import { getPublicPaymentUploadErrorMessage } from "@/lib/finance/public-payment-errors.mjs";
 
 import { findNameInSubmission } from "@/lib/form-utils";
+
+function getReceiptKind(path) {
+  const value = String(path || "").toLowerCase();
+  if (value.endsWith(".pdf")) return "pdf";
+  if (/\.(png|jpe?g|webp|gif|avif|heic|heif)$/.test(value)) return "image";
+  return "file";
+}
 
 export default function TrackingClient({ submission }) {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadResult, setUploadResult] = useState(null);
+  const [viewingReceipt, setViewingReceipt] = useState(null);
+  const [receiptZoom, setReceiptZoom] = useState(1);
+  const [receiptRotation, setReceiptRotation] = useState(0);
 
   const form = submission.forms;
   const payments = getSubmissionTrackingPayments(submission);
@@ -44,9 +65,9 @@ export default function TrackingClient({ submission }) {
     const bTime = new Date(b.created_at).getTime();
     return aTime - bTime;
   });
+  const activePayments = getActiveTrackingPayments(sortedPayments);
   
-  const paymentAmount = (payment) =>
-    Number(payment.extracted_data?.amount ?? payment.amount_claimed ?? 0) || 0;
+  const paymentAmount = getTrackingPaymentAmount;
 
   const totalAmount = Number(form?.total_amount || 0);
   const balanceSummary = getSubmissionBalanceSummary({
@@ -71,14 +92,16 @@ export default function TrackingClient({ submission }) {
   };
 
   let aggregatedStatus = 'submitted';
-  if (payments.length > 0) {
-    if (payments.some(p => p.status === 'manual_review')) {
+  if (activePayments.length > 0) {
+    if (activePayments.some(p => p.status === 'manual_review')) {
       aggregatedStatus = 'manual_review';
-    } else if (payments.some(p => p.status === 'pending')) {
+    } else if (activePayments.some(p => p.status === 'pending')) {
       aggregatedStatus = 'pending';
-    } else if (payments.every(p => p.status === 'verified')) {
+    } else if (activePayments.every(p => p.status === 'verified')) {
       aggregatedStatus = 'verified';
     }
+  } else if (sortedPayments.some(p => p.status === 'rejected')) {
+    aggregatedStatus = 'rejected';
   }
   const currentStatus = statusConfig[aggregatedStatus];
 
@@ -128,19 +151,59 @@ export default function TrackingClient({ submission }) {
       setUploadResult({
         status: "error",
         title: "No pudimos subir el comprobante",
-        message: error.message || "Revisa el archivo e intenta nuevamente.",
+        message: getPublicPaymentUploadErrorMessage(error.message),
       });
     } finally {
       setIsUploading(false);
     }
   };
 
-  const viewReceipt = async (path) => {
-    const res = await getReceiptSignedUrl(path);
+  const viewReceipt = async (payment, index) => {
+    if (!payment?.receipt_path) {
+      toast.error("Este abono no tiene comprobante disponible");
+      return;
+    }
+
+    const title = `Abono #${index + 1}`;
+    const kind = getReceiptKind(payment.receipt_path);
+    const aiData = payment.extracted_data || {};
+    setReceiptZoom(1);
+    setReceiptRotation(0);
+    setViewingReceipt({
+      title,
+      kind,
+      aiData,
+      isLoading: true,
+      error: null,
+      url: null,
+    });
+
+    const res = await getTrackingReceiptSignedUrl({
+      submissionId: submission.id,
+      accessToken: submission.access_token,
+      receiptPath: payment.receipt_path,
+    });
+
     if (res.url) {
-      window.open(res.url, '_blank');
+      setViewingReceipt({
+        title,
+        kind,
+        aiData,
+        isLoading: false,
+        error: null,
+        url: res.url,
+      });
     } else {
-      toast.error("No se pudo obtener el enlace del recibo");
+      const message = res.error || "No se pudo obtener el enlace del comprobante";
+      setViewingReceipt({
+        title,
+        kind,
+        aiData,
+        isLoading: false,
+        error: message,
+        url: null,
+      });
+      toast.error(message);
     }
   };
 
@@ -150,6 +213,7 @@ export default function TrackingClient({ submission }) {
   };
 
   return (
+    <>
     <div className="container max-w-4xl mx-auto px-4 space-y-8">
       {/* Header & Logo */}
       <div className="flex flex-col items-center text-center space-y-4 mb-8">
@@ -208,11 +272,11 @@ export default function TrackingClient({ submission }) {
                 </div>
                 <div className="space-y-3">
                     <div className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                        <span className="text-sm font-bold text-gray-600">Total Abonos ({sortedPayments.length})</span>
+                        <span className="text-sm font-bold text-gray-600">Total Abonos ({activePayments.length})</span>
                         <span className="text-lg font-black text-gray-900">${totalSubmitted.toFixed(2)}</span>
                     </div>
                     
-                    {payments.length > 0 && (
+                    {activePayments.length > 0 && (
                         <div className="grid grid-cols-2 gap-3">
                             <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-center">
                                 <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Entregado</p>
@@ -252,55 +316,81 @@ export default function TrackingClient({ submission }) {
                         <p className="text-gray-400 font-medium italic">No se han registrado abonos aún.</p>
                     </div>
                 ) : (
-                    sortedPayments.map((payment, idx) => (
-                        <motion.div 
-                            key={payment.id}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            className="flex items-center justify-between p-5 bg-white rounded-2xl shadow-sm border border-gray-100 group hover:shadow-md transition-all"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className={cn(
-                                    "w-12 h-12 rounded-xl flex items-center justify-center",
-                                    payment.status === 'verified' ? "bg-green-50 text-green-600" : "bg-gray-50 text-gray-400"
-                                )}>
-                                    <FileText className="w-6 h-6" />
+                    sortedPayments.map((payment, idx) => {
+                        const paymentStatus = payment.status === "rejected" || payment.manual_disposition ? "rejected" : payment.status;
+                        const isRejected = paymentStatus === "rejected";
+                        const discardReason = payment.manual_disposition === "duplicado"
+                          ? "Comprobante duplicado"
+                          : "Comprobante incorrecto";
+
+                        return (
+                            <motion.div
+                                key={payment.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="flex items-center justify-between p-5 bg-white rounded-2xl shadow-sm border border-gray-100 group hover:shadow-md transition-all"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className={cn(
+                                        "w-12 h-12 rounded-xl flex items-center justify-center",
+                                        isRejected
+                                          ? "bg-red-50 text-red-600"
+                                          : paymentStatus === 'verified'
+                                            ? "bg-green-50 text-green-600"
+                                            : "bg-gray-50 text-gray-400"
+                                    )}>
+                                        <FileText className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-gray-900">Abono #{idx + 1}</p>
+                                        {payment.extracted_data?.label ? (
+                                          <p className="text-[10px] font-medium text-gray-500">
+                                            {payment.extracted_data.label}
+                                          </p>
+                                        ) : null}
+                                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-wider">
+                                            {format(new Date(payment.created_at), "d MMM, HH:mm", { locale: es })}
+                                            {isRejected ? (
+                                              <span className="ml-2 text-red-600">No contabilizado</span>
+                                            ) : (
+                                              <span className="ml-2 text-blue-600">(${paymentAmount(payment).toFixed(2)})</span>
+                                            )}
+                                        </p>
+                                        {isRejected ? (
+                                          <p className="mt-1 max-w-md text-[10px] font-medium leading-relaxed text-red-600 normal-case">
+                                            {discardReason}
+                                            {payment.manual_disposition_notes ? `: ${payment.manual_disposition_notes}` : ""}
+                                          </p>
+                                        ) : null}
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="font-bold text-gray-900">Abono #{idx + 1}</p>
-                                    {payment.extracted_data?.label ? (
-                                      <p className="text-[10px] font-medium text-gray-500">
-                                        {payment.extracted_data.label}
-                                      </p>
+
+                                <div className="flex items-center gap-4">
+                                    <Badge variant="secondary" className={cn(
+                                        "rounded-full font-black text-[9px] uppercase tracking-widest",
+                                        isRejected
+                                          ? "bg-red-100 text-red-700"
+                                          : paymentStatus === 'verified'
+                                            ? "bg-green-100 text-green-700"
+                                            : "bg-amber-100 text-amber-700"
+                                    )}>
+                                        {statusConfig[paymentStatus]?.label || paymentStatus}
+                                    </Badge>
+                                    {payment.receipt_path ? (
+                                      <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="rounded-full hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)]"
+                                          onClick={() => viewReceipt(payment, idx)}
+                                      >
+                                          <ChevronRight className="w-5 h-5" />
+                                      </Button>
                                     ) : null}
-                                    <p className="text-[10px] text-gray-400 uppercase font-black tracking-wider">
-                                        {format(new Date(payment.created_at), "d MMM, HH:mm", { locale: es })}
-                                        <span className="ml-2 text-blue-600">(${paymentAmount(payment).toFixed(2)})</span>
-                                    </p>
                                 </div>
-                            </div>
-                            
-                            <div className="flex items-center gap-4">
-                                <Badge variant="secondary" className={cn(
-                                    "rounded-full font-black text-[9px] uppercase tracking-widest",
-                                    payment.status === 'verified' ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                                )}>
-                                    {statusConfig[payment.status]?.label || payment.status}
-                                </Badge>
-                                {payment.receipt_path ? (
-                                  <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      className="rounded-full hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)]"
-                                      onClick={() => viewReceipt(payment.receipt_path)}
-                                  >
-                                      <ChevronRight className="w-5 h-5" />
-                                  </Button>
-                                ) : null}
-                            </div>
-                        </motion.div>
-                    ))
+                            </motion.div>
+                        );
+                    })
                 )}
             </div>
           </div>
@@ -391,5 +481,87 @@ export default function TrackingClient({ submission }) {
           </div>
       </div>
     </div>
+    <Dialog
+      open={!!viewingReceipt}
+      onOpenChange={(open) => {
+        if (!open) setViewingReceipt(null);
+      }}
+    >
+      <DialogContent
+        hideClose
+        overlayClassName="z-[120] bg-black/80 backdrop-blur-sm"
+        className="z-[130] max-w-5xl w-[92vw] h-[82vh] rounded-[1.5rem] p-0 overflow-hidden border-none shadow-2xl bg-black/95 flex flex-col"
+      >
+        <DialogTitle className="sr-only">Visor de comprobante</DialogTitle>
+        {viewingReceipt && (
+          <>
+            <div className="h-16 px-4 md:px-6 border-b border-white/10 bg-black/80 text-white flex items-center justify-between gap-4 shrink-0">
+              <div className="min-w-0">
+                <h4 className="font-serif font-bold text-lg md:text-xl truncate">{viewingReceipt.title}</h4>
+                <p className="text-[9px] md:text-[10px] uppercase tracking-widest text-white/45 truncate">
+                  {viewingReceipt.aiData?.date || "Sin fecha"} · ${Number(viewingReceipt.aiData?.amount || 0).toFixed(2)} · {viewingReceipt.aiData?.reference || "Sin referencia"}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 md:gap-2 shrink-0">
+                {viewingReceipt.kind === "image" && (
+                  <>
+                    <Button variant="ghost" size="icon" onClick={() => setReceiptZoom((value) => Math.max(0.5, Number((value - 0.25).toFixed(2))))} className="rounded-full bg-white/10 hover:bg-white/20 text-white h-8 w-8 md:h-10 md:w-10"><ZoomOut className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setReceiptZoom((value) => Math.min(4, Number((value + 0.25).toFixed(2))))} className="rounded-full bg-white/10 hover:bg-white/20 text-white h-8 w-8 md:h-10 md:w-10"><ZoomIn className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => { setReceiptZoom(1); setReceiptRotation(0); }} className="rounded-full bg-white/10 hover:bg-white/20 text-white h-8 w-8 md:h-10 md:w-10"><RotateCcw className="w-4 h-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setReceiptRotation((value) => (value + 90) % 360)} className="rounded-full bg-white/10 hover:bg-white/20 text-white h-8 w-8 md:h-10 md:w-10"><RotateCw className="w-4 h-4" /></Button>
+                  </>
+                )}
+                <Button variant="ghost" size="icon" onClick={() => setViewingReceipt(null)} className="rounded-full bg-white/10 hover:bg-white/20 text-white h-8 w-8 md:h-10 md:w-10"><X className="w-5 h-5" /></Button>
+              </div>
+            </div>
+
+            <div className="flex-1 min-h-0 w-full overflow-auto bg-neutral-950">
+              <div className="min-h-full min-w-full flex items-center justify-center p-4 md:p-8">
+                {viewingReceipt.isLoading ? (
+                  <div className="flex flex-col items-center justify-center text-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-8 py-10">
+                    <Loader2 className="w-10 h-10 animate-spin text-[var(--puembo-green)]" />
+                    <div className="space-y-1">
+                      <p className="text-white font-serif text-2xl font-bold">Preparando comprobante</p>
+                      <p className="text-white/45 text-[10px] font-black uppercase tracking-widest">
+                        Estamos firmando el archivo para abrirlo de forma segura
+                      </p>
+                    </div>
+                  </div>
+                ) : viewingReceipt.error ? (
+                  <div className="flex flex-col items-center justify-center text-center gap-4 rounded-2xl border border-red-400/30 bg-red-500/10 px-8 py-10">
+                    <AlertCircle className="w-10 h-10 text-red-300" />
+                    <p className="text-sm font-bold text-red-100">{viewingReceipt.error}</p>
+                  </div>
+                ) : viewingReceipt.kind === "pdf" ? (
+                  <iframe
+                    src={viewingReceipt.url}
+                    title="Comprobante bancario"
+                    className="w-full h-[calc(82vh-6rem)] rounded-lg bg-white"
+                  />
+                ) : viewingReceipt.kind === "image" ? (
+                  <img
+                    src={viewingReceipt.url}
+                    alt="Recibo bancario"
+                    className="max-w-none object-contain shadow-2xl rounded-lg transition-transform duration-200 origin-center"
+                    style={{
+                      width: `${receiptZoom * 100}%`,
+                      transform: `rotate(${receiptRotation}deg)`,
+                    }}
+                  />
+                ) : (
+                  <div className="text-center space-y-4">
+                    <FileText className="mx-auto h-8 w-8 text-white/60" />
+                    <p className="text-white font-medium">
+                      No se puede previsualizar este archivo aquí.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 }

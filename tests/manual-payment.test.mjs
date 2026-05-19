@@ -5,7 +5,9 @@ import { readFileSync } from "node:fs";
 import {
   applyManualPaymentToSubmission,
   buildManualPaymentValue,
+  getActiveTrackingPayments,
   getSubmissionTrackingPayments,
+  getTrackingPaymentAmount,
   getValueDisplayText,
 } from "../lib/finance/manual-payment.mjs";
 
@@ -110,6 +112,32 @@ test("getSubmissionTrackingPayments exposes manual registrations as verified pay
     receipt_path: "forms/manual/receipt.png",
     status: "verified",
   });
+});
+
+test("tracking payments show discarded transfer receipts as rejected without active value", () => {
+  const payments = getSubmissionTrackingPayments({
+    form_submission_payments: [
+      {
+        id: "discarded-payment",
+        status: "pending",
+        amount_claimed: 45,
+        manual_disposition: "incorrecto",
+        manual_disposition_notes: "La imagen no corresponde a una transferencia.",
+      },
+      {
+        id: "active-payment",
+        status: "pending",
+        amount_claimed: 20,
+      },
+    ],
+  });
+
+  assert.equal(payments[0].status, "rejected");
+  assert.equal(payments[0].original_status, "pending");
+  assert.equal(payments[0].manual_disposition_notes, "La imagen no corresponde a una transferencia.");
+  assert.deepEqual(getActiveTrackingPayments(payments).map((payment) => payment.id), ["active-payment"]);
+  assert.equal(getTrackingPaymentAmount(payments[0]), 0);
+  assert.equal(getTrackingPaymentAmount(payments[1]), 20);
 });
 
 test("manual payment helpers are wired into creation, tracking and analytics flows", () => {

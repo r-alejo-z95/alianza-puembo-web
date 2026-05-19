@@ -101,3 +101,12 @@ test("saving review changes for a discarded payment clears manual disposition st
   assert.match(financeActions, /manual_disposition_at:\s*null/);
   assert.match(financeActions, /covered_by_submission_id:\s*null/);
 });
+
+test("financial dashboard summary excludes manually discarded payments", () => {
+  const start = financeActions.indexOf("export async function getFinancialSummary");
+  const end = financeActions.indexOf("/**\n * Gets temporary URL for visual audit.", start);
+  const financialSummary = financeActions.slice(start, end);
+
+  assert.match(financialSummary, /manual_disposition/);
+  assert.match(financialSummary, /p\.status === 'verified' && !p\.manual_disposition/);
+});

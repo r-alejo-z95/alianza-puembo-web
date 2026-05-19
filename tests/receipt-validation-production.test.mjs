@@ -36,6 +36,131 @@ test("production receipt validation keeps unmatched beneficiary receipts in manu
   assert.equal(result.status, "manual_review");
 });
 
+test("strict receipt validation rejects transfers to accounts outside active church accounts", () => {
+  const result = resolveFinancialReceiptValidation({
+    extractedData: {
+      amount: 99,
+      date: "2026-04-17",
+      reference: "TRX554433",
+      description: "Transferencia exitosa",
+      sender_name: "Maria Gomez",
+      bank_name: "Banco Pichincha",
+      beneficiary_name: "Cuenta externa",
+      beneficiary_account: "5326",
+      currency: "USD",
+      is_valid_receipt: true,
+      is_correct_beneficiary: false,
+      document_kind: "bank_receipt",
+      operation_type: "transfer",
+      receipt_confidence: "high",
+      rejection_signals: [],
+      bank_signals: ["transferencia", "comprobante", "banco"],
+      ocr_summary: "comprobante de transferencia a cuenta 5326",
+    },
+    destinationAccount: {
+      bank_name: "Pichincha",
+      account_holder: "Iglesia Alianza Puembo",
+      account_number: "2208033009",
+    },
+    acceptedDestinationAccounts: [
+      {
+        bank_name: "Pichincha",
+        account_holder: "Iglesia Alianza Puembo",
+        account_number: "2208033009",
+      },
+      {
+        bank_name: "Produbanco",
+        account_holder: "Iglesia Alianza Puembo",
+        account_number: "4455667788",
+      },
+    ],
+  });
+
+  assert.equal(result.status, "invalid");
+  assert.match(result.reason, /no pertenece a Iglesia Alianza Puembo/i);
+});
+
+test("strict receipt validation accepts any active church account, not only the form account", () => {
+  const result = resolveFinancialReceiptValidation({
+    extractedData: {
+      amount: 99,
+      date: "2026-04-17",
+      reference: "TRX554433",
+      description: "Transferencia exitosa",
+      sender_name: "Maria Gomez",
+      bank_name: "Produbanco",
+      beneficiary_name: "Iglesia Alianza Puembo",
+      beneficiary_account: "4455667788",
+      currency: "USD",
+      is_valid_receipt: true,
+      is_correct_beneficiary: true,
+      document_kind: "bank_receipt",
+      operation_type: "transfer",
+      receipt_confidence: "high",
+      rejection_signals: [],
+      bank_signals: ["transferencia", "comprobante", "banco"],
+      ocr_summary: "comprobante de transferencia produbanco alianza puembo",
+    },
+    destinationAccount: {
+      bank_name: "Pichincha",
+      account_holder: "Iglesia Alianza Puembo",
+      account_number: "2208033009",
+    },
+    acceptedDestinationAccounts: [
+      {
+        bank_name: "Pichincha",
+        account_holder: "Iglesia Alianza Puembo",
+        account_number: "2208033009",
+      },
+      {
+        bank_name: "Produbanco",
+        account_holder: "Iglesia Alianza Puembo",
+        account_number: "4455667788",
+      },
+    ],
+  });
+
+  assert.equal(result.status, "valid");
+});
+
+test("strict receipt validation accepts masked or truncated active church accounts", () => {
+  const result = resolveFinancialReceiptValidation({
+    extractedData: {
+      amount: 99,
+      date: "2026-04-17",
+      reference: "TRX554433",
+      description: "Transferencia exitosa",
+      sender_name: "Maria Gomez",
+      bank_name: "Produbanco",
+      beneficiary_name: "Iglesia",
+      beneficiary_account: "XXXX7788",
+      currency: "USD",
+      is_valid_receipt: true,
+      is_correct_beneficiary: true,
+      document_kind: "bank_receipt",
+      operation_type: "transfer",
+      receipt_confidence: "high",
+      rejection_signals: [],
+      bank_signals: ["transferencia", "comprobante", "banco"],
+      ocr_summary: "comprobante de transferencia produbanco alianza puembo",
+    },
+    destinationAccount: {
+      bank_name: "Pichincha",
+      account_holder: "Iglesia Alianza Puembo",
+      account_number: "2208033009",
+    },
+    acceptedDestinationAccounts: [
+      {
+        bank_name: "Produbanco",
+        account_holder: "Iglesia Alianza Puembo",
+        account_number: "4455667788",
+      },
+    ],
+  });
+
+  assert.equal(result.status, "valid");
+});
+
 test("production receipt validation rejects identity documents", () => {
   const result = classifyFinancialReceipt(
     {

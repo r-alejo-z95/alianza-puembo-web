@@ -3,6 +3,9 @@ import type { ExtractedReceiptData } from "@/lib/services/ai-reconciliation";
 export const INVALID_RECEIPT_MESSAGE =
   "Parece que estás subiendo una imagen no válida. Sube un comprobante de transferencia o depósito. Recuerda que no puedes reservar tu inscripción sin el pago. Si deseas pagar con efectivo o tarjeta, acércate al equipo ministerial.";
 
+export const UNRECOGNIZED_DESTINATION_ACCOUNT_MESSAGE =
+  "El comprobante muestra una cuenta de destino que no pertenece a Iglesia Alianza Puembo. Revisa que hayas transferido a una de las cuentas oficiales e intenta subir el comprobante correcto.";
+
 const NEGATIVE_KEYWORDS = {
   identity_document: ["cedula", "identidad", "dni", "pasaporte", "numero de identificacion"],
   invoice: [
@@ -42,6 +45,18 @@ export type DestinationBankAccountLike = {
   bank_name?: string | null;
   account_holder?: string | null;
   account_number?: string | null;
+};
+
+type BeneficiaryMatchResult = {
+  score: number;
+  confidence: "high" | "medium" | "low" | "none";
+  matched: boolean;
+};
+
+type ReceiptClassificationResult = {
+  status: ReceiptReviewStatus;
+  reason?: string;
+  beneficiaryMatch?: BeneficiaryMatchResult;
 };
 
 function normalizeText(input: string) {
@@ -219,6 +234,53 @@ function getBeneficiaryMatchScore(
   return { score, confidence, matched: score >= 40 };
 }
 
+function hasVisibleBeneficiaryAccountNumber(extractedData: ExtractedReceiptData) {
+  return normalizeDigits(extractedData.beneficiary_account || "").length >= 3;
+}
+
+function getBestAcceptedDestinationAccountMatch(
+  extractedData: ExtractedReceiptData,
+  acceptedDestinationAccounts: DestinationBankAccountLike[] = [],
+) {
+  const emptyMatch: BeneficiaryMatchResult = {
+    score: 0,
+    confidence: "none",
+    matched: false,
+  };
+
+  return acceptedDestinationAccounts
+    .filter((account) => account?.account_number || account?.account_holder || account?.bank_name)
+    .reduce(
+      (best, account) => {
+        const expectedNumber = normalizeDigits(account.account_number || "");
+        const accountNumberScore = expectedNumber
+          ? getAccountNumberMatchScore(extractedData.beneficiary_account || "", expectedNumber)
+          : 0;
+        const beneficiaryMatch = getBeneficiaryMatchScore(extractedData, account);
+
+        if (
+          accountNumberScore > best.accountNumberScore ||
+          (accountNumberScore === best.accountNumberScore && beneficiaryMatch.score > best.beneficiaryMatch.score)
+        ) {
+          return {
+            account,
+            accountNumberMatched: accountNumberScore >= 40,
+            accountNumberScore,
+            beneficiaryMatch,
+          };
+        }
+
+        return best;
+      },
+      {
+        account: null as DestinationBankAccountLike | null,
+        accountNumberMatched: false,
+        accountNumberScore: 0,
+        beneficiaryMatch: emptyMatch,
+      },
+    );
+}
+
 export function compareReceiptBeneficiary(
   extractedData: ExtractedReceiptData | null | undefined,
   destinationAccount?: DestinationBankAccountLike | null,
@@ -233,7 +295,7 @@ export function compareReceiptBeneficiary(
 export function classifyFinancialReceipt(
   extractedData: ExtractedReceiptData | null,
   destinationAccount?: DestinationBankAccountLike | null,
-): { status: ReceiptReviewStatus; reason?: string; beneficiaryMatch?: { score: number; confidence: "high" | "medium" | "low" | "none"; matched: boolean } } {
+): ReceiptClassificationResult {
   if (!extractedData) {
     return { status: "invalid", reason: "No se pudo extraer información del comprobante." };
   }
@@ -328,16 +390,46 @@ export function resolveFinancialReceiptValidation({
   extractedData,
   transientFailure,
   destinationAccount,
+  acceptedDestinationAccounts,
 }: {
   extractedData: ExtractedReceiptData | null;
   transientFailure?: boolean;
   destinationAccount?: DestinationBankAccountLike | null;
-}): { status: ReceiptReviewStatus; reason?: string; beneficiaryMatch?: { score: number; confidence: "high" | "medium" | "low" | "none"; matched: boolean } } {
+  acceptedDestinationAccounts?: DestinationBankAccountLike[] | null;
+}): ReceiptClassificationResult {
   if (transientFailure) {
     return {
       status: "invalid",
       reason: "La validación automática falló temporalmente. Intenta subir el comprobante nuevamente en unos minutos.",
     };
+  }
+
+  if (!extractedData) {
+    return classifyFinancialReceipt(extractedData, destinationAccount);
+  }
+
+  const acceptedAccounts = Array.isArray(acceptedDestinationAccounts)
+    ? acceptedDestinationAccounts
+    : [];
+  const acceptedAccountMatch = getBestAcceptedDestinationAccountMatch(
+    extractedData,
+    acceptedAccounts,
+  );
+
+  if (
+    acceptedAccounts.length > 0 &&
+    hasVisibleBeneficiaryAccountNumber(extractedData) &&
+    !acceptedAccountMatch.accountNumberMatched
+  ) {
+    return {
+      status: "invalid",
+      reason: UNRECOGNIZED_DESTINATION_ACCOUNT_MESSAGE,
+      beneficiaryMatch: acceptedAccountMatch.beneficiaryMatch,
+    };
+  }
+
+  if (acceptedAccountMatch.accountNumberMatched && acceptedAccountMatch.account) {
+    return classifyFinancialReceipt(extractedData, acceptedAccountMatch.account);
   }
 
   return classifyFinancialReceipt(extractedData, destinationAccount);

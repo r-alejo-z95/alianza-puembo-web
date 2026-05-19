@@ -7,7 +7,12 @@ import { revalidatePath } from "next/cache";
 import { revalidateFormSubmissions } from "@/lib/actions/cache";
 import { verifyPermission, verifySuperAdmin } from "@/lib/auth/guards";
 import { uploadReceipt } from "@/lib/actions";
-import { INVALID_RECEIPT_MESSAGE, classifyFinancialReceipt } from "@/lib/services/receipt-validation";
+import {
+  INVALID_RECEIPT_MESSAGE,
+  UNRECOGNIZED_DESTINATION_ACCOUNT_MESSAGE,
+  classifyFinancialReceipt,
+  resolveFinancialReceiptValidation,
+} from "@/lib/services/receipt-validation";
 import { normalizeFormKey } from "@/lib/form-response-history";
 import { findNameInSubmission } from "@/lib/form-utils";
 import {
@@ -790,7 +795,8 @@ export async function getFinancialSummary() {
           form_submission_payments (
             amount_claimed,
             extracted_data,
-            status
+            status,
+            manual_disposition
           )
         `)
         .eq("form_id", form.id)
@@ -802,7 +808,7 @@ export async function getFinancialSummary() {
       const verifiedAmount = submissions.reduce((acc, submission) => {
         const payments = submission.form_submission_payments || [];
         return acc + payments
-          .filter(p => p.status === 'verified')
+          .filter(p => p.status === 'verified' && !p.manual_disposition)
           .reduce((paymentAcc, p) => paymentAcc + Number(p.extracted_data?.amount || p.amount_claimed || 0), 0);
       }, 0);
 
@@ -835,6 +841,58 @@ export async function getReceiptSignedUrl(fullPath: string) {
   return error ? { error: error.message } : { url: data.signedUrl };
 }
 
+export async function getTrackingReceiptSignedUrl(payload: {
+  submissionId: string;
+  accessToken: string;
+  receiptPath: string;
+}) {
+  const { submissionId, accessToken, receiptPath } = payload;
+
+  if (!submissionId || !accessToken || !receiptPath) {
+    return { error: "Datos incompletos para consultar el comprobante." };
+  }
+
+  if (receiptPath.includes("..")) {
+    return { error: "Ruta inválida" };
+  }
+
+  const supabase = createAdminClient();
+  const { data: submission, error } = await supabase
+    .from("form_submissions")
+    .select("id, coverage_backup_path, form_submission_payments(receipt_path)")
+    .eq("id", submissionId)
+    .eq("access_token", accessToken)
+    .eq("is_archived", false)
+    .single();
+
+  if (error || !submission) {
+    return { error: "No pudimos validar tu enlace de seguimiento." };
+  }
+
+  const authorizedPaths = new Set<string>();
+  const addAuthorizedPath = (path?: string | null) => {
+    if (!path) return;
+    authorizedPaths.add(path);
+    authorizedPaths.add(path.replace("finance_receipts/", ""));
+  };
+
+  addAuthorizedPath((submission as any).coverage_backup_path);
+  ((submission as any).form_submission_payments || []).forEach((payment: any) => {
+    addAuthorizedPath(payment?.receipt_path);
+  });
+
+  if (!authorizedPaths.has(receiptPath) && !authorizedPaths.has(receiptPath.replace("finance_receipts/", ""))) {
+    return { error: "No tienes acceso a este comprobante." };
+  }
+
+  const path = receiptPath.replace("finance_receipts/", "");
+  const { data, error: signError } = await supabase.storage
+    .from("finance_receipts")
+    .createSignedUrl(path, 600);
+
+  return signError ? { error: signError.message } : { url: data.signedUrl };
+}
+
 /**
  * Agrega un nuevo abono (pago parcial) a una inscripción existente.
  * Verificado mediante access_token para seguridad de usuarios anónimos.
@@ -846,12 +904,11 @@ export async function addMultipartPayment(payload: {
   amountClaimed?: number;
 }) {
   const { submissionId, accessToken, receiptPath, amountClaimed } = payload;
-  const supabase = await createClient();
   const supabaseAdmin = createAdminClient();
 
   try {
     // 1. Verificar token y pertenencia (Seguridad)
-    const { data: submission, error: subError } = await supabase
+    const { data: submission, error: subError } = await supabaseAdmin
       .from("form_submissions")
       .select("id, form_id")
       .eq("id", submissionId)
@@ -860,8 +917,8 @@ export async function addMultipartPayment(payload: {
       .single();
 
     if (subError || !submission) {
-        console.error("addMultipartPayment subError:", subError);
-        throw new Error("Acceso no autorizado o inscripción no encontrada.");
+      console.error("addMultipartPayment subError:", subError);
+      throw new Error("Acceso no autorizado o inscripción no encontrada.");
     }
 
     let destinationAccount: {
@@ -869,6 +926,11 @@ export async function addMultipartPayment(payload: {
       account_holder?: string | null;
       account_number?: string | null;
     } | null = null;
+    let acceptedDestinationAccounts: Array<{
+      bank_name?: string | null;
+      account_holder?: string | null;
+      account_number?: string | null;
+    }> = [];
 
     const { data: form } = await supabaseAdmin
       .from("forms")
@@ -897,6 +959,17 @@ export async function addMultipartPayment(payload: {
       destinationAccount = account || null;
     }
 
+    const { data: activeBankAccounts, error: activeBankAccountsError } = await supabaseAdmin
+      .from("bank_accounts")
+      .select("bank_name, account_holder, account_number")
+      .eq("is_active", true);
+
+    if (activeBankAccountsError) {
+      console.error("[Multipart-Payment] Error consultando cuentas bancarias activas:", activeBankAccountsError.message);
+    } else {
+      acceptedDestinationAccounts = activeBankAccounts || [];
+    }
+
     // 2. Procesar con AI (Gemini)
     console.log(`[Multipart-Payment] Iniciando procesamiento AI para: ${receiptPath}`);
     let aiData = null;
@@ -920,7 +993,11 @@ export async function addMultipartPayment(payload: {
 
     const validation = aiTransientFailure
       ? { status: "manual_review" as const, reason: "La validación automática falló temporalmente." }
-      : classifyFinancialReceipt(aiData, destinationAccount);
+      : resolveFinancialReceiptValidation({
+          extractedData: aiData,
+          destinationAccount,
+          acceptedDestinationAccounts,
+        });
     if (validation.status === "invalid") {
       const { error: cleanupError } = await supabaseAdmin.storage
         .from("finance_receipts")
@@ -930,7 +1007,12 @@ export async function addMultipartPayment(payload: {
         console.error("[Multipart-Payment] Error limpiando comprobante inválido:", cleanupError.message);
       }
 
-      return { error: INVALID_RECEIPT_MESSAGE };
+      const errorMessage =
+        validation.reason === UNRECOGNIZED_DESTINATION_ACCOUNT_MESSAGE
+          ? validation.reason
+          : INVALID_RECEIPT_MESSAGE;
+
+      return { error: errorMessage };
     }
 
     // 3. Insertar en la tabla de abonos

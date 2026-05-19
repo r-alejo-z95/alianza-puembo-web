@@ -17,7 +17,11 @@ import {
 import { headers } from "next/headers";
 import { revalidateForms, revalidateFormSubmissions } from "./actions/cache";
 import { extractReceiptDataDetailed } from "@/lib/services/ai-reconciliation";
-import { INVALID_RECEIPT_MESSAGE, resolveFinancialReceiptValidation } from "@/lib/services/receipt-validation";
+import {
+  INVALID_RECEIPT_MESSAGE,
+  UNRECOGNIZED_DESTINATION_ACCOUNT_MESSAGE,
+  resolveFinancialReceiptValidation,
+} from "@/lib/services/receipt-validation";
 import crypto from "crypto";
 import { ensureFinanceReceiptsBucket } from "@/lib/finance/storage";
 import { getInstallmentEmailSummary } from "@/lib/finance/payment-summary.mjs";
@@ -744,6 +748,20 @@ async function loadActiveFinancialSubmissionsForConflict(supabaseAdmin: any, for
   return data || [];
 }
 
+async function loadActiveBankAccountsForReceiptValidation(supabaseAdmin: any) {
+  const { data, error } = await supabaseAdmin
+    .from("bank_accounts")
+    .select("bank_name, account_holder, account_number")
+    .eq("is_active", true);
+
+  if (error) {
+    console.error("[Submit] Error consultando cuentas bancarias activas:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
 function buildTrackingEmailSubmission(form: any, submission: any, remainingBalance?: number | null) {
   return {
     formTitle: form?.title || "Inscripción",
@@ -826,6 +844,11 @@ export async function submitFormAction(payload: {
       account_holder?: string | null;
       account_number?: string | null;
     } | null = null;
+    let acceptedDestinationAccounts: Array<{
+      bank_name?: string | null;
+      account_holder?: string | null;
+      account_number?: string | null;
+    }> = [];
 
     if (form.destination_account_id) {
       const { data: account } = await supabaseAdmin
@@ -835,6 +858,10 @@ export async function submitFormAction(payload: {
         .maybeSingle();
 
       destinationAccount = account || null;
+    }
+
+    if (form.is_financial) {
+      acceptedDestinationAccounts = await loadActiveBankAccountsForReceiptValidation(supabaseAdmin);
     }
 
     // 1.1. Check max_responses limit before processing
@@ -946,6 +973,7 @@ export async function submitFormAction(payload: {
         extractedData: aiExtractedData,
         transientFailure: aiTransientFailure,
         destinationAccount,
+        acceptedDestinationAccounts,
       });
       receiptReviewStatus = validation.status;
       if (validation.status === "invalid") {
@@ -953,7 +981,10 @@ export async function submitFormAction(payload: {
 
         await cleanupUploadedFinanceReceipt(supabaseAdmin, receiptPath);
 
-        const errorMessage = aiTransientFailure ? validation.reason : INVALID_RECEIPT_MESSAGE;
+        const errorMessage =
+          aiTransientFailure || validation.reason === UNRECOGNIZED_DESTINATION_ACCOUNT_MESSAGE
+            ? validation.reason
+            : INVALID_RECEIPT_MESSAGE;
         return {
           error: errorMessage || INVALID_RECEIPT_MESSAGE,
           outcome: buildSubmissionOutcome({
