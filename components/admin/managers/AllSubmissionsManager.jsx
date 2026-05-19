@@ -38,6 +38,22 @@ import {
 } from "@/lib/finance/status";
 import { getValueDisplayText } from "@/lib/finance/manual-payment.mjs";
 
+const financeBadgeLayoutClasses =
+  "max-w-full min-w-0 shrink whitespace-nowrap text-center leading-none tracking-[0.08em]";
+
+const financeBadgeLabels = {
+  "Pago bancario válido": "Pago válido",
+  "Pago bancario en revisión": "En revisión",
+  "Comprobante descartado - contactar usuario": "Descartado",
+  "Cubierta por pago ya usado": "Pago compartido",
+  "Pago en efectivo": "Efectivo",
+  "Pago con tarjeta": "Tarjeta",
+};
+
+function getFinanceBadgeLabel(financeState) {
+  return financeBadgeLabels[financeState] || financeState;
+}
+
 function getFinanceBadgeClasses(financeState) {
   if (financeState === "Conciliado") return "bg-emerald-100 text-emerald-700";
   if (financeState === "Comprobante descartado - contactar usuario") return "bg-amber-100 text-amber-700";
@@ -45,6 +61,28 @@ function getFinanceBadgeClasses(financeState) {
   if (financeState === "Pago en efectivo" || financeState === "Pago con tarjeta") return "bg-blue-100 text-blue-700";
   if (financeState === "Beca") return "bg-violet-100 text-violet-700";
   return "bg-amber-100 text-amber-700";
+}
+
+function FinanceStatusBadge({ financeState }) {
+  const financeBadgeLabel = getFinanceBadgeLabel(financeState);
+
+  return (
+    <span className="relative inline-flex max-w-full group/finance-badge" tabIndex={0}>
+      <Badge
+        aria-label={financeState}
+        className={cn(
+          "rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
+          financeBadgeLayoutClasses,
+          getFinanceBadgeClasses(financeState),
+        )}
+      >
+        {financeBadgeLabel}
+      </Badge>
+      <span className="pointer-events-none absolute right-0 top-full z-20 mt-1 whitespace-nowrap rounded-md bg-gray-900 px-2 py-1 text-[10px] font-bold normal-case tracking-normal text-white opacity-0 shadow-lg transition-opacity duration-75 group-hover/finance-badge:opacity-100 group-focus-visible/finance-badge:opacity-100">
+        {financeState}
+      </span>
+    </span>
+  );
 }
 
 function getInitials(name) {
@@ -295,8 +333,8 @@ export default function AllSubmissionsManager({ initialSubmissions = [] }) {
                     </div>
                   </div>
 
-                  <div className="hidden lg:block overflow-x-auto">
-                    <Table>
+                  <div className="hidden lg:block overflow-hidden [&_[data-slot=table-container]]:overflow-x-hidden">
+                    <Table className="table-fixed">
                       <TableBody>
                         {items.map((sub) => (
                           <SubmissionRow
@@ -353,7 +391,7 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
   return (
     <TableRow className="group transition-all duration-200 border-b border-gray-50 hover:bg-[var(--puembo-green)]/[0.025]">
       {/* Date */}
-      <TableCell className="px-6 py-5 w-32">
+      <TableCell className="px-6 py-5 w-28 xl:w-32">
         <div className="flex flex-col">
           <span className="text-xs font-bold text-gray-700 tabular-nums">{formattedDate}</span>
           <span className="text-[9px] font-black uppercase text-gray-300 tracking-widest mt-0.5">
@@ -363,8 +401,8 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
       </TableCell>
 
       {/* Event */}
-      <TableCell className="px-4 py-5">
-        <div className="flex flex-col gap-1 max-w-[260px]">
+      <TableCell className="px-4 py-5 w-[28%] min-w-0">
+        <div className="flex flex-col gap-1 max-w-full min-w-0">
           <span className="font-bold text-gray-900 text-sm leading-tight truncate">
             {sub.forms?.title || "Formulario eliminado"}
           </span>
@@ -377,16 +415,16 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
       </TableCell>
 
       {/* Participant */}
-      <TableCell className="px-4 py-5">
-        <div className="flex items-center gap-3">
+      <TableCell className="px-4 py-5 w-[30%] min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
           <div className="w-9 h-9 rounded-full bg-[var(--puembo-green)]/10 flex items-center justify-center shrink-0 border border-[var(--puembo-green)]/10">
             <span className="text-[10px] font-black text-[var(--puembo-green)]">{initials}</span>
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col min-w-0">
             <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest leading-tight">
               Participante
             </span>
-            <span className="font-bold text-gray-900 text-sm leading-tight">
+            <span className="font-bold text-gray-900 text-sm leading-tight truncate">
               {subscriberName}
             </span>
           </div>
@@ -394,30 +432,23 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
       </TableCell>
 
       {/* Amount + actions */}
-      <TableCell className="px-4 pr-6 py-5 text-right">
-        <div className="flex items-center justify-end gap-3">
-          <div className="flex flex-col items-end gap-1">
+      <TableCell className="px-4 pr-6 py-5 text-right w-[300px] whitespace-normal">
+        <div className="flex items-center justify-end gap-3 min-w-0">
+          <div className="flex flex-col items-end gap-1 min-w-0 max-w-[150px] xl:max-w-[180px]">
             <span className="text-[9px] font-black uppercase tracking-widest text-gray-300">
               Monto
             </span>
             <span className="text-base font-bold text-gray-900 tabular-nums">
               ${amountPaid.toFixed(2)}
             </span>
-            <Badge
-              className={cn(
-                "rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
-                getFinanceBadgeClasses(financeState),
-              )}
-            >
-              {financeState}
-            </Badge>
+            <FinanceStatusBadge financeState={financeState} />
           </div>
 
           <Button
             variant="ghost"
             size="sm"
             className={cn(
-              "rounded-full h-9 px-5 font-black text-[9px] uppercase tracking-widest gap-2 transition-all",
+              "rounded-full h-9 px-5 font-black text-[9px] uppercase tracking-widest gap-2 transition-all shrink-0",
               isCopied
                 ? "bg-emerald-50 text-emerald-600 scale-95"
                 : "bg-gray-50 text-gray-500 hover:bg-gray-900 hover:text-white",
@@ -432,7 +463,7 @@ function SubmissionRow({ sub, onCopy, isCopied }) {
           </Button>
 
           <Link href={`/inscripcion/${sub.access_token}`} target="_blank">
-            <div className="h-9 w-9 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-[var(--puembo-green)] hover:text-white hover:border-transparent transition-all shadow-sm">
+            <div className="h-9 w-9 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-[var(--puembo-green)] hover:text-white hover:border-transparent transition-all shadow-sm shrink-0">
               <ExternalLink className="w-3.5 h-3.5" />
             </div>
           </Link>
@@ -480,23 +511,16 @@ function SubmissionCard({ sub, onCopy, isCopied }) {
       </div>
 
       {/* Amount + actions */}
-      <div className="flex gap-2 items-stretch">
-        <div className="flex-1 rounded-2xl border border-gray-100 bg-gray-50 p-3 space-y-1">
+      <div className="flex gap-2 items-stretch min-w-0">
+        <div className="flex-1 min-w-0 rounded-2xl border border-gray-100 bg-gray-50 p-3 space-y-1">
           <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400">
             Monto
           </span>
           <p className="text-xl font-bold text-gray-900 tabular-nums">${amountPaid.toFixed(2)}</p>
-          <Badge
-            className={cn(
-              "rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-widest border-none",
-              getFinanceBadgeClasses(financeState),
-            )}
-          >
-            {financeState}
-          </Badge>
+          <FinanceStatusBadge financeState={financeState} />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 shrink-0">
           <Button
             variant="outline"
             className={cn(
