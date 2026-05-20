@@ -167,3 +167,12 @@ test("submit action handles financial conflicts before creating new submissions"
   assert.match(actions, /cleanupUploadedFinanceReceipt/);
   assert.match(actions, /outcome:\s*buildSubmissionOutcome/);
 });
+
+test("shared payment confirmation copy is friendly and explicit", () => {
+  const actions = readFileSync(new URL("../lib/actions.ts", import.meta.url), "utf8");
+
+  assert.match(actions, /¿Quieres usar este mismo pago para esta inscripción\?/);
+  assert.match(actions, /puedes vincular esta inscripción al mismo pago sin registrar un ingreso adicional/);
+  assert.match(actions, /Sí, usar este mismo pago/);
+  assert.doesNotMatch(actions, /¿Este pago cubre a esta persona\?/);
+});

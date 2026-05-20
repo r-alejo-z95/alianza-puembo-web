@@ -1034,15 +1034,15 @@ export async function submitFormAction(payload: {
               error: "Este comprobante ya fue registrado, pero puede cubrir otra inscripción.",
               outcome: buildSubmissionOutcome({
                 status: "duplicate",
-                title: "¿Este pago cubre a esta persona?",
-                message: "Este comprobante ya fue usado en otra inscripción. Como el monto alcanza para más personas, podemos registrar esta inscripción vinculada al mismo pago.",
+                title: "¿Quieres usar este mismo pago para esta inscripción?",
+                message: "Detectamos que este comprobante ya está asociado a otra inscripción. Como el monto alcanza para más personas, puedes vincular esta inscripción al mismo pago sin registrar un ingreso adicional.",
                 steps: [
-                  `Este comprobante puede cubrir ${conflict.sharedPayment.capacity} inscripción${conflict.sharedPayment.capacity === 1 ? "" : "es"} en total.`,
-                  `Ya está usado por ${conflict.sharedPayment.usedSlots}; queda ${conflict.sharedPayment.availableSlots} cupo disponible.`,
-                  "Si confirmas, no se contará otro ingreso: solo se guardará esta inscripción como cubierta por el pago compartido.",
+                  `Este comprobante alcanza para ${conflict.sharedPayment.capacity} inscripción${conflict.sharedPayment.capacity === 1 ? "" : "es"} en total.`,
+                  `Ya cubre ${conflict.sharedPayment.usedSlots}; queda${conflict.sharedPayment.availableSlots === 1 ? "" : "n"} ${conflict.sharedPayment.availableSlots} cupo${conflict.sharedPayment.availableSlots === 1 ? "" : "s"} disponible${conflict.sharedPayment.availableSlots === 1 ? "" : "s"}.`,
+                  "Finanzas revisará el pago una sola vez para evitar duplicarlo.",
                 ],
                 primaryAction: {
-                  label: "Sí, registrar con este pago",
+                  label: "Sí, usar este mismo pago",
                   confirmSharedPayment: {
                     accepted: true,
                     matchedSubmissionId: conflict.matchedSubmission.id,
