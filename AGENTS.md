@@ -1,5 +1,7 @@
 # Alianza Puembo Web Agent Notes
 
+Los specs y planes de superpowers son locales, no se versionan en git
+
 ## Database Workflow
 
 - The remote Supabase project is the source of truth as of May 14, 2026.
