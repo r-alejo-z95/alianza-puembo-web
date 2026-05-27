@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 import {
   canManageSubmissionResponses,
+  canViewFormAnalytics,
   getEditableSubmissionFields,
   buildEditableSubmissionValues,
   buildSubmissionResponseUpdate,
@@ -12,6 +13,7 @@ import {
 const form = {
   id: "form-1",
   user_id: "creator-1",
+  form_response_admins: [{ profile_id: "delegated-admin" }],
   form_fields: [
     { id: "name", label: "Nombre", type: "text", order_index: 1 },
     { id: "email", label: "Correo", type: "email", order_index: 2 },
@@ -70,11 +72,21 @@ const submission = {
   ],
 };
 
-test("only the form creator or a super admin can manage submission responses", () => {
+test("super admin, creator, and delegated admins can manage submission responses", () => {
   assert.equal(canManageSubmissionResponses({ id: "creator-1", is_super_admin: false }, form), true);
+  assert.equal(canManageSubmissionResponses({ id: "delegated-admin", is_super_admin: false }, form), true);
   assert.equal(canManageSubmissionResponses({ id: "other-admin", is_super_admin: false }, form), false);
+  assert.equal(canManageSubmissionResponses({ id: "global-forms", is_super_admin: false, permissions: { perm_forms: true } }, form), false);
   assert.equal(canManageSubmissionResponses({ id: "super", is_super_admin: true }, form), true);
   assert.equal(canManageSubmissionResponses(null, form), false);
+});
+
+test("analytics can be viewed by global forms admins and delegated admins", () => {
+  assert.equal(canViewFormAnalytics({ id: "creator-1", is_super_admin: false, permissions: { perm_forms: false } }, form), true);
+  assert.equal(canViewFormAnalytics({ id: "delegated-admin", is_super_admin: false, permissions: { perm_forms: false } }, form), true);
+  assert.equal(canViewFormAnalytics({ id: "global-forms", is_super_admin: false, permissions: { perm_forms: true } }, form), true);
+  assert.equal(canViewFormAnalytics({ id: "other-admin", is_super_admin: false, permissions: { perm_forms: false } }, form), false);
+  assert.equal(canViewFormAnalytics({ id: "super", is_super_admin: true, permissions: { perm_forms: false } }, form), true);
 });
 
 test("editable submission fields exclude file and image fields", () => {
@@ -142,11 +154,16 @@ test("submission response management is wired through server actions and analyti
   assert.match(formsActions, /deleteFormSubmissionAdminComment/);
   assert.match(formsActions, /canManageSubmissionResponses/);
   assert.match(formsActions, /buildSubmissionResponseUpdate/);
+  assert.match(formsActions, /\.from\("form_response_admins"\)/);
+  assert.doesNotMatch(formsActions, /form_response_admins\(profile_id\)/);
+  assert.doesNotMatch(formsActions, /if \(!user\.is_super_admin && !user\.permissions\?\.perm_forms\)/);
   assert.doesNotMatch(formsActions, /forms\(id, user_id, is_internal, is_archived, form_fields!form_id/);
   assert.match(formsActions, /\.from\("forms"\)[\s\S]*form_fields!form_id\(\*\)[\s\S]*\.eq\("id", \(submission as any\)\.form_id\)/);
   assert.match(formsData, /form_submission_admin_comments/);
   assert.match(formsData, /getCachedFormSubmissions[\s\S]*\.eq\("is_archived", false\)/);
-  assert.match(analyticsPage, /verifyPermission\("perm_forms"\)/);
+  assert.match(analyticsPage, /getSessionUser/);
+  assert.match(analyticsPage, /canViewFormAnalytics/);
+  assert.doesNotMatch(analyticsPage, /verifyPermission\("perm_forms"\)/);
   assert.match(analyticsPage, /canManageResponses=/);
   assert.match(analyticsDashboard, /canManageResponses/);
   assert.match(analyticsDashboard, /updateFormSubmissionResponse/);

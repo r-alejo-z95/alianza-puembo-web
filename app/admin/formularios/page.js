@@ -1,12 +1,14 @@
 import FormManager from "@/components/admin/managers/FormManager";
-import { verifyPermission } from "@/lib/auth/guards";
+import DelegatedFormAnalyticsList from "@/components/admin/managers/DelegatedFormAnalyticsList";
+import { redirect } from "next/navigation";
+import { getSessionUser } from "@/lib/auth/getSessionUser";
 import {
   adminPageSection,
   adminPageHeaderContainer,
   adminPageTitle,
   adminPageDescription,
 } from "@/lib/styles.ts";
-import { getCachedForms } from "@/lib/data/forms";
+import { getCachedForms, getDelegatedPublicFormsForUser } from "@/lib/data/forms";
 
 export const metadata = {
   title: "Gestionar Formularios",
@@ -19,9 +21,17 @@ export const metadata = {
 };
 
 export default async function FormulariosAdminPage() {
-  await verifyPermission("perm_forms");
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
 
-  const initialForms = await getCachedForms(false);
+  const hasFullFormsAccess = user.is_super_admin || user.permissions?.perm_forms;
+  const initialForms = hasFullFormsAccess
+    ? await getCachedForms(false)
+    : await getDelegatedPublicFormsForUser(user.id);
+
+  if (!hasFullFormsAccess && initialForms.length === 0) {
+    redirect("/admin?error=no_permission");
+  }
 
   return (
     <section className={adminPageSection}>
@@ -41,7 +51,11 @@ export default async function FormulariosAdminPage() {
         </p>
       </header>
 
-      <FormManager initialForms={initialForms} isInternal={false} />
+      {hasFullFormsAccess ? (
+        <FormManager initialForms={initialForms} isInternal={false} />
+      ) : (
+        <DelegatedFormAnalyticsList forms={initialForms} />
+      )}
     </section>
   );
 }

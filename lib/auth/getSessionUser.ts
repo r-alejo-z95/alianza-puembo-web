@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getUserHasFormResponseDelegations } from "@/lib/data/forms";
 import { User } from "@supabase/supabase-js";
 
 export type Permissions = {
@@ -14,6 +15,7 @@ export type Permissions = {
 export type AdminUser = User & {
   is_super_admin: boolean;
   permissions: Permissions;
+  has_form_response_delegations: boolean;
 };
 
 export async function getSessionUser(): Promise<AdminUser | null> {
@@ -34,6 +36,11 @@ export async function getSessionUser(): Promise<AdminUser | null> {
 
   if (!profile) return null;
 
+  const hasFormResponseDelegations =
+    !profile.is_super_admin && !profile.perm_forms
+      ? await getUserHasFormResponseDelegations(user.id)
+      : false;
+
   return {
     ...user,
     user_metadata: {
@@ -50,5 +57,6 @@ export async function getSessionUser(): Promise<AdminUser | null> {
       perm_internal_forms: !!profile.perm_internal_forms,
       perm_finanzas: !!profile.perm_finanzas,
     },
+    has_form_response_delegations: hasFormResponseDelegations,
   };
 }

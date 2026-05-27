@@ -38,6 +38,16 @@ export interface Form {
   created_at: string;
   user_id: string;
   form_fields?: FormField[];
+  form_response_admins?: Array<{
+    profile_id: string;
+    created_at?: string;
+    created_by?: string | null;
+    profiles?: {
+      id?: string;
+      full_name?: string | null;
+      email?: string | null;
+    } | null;
+  }>;
 }
 
 export interface BankAccount {
@@ -61,7 +71,7 @@ export const getCachedForms = unstable_cache(
     const supabase = createAdminClient();
     let query = supabase
       .from("forms")
-      .select("*, profiles(full_name, email), form_fields!form_id(*)")
+      .select("*, profiles:profiles!forms_user_id_fkey(full_name, email), form_fields!form_id(*)")
       .eq("is_archived", false);
 
     if (isInternal !== null) {
@@ -102,7 +112,7 @@ export async function getFormBySlug(slug: string): Promise<Form | null> {
       const supabase = createAdminClient();
       const { data, error } = await supabase
         .from("forms")
-        .select("*, profiles(full_name, email), form_fields!form_id(*)")
+        .select("*, profiles:profiles!forms_user_id_fkey(full_name, email), form_fields!form_id(*)")
         .eq("slug", s)
         .eq("is_archived", false)
         .single();
@@ -127,6 +137,113 @@ export async function getFormBySlug(slug: string): Promise<Form | null> {
   );
 
   return fetchForm(slug);
+}
+
+function sortFormFields<T extends { form_fields?: FormField[] | null }>(form: T): T {
+  if (form?.form_fields) {
+    form.form_fields.sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+  }
+  return form;
+}
+
+async function attachFormResponseAdmins(supabase: any, forms: Form[]): Promise<Form[]> {
+  const formIds = forms.map((form) => form.id).filter(Boolean);
+  if (formIds.length === 0) return forms;
+
+  const { data, error } = await supabase
+    .from("form_response_admins")
+    .select("form_id, profile_id, created_at, created_by")
+    .in("form_id", formIds);
+
+  if (error) {
+    console.error("[attachFormResponseAdmins]", error);
+    return forms.map((form) => ({ ...form, form_response_admins: [] }));
+  }
+
+  const rowsByFormId = new Map<string, any[]>();
+  (data ?? []).forEach((row: any) => {
+    if (!rowsByFormId.has(row.form_id)) rowsByFormId.set(row.form_id, []);
+    rowsByFormId.get(row.form_id)?.push(row);
+  });
+
+  return forms.map((form) => ({
+    ...form,
+    form_response_admins: rowsByFormId.get(form.id) ?? [],
+  }));
+}
+
+export async function getAdminFormBySlugForAnalytics(slug: string): Promise<Form | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("forms")
+    .select("*, profiles:profiles!forms_user_id_fkey(full_name, email), form_fields!form_id(*)")
+    .eq("slug", slug)
+    .eq("is_archived", false)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  const [form] = await attachFormResponseAdmins(supabase, [sortFormFields(data as Form)]);
+  return form ?? null;
+}
+
+export async function getUserHasFormResponseDelegations(userId: string): Promise<boolean> {
+  if (!userId) return false;
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("form_response_admins")
+    .select("form_id")
+    .eq("profile_id", userId)
+    .limit(1);
+
+  if (error) {
+    console.error("[getUserHasFormResponseDelegations]", error);
+    return false;
+  }
+
+  return (data ?? []).length > 0;
+}
+
+export async function getDelegatedPublicFormsForUser(userId: string): Promise<Form[]> {
+  if (!userId) return [];
+  const supabase = createAdminClient();
+  const { data: accessRows, error: accessError } = await supabase
+    .from("form_response_admins")
+    .select("form_id")
+    .eq("profile_id", userId);
+
+  if (accessError) {
+    console.error("[getDelegatedPublicFormsForUser] access lookup failed:", accessError);
+    return [];
+  }
+
+  const formIds = [...new Set((accessRows ?? []).map((row: any) => row.form_id).filter(Boolean))];
+  if (formIds.length === 0) return [];
+
+  const { data: forms, error: formsError } = await supabase
+    .from("forms")
+    .select("*, profiles:profiles!forms_user_id_fkey(full_name, email), form_fields!form_id(*)")
+    .in("id", formIds)
+    .eq("is_archived", false)
+    .eq("is_internal", false);
+
+  if (formsError) {
+    console.error("[getDelegatedPublicFormsForUser] forms lookup failed:", formsError);
+    return [];
+  }
+
+  const formsWithAdmins = await attachFormResponseAdmins(
+    supabase,
+    (forms ?? [])
+      .filter(Boolean)
+      .map((form: Form) => sortFormFields(form)),
+  );
+
+  return formsWithAdmins
+    .sort((a: Form, b: Form) => {
+      const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return bTime - aTime;
+    });
 }
 
 export interface FormSubmission {

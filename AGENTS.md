@@ -12,3 +12,9 @@ Los specs y planes de superpowers son locales, no se versionan en git
 - Old unreliable local migrations are kept only for reference in `supabase/migrations-legacy-untracked/`.
 - Regenerate database types with `npm run db:types` after schema changes.
 - Read `docs/database.md` before editing DB schema or DB-touching code.
+
+## Current DB Change Status
+
+- As of May 27, 2026, `supabase/migrations/20260527000000_add_form_response_admins.sql` adds `public.form_response_admins` for per-form delegated response admins.
+- The migration creates RLS so super admins manage assignments and delegated admins can read their own assignment rows.
+- The migration has been applied to the linked Supabase project, and `lib/database.types.ts` has been regenerated for the new table.

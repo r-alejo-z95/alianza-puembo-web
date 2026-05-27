@@ -111,13 +111,25 @@ export async function prepareFinancialReceiptsBucket(): Promise<{ success?: true
   return { success: true };
 }
 
+async function attachManageableFormResponseAdmins(supabase: any, form: any) {
+  if (!form?.id) return form;
+
+  const { data, error } = await supabase
+    .from("form_response_admins")
+    .select("profile_id")
+    .eq("form_id", form.id);
+
+  if (error) {
+    console.error("[attachManageableFormResponseAdmins] lookup failed:", error);
+    return { ...form, form_response_admins: [] };
+  }
+
+  return { ...form, form_response_admins: data ?? [] };
+}
+
 async function getManageableSubmission(submissionId: string) {
   const user = await getSessionUser();
   if (!user) return { error: "Sesión expirada. Vuelve a iniciar sesión." };
-
-  if (!user.is_super_admin && !user.permissions?.perm_forms) {
-    return { error: "No tienes permisos para gestionar respuestas." };
-  }
 
   const supabase = createAdminClient();
   const { data: submission, error: submissionError } = await supabase
@@ -154,20 +166,18 @@ async function getManageableSubmission(submissionId: string) {
     return { error: "Esta acción solo aplica a formularios públicos." };
   }
 
-  if (!canManageSubmissionResponses(user, form)) {
-    return { error: "Solo el creador del formulario o un super admin puede modificar estas respuestas." };
+  const formWithAdmins = await attachManageableFormResponseAdmins(supabase, form);
+
+  if (!canManageSubmissionResponses(user, formWithAdmins)) {
+    return { error: "No tienes permisos para modificar respuestas de este formulario." };
   }
 
-  return { supabase, submission, form, user };
+  return { supabase, submission, form: formWithAdmins, user };
 }
 
 async function getManageableForm(formId: string) {
   const user = await getSessionUser();
   if (!user) return { error: "Sesión expirada. Vuelve a iniciar sesión." };
-
-  if (!user.is_super_admin && !user.permissions?.perm_forms) {
-    return { error: "No tienes permisos para gestionar respuestas." };
-  }
 
   const supabase = createAdminClient();
   const { data: form, error: formError } = await supabase
@@ -189,11 +199,13 @@ async function getManageableForm(formId: string) {
     return { error: "Esta acción solo aplica a formularios públicos." };
   }
 
-  if (!canManageSubmissionResponses(user, form)) {
-    return { error: "Solo el creador del formulario o un super admin puede modificar estas respuestas." };
+  const formWithAdmins = await attachManageableFormResponseAdmins(supabase, form);
+
+  if (!canManageSubmissionResponses(user, formWithAdmins)) {
+    return { error: "No tienes permisos para modificar respuestas de este formulario." };
   }
 
-  return { supabase, form, user };
+  return { supabase, form: formWithAdmins, user };
 }
 
 async function getSubmissionWithRelations(supabase: any, submissionId: string) {

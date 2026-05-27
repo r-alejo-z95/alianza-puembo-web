@@ -1,18 +1,24 @@
 import AnalyticsDashboard from "@/components/admin/managers/AnalyticsDashboard";
-import { notFound } from "next/navigation";
-import { getFormBySlug, getCachedFormSubmissions } from "@/lib/data/forms";
-import { verifyPermission } from "@/lib/auth/guards";
-import { canManageSubmissionResponses } from "@/lib/forms/submission-admin.mjs";
+import { notFound, redirect } from "next/navigation";
+import { getAdminFormBySlugForAnalytics, getCachedFormSubmissions } from "@/lib/data/forms";
+import { getSessionUser } from "@/lib/auth/getSessionUser";
+import { canManageSubmissionResponses, canViewFormAnalytics } from "@/lib/forms/submission-admin.mjs";
 
 export default async function FormAnalyticsPage({ params }) {
-  const user = await verifyPermission("perm_forms");
+  const user = await getSessionUser();
+  if (!user) redirect("/login");
+
   const { slug } = await params;
 
   // 1. Obtener el formulario y sus campos (Cached)
-  const form = await getFormBySlug(slug);
+  const form = await getAdminFormBySlugForAnalytics(slug);
 
   if (!form) {
     return notFound();
+  }
+
+  if (!canViewFormAnalytics(user, form)) {
+    redirect("/admin?error=no_permission");
   }
 
   // 2. Obtener todas las respuestas (Cached)

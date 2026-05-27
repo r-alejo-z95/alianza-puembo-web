@@ -344,6 +344,49 @@ export type Database = {
           },
         ]
       }
+      form_response_admins: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          form_id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          form_id: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          form_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_response_admins_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_response_admins_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_response_admins_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_submission_admin_comments: {
         Row: {
           body: string

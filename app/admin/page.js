@@ -45,9 +45,17 @@ export default async function AdminHomePage({ searchParams }) {
   
   const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Admin';
 
+  const hasFormsNavigationAccess = (action) => {
+    if (action.permission !== "perm_forms") return false;
+    return Boolean(
+      user?.permissions?.perm_forms || user?.has_form_response_delegations,
+    );
+  };
+
   // Filtrar acciones rápidas
   const filteredActions = quickActions.filter(action => {
     if (user?.is_super_admin) return true;
+    if (hasFormsNavigationAccess(action)) return true;
     return user?.permissions?.[action.permission];
   });
 

@@ -61,9 +61,17 @@ const navLinks = [
 export function AdminBottomNav({ user }) {
   const pathname = usePathname();
 
+  const hasFormsNavigationAccess = (link) => {
+    if (link.permission !== "perm_forms") return false;
+    return Boolean(
+      user?.permissions?.perm_forms || user?.has_form_response_delegations,
+    );
+  };
+
   // Filtrar links según permisos del usuario
   const filteredLinks = navLinks.filter((link) => {
     if (user?.is_super_admin) return true;
+    if (hasFormsNavigationAccess(link)) return true;
     return user?.permissions?.[link.permission];
   });
 

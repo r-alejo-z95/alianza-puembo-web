@@ -62,6 +62,7 @@ import {
 } from "@/components/ui/accordion";
 import { Label } from "@/components/ui/label";
 import BankAccountsManager from "@/components/admin/preferencias/BankAccountsManager";
+import FormResponseAccessManager from "@/components/admin/preferencias/FormResponseAccessManager";
 
 const profileSchema = z.object({
   email: z.string().email("Correo electrónico inválido.").optional().or(z.literal("")),
@@ -403,6 +404,7 @@ export default function PreferenciasPage() {
                   </CardContent>
                 </Card>
                 <BankAccountsManager />
+                <FormResponseAccessManager />
                 <Card className="border-none shadow-2xl bg-white rounded-[2.5rem] overflow-hidden">
                   <div className="bg-black p-8">
                     <div className="flex items-center gap-3">
