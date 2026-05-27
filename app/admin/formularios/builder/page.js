@@ -107,6 +107,8 @@ function BuilderContent() {
       payment_type,
       max_installments,
       total_amount,
+      allow_shared_receipts,
+      shared_receipt_max_submissions,
       destination_account_id,
       payment_reminder_interval_days,
     } = formData;
@@ -144,6 +146,11 @@ function BuilderContent() {
             payment_type: is_financial ? payment_type ?? "single" : null,
             max_installments: is_financial && payment_type === "installments" ? max_installments ?? null : null,
             total_amount: is_financial ? total_amount ?? null : null,
+            allow_shared_receipts: is_financial ? !!allow_shared_receipts : false,
+            shared_receipt_max_submissions:
+              is_financial && allow_shared_receipts
+                ? Math.max(Number(shared_receipt_max_submissions ?? 1), 1)
+                : 1,
             destination_account_id: is_financial ? destination_account_id ?? null : null,
             payment_reminder_interval_days: is_financial ? payment_reminder_interval_days ?? null : null,
           }])
@@ -272,6 +279,11 @@ function BuilderContent() {
           payment_type: is_financial ? payment_type ?? "single" : null,
           max_installments: is_financial && payment_type === "installments" ? max_installments ?? null : null,
           total_amount: is_financial ? total_amount ?? null : null,
+          allow_shared_receipts: is_financial ? !!allow_shared_receipts : false,
+          shared_receipt_max_submissions:
+            is_financial && allow_shared_receipts
+              ? Math.max(Number(shared_receipt_max_submissions ?? 1), 1)
+              : 1,
           destination_account_id: is_financial ? destination_account_id ?? null : null,
           payment_reminder_interval_days: is_financial ? payment_reminder_interval_days ?? null : null,
         })

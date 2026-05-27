@@ -351,6 +351,42 @@ test("retries transient Gemini failures and succeeds on a later attempt", async 
   assert.equal(result.data.amount, 25);
 });
 
+test("receipt extraction normalizes negative displayed amounts to positive values", async () => {
+  const fakeModel = {
+    async generateContent() {
+      return {
+        response: {
+          text() {
+            return JSON.stringify({
+              amount: -97.5,
+              date: "2026-05-27",
+              reference: "TRXNEG9750",
+              description: "Transferencia",
+              sender_name: "Usuario Banco",
+              bank_name: "Banco",
+              beneficiary_name: "Iglesia Alianza Puembo",
+              beneficiary_account: "1234567890",
+              currency: "USD",
+              is_valid_receipt: true,
+              is_correct_beneficiary: true,
+              document_kind: "bank_receipt",
+              operation_type: "transfer",
+              receipt_confidence: "high",
+              rejection_signals: [],
+              bank_signals: ["transferencia", "comprobante", "banco"],
+              ocr_summary: "comprobante con valor mostrado como negativo",
+            });
+          },
+        },
+      };
+    },
+  };
+
+  const result = await extractReceiptDataWithModel(fakeModel, "ZmFrZQ==", "image/jpeg");
+
+  assert.equal(result.data.amount, 97.5);
+});
+
 test("marks extraction as transient failure when Gemini keeps returning 503", async () => {
   const fakeModel = {
     async generateContent() {

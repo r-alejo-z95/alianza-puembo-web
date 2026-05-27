@@ -611,6 +611,7 @@ export type Database = {
       }
       forms: {
         Row: {
+          allow_shared_receipts: boolean
           archived_at: string | null
           closed_by_limit: boolean
           created_at: string | null
@@ -632,6 +633,7 @@ export type Database = {
           max_responses: number | null
           payment_reminder_interval_days: number | null
           payment_type: string | null
+          shared_receipt_max_submissions: number
           slug: string | null
           title: string
           total_amount: number | null
@@ -639,6 +641,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          allow_shared_receipts?: boolean
           archived_at?: string | null
           closed_by_limit?: boolean
           created_at?: string | null
@@ -660,6 +663,7 @@ export type Database = {
           max_responses?: number | null
           payment_reminder_interval_days?: number | null
           payment_type?: string | null
+          shared_receipt_max_submissions?: number
           slug?: string | null
           title: string
           total_amount?: number | null
@@ -667,6 +671,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          allow_shared_receipts?: boolean
           archived_at?: string | null
           closed_by_limit?: boolean
           created_at?: string | null
@@ -688,6 +693,7 @@ export type Database = {
           max_responses?: number | null
           payment_reminder_interval_days?: number | null
           payment_type?: string | null
+          shared_receipt_max_submissions?: number
           slug?: string | null
           title?: string
           total_amount?: number | null

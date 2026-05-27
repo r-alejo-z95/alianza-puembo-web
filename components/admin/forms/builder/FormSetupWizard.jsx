@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Loader2, ChevronRight, Settings2, CreditCard, Landmark } from "lucide-react";
+import { Loader2, ChevronRight, Settings2, CreditCard, Landmark, Users } from "lucide-react";
 import { toast } from "sonner";
 import { saveFormSetup } from "@/lib/actions/forms";
 import {
@@ -34,6 +34,8 @@ const setupSchema = z
     payment_type: z.enum(["single", "installments"]).nullable().optional(),
     max_installments: z.number().int().min(1).nullable().optional(),
     total_amount: z.number().positive("El monto total debe ser mayor a 0").nullable().optional(),
+    allow_shared_receipts: z.boolean().default(false),
+    shared_receipt_max_submissions: z.number().int().min(1).nullable().optional(),
     destination_account_id: z.string().nullable().optional(),
     payment_reminder_interval_days: z.union([
       z.literal(3),
@@ -76,6 +78,14 @@ const setupSchema = z
         message: "Define el máximo de cuotas",
       });
     }
+
+    if (data.allow_shared_receipts && (!data.shared_receipt_max_submissions || data.shared_receipt_max_submissions < 2)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["shared_receipt_max_submissions"],
+        message: "Define al menos 2 inscripciones por comprobante",
+      });
+    }
   });
 
 function mapInitialValues(initialValues = {}) {
@@ -91,6 +101,8 @@ function mapInitialValues(initialValues = {}) {
       initialValues.total_amount === null || initialValues.total_amount === undefined
         ? null
         : Number(initialValues.total_amount),
+    allow_shared_receipts: !!initialValues.allow_shared_receipts,
+    shared_receipt_max_submissions: initialValues.shared_receipt_max_submissions ?? 2,
     destination_account_id: initialValues.destination_account_id ?? null,
     payment_reminder_interval_days: initialValues.payment_reminder_interval_days ?? null,
   };
@@ -114,6 +126,7 @@ export default function FormSetupWizard({
 
   const isFinancial = form.watch("is_financial");
   const paymentType = form.watch("payment_type");
+  const allowSharedReceipts = form.watch("allow_shared_receipts");
   const hasBankAccounts = bankAccounts.length > 0;
 
   const onSubmit = async (values) => {
@@ -234,7 +247,13 @@ export default function FormSetupWizard({
                   </div>
                   <Switch
                     checked={isFinancial}
-                    onCheckedChange={(checked) => form.setValue("is_financial", checked)}
+                    onCheckedChange={(checked) => {
+                      form.setValue("is_financial", checked);
+                      if (!checked) {
+                        form.setValue("allow_shared_receipts", false);
+                        form.setValue("shared_receipt_max_submissions", 1);
+                      }
+                    }}
                   />
                 </div>
 
@@ -317,6 +336,57 @@ export default function FormSetupWizard({
                         )}
                       </div>
                     )}
+
+                    <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-start gap-3">
+                          <Users className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                          <div>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                              Comprobante compartido
+                            </Label>
+                            <p className="text-[10px] text-gray-500 leading-relaxed mt-1">
+                              Permite que un mismo pago cubra varias inscripciones sin duplicar el ingreso.
+                            </p>
+                          </div>
+                        </div>
+                        <Switch
+                          checked={allowSharedReceipts}
+                          onCheckedChange={(checked) => {
+                            form.setValue("allow_shared_receipts", checked, { shouldValidate: true });
+                            if (checked && Number(form.getValues("shared_receipt_max_submissions") || 0) < 2) {
+                              form.setValue("shared_receipt_max_submissions", 2, { shouldValidate: true });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {allowSharedReceipts && (
+                        <div className="space-y-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                            Máximo por comprobante
+                          </Label>
+                          <Input
+                            type="number"
+                            min={2}
+                            className="h-11 rounded-xl bg-gray-50 border-gray-200 md:max-w-xs"
+                            value={form.watch("shared_receipt_max_submissions") ?? ""}
+                            onChange={(e) =>
+                              form.setValue(
+                                "shared_receipt_max_submissions",
+                                e.target.value ? Number(e.target.value) : null,
+                                { shouldValidate: true },
+                              )
+                            }
+                          />
+                          {form.formState.errors.shared_receipt_max_submissions && (
+                            <p className="text-xs text-red-500">
+                              {form.formState.errors.shared_receipt_max_submissions.message}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
                     <div className="space-y-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">

@@ -832,7 +832,7 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_financial, payment_type, total_amount, destination_account_id, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label)")
+      .select("id, title, slug, is_financial, payment_type, total_amount, allow_shared_receipts, shared_receipt_max_submissions, destination_account_id, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label)")
       .eq("id", formId)
       .single();
 
@@ -1013,6 +1013,8 @@ export async function submitFormAction(payload: {
         },
         existingSubmissions: activeSubmissions,
         totalAmount: Number(form.total_amount || 0),
+        allowSharedReceipts: !!form.allow_shared_receipts,
+        sharedReceiptMaxSubmissions: Number(form.shared_receipt_max_submissions || 1),
       });
 
       if (conflict) {
@@ -1122,7 +1124,7 @@ export async function submitFormAction(payload: {
       await supabaseAdmin.from("form_submission_payments").insert([{
         submission_id: submission.id,
         receipt_path: receiptPath,
-        amount_claimed: Number(aiExtractedData?.amount || 0),
+        amount_claimed: Math.abs(Number(aiExtractedData?.amount || 0)),
         extracted_data: sharedPaymentCoverage
           ? {
               ...(aiExtractedData || {}),

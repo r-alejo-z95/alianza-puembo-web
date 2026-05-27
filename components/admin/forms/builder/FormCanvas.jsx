@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ImageIcon, Trash2, Layout, Plus, ShieldCheck, Globe, Receipt, Banknote, Hash, AlertCircle, CheckCircle2, Circle, ArrowDown } from "lucide-react";
+import { ImageIcon, Trash2, Layout, Plus, ShieldCheck, Globe, Receipt, Banknote, Hash, AlertCircle, CheckCircle2, Circle, ArrowDown, Users } from "lucide-react";
 import QuestionCard from "./QuestionCard";
 import { useRef, useMemo } from "react";
 import RichTextEditor from "../RichTextEditor";
@@ -37,6 +37,7 @@ const FormHeader = ({
   const title = watch("title");
   const isInternal = watch("is_internal");
   const isFinancial = watch("is_financial");
+  const allowSharedReceipts = watch("allow_shared_receipts");
   const fileInputRef = useRef(null);
 
   const currentFields = watch("fields") || [];
@@ -44,7 +45,11 @@ const FormHeader = ({
     (f) => f.type === "image" || f.type === "file",
   );
 
-  const hasSettingsError = !!(errors?.financial_field_id || errors?.max_responses);
+  const hasSettingsError = !!(
+    errors?.financial_field_id ||
+    errors?.max_responses ||
+    errors?.shared_receipt_max_submissions
+  );
   const hasError = error || hasSettingsError;
 
   const handleFileChange = (e) => {
@@ -323,6 +328,8 @@ const FormHeader = ({
                           setValue("financial_field_id", "");
                           setValue("financial_field_label", "");
                           setValue("payment_reminder_interval_days", null);
+                          setValue("allow_shared_receipts", false);
+                          setValue("shared_receipt_max_submissions", 1);
                         }
                       }}
                       className="data-[state=checked]:bg-amber-500"
@@ -423,6 +430,70 @@ const FormHeader = ({
 	                          </div>
 	                        )}
 	                      />
+                        <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3 space-y-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-start gap-2 min-w-0">
+                              <Users className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                              <div>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-blue-800">
+                                  Comprobante compartido
+                                </Label>
+                                <p className="text-[10px] text-blue-700/80 leading-relaxed mt-1">
+                                  Un mismo pago puede cubrir varias inscripciones.
+                                </p>
+                              </div>
+                            </div>
+                            <Controller
+                              control={control}
+                              name="allow_shared_receipts"
+                              render={({ field }) => (
+                                <Switch
+                                  checked={!!field.value}
+                                  onCheckedChange={(checked) => {
+                                    field.onChange(checked);
+                                    if (checked && Number(watch("shared_receipt_max_submissions") || 0) < 2) {
+                                      setValue("shared_receipt_max_submissions", 2, { shouldValidate: true });
+                                    }
+                                  }}
+                                  className="data-[state=checked]:bg-blue-600"
+                                />
+                              )}
+                            />
+                          </div>
+                          {allowSharedReceipts && (
+                            <Controller
+                              control={control}
+                              name="shared_receipt_max_submissions"
+                              render={({ field }) => (
+                                <div className="space-y-1.5">
+                                  <Label className="text-[10px] font-black uppercase tracking-widest text-blue-800">
+                                    Máximo por comprobante
+                                  </Label>
+                                  <Input
+                                    type="number"
+                                    min={2}
+                                    value={field.value ?? ""}
+                                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                                    className={cn(
+                                      "h-10 w-28 bg-white text-xs font-bold rounded-xl border-blue-200",
+                                      errors?.shared_receipt_max_submissions && "border-red-300 focus-visible:ring-red-300",
+                                    )}
+                                  />
+                                  {errors?.shared_receipt_max_submissions ? (
+                                    <p className="text-[10px] text-red-500 font-medium flex items-center gap-1">
+                                      <AlertCircle className="w-3 h-3 shrink-0" />
+                                      {errors.shared_receipt_max_submissions.message}
+                                    </p>
+                                  ) : (
+                                    <p className="text-[10px] text-blue-700/80 leading-relaxed">
+                                      Incluye la primera inscripción que subió el comprobante.
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            />
+                          )}
+                        </div>
 	                    </>
 	                  )}
                 </div>

@@ -86,6 +86,47 @@ test("detectFinancialSubmissionConflict asks for confirmation when a reused rece
   assert.equal(conflict?.sharedPayment?.availableSlots, 1);
 });
 
+test("detectFinancialSubmissionConflict uses explicit shared receipt capacity when enabled", () => {
+  const conflict = detectFinancialSubmissionConflict({
+    incoming: {
+      notificationEmail: "spouse@example.com",
+      participantName: "Conyuge Persona",
+      receiptData: {
+        amount: "120.00",
+        date: "2026-05-27",
+        reference: "TRX-SHARED-120",
+      },
+    },
+    existingSubmissions: [
+      {
+        ...existingSubmission,
+        form_submission_payments: [
+          {
+            id: "pay-120",
+            status: "pending",
+            amount_claimed: 120,
+            extracted_data: {
+              amount: 120,
+              date: "2026-05-27",
+              reference: "TRX-SHARED-120",
+            },
+          },
+        ],
+      },
+    ],
+    totalAmount: 120,
+    allowSharedReceipts: true,
+    sharedReceiptMaxSubmissions: 3,
+  });
+
+  assert.equal(conflict?.type, "duplicate_receipt");
+  assert.equal(conflict?.action, "confirm_shared_payment");
+  assert.equal(conflict?.sharedPayment?.eligible, true);
+  assert.equal(conflict?.sharedPayment?.capacity, 3);
+  assert.equal(conflict?.sharedPayment?.usedSlots, 1);
+  assert.equal(conflict?.sharedPayment?.availableSlots, 2);
+});
+
 test("detectFinancialSubmissionConflict blocks reused receipts when the shared payment capacity is already used", () => {
   const conflict = detectFinancialSubmissionConflict({
     incoming: {

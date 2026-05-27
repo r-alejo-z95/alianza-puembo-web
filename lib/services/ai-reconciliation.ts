@@ -332,6 +332,14 @@ function buildEmptyReceiptData(): ExtractedReceiptData {
   };
 }
 
+function normalizeExtractedReceiptData(data: ExtractedReceiptData): ExtractedReceiptData {
+  const amount = Number(data.amount);
+  return {
+    ...data,
+    amount: Number.isFinite(amount) ? Math.abs(amount) : null,
+  };
+}
+
 export function isRetryableGeminiError(error: unknown) {
   const message = String((error as any)?.message || error || "").toLowerCase();
   return (
@@ -419,10 +427,10 @@ export async function extractReceiptDataWithModel(
 
       const parsed = JSON.parse(text);
       return {
-        data: {
+        data: normalizeExtractedReceiptData({
           description: null,
           ...parsed,
-        } as ExtractedReceiptData,
+        } as ExtractedReceiptData),
         transientFailure: false,
       };
     } catch (error) {

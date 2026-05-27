@@ -201,6 +201,8 @@ const formSchema = z.object({
   payment_type: z.enum(["single", "installments"]).optional().nullable(),
   max_installments: z.number().int().min(1).optional().nullable(),
   total_amount: z.number().positive().optional().nullable(),
+  allow_shared_receipts: z.boolean().default(false),
+  shared_receipt_max_submissions: z.number().int().min(1).optional().nullable(),
   destination_account_id: z.string().optional().nullable(),
   payment_reminder_interval_days: z.union([
     z.literal(3),
@@ -241,6 +243,13 @@ const formSchema = z.object({
       message: "Debes definir el máximo de cuotas",
     });
   }
+  if (data.is_financial && data.allow_shared_receipts && (!data.shared_receipt_max_submissions || data.shared_receipt_max_submissions < 2)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["shared_receipt_max_submissions"],
+      message: "Define al menos 2 inscripciones por comprobante compartido",
+    });
+  }
   if (data.is_financial && !data.financial_field_id) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -267,6 +276,8 @@ export default function FormBuilder({
     payment_type: "single",
     max_installments: null,
     total_amount: null,
+    allow_shared_receipts: false,
+    shared_receipt_max_submissions: 2,
     destination_account_id: "",
     payment_reminder_interval_days: null,
     financial_field_label: "",
@@ -337,6 +348,8 @@ export default function FormBuilder({
       payment_type: "single",
       max_installments: null,
       total_amount: null,
+      allow_shared_receipts: false,
+      shared_receipt_max_submissions: 2,
       destination_account_id: "",
       payment_reminder_interval_days: null,
       financial_field_label: "",
@@ -394,6 +407,8 @@ export default function FormBuilder({
           initialForm.total_amount === null || initialForm.total_amount === undefined
             ? null
             : Number(initialForm.total_amount),
+        allow_shared_receipts: !!initialForm.allow_shared_receipts,
+        shared_receipt_max_submissions: initialForm.shared_receipt_max_submissions ?? 2,
         destination_account_id: initialForm.destination_account_id || "",
         payment_reminder_interval_days: initialForm.payment_reminder_interval_days ?? null,
         financial_field_label: initialForm.financial_field_label || "",
@@ -813,6 +828,14 @@ export default function FormBuilder({
                         <p className="font-semibold text-[var(--puembo-green)]">{pendingSaveData?.max_installments || "-"}</p>
                       </div>
                     )}
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]/70 mb-1">Comp. compartido</p>
+                      <p className="font-semibold text-[var(--puembo-green)]">
+                        {pendingSaveData?.allow_shared_receipts
+                          ? `Hasta ${pendingSaveData?.shared_receipt_max_submissions || 1}`
+                          : "No"}
+                      </p>
+                    </div>
                     <div className="col-span-2">
                       <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]/70 mb-1">Cuenta destino</p>
                       <p className="font-semibold text-[var(--puembo-green)] break-words">

@@ -20,6 +20,8 @@ interface FormSetupValues {
   payment_type?: "single" | "installments" | null;
   max_installments?: number | null;
   total_amount?: number | null;
+  allow_shared_receipts?: boolean;
+  shared_receipt_max_submissions?: number | null;
   destination_account_id?: string | null;
   payment_reminder_interval_days?: number | null;
   description?: string | null;
@@ -50,6 +52,11 @@ export async function saveFormSetup(
           ? (values.max_installments ?? null)
           : null,
       total_amount: values.is_financial ? (values.total_amount ?? null) : null,
+      allow_shared_receipts: values.is_financial ? !!values.allow_shared_receipts : false,
+      shared_receipt_max_submissions:
+        values.is_financial && values.allow_shared_receipts
+          ? Math.max(Number(values.shared_receipt_max_submissions ?? 1), 1)
+          : 1,
       destination_account_id: values.is_financial
         ? (values.destination_account_id ?? null)
         : null,

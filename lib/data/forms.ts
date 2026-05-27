@@ -31,6 +31,8 @@ export interface Form {
   payment_type?: "single" | "installments" | null;
   max_installments?: number | null;
   total_amount?: number | string | null;
+  allow_shared_receipts?: boolean;
+  shared_receipt_max_submissions?: number;
   destination_account_id?: string | null;
   payment_reminder_interval_days?: number | null;
   financial_field_label?: string | null;

@@ -319,7 +319,7 @@ export function classifyFinancialReceipt(
   const documentKind = extractedData.document_kind || "unknown";
   const negativeSignals = detectNegativeSignals(extractedData);
   const bankSignalCount = countBankSignals(extractedData);
-  const amount = Number(extractedData.amount ?? 0);
+  const amount = Math.abs(Number(extractedData.amount ?? 0));
   const hasCoreFields =
     amount > 0 &&
     !!extractedData.date &&
