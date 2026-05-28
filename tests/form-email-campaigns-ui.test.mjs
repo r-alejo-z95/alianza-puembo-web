@@ -62,6 +62,44 @@ test("form email campaigns panel includes editor, recipients, preview, schedulin
   assert.match(panel, /sendFormEmailCampaignTest/);
 });
 
+test("form email campaigns panel only exposes financial variables for financial forms", () => {
+  const panel = readFileSync(
+    new URL(
+      "../components/admin/forms/email/FormEmailCampaignsPanel.jsx",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+
+  assert.match(panel, /BASE_VARIABLE_CHIPS/);
+  assert.match(panel, /FINANCIAL_VARIABLE_CHIPS/);
+  assert.match(panel, /form\?\.is_financial/);
+  assert.doesNotMatch(panel, /VARIABLE_CHIPS\.map/);
+});
+
+test("form email campaigns panel uses drawer workflow, real html preview, autosave, and loading states", () => {
+  const panel = readFileSync(
+    new URL(
+      "../components/admin/forms/email/FormEmailCampaignsPanel.jsx",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+
+  assert.match(panel, /AdminEditorPanel/);
+  assert.match(panel, /campaignDrawerOpen/);
+  assert.match(panel, /setCampaignDrawerOpen\(true\)/);
+  assert.match(panel, /saveDraftAndExclusions/);
+  assert.match(panel, /const campaignId = await saveDraftAndExclusions/);
+  assert.match(panel, /preview\?\.html/);
+  assert.match(panel, /ScrollArea/);
+  assert.match(panel, /Generando|Guardando|Programando|Enviando/);
+  assert.doesNotMatch(
+    panel,
+    /disabled=\{!canManageEmails \|\| !draft\.id \|\| busyKey === "attachment"\}/,
+  );
+});
+
 test("global button styles keep pointer cursors on clickable buttons", () => {
   const css = readFileSync(
     new URL("../app/globals.css", import.meta.url),

@@ -71,12 +71,15 @@ export async function sendRegistrationConfirmationEmail({
     });
 
     const trackingUrl = variables.link_seguimiento;
+    const includeTrackingLink = Boolean(financialSummary && trackingUrl);
     const financialBlock = financialSummary
       ? buildFinancialSummaryBlock(financialSummary)
       : "";
-    const followUpCopy = financialSummary?.remainingBalance
-      ? "Si necesitas realizar pagos parciales o subir comprobantes adicionales, puedes hacerlo desde tu portal de seguimiento."
-      : "Guarda este enlace para consultar cualquier actualización de tu inscripción.";
+    const followUpCopy = financialSummary
+      ? financialSummary.remainingBalance
+        ? "Si necesitas realizar pagos parciales o subir comprobantes adicionales, puedes hacerlo desde tu portal de seguimiento."
+        : "Puedes consultar el estado de tu pago desde el seguimiento de inscripción."
+      : "Tu registro está correcto. No necesitas realizar ninguna acción adicional por ahora.";
 
     const rendered = renderFormEmailTemplate({
       subject: "Registro confirmado: {{formulario}}",
@@ -97,8 +100,8 @@ export async function sendRegistrationConfirmationEmail({
           ? "Registro y seguimiento de pago"
           : "Registro confirmado",
         bodyHtml: rendered.bodyHtml,
-        ctaLabel: trackingUrl ? "Abrir seguimiento" : undefined,
-        ctaUrl: trackingUrl || undefined,
+        ctaLabel: includeTrackingLink ? "Abrir seguimiento" : undefined,
+        ctaUrl: includeTrackingLink ? trackingUrl : undefined,
       }),
     });
 
@@ -131,6 +134,54 @@ function buildSubmissionFinancialSummary(form: any, submission: any) {
       ? "Saldo pendiente"
       : "Registro recibido",
   };
+}
+
+function shouldIncludeTrackingLink(form: any, variables: any) {
+  return Boolean(form?.is_financial && variables?.link_seguimiento);
+}
+
+function renderCampaignEmail({
+  form,
+  submission,
+  subject,
+  bodyHtml,
+}: {
+  form: any;
+  submission: any;
+  subject: string;
+  bodyHtml: string;
+}) {
+  const variables = buildFormEmailVariables({
+    form,
+    submission,
+    financialSummary: buildSubmissionFinancialSummary(form, submission),
+  });
+  const rendered = renderFormEmailTemplate({ subject, bodyHtml, variables });
+  const includeTrackingLink = shouldIncludeTrackingLink(form, variables);
+
+  return {
+    ...rendered,
+    html: wrapFormEmailHtml({
+      title: rendered.subject || "Correo",
+      bodyHtml: rendered.bodyHtml,
+      ctaLabel: includeTrackingLink ? "Abrir seguimiento" : undefined,
+      ctaUrl: includeTrackingLink ? variables.link_seguimiento : undefined,
+    }),
+  };
+}
+
+export function renderCampaignEmailPreview({
+  form,
+  submission,
+  subject,
+  bodyHtml,
+}: {
+  form: any;
+  submission: any;
+  subject: string;
+  bodyHtml: string;
+}) {
+  return renderCampaignEmail({ form, submission, subject, bodyHtml });
 }
 
 async function loadCampaignBundle(supabase: any, campaignId: string) {
@@ -198,23 +249,13 @@ export async function sendCampaignTestEmail({
   subject: string;
   bodyHtml: string;
 }) {
-  const variables = buildFormEmailVariables({
-    form,
-    submission,
-    financialSummary: buildSubmissionFinancialSummary(form, submission),
-  });
-  const rendered = renderFormEmailTemplate({ subject, bodyHtml, variables });
+  const rendered = renderCampaignEmail({ form, submission, subject, bodyHtml });
 
   const result = await resend.emails.send({
     from: "Iglesia Alianza Puembo <notificaciones@alianzapuembo.org>",
     to: [email],
     subject: `[Prueba] ${rendered.subject}`,
-    html: wrapFormEmailHtml({
-      title: rendered.subject,
-      bodyHtml: rendered.bodyHtml,
-      ctaLabel: variables.link_seguimiento ? "Abrir seguimiento" : undefined,
-      ctaUrl: variables.link_seguimiento || undefined,
-    }),
+    html: rendered.html,
   });
 
   if (result?.error) throw new Error(result.error.message);
@@ -264,30 +305,18 @@ export async function sendCampaignToResolvedRecipients({
 
   for (const recipient of recipients.sendable) {
     try {
-      const variables = buildFormEmailVariables({
+      const rendered = renderCampaignEmail({
         form: campaign.forms,
         submission: recipient.submission,
-        financialSummary: buildSubmissionFinancialSummary(
-          campaign.forms,
-          recipient.submission,
-        ),
-      });
-      const rendered = renderFormEmailTemplate({
         subject: campaign.subject,
         bodyHtml: campaign.body_html,
-        variables,
       });
 
       const result = await resend.emails.send({
         from: "Iglesia Alianza Puembo <notificaciones@alianzapuembo.org>",
         to: [recipient.email],
         subject: rendered.subject,
-        html: wrapFormEmailHtml({
-          title: rendered.subject,
-          bodyHtml: rendered.bodyHtml,
-          ctaLabel: variables.link_seguimiento ? "Abrir seguimiento" : undefined,
-          ctaUrl: variables.link_seguimiento || undefined,
-        }),
+        html: rendered.html,
         attachments,
       });
 

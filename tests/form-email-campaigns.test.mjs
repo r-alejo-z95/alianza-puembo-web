@@ -276,11 +276,54 @@ test("form email campaign delivery service and cron route are wired", () => {
   assert.match(route, /sendCampaignToResolvedRecipients/);
 });
 
-test("vercel cron includes scheduled form email campaigns", () => {
+test("campaign emails only add automatic tracking CTA for financial forms", () => {
+  const service = readFileSync(
+    new URL("../lib/services/form-emails.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(service, /function shouldIncludeTrackingLink/);
+  assert.match(service, /form\?\.is_financial/);
+  assert.doesNotMatch(
+    service,
+    /ctaLabel:\s*variables\.link_seguimiento\s*\?\s*"Abrir seguimiento"/,
+  );
+});
+
+test("campaign preview action returns the wrapped email html", () => {
+  const actions = readFileSync(
+    new URL("../lib/actions/form-email-campaigns.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(actions, /renderCampaignEmailPreview/);
+  assert.doesNotMatch(actions, /preview:\s*renderFormEmailTemplate/);
+});
+
+test("campaign preview and test email load payment details for financial variables", () => {
+  const actions = readFileSync(
+    new URL("../lib/actions/form-email-campaigns.ts", import.meta.url),
+    "utf8",
+  );
+  const paymentSelects = actions.match(/\.select\("\*, form_submission_payments\(\*\)"\)/g) || [];
+
+  assert.ok(paymentSelects.length >= 2);
+});
+
+test("scheduled form email campaigns are configured for external cron", () => {
   const config = JSON.parse(
     readFileSync(new URL("../vercel.json", import.meta.url), "utf8"),
   );
-  assert.ok(
+  assert.equal(
     config.crons.some((cron) => cron.path === "/api/cron/form-email-campaigns"),
+    false,
   );
+
+  const docsUrl = new URL("../docs/cron-job-org.md", import.meta.url);
+  assert.equal(existsSync(docsUrl), true);
+  const docs = readFileSync(docsUrl, "utf8");
+
+  assert.match(docs, /cron-job\.org/);
+  assert.match(docs, /\/api\/cron\/form-email-campaigns/);
+  assert.match(docs, /Authorization:\s*Bearer <CRON_SECRET>/);
 });

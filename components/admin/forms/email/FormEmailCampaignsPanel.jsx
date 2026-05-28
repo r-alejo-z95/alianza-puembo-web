@@ -9,8 +9,10 @@ import {
   Eye,
   FileText,
   FileUp,
+  Loader2,
   Mail,
   Paperclip,
+  PanelRightOpen,
   Plus,
   Search,
   Send,
@@ -24,6 +26,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
 import RichTextEditor from "@/components/admin/forms/RichTextEditor";
 import { formatInEcuador } from "@/lib/date-utils";
 import { findNameInSubmission } from "@/lib/form-utils";
@@ -43,10 +47,13 @@ import {
 const EMPTY_BODY =
   "<p>Hola {{nombre}},</p><p>Te escribimos sobre {{formulario}}.</p>";
 
-const VARIABLE_CHIPS = [
+const BASE_VARIABLE_CHIPS = [
   "{{nombre}}",
   "{{formulario}}",
   "{{fecha_registro}}",
+];
+
+const FINANCIAL_VARIABLE_CHIPS = [
   "{{link_seguimiento}}",
   "{{estado_pago}}",
   "{{monto_pagado}}",
@@ -152,6 +159,7 @@ export default function FormEmailCampaignsPanel({
   const [preview, setPreview] = useState(null);
   const [testEmail, setTestEmail] = useState("");
   const [busyKey, setBusyKey] = useState(null);
+  const [campaignDrawerOpen, setCampaignDrawerOpen] = useState(false);
 
   const selectedCampaign = useMemo(
     () => campaigns.find((campaign) => campaign.id === selectedCampaignId) || null,
@@ -176,6 +184,13 @@ export default function FormEmailCampaignsPanel({
   const scheduledCount = campaigns.filter(
     (campaign) => campaign.status === "scheduled",
   ).length;
+  const variableChips = useMemo(
+    () =>
+      form?.is_financial
+        ? [...BASE_VARIABLE_CHIPS, ...FINANCIAL_VARIABLE_CHIPS]
+        : BASE_VARIABLE_CHIPS,
+    [form?.is_financial],
+  );
 
   const visibleSubmissions = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -206,6 +221,7 @@ export default function FormEmailCampaignsPanel({
     setDraft(buildDraft(null));
     setExcludedIds([]);
     setPreview(null);
+    setCampaignDrawerOpen(false);
   };
 
   const editCampaign = (campaign) => {
@@ -217,45 +233,53 @@ export default function FormEmailCampaignsPanel({
       ),
     );
     setPreview(null);
+    setCampaignDrawerOpen(false);
+  };
+
+  const saveDraftAndExclusions = async ({ silent = false } = {}) => {
+    const result = await saveFormEmailCampaign({
+      formId: form.id,
+      campaignId: draft.id,
+      name: draft.name,
+      subject: draft.subject,
+      bodyHtml: draft.bodyHtml,
+    });
+
+    if (result?.error) {
+      throw new Error(result.error);
+    }
+
+    const campaignId = result?.campaign?.id || draft.id;
+    if (!campaignId) {
+      throw new Error("No se pudo guardar la campaña.");
+    }
+
+    const exclusionsResult = await saveFormEmailCampaignExclusions({
+      formId: form.id,
+      campaignId,
+      excludedSubmissionIds: excludedIds,
+    });
+
+    if (exclusionsResult?.error) {
+      throw new Error(exclusionsResult.error);
+    }
+
+    if (result?.campaign) {
+      setSelectedCampaignId(result.campaign.id);
+      setDraft(buildDraft(result.campaign));
+    }
+
+    if (!silent) toast.success("Campaña guardada");
+    refresh();
+    return campaignId;
   };
 
   const handleSave = async () => {
     setBusyKey("save");
     try {
-      const result = await saveFormEmailCampaign({
-        formId: form.id,
-        campaignId: draft.id,
-        name: draft.name,
-        subject: draft.subject,
-        bodyHtml: draft.bodyHtml,
-      });
-
-      if (result?.error) {
-        toast.error(result.error);
-        return;
-      }
-
-      const campaignId = result?.campaign?.id || draft.id;
-      if (campaignId) {
-        const exclusionsResult = await saveFormEmailCampaignExclusions({
-          formId: form.id,
-          campaignId,
-          excludedSubmissionIds: excludedIds,
-        });
-
-        if (exclusionsResult?.error) {
-          toast.error(exclusionsResult.error);
-          return;
-        }
-      }
-
-      if (result?.campaign) {
-        setSelectedCampaignId(result.campaign.id);
-        setDraft(buildDraft(result.campaign));
-      }
-
-      toast.success("Campaña guardada");
-      refresh();
+      await saveDraftAndExclusions();
+    } catch (error) {
+      toast.error(error?.message || "No se pudo guardar la campaña.");
     } finally {
       setBusyKey(null);
     }
@@ -304,16 +328,12 @@ export default function FormEmailCampaignsPanel({
   };
 
   const handleSendNow = async () => {
-    if (!draft.id) {
-      toast.error("Guarda la campaña antes de enviarla.");
-      return;
-    }
-
     setBusyKey("send");
     try {
+      const campaignId = await saveDraftAndExclusions({ silent: true });
       const result = await sendFormEmailCampaignNow({
         formId: form.id,
-        campaignId: draft.id,
+        campaignId,
       });
 
       if (result?.error) toast.error(result.error);
@@ -321,22 +341,20 @@ export default function FormEmailCampaignsPanel({
         toast.success("Envío iniciado");
         refresh();
       }
+    } catch (error) {
+      toast.error(error?.message || "No se pudo enviar la campaña.");
     } finally {
       setBusyKey(null);
     }
   };
 
   const handleSchedule = async () => {
-    if (!draft.id) {
-      toast.error("Guarda la campaña antes de programarla.");
-      return;
-    }
-
     setBusyKey("schedule");
     try {
+      const campaignId = await saveDraftAndExclusions({ silent: true });
       const result = await scheduleFormEmailCampaign({
         formId: form.id,
-        campaignId: draft.id,
+        campaignId,
         scheduledAt: draft.scheduledAt,
       });
 
@@ -345,6 +363,8 @@ export default function FormEmailCampaignsPanel({
         toast.success("Campaña programada");
         refresh();
       }
+    } catch (error) {
+      toast.error(error?.message || "No se pudo programar la campaña.");
     } finally {
       setBusyKey(null);
     }
@@ -374,16 +394,13 @@ export default function FormEmailCampaignsPanel({
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
-    if (!draft.id) {
-      toast.error("Guarda la campaña antes de subir adjuntos.");
-      return;
-    }
 
     setBusyKey("attachment");
     try {
+      const campaignId = draft.id || (await saveDraftAndExclusions({ silent: true }));
       const formData = new FormData();
       formData.append("formId", form.id);
-      formData.append("campaignId", draft.id);
+      formData.append("campaignId", campaignId);
       formData.append("file", file);
 
       const result = await uploadFormEmailCampaignAttachment(formData);
@@ -392,6 +409,8 @@ export default function FormEmailCampaignsPanel({
         toast.success("Adjunto subido");
         refresh();
       }
+    } catch (error) {
+      toast.error(error?.message || "No se pudo subir el adjunto.");
     } finally {
       setBusyKey(null);
     }
@@ -458,83 +477,44 @@ export default function FormEmailCampaignsPanel({
         ))}
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[360px_minmax(0,1fr)] gap-6">
-        <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
-          <CardHeader className="px-6 py-5 border-b border-gray-50">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.35em] text-[var(--puembo-green)]">
-                  Correos
-                </p>
-                <CardTitle className="text-xl font-serif font-bold text-gray-900">
-                  Campañas
-                </CardTitle>
-              </div>
-              {canManageEmails ? (
-                <Button
-                  type="button"
-                  onClick={startNewCampaign}
-                  className="cursor-pointer rounded-full h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-black hover:bg-[var(--puembo-green)]"
-                >
-                  <Plus className="w-3.5 h-3.5 mr-2" />
-                  Nuevo
-                </Button>
-              ) : null}
-            </div>
-          </CardHeader>
-          <CardContent className="p-3 space-y-2">
-            {campaigns.length === 0 ? (
-              <div className="py-16 px-5 text-center rounded-[1.5rem] border-2 border-dashed border-gray-100">
-                <Mail className="w-8 h-8 text-gray-200 mx-auto mb-3" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">
-                  No hay campañas creadas
-                </p>
-              </div>
-            ) : (
-              campaigns.map((campaign) => (
-                <button
-                  key={campaign.id}
-                  type="button"
-                  onClick={() => editCampaign(campaign)}
-                  className={cn(
-                    "cursor-pointer w-full rounded-2xl border px-4 py-3 text-left transition-all",
-                    selectedCampaign?.id === campaign.id
-                      ? "border-[var(--puembo-green)]/30 bg-emerald-50/60 shadow-sm"
-                      : "border-gray-100 hover:bg-gray-50 hover:border-gray-200",
-                  )}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-bold text-sm text-gray-900 truncate">
-                        {campaign.name}
-                      </p>
-                      <p className="text-[10px] text-gray-400 truncate mt-0.5">
-                        {campaign.subject}
-                      </p>
-                    </div>
-                    <span
-                      className={cn(
-                        "shrink-0 rounded-full border px-2 py-1 text-[8px] font-black uppercase tracking-widest",
-                        statusClasses(campaign.status),
-                      )}
-                    >
-                      {statusLabel(campaign.status)}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-3 text-[9px] font-black uppercase tracking-widest text-gray-300">
-                    <span>{countDeliveries(campaign, "sent")} enviados</span>
-                    <span>{countDeliveries(campaign, "failed")} fallidos</span>
-                    {campaign.scheduled_at ? (
-                      <span>{formatInEcuador(campaign.scheduled_at, "d MMM · HH:mm")}</span>
-                    ) : null}
-                  </div>
-                </button>
-              ))
-            )}
-          </CardContent>
-        </Card>
+      <Card className="border-none shadow-xl bg-white rounded-[2rem] overflow-hidden">
+        <CardContent className="p-5 md:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-[var(--puembo-green)]">
+              Correos / Campañas
+            </p>
+            <h3 className="font-serif text-2xl font-bold text-gray-900 leading-tight">
+              {selectedCampaign?.name || "Nueva campaña de correo"}
+            </h3>
+            <p className="text-sm text-gray-400 mt-1">
+              Administra el contenido, destinatarios, adjuntos, pruebas y envíos programados desde un solo editor.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setCampaignDrawerOpen(true)}
+              className="cursor-pointer rounded-full h-11 px-5 text-[10px] font-black uppercase tracking-widest"
+            >
+              <PanelRightOpen className="w-4 h-4 mr-2" />
+              Campañas
+            </Button>
+            {canManageEmails ? (
+              <Button
+                type="button"
+                onClick={startNewCampaign}
+                className="cursor-pointer rounded-full h-11 px-5 text-[10px] font-black uppercase tracking-widest bg-black hover:bg-[var(--puembo-green)]"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nuevo
+              </Button>
+            ) : null}
+          </div>
+        </CardContent>
+      </Card>
 
-        <div className="space-y-6 min-w-0">
+      <div className="space-y-6 min-w-0">
           <Card className="border-none shadow-2xl bg-white rounded-[2rem] overflow-hidden">
             <CardHeader className="px-6 md:px-8 py-6 border-b border-gray-50">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -600,7 +580,7 @@ export default function FormEmailCampaignsPanel({
                     Contenido modificable
                   </span>
                   <div className="flex flex-wrap gap-2">
-                    {VARIABLE_CHIPS.map((variable) => (
+                    {variableChips.map((variable) => (
                       <button
                         key={variable}
                         type="button"
@@ -730,15 +710,21 @@ export default function FormEmailCampaignsPanel({
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      disabled={!canManageEmails || !draft.id || busyKey === "attachment"}
+                      disabled={!canManageEmails || busyKey === "attachment"}
                       className="cursor-pointer w-full flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-100 bg-gray-50/50 px-4 py-8 text-center hover:border-[var(--puembo-green)]/30 hover:bg-emerald-50/30 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
                     >
-                      <FileUp className="w-7 h-7 text-[var(--puembo-green)]" />
+                      {busyKey === "attachment" ? (
+                        <Loader2 className="w-7 h-7 text-[var(--puembo-green)] animate-spin" />
+                      ) : (
+                        <FileUp className="w-7 h-7 text-[var(--puembo-green)]" />
+                      )}
                       <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
-                        Subir PDF, imagen o documento
+                        {busyKey === "attachment"
+                          ? "Subiendo adjunto..."
+                          : "Subir PDF, imagen o documento"}
                       </span>
                       <span className="text-[10px] text-gray-400">
-                        Máximo 10MB por archivo
+                        Máximo 10MB por archivo. Si es nuevo, se guarda automáticamente.
                       </span>
                     </button>
                     <input
@@ -807,7 +793,11 @@ export default function FormEmailCampaignsPanel({
                         disabled={!canManageEmails || busyKey === "test"}
                         className="cursor-pointer h-11 rounded-full px-4 text-[9px] font-black uppercase tracking-widest"
                       >
-                        <Send className="w-3.5 h-3.5" />
+                        {busyKey === "test" ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Send className="w-3.5 h-3.5" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -838,8 +828,12 @@ export default function FormEmailCampaignsPanel({
                     disabled={busyKey === "preview"}
                     className="cursor-pointer rounded-full h-12 px-6 text-[10px] font-black uppercase tracking-widest"
                   >
-                    <Eye className="w-4 h-4 mr-2" />
-                    Previsualizar
+                    {busyKey === "preview" ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Eye className="w-4 h-4 mr-2" />
+                    )}
+                    {busyKey === "preview" ? "Generando..." : "Previsualizar"}
                   </Button>
                   {selectedCampaign?.status === "scheduled" && canManageEmails ? (
                     <Button
@@ -863,8 +857,12 @@ export default function FormEmailCampaignsPanel({
                       disabled={busyKey === "save"}
                       className="cursor-pointer rounded-full h-12 px-6 text-[10px] font-black uppercase tracking-widest"
                     >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Guardar borrador
+                      {busyKey === "save" ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <FileText className="w-4 h-4 mr-2" />
+                      )}
+                      {busyKey === "save" ? "Guardando..." : "Guardar borrador"}
                     </Button>
                     <Button
                       type="button"
@@ -873,8 +871,12 @@ export default function FormEmailCampaignsPanel({
                       disabled={busyKey === "schedule"}
                       className="cursor-pointer rounded-full h-12 px-6 text-[10px] font-black uppercase tracking-widest"
                     >
-                      <CalendarClock className="w-4 h-4 mr-2" />
-                      Programar
+                      {busyKey === "schedule" ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <CalendarClock className="w-4 h-4 mr-2" />
+                      )}
+                      {busyKey === "schedule" ? "Programando..." : "Programar"}
                     </Button>
                     <Button
                       type="button"
@@ -882,8 +884,12 @@ export default function FormEmailCampaignsPanel({
                       disabled={busyKey === "send"}
                       className="cursor-pointer rounded-full h-12 px-6 text-[10px] font-black uppercase tracking-widest bg-black text-white hover:bg-[var(--puembo-green)]"
                     >
-                      <Send className="w-4 h-4 mr-2" />
-                      Enviar ahora
+                      {busyKey === "send" ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4 mr-2" />
+                      )}
+                      {busyKey === "send" ? "Enviando..." : "Enviar ahora"}
                     </Button>
                   </div>
                 ) : null}
@@ -916,49 +922,122 @@ export default function FormEmailCampaignsPanel({
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-gray-50">
-                  {selectedEvents.slice(0, 16).map((event) => (
-                    <div
-                      key={event.id}
-                      className="px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-2"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-gray-900 truncate">
-                          {event.email}
-                        </p>
-                        <p className="text-[10px] text-gray-400">
-                          {formatInEcuador(
-                            event.sent_at || event.attempted_at,
-                            "d MMM yyyy · HH:mm",
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {event.error_message ? (
-                          <span className="text-[10px] text-gray-400 truncate max-w-[220px]">
-                            {event.error_message}
+                <ScrollArea className="h-80 rounded-[1.5rem] border border-gray-100">
+                  <div className="divide-y divide-gray-50">
+                    {selectedEvents.map((event) => (
+                      <div
+                        key={event.id}
+                        className="px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-gray-900 truncate">
+                            {event.email}
+                          </p>
+                          <p className="text-[10px] text-gray-400">
+                            {formatInEcuador(
+                              event.sent_at || event.attempted_at,
+                              "d MMM yyyy · HH:mm",
+                            )}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {event.error_message ? (
+                            <span className="text-[10px] text-gray-400 truncate max-w-[220px]">
+                              {event.error_message}
+                            </span>
+                          ) : null}
+                          <span
+                            className={cn(
+                              "rounded-full px-3 py-1 text-[8px] font-black uppercase tracking-widest",
+                              getDeliveryTone(event.status),
+                            )}
+                          >
+                            {event.status}
                           </span>
-                        ) : null}
-                        <span
-                          className={cn(
-                            "rounded-full px-3 py-1 text-[8px] font-black uppercase tracking-widest",
-                            getDeliveryTone(event.status),
-                          )}
-                        >
-                          {event.status}
-                        </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               )}
             </CardContent>
           </Card>
-        </div>
       </div>
 
+      <AdminEditorPanel
+        open={campaignDrawerOpen}
+        onOpenChange={setCampaignDrawerOpen}
+        title="Campañas de correo"
+        description="Escoge una campaña existente o crea una nueva para editarla en el panel principal."
+        className="sm:max-w-md"
+      >
+        <div className="p-4 md:p-5 space-y-4">
+          {canManageEmails ? (
+            <Button
+              type="button"
+              onClick={startNewCampaign}
+              className="cursor-pointer w-full rounded-2xl h-12 text-[10px] font-black uppercase tracking-widest bg-black hover:bg-[var(--puembo-green)]"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nuevo
+            </Button>
+          ) : null}
+
+          {campaigns.length === 0 ? (
+            <div className="py-16 px-5 text-center rounded-[1.5rem] border-2 border-dashed border-gray-200 bg-white">
+              <Mail className="w-8 h-8 text-gray-200 mx-auto mb-3" />
+              <p className="text-[10px] font-black uppercase tracking-widest text-gray-300">
+                No hay campañas creadas
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {campaigns.map((campaign) => (
+                <button
+                  key={campaign.id}
+                  type="button"
+                  onClick={() => editCampaign(campaign)}
+                  className={cn(
+                    "cursor-pointer w-full rounded-2xl border bg-white px-4 py-3 text-left transition-all",
+                    selectedCampaign?.id === campaign.id
+                      ? "border-[var(--puembo-green)]/40 shadow-sm"
+                      : "border-gray-100 hover:bg-gray-50 hover:border-gray-200",
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-bold text-sm text-gray-900 truncate">
+                        {campaign.name}
+                      </p>
+                      <p className="text-[10px] text-gray-400 truncate mt-0.5">
+                        {campaign.subject}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-full border px-2 py-1 text-[8px] font-black uppercase tracking-widest",
+                        statusClasses(campaign.status),
+                      )}
+                    >
+                      {statusLabel(campaign.status)}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-[9px] font-black uppercase tracking-widest text-gray-300">
+                    <span>{countDeliveries(campaign, "sent")} enviados</span>
+                    <span>{countDeliveries(campaign, "failed")} fallidos</span>
+                    {campaign.scheduled_at ? (
+                      <span>{formatInEcuador(campaign.scheduled_at, "d MMM · HH:mm")}</span>
+                    ) : null}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </AdminEditorPanel>
+
       <Dialog open={!!preview} onOpenChange={() => setPreview(null)}>
-        <DialogContent className="max-w-2xl rounded-[2rem] border-none shadow-2xl">
+        <DialogContent className="w-[min(96vw,1040px)] max-w-none rounded-[2rem] border-none shadow-2xl">
           <DialogTitle className="font-serif text-2xl text-gray-900">
             Previsualizar correo
           </DialogTitle>
@@ -968,9 +1047,10 @@ export default function FormEmailCampaignsPanel({
             </p>
             <p className="font-bold text-gray-900">{preview?.subject}</p>
           </div>
-          <div
-            className="max-h-[55vh] overflow-y-auto rounded-2xl border border-gray-100 p-5 prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: preview?.bodyHtml || "" }}
+          <iframe
+            title="Previsualización del correo"
+            srcDoc={preview?.html || preview?.bodyHtml || ""}
+            className="h-[68vh] w-full rounded-2xl border border-gray-100 bg-white"
           />
         </DialogContent>
       </Dialog>

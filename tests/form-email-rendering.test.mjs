@@ -25,11 +25,24 @@ test("buildFormEmailVariables extracts standard form and submission variables", 
   assert.equal(variables.nombre, "Ana Molina");
   assert.equal(variables.formulario, "Retiro Mujeres");
   assert.equal(variables.correo, "ana@example.com");
+  assert.equal(variables.link_seguimiento, "");
+  assert.equal(variables.estado_pago, "");
+});
+
+test("buildFormEmailVariables only exposes tracking links for financial forms", () => {
+  const variables = buildFormEmailVariables({
+    form: { title: "Cena", is_financial: true },
+    submission: {
+      access_token: "abc123",
+      notification_email: "ana@example.com",
+    },
+    siteUrl: "https://alianzapuembo.org",
+  });
+
   assert.equal(
     variables.link_seguimiento,
     "https://alianzapuembo.org/inscripcion/abc123",
   );
-  assert.equal(variables.estado_pago, "");
 });
 
 test("renderFormEmailTemplate replaces known variables and reports unknown variables", () => {

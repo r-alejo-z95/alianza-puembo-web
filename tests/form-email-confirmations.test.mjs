@@ -49,3 +49,17 @@ test("registration confirmation sender supports optional financial summary", () 
   assert.match(service, /Resumen de pago/);
   assert.match(service, /Registro confirmado/);
 });
+
+test("registration confirmation does not add tracking link for non-financial forms", () => {
+  const service = readFileSync(
+    new URL("../lib/services/form-emails.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(service, /const includeTrackingLink = Boolean\(financialSummary && trackingUrl\)/);
+  assert.doesNotMatch(
+    service,
+    /ctaLabel:\s*trackingUrl\s*\?\s*"Abrir seguimiento"/,
+  );
+  assert.doesNotMatch(service, /Guarda este enlace/);
+});

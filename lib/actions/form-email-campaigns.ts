@@ -9,10 +9,7 @@ import {
   validateCampaignAttachmentTotal,
 } from "@/lib/forms/email-campaigns.mjs";
 import {
-  buildFormEmailVariables,
-  renderFormEmailTemplate,
-} from "@/lib/forms/email-rendering.mjs";
-import {
+  renderCampaignEmailPreview,
   sendCampaignTestEmail,
   sendCampaignToResolvedRecipients,
 } from "@/lib/services/form-emails";
@@ -166,7 +163,7 @@ export async function renderFormEmailCampaignPreview(input: {
 
   let query = context.supabase
     .from("form_submissions")
-    .select("*")
+    .select("*, form_submission_payments(*)")
     .eq("form_id", input.formId)
     .eq("is_archived", false);
 
@@ -175,17 +172,14 @@ export async function renderFormEmailCampaignPreview(input: {
     : query.order("created_at", { ascending: false }).limit(1);
 
   const { data: submission } = await query.maybeSingle();
-  const variables = buildFormEmailVariables({
-    form: context.form,
-    submission: submission || {},
-  });
 
   return {
     success: true,
-    preview: renderFormEmailTemplate({
+    preview: renderCampaignEmailPreview({
+      form: context.form,
+      submission: submission || {},
       subject: input.subject,
       bodyHtml: input.bodyHtml,
-      variables,
     }),
   };
 }
@@ -203,7 +197,7 @@ export async function sendFormEmailCampaignTest(input: {
 
   let query = context.supabase
     .from("form_submissions")
-    .select("*")
+    .select("*, form_submission_payments(*)")
     .eq("form_id", input.formId)
     .eq("is_archived", false);
 
