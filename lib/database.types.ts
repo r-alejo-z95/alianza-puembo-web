@@ -933,6 +933,7 @@ export type Database = {
           payment_reminder_interval_days: number | null
           payment_type: string | null
           shared_receipt_max_submissions: number
+          short_code: string | null
           slug: string | null
           title: string
           total_amount: number | null
@@ -963,6 +964,7 @@ export type Database = {
           payment_reminder_interval_days?: number | null
           payment_type?: string | null
           shared_receipt_max_submissions?: number
+          short_code?: string | null
           slug?: string | null
           title: string
           total_amount?: number | null
@@ -993,6 +995,7 @@ export type Database = {
           payment_reminder_interval_days?: number | null
           payment_type?: string | null
           shared_receipt_max_submissions?: number
+          short_code?: string | null
           slug?: string | null
           title?: string
           total_amount?: number | null
