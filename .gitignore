@@ -57,6 +57,7 @@ supabase/migrations-legacy-untracked
 supabase/functions/sheets-drive-integration/original-index.ts
 
 .roo
+.codex
 
 /docs/superpowers
 
