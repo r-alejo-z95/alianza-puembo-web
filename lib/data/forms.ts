@@ -18,6 +18,7 @@ export interface Form {
   id: string;
   title: string;
   slug: string;
+  short_code?: string | null;
   description?: string;
   image_url?: string;
   is_internal: boolean;
@@ -139,6 +140,25 @@ export async function getFormBySlug(slug: string): Promise<Form | null> {
   );
 
   return fetchForm(slug);
+}
+
+export async function getFormByShortCode(
+  shortCode: string,
+): Promise<Pick<Form, "id" | "slug" | "short_code" | "is_internal" | "is_archived"> | null> {
+  const normalizedShortCode = String(shortCode || "").trim().toLowerCase();
+  if (!normalizedShortCode) return null;
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("forms")
+    .select("id, slug, short_code, is_internal, is_archived")
+    .eq("short_code", normalizedShortCode)
+    .eq("is_archived", false)
+    .maybeSingle();
+
+  if (error || !data?.slug) return null;
+
+  return data as Pick<Form, "id" | "slug" | "short_code" | "is_internal" | "is_archived">;
 }
 
 function sortFormFields<T extends { form_fields?: FormField[] | null }>(form: T): T {

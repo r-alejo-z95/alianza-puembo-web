@@ -10,6 +10,7 @@ import { revalidateForms } from "@/lib/actions/cache";
 import { slugify } from "@/lib/utils";
 import { isFormSetupComplete } from "@/lib/forms/setup";
 import { prepareFinancialReceiptsBucket } from "@/lib/actions/forms";
+import { findAvailableFormShortCode } from "@/lib/forms/short-links.mjs";
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-z0-9.]/gi, "_").toLowerCase();
@@ -131,6 +132,7 @@ function BuilderContent() {
 
       // 0. Create Form if new
       if (!currentFormId) {
+        const shortCode = await findAvailableFormShortCode(supabase, title);
         const { data: newForm, error: formError } = await supabase
           .from("forms")
           .insert([{
@@ -138,6 +140,7 @@ function BuilderContent() {
             description,
             user_id: user?.id,
             slug,
+            short_code: shortCode,
             is_internal,
             is_financial,
             financial_field_label: derivedFinancialLabel,

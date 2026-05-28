@@ -10,6 +10,11 @@ import {
   canManageSubmissionResponses,
 } from "@/lib/forms/submission-admin.mjs";
 import { collectFinanceReceiptPathsFromSubmission } from "@/lib/finance/submission-lifecycle.mjs";
+import {
+  findAvailableFormShortCode,
+  isValidFormShortCode,
+  normalizeFormShortCode,
+} from "@/lib/forms/short-links.mjs";
 
 interface FormSetupValues {
   id?: string | null;
@@ -83,6 +88,7 @@ export async function saveFormSetup(
       await revalidateForms();
       return { formId: values.id! };
     } else {
+      payload.short_code = await findAvailableFormShortCode(supabase, values.title);
       payload.slug = slugify(values.title);
       payload.user_id = user.id;
 
@@ -116,6 +122,69 @@ export async function prepareFinancialReceiptsBucket(): Promise<{ success?: true
   }
 
   return { success: true };
+}
+
+export async function updateFormShortCode(
+  formId: string,
+  shortCode: string,
+): Promise<{ shortCode?: string; error?: string }> {
+  try {
+    const user = await getSessionUser();
+    if (!user) return { error: "Sesión expirada. Vuelve a iniciar sesión." };
+
+    const normalizedShortCode = normalizeFormShortCode(shortCode);
+    if (!isValidFormShortCode(normalizedShortCode)) {
+      return {
+        error: "El link corto debe tener entre 3 y 40 caracteres: letras minúsculas, números y guiones.",
+      };
+    }
+
+    const supabase = createAdminClient();
+    const { data: form, error: formError } = await supabase
+      .from("forms")
+      .select("id, is_internal, is_archived")
+      .eq("id", formId)
+      .maybeSingle();
+
+    if (formError || !form || form.is_archived) {
+      return { error: "No se encontró el formulario." };
+    }
+
+    const canEdit = user.is_super_admin
+      || (form.is_internal ? user.permissions?.perm_internal_forms : user.permissions?.perm_forms);
+
+    if (!canEdit) {
+      return { error: "No tienes permisos para editar este formulario." };
+    }
+
+    const { data: existing, error: existingError } = await supabase
+      .from("forms")
+      .select("id")
+      .eq("short_code", normalizedShortCode)
+      .neq("id", formId)
+      .maybeSingle();
+
+    if (existingError) throw existingError;
+    if (existing) {
+      return { error: "Ese link corto ya está en uso por otro formulario." };
+    }
+
+    const { error: updateError } = await supabase
+      .from("forms")
+      .update({ short_code: normalizedShortCode })
+      .eq("id", formId);
+
+    if (updateError?.code === "23505") {
+      return { error: "Ese link corto ya está en uso por otro formulario." };
+    }
+    if (updateError) throw updateError;
+
+    await revalidateForms();
+    return { shortCode: normalizedShortCode };
+  } catch (e: any) {
+    console.error("[updateFormShortCode]", e);
+    return { error: e.message ?? "No se pudo actualizar el link corto." };
+  }
 }
 
 async function attachManageableFormResponseAdmins(supabase: any, form: any) {
