@@ -109,3 +109,72 @@ test("bank receipt balance is capped at zero when submitted amount exceeds total
   assert.equal(summary.isFullyCovered, true);
   assert.equal(summary.isReminderEligible, false);
 });
+
+test("payment group balance uses shared expected amount and counts group payments once", () => {
+  const summary = getSubmissionBalanceSummary({
+    totalAmount: 120,
+    submission: {
+      coverage_mode: "covered_by_used_payment",
+      payment_group: {
+        expected_amount: 195,
+        form_submission_payments: [
+          {
+            status: "pending",
+            amount_claimed: 97.5,
+            created_at: "2026-05-10T10:00:00.000Z",
+          },
+          {
+            status: "pending",
+            amount_claimed: 97.5,
+            manual_disposition: "duplicado",
+            created_at: "2026-05-10T10:01:00.000Z",
+          },
+        ],
+      },
+      form_submission_payments: [
+        {
+          status: "pending",
+          amount_claimed: 97.5,
+          manual_disposition: "duplicado",
+          created_at: "2026-05-10T10:01:00.000Z",
+        },
+      ],
+    },
+  });
+
+  assert.equal(summary.coverageMode, "payment_group");
+  assert.equal(summary.totalAmount, 195);
+  assert.equal(summary.submittedAmount, 97.5);
+  assert.equal(summary.verifiedAmount, 0);
+  assert.equal(summary.remainingBalance, 97.5);
+  assert.equal(summary.isFullyCovered, false);
+  assert.equal(summary.isReminderEligible, true);
+  assert.equal(summary.hasPendingVerification, true);
+});
+
+test("payment group without expected amount keeps balance open but does not invent totals", () => {
+  const summary = getSubmissionBalanceSummary({
+    totalAmount: 120,
+    submission: {
+      payment_group: {
+        expected_amount: null,
+        form_submission_payments: [
+          {
+            status: "verified",
+            amount_claimed: 97.5,
+            created_at: "2026-05-10T10:00:00.000Z",
+          },
+        ],
+      },
+    },
+  });
+
+  assert.equal(summary.coverageMode, "payment_group");
+  assert.equal(summary.totalAmount, 0);
+  assert.equal(summary.submittedAmount, 97.5);
+  assert.equal(summary.verifiedAmount, 97.5);
+  assert.equal(summary.remainingBalance, null);
+  assert.equal(summary.isFullyCovered, false);
+  assert.equal(summary.isReminderEligible, false);
+  assert.equal(summary.needsExpectedAmount, true);
+});

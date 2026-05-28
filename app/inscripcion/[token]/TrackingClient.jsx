@@ -59,7 +59,13 @@ export default function TrackingClient({ submission }) {
   const [receiptRotation, setReceiptRotation] = useState(0);
 
   const form = submission.forms;
-  const payments = getSubmissionTrackingPayments(submission);
+  const paymentSource = submission.payment_group?.form_submission_payments?.length
+    ? {
+        ...submission,
+        form_submission_payments: submission.payment_group.form_submission_payments,
+      }
+    : submission;
+  const payments = getSubmissionTrackingPayments(paymentSource);
   const sortedPayments = [...payments].sort((a, b) => {
     const aTime = new Date(a.created_at).getTime();
     const bTime = new Date(b.created_at).getTime();
@@ -288,7 +294,12 @@ export default function TrackingClient({ submission }) {
                             </div>
                         </div>
                     )}
-                    {remainingBalance !== null && (
+                    {balanceSummary.needsExpectedAmount ? (
+                        <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-center">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-blue-600">Grupo de pago</p>
+                            <p className="text-sm font-bold text-gray-900 mt-1">Finanzas definirá el total esperado del grupo.</p>
+                        </div>
+                    ) : remainingBalance !== null && (
                         <div className="p-4 bg-[var(--puembo-green)]/5 rounded-2xl border border-[var(--puembo-green)]/10 text-center">
                             <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]">Saldo pendiente</p>
                             <p className="text-lg font-black text-gray-900">${remainingBalance.toFixed(2)}</p>

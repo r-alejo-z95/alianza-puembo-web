@@ -18,3 +18,6 @@ Los specs y planes de superpowers son locales, no se versionan en git
 - As of May 27, 2026, `supabase/migrations/20260527000000_add_form_response_admins.sql` adds `public.form_response_admins` for per-form delegated response admins.
 - The migration creates RLS so super admins manage assignments and delegated admins can read their own assignment rows.
 - The migration has been applied to the linked Supabase project, and `lib/database.types.ts` has been regenerated for the new table.
+- As of May 27, 2026, `supabase/migrations/20260527010000_add_shared_receipt_form_settings.sql` adds shared receipt settings to `public.forms`.
+- As of May 28, 2026, `supabase/migrations/20260528000000_add_payment_groups.sql` adds `public.payment_groups` plus nullable `payment_group_id` links on `public.form_submissions` and `public.form_submission_payments`.
+- The shared receipt settings and payment groups migrations have been applied to the linked Supabase project, and `lib/database.types.ts` has been regenerated for the current schema.

@@ -280,6 +280,7 @@ export interface FormSubmission {
   coverage_created_by?: string | null;
   coverage_backup_path?: string | null;
   covered_by_submission_id?: string | null;
+  payment_group_id?: string | null;
   payment_reminder_last_sent_at?: string | null;
   profiles?: {
     full_name: string;
@@ -293,6 +294,7 @@ export interface FormSubmission {
     bank_transaction_id?: string | null;
     receipt_path?: string | null;
     amount_claimed?: number | null;
+    payment_group_id?: string | null;
     status?: string | null;
     reconciliation_notes?: string | null;
     extracted_data?: Record<string, any> | null;
@@ -302,6 +304,21 @@ export interface FormSubmission {
     manual_disposition_by?: string | null;
     manual_disposition_notes?: string | null;
   }>;
+  payment_groups?: {
+    id: string;
+    expected_amount?: number | null;
+    form_id?: string | null;
+    created_by_submission_id?: string | null;
+    notes?: string | null;
+  } | null;
+  payment_group?: {
+    id: string;
+    expected_amount?: number | null;
+    form_id?: string | null;
+    created_by_submission_id?: string | null;
+    notes?: string | null;
+    form_submission_payments?: any[];
+  } | null;
 }
 
 /**
@@ -313,13 +330,31 @@ export async function getSubmissionByToken(token: string): Promise<FormSubmissio
   
   const { data, error } = await supabase
     .from("form_submissions")
-    .select("*, forms(*), form_submission_payments(*)")
+    .select("*, forms(*), form_submission_payments(*), payment_groups!form_submissions_payment_group_id_fkey(*)")
     .eq("access_token", token)
     .eq("is_archived", false)
     .single();
 
   if (error || !data) {
     return null;
+  }
+
+  if (data.payment_group_id) {
+    const { data: groupPayments, error: groupPaymentsError } = await supabase
+      .from("form_submission_payments")
+      .select("*")
+      .eq("payment_group_id", data.payment_group_id)
+      .order("created_at", { ascending: true });
+
+    if (groupPaymentsError) {
+      console.error("[getSubmissionByToken] payment group payments lookup failed:", groupPaymentsError);
+    }
+
+    data.payment_group = {
+      ...(data.payment_groups || {}),
+      id: data.payment_group_id,
+      form_submission_payments: groupPayments || [],
+    };
   }
 
   return data as FormSubmission;
@@ -335,7 +370,7 @@ export const getCachedFormSubmissions = async (formId: string) => {
       const supabase = createAdminClient();
       const { data, error } = await supabase
         .from("form_submissions")
-        .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*), form_submission_admin_comments(*, profiles:profiles!form_submission_admin_comments_created_by_fkey(full_name, email))")
+        .select("*, profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*), payment_groups!form_submissions_payment_group_id_fkey(*), form_submission_admin_comments(*, profiles:profiles!form_submission_admin_comments_created_by_fkey(full_name, email))")
         .eq("form_id", id)
         .eq("is_archived", false)
         .order("created_at", { ascending: false });
@@ -370,7 +405,7 @@ export async function getAllSubmissions() {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("form_submissions")
-    .select("*, forms!inner(*), profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*), form_submission_admin_comments(*, profiles:profiles!form_submission_admin_comments_created_by_fkey(full_name, email))")
+    .select("*, forms!inner(*), profiles:profiles!form_submissions_user_id_fkey(*), form_submission_payments(*), payment_groups!form_submissions_payment_group_id_fkey(*), form_submission_admin_comments(*, profiles:profiles!form_submission_admin_comments_created_by_fkey(full_name, email))")
     .eq("is_archived", false)
     .eq("forms.is_internal", false)
     .eq("forms.is_financial", true)

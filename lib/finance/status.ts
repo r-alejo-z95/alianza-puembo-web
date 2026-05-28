@@ -2,6 +2,7 @@ type PaymentLike = {
   amount_claimed?: number | string | null;
   extracted_data?: Record<string, any> | null;
   manual_disposition?: "incorrecto" | "duplicado" | null;
+  payment_group_id?: string | null;
   status?: string | null;
 };
 
@@ -9,6 +10,7 @@ type SubmissionLike = {
   coverage_amount?: number | string | null;
   coverage_mode?: "bank_receipt" | "cash" | "card" | "scholarship" | "covered_by_used_payment" | null;
   form_submission_payments?: PaymentLike[] | null;
+  payment_group_id?: string | null;
 };
 
 function toAmount(value: unknown) {
@@ -32,7 +34,7 @@ export function getFinanceDisplayState(submission: SubmissionLike) {
   if (coverageMode === "cash") return "Pago en efectivo";
   if (coverageMode === "card") return "Pago con tarjeta";
   if (coverageMode === "scholarship") return "Beca";
-  if (coverageMode === "covered_by_used_payment") return "Cubierta por pago ya usado";
+  if (coverageMode === "covered_by_used_payment" && !activePayment) return "Cubierta por pago ya usado";
   if (discardedIncorrect) return "Comprobante descartado - contactar usuario";
   if (activePayment?.status === "verified") return "Conciliado";
   if (activePayment?.status === "pending") return "Pago bancario válido";
@@ -46,7 +48,7 @@ export function getRevenueContribution(submission: SubmissionLike) {
   if (coverageMode === "cash" || coverageMode === "card") {
     return toAmount(submission?.coverage_amount);
   }
-  if (coverageMode === "scholarship" || coverageMode === "covered_by_used_payment") {
+  if (coverageMode === "scholarship") {
     return 0;
   }
   const payments = Array.isArray(submission?.form_submission_payments)
@@ -65,7 +67,7 @@ export function getDisplayedSubmissionAmount(submission: SubmissionLike) {
   if (coverageMode === "cash" || coverageMode === "card") {
     return toAmount(submission?.coverage_amount);
   }
-  if (coverageMode === "scholarship" || coverageMode === "covered_by_used_payment") {
+  if (coverageMode === "scholarship") {
     return 0;
   }
   const payments = Array.isArray(submission?.form_submission_payments)

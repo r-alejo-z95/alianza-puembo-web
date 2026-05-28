@@ -41,6 +41,55 @@ function buildDiscardedItems(submissions: any[] = []) {
   );
 }
 
+async function ensurePaymentGroupForDuplicate(admin: any, {
+  formId,
+  primarySubmissionId,
+  currentSubmissionId,
+  primaryPaymentId,
+}: {
+  formId: string;
+  primarySubmissionId: string;
+  currentSubmissionId: string;
+  primaryPaymentId?: string | null;
+}) {
+  const { data: primarySubmission } = await admin
+    .from("form_submissions")
+    .select("payment_group_id")
+    .eq("id", primarySubmissionId)
+    .maybeSingle();
+
+  let paymentGroupId = primarySubmission?.payment_group_id || null;
+
+  if (!paymentGroupId) {
+    const { data: group, error: groupError } = await admin
+      .from("payment_groups")
+      .insert([{
+        form_id: formId,
+        created_by_submission_id: primarySubmissionId,
+      }])
+      .select("id")
+      .single();
+
+    if (groupError) throw groupError;
+    paymentGroupId = group.id;
+  }
+
+  await admin
+    .from("form_submissions")
+    .update({ payment_group_id: paymentGroupId })
+    .in("id", [primarySubmissionId, currentSubmissionId]);
+
+  if (primaryPaymentId) {
+    await admin
+      .from("form_submission_payments")
+      .update({ payment_group_id: paymentGroupId })
+      .eq("id", primaryPaymentId)
+      .is("payment_group_id", null);
+  }
+
+  return paymentGroupId;
+}
+
 /**
  * Step 1: Initialize a bank report
  */
@@ -271,7 +320,7 @@ export async function analyzeFormReceipts(formId: string) {
 
     const { data: submissions, error: subError } = await supabase
       .from("form_submissions")
-      .select("*, profiles:profiles!form_submissions_user_id_fkey(full_name, email), form_submission_payments(id, receipt_path, extracted_data, status, bank_transaction_id, created_at, manual_disposition, manual_disposition_at, manual_disposition_by, manual_disposition_notes)")
+      .select("*, profiles:profiles!form_submissions_user_id_fkey(full_name, email), payment_groups!form_submissions_payment_group_id_fkey(id, expected_amount), form_submission_payments(id, receipt_path, extracted_data, status, bank_transaction_id, created_at, manual_disposition, manual_disposition_at, manual_disposition_by, manual_disposition_notes, payment_group_id)")
       .eq("form_id", formId)
       .eq("is_archived", false);
 
@@ -391,7 +440,7 @@ export async function analyzeFormReceipts(formId: string) {
 
     const { data: updated } = await supabase
       .from("form_submissions")
-      .select("*, profiles:profiles!form_submissions_user_id_fkey(full_name, email), form_submission_payments(*)")
+      .select("*, profiles:profiles!form_submissions_user_id_fkey(full_name, email), payment_groups!form_submissions_payment_group_id_fkey(id, expected_amount), form_submission_payments(*)")
       .eq("form_id", formId)
       .eq("is_archived", false)
       .order("created_at", { ascending: false });
@@ -420,7 +469,7 @@ export async function discardPaymentReceipt(payload: {
   try {
     const { data: payment, error } = await admin
       .from("form_submission_payments")
-      .select("id, submission_id, status, manual_disposition")
+      .select("id, submission_id, status, manual_disposition, payment_group_id")
       .eq("id", payload.paymentId)
       .single();
 
@@ -430,16 +479,19 @@ export async function discardPaymentReceipt(payload: {
       return { error: "Debes seleccionar la inscripción principal." };
     }
 
+    let duplicatePaymentGroupId = null;
+    let primaryPaymentId = null;
+
     if (payload.reason === "duplicado") {
       const { data: primarySubmission, error: primaryErr } = await admin
         .from("form_submissions")
-        .select("id, form_id, form_submission_payments(id, status, manual_disposition)")
+        .select("id, form_id, payment_group_id, form_submission_payments(id, status, manual_disposition, payment_group_id)")
         .eq("id", payload.coveredBySubmissionId)
         .single();
 
       const { data: currentSubmission, error: currentErr } = await admin
         .from("form_submissions")
-        .select("id, form_id")
+        .select("id, form_id, payment_group_id")
         .eq("id", payment.submission_id)
         .single();
 
@@ -453,22 +505,33 @@ export async function discardPaymentReceipt(payload: {
         return { error: "La inscripción principal debe pertenecer al mismo formulario." };
       }
 
-      const hasActivePayment = (primarySubmission.form_submission_payments || []).some(
+      const activePayment = (primarySubmission.form_submission_payments || []).find(
         (candidate: any) =>
           ["pending", "verified"].includes(candidate?.status) && !candidate?.manual_disposition,
       );
-      if (!hasActivePayment) {
+      if (!activePayment) {
         return { error: "La inscripción principal debe tener un pago activo y utilizable." };
       }
+      primaryPaymentId = activePayment.id;
+      duplicatePaymentGroupId = await ensurePaymentGroupForDuplicate(admin, {
+        formId: currentSubmission.form_id,
+        primarySubmissionId: primarySubmission.id,
+        currentSubmissionId: currentSubmission.id,
+        primaryPaymentId,
+      });
     }
 
-    const paymentUpdate = {
+    const paymentUpdate: Record<string, any> = {
       manual_disposition: payload.reason,
       manual_disposition_at: new Date().toISOString(),
       manual_disposition_by: user?.id || null,
       manual_disposition_notes: payload.notes || null,
       bank_transaction_id: null,
     };
+
+    if (payload.reason === "duplicado") {
+      paymentUpdate.payment_group_id = duplicatePaymentGroupId;
+    }
 
     const submissionUpdate =
       payload.reason === "incorrecto"
@@ -479,6 +542,7 @@ export async function discardPaymentReceipt(payload: {
         : {
             coverage_mode: "covered_by_used_payment",
             covered_by_submission_id: payload.coveredBySubmissionId,
+            payment_group_id: duplicatePaymentGroupId,
           };
 
     const { data: submission, error: submissionErr } = await admin
@@ -581,7 +645,7 @@ export async function updatePaymentReview(
   try {
     const { data: currentPayment, error: fetchErr } = await supabase
       .from("form_submission_payments")
-      .select("id, submission_id, extracted_data, amount_claimed, status, reconciliation_notes, manual_disposition")
+      .select("id, submission_id, extracted_data, amount_claimed, status, reconciliation_notes, manual_disposition, payment_group_id")
       .eq("id", paymentId)
       .single();
 
@@ -620,6 +684,7 @@ export async function updatePaymentReview(
         manual_disposition_by: null,
         manual_disposition_notes: null,
         bank_transaction_id: null,
+        payment_group_id: null,
       });
     }
 
@@ -636,6 +701,7 @@ export async function updatePaymentReview(
         .update({
           coverage_mode: "bank_receipt",
           covered_by_submission_id: null,
+          payment_group_id: null,
         })
         .eq("id", currentPayment.submission_id);
 
@@ -859,7 +925,7 @@ export async function getTrackingReceiptSignedUrl(payload: {
   const supabase = createAdminClient();
   const { data: submission, error } = await supabase
     .from("form_submissions")
-    .select("id, coverage_backup_path, form_submission_payments(receipt_path)")
+    .select("id, coverage_backup_path, payment_group_id, form_submission_payments(receipt_path)")
     .eq("id", submissionId)
     .eq("access_token", accessToken)
     .eq("is_archived", false)
@@ -880,6 +946,17 @@ export async function getTrackingReceiptSignedUrl(payload: {
   ((submission as any).form_submission_payments || []).forEach((payment: any) => {
     addAuthorizedPath(payment?.receipt_path);
   });
+
+  if ((submission as any).payment_group_id) {
+    const { data: groupPayments } = await supabase
+      .from("form_submission_payments")
+      .select("receipt_path")
+      .eq("payment_group_id", (submission as any).payment_group_id);
+
+    (groupPayments || []).forEach((payment: any) => {
+      addAuthorizedPath(payment?.receipt_path);
+    });
+  }
 
   if (!authorizedPaths.has(receiptPath) && !authorizedPaths.has(receiptPath.replace("finance_receipts/", ""))) {
     return { error: "No tienes acceso a este comprobante." };
@@ -910,7 +987,7 @@ export async function addMultipartPayment(payload: {
     // 1. Verificar token y pertenencia (Seguridad)
     const { data: submission, error: subError } = await supabaseAdmin
       .from("form_submissions")
-      .select("id, form_id")
+      .select("id, form_id, payment_group_id")
       .eq("id", submissionId)
       .eq("access_token", accessToken)
       .eq("is_archived", false)
@@ -938,15 +1015,38 @@ export async function addMultipartPayment(payload: {
       .eq("id", submission.form_id)
       .maybeSingle();
 
-    const { data: existingPayments } = await supabaseAdmin
-      .from("form_submission_payments")
-      .select("amount_claimed, extracted_data, status, manual_disposition")
-      .eq("submission_id", submissionId);
-
     const totalAmount = Number(form?.total_amount || 0);
-    const summary = getSubmissionPaymentSummary(existingPayments || []);
-    if (totalAmount > 0 && summary.totalSubmitted >= totalAmount) {
-      return { error: "El total de esta inscripción ya está cubierto. No necesitas subir otro abono." };
+    const paymentGroupId = (submission as any).payment_group_id || null;
+
+    if (paymentGroupId) {
+      const { data: paymentGroup } = await supabaseAdmin
+        .from("payment_groups")
+        .select("id, expected_amount")
+        .eq("id", paymentGroupId)
+        .maybeSingle();
+
+      const { data: groupPayments } = await supabaseAdmin
+        .from("form_submission_payments")
+        .select("amount_claimed, extracted_data, status, manual_disposition, created_at")
+        .eq("payment_group_id", paymentGroupId);
+
+      const submitted = (groupPayments || [])
+        .filter((payment: any) => !payment?.manual_disposition && ["pending", "manual_review", "verified"].includes(payment?.status))
+        .reduce((sum: number, payment: any) => sum + Math.abs(Number(payment?.extracted_data?.amount ?? payment?.amount_claimed ?? 0)), 0);
+      const expected = Number((paymentGroup as any)?.expected_amount || 0);
+      if (expected > 0 && submitted >= expected) {
+        return { error: "El total de este grupo de pago ya está cubierto. No necesitas subir otro abono." };
+      }
+    } else {
+      const { data: existingPayments } = await supabaseAdmin
+        .from("form_submission_payments")
+        .select("amount_claimed, extracted_data, status, manual_disposition")
+        .eq("submission_id", submissionId);
+
+      const summary = getSubmissionPaymentSummary(existingPayments || []);
+      if (totalAmount > 0 && summary.totalSubmitted >= totalAmount) {
+        return { error: "El total de esta inscripción ya está cubierto. No necesitas subir otro abono." };
+      }
     }
 
     if (form?.destination_account_id) {
@@ -1021,8 +1121,9 @@ export async function addMultipartPayment(payload: {
       .insert([{
         submission_id: submissionId,
         receipt_path: receiptPath,
+        payment_group_id: paymentGroupId,
         extracted_data: aiData,
-        amount_claimed: amountClaimed || 0,
+        amount_claimed: Math.abs(Number(aiData?.amount ?? amountClaimed ?? 0)),
         status: validation.status === "valid" ? "pending" : "manual_review"
       }])
       .select()
@@ -1037,6 +1138,43 @@ export async function addMultipartPayment(payload: {
   } catch (error: any) {
     console.error("Error en addMultipartPayment:", error);
     return { error: error.message || "Error al registrar el pago" };
+  }
+}
+
+export async function updatePaymentGroupExpectedAmount(payload: {
+  paymentGroupId: string;
+  expectedAmount: number;
+}) {
+  await verifyPermission("perm_finanzas");
+
+  const expectedAmount = Math.abs(Number(payload.expectedAmount || 0));
+  if (!payload.paymentGroupId) return { error: "Grupo de pago inválido." };
+  if (!Number.isFinite(expectedAmount) || expectedAmount <= 0) {
+    return { error: "Ingresa un total esperado mayor a 0." };
+  }
+
+  const supabase = createAdminClient();
+
+  try {
+    const { data: group, error } = await supabase
+      .from("payment_groups")
+      .update({
+        expected_amount: expectedAmount,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", payload.paymentGroupId)
+      .select("id, form_id, expected_amount")
+      .single();
+
+    if (error) throw error;
+
+    await revalidateFormSubmissions(group.form_id);
+    revalidatePath("/admin/finanzas");
+    revalidatePath("/admin/formularios/inscripciones");
+    return { success: true, paymentGroup: group };
+  } catch (error: any) {
+    console.error("Error en updatePaymentGroupExpectedAmount:", error);
+    return { error: error.message || "No se pudo actualizar el total del grupo." };
   }
 }
 

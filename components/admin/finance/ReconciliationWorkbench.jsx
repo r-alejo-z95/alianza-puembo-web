@@ -75,7 +75,13 @@ import { cn } from "@/lib/utils";
 import { useScreenSize } from "@/lib/hooks/useScreenSize";
 import { format, parseISO, addDays, subDays, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
-import { discardPaymentReceipt, reconcilePayment, getReceiptSignedUrl, updatePaymentReview } from "@/lib/actions/finance";
+import {
+  discardPaymentReceipt,
+  reconcilePayment,
+  getReceiptSignedUrl,
+  updatePaymentReview,
+  updatePaymentGroupExpectedAmount,
+} from "@/lib/actions/finance";
 import { compareReceiptBeneficiary } from "@/lib/services/receipt-validation";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -94,6 +100,23 @@ function displayDate(dateStr) {
 
 function toDraftString(value) {
   return value === null || value === undefined ? "" : String(value);
+}
+
+function getPaymentGroupInfo(item) {
+  const group = item?.submission?.payment_groups || item?.submission?.payment_group || null;
+  const id = item?.payment_group_id || item?.submission?.payment_group_id || group?.id || null;
+  if (!id) return null;
+
+  return {
+    id,
+    expectedAmount: group?.expected_amount ?? null,
+  };
+}
+
+function formatMoney(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount <= 0) return "Sin definir";
+  return `$${amount.toFixed(2)}`;
 }
 
 function buildReviewDraft(payment) {
@@ -333,6 +356,8 @@ export function ReconciliationWorkbench({
   const [processingIds, setProcessingIds] = useState(new Set());
   const [discardTarget, setDiscardTarget] = useState(null);
   const [isDiscarding, setIsDiscarding] = useState(false);
+  const [savingPaymentGroupId, setSavingPaymentGroupId] = useState(null);
+  const [paymentGroupDrafts, setPaymentGroupDrafts] = useState({});
 
   const beneficiaryMatch = useMemo(
     () => (manualMatch ? compareReceiptBeneficiary(manualMatch.extracted_data || {}, selectedDestinationAccount) : null),
@@ -908,6 +933,41 @@ export function ReconciliationWorkbench({
     }
   };
 
+  const handleUpdatePaymentGroupExpectedAmount = async (item) => {
+    const paymentGroup = getPaymentGroupInfo(item);
+    if (!paymentGroup) return;
+
+    const rawValue = paymentGroupDrafts[paymentGroup.id] ?? paymentGroup.expectedAmount ?? "";
+    const expectedAmount = Number(rawValue);
+    if (!Number.isFinite(expectedAmount) || expectedAmount <= 0) {
+      toast.error("Ingresa un total esperado mayor a 0.");
+      return;
+    }
+
+    setSavingPaymentGroupId(paymentGroup.id);
+    try {
+      const res = await updatePaymentGroupExpectedAmount({
+        paymentGroupId: paymentGroup.id,
+        expectedAmount,
+      });
+
+      if (res.success) {
+        setPaymentGroupDrafts((current) => ({
+          ...current,
+          [paymentGroup.id]: String(res.paymentGroup?.expected_amount ?? expectedAmount),
+        }));
+        toast.success("Total del grupo actualizado");
+        await onRefresh?.();
+      } else {
+        toast.error(res.error || "No se pudo actualizar el total del grupo");
+      }
+    } catch (error) {
+      toast.error("No se pudo actualizar el total del grupo");
+    } finally {
+      setSavingPaymentGroupId(null);
+    }
+  };
+
   const renderReceiptButton = (item) => {
     const isReceiptLoading = loadingReceiptId === item.id;
     const isReceiptDisabled = !!loadingReceiptId;
@@ -926,8 +986,13 @@ export function ReconciliationWorkbench({
     );
   };
 
-  const renderPaymentItem = (item) => (
-    <motion.div key={item.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 50, scale: 0.95 }}>
+  const renderPaymentItem = (item) => {
+    const paymentGroup = getPaymentGroupInfo(item);
+    const paymentGroupDraft =
+      paymentGroup ? paymentGroupDrafts[paymentGroup.id] ?? (paymentGroup.expectedAmount == null ? "" : paymentGroup.expectedAmount) : "";
+
+    return (
+      <motion.div key={item.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 50, scale: 0.95 }}>
       <Card className={cn("border-none shadow-lg overflow-hidden transition-all hover:shadow-xl mb-4 rounded-[1.5rem]", item.status === 'verified' ? "ring-1 ring-[var(--puembo-green)] bg-emerald-50/10" : "bg-white")}>
         <div className="flex flex-col lg:flex-row">
           <div className="flex-[1.2] p-5 md:p-8 space-y-4 border-r border-gray-50 bg-white">
@@ -948,6 +1013,51 @@ export function ReconciliationWorkbench({
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Monto IA: <span className="text-blue-600">${item.subTotalClaimed.toFixed(2)}</span></span>
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">Verificado: <span className="text-emerald-600">${item.subTotalVerified.toFixed(2)}</span></span>
                 </div>
+
+                {paymentGroup && (
+                  <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/70 px-3 py-3">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                      <div className="space-y-1">
+                        <p className="text-[9px] font-black uppercase tracking-[0.24em] text-blue-700">
+                          Grupo de pago compartido
+                        </p>
+                        <p className="text-xs font-bold text-blue-950">
+                          Total esperado del grupo: {formatMoney(paymentGroup.expectedAmount)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={paymentGroupDraft}
+                          onChange={(event) =>
+                            setPaymentGroupDrafts((current) => ({
+                              ...current,
+                              [paymentGroup.id]: event.target.value,
+                            }))
+                          }
+                          className="h-9 w-28 rounded-xl border-blue-100 bg-white text-xs font-black"
+                          placeholder="195.00"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleUpdatePaymentGroupExpectedAmount(item)}
+                          disabled={savingPaymentGroupId === paymentGroup.id}
+                          className="h-9 rounded-full bg-blue-600 px-3 text-[8px] font-black uppercase tracking-widest text-white hover:bg-blue-700 disabled:opacity-60 gap-1.5"
+                        >
+                          {savingPaymentGroupId === paymentGroup.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="h-3 w-3" />
+                          )}
+                          Guardar
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {!item.match && (
                   <div className="rounded-2xl border border-orange-100 bg-orange-50/80 px-3 py-2 text-[10px] font-medium text-orange-700 leading-relaxed">
@@ -1028,8 +1138,9 @@ export function ReconciliationWorkbench({
           </div>
         </div>
       </Card>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  };
 
   const movementsPanelContent = (
     <div className="flex h-full min-h-0 flex-col">

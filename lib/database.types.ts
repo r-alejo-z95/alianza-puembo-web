@@ -440,6 +440,7 @@ export type Database = {
           manual_disposition_at: string | null
           manual_disposition_by: string | null
           manual_disposition_notes: string | null
+          payment_group_id: string | null
           receipt_path: string | null
           reconciliation_notes: string | null
           status: string | null
@@ -455,6 +456,7 @@ export type Database = {
           manual_disposition_at?: string | null
           manual_disposition_by?: string | null
           manual_disposition_notes?: string | null
+          payment_group_id?: string | null
           receipt_path?: string | null
           reconciliation_notes?: string | null
           status?: string | null
@@ -470,6 +472,7 @@ export type Database = {
           manual_disposition_at?: string | null
           manual_disposition_by?: string | null
           manual_disposition_notes?: string | null
+          payment_group_id?: string | null
           receipt_path?: string | null
           reconciliation_notes?: string | null
           status?: string | null
@@ -488,6 +491,13 @@ export type Database = {
             columns: ["manual_disposition_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_submission_payments_payment_group_id_fkey"
+            columns: ["payment_group_id"]
+            isOneToOne: false
+            referencedRelation: "payment_groups"
             referencedColumns: ["id"]
           },
           {
@@ -520,6 +530,7 @@ export type Database = {
           is_archived: boolean | null
           is_manual: boolean
           notification_email: string | null
+          payment_group_id: string | null
           payment_reminder_last_sent_at: string | null
           status: string | null
           submission_status: string
@@ -546,6 +557,7 @@ export type Database = {
           is_archived?: boolean | null
           is_manual?: boolean
           notification_email?: string | null
+          payment_group_id?: string | null
           payment_reminder_last_sent_at?: string | null
           status?: string | null
           submission_status?: string
@@ -572,6 +584,7 @@ export type Database = {
           is_archived?: boolean | null
           is_manual?: boolean
           notification_email?: string | null
+          payment_group_id?: string | null
           payment_reminder_last_sent_at?: string | null
           status?: string | null
           submission_status?: string
@@ -598,6 +611,13 @@ export type Database = {
             columns: ["form_id"]
             isOneToOne: false
             referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_submissions_payment_group_id_fkey"
+            columns: ["payment_group_id"]
+            isOneToOne: false
+            referencedRelation: "payment_groups"
             referencedColumns: ["id"]
           },
           {
@@ -935,6 +955,51 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_groups: {
+        Row: {
+          created_at: string
+          created_by_submission_id: string | null
+          expected_amount: number | null
+          form_id: string
+          id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by_submission_id?: string | null
+          expected_amount?: number | null
+          form_id: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by_submission_id?: string | null
+          expected_amount?: number | null
+          form_id?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_groups_created_by_submission_id_fkey"
+            columns: ["created_by_submission_id"]
+            isOneToOne: false
+            referencedRelation: "form_submissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_groups_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
             referencedColumns: ["id"]
           },
         ]

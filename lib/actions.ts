@@ -736,7 +736,7 @@ async function cleanupUploadedFinanceReceipt(supabaseAdmin: any, receiptPath?: s
 async function loadActiveFinancialSubmissionsForConflict(supabaseAdmin: any, formId: string) {
   const { data, error } = await supabaseAdmin
     .from("form_submissions")
-    .select("id, access_token, notification_email, data, answers, created_at, is_archived, coverage_mode, covered_by_submission_id, form_submission_payments(id, receipt_path, amount_claimed, extracted_data, status, manual_disposition)")
+    .select("id, form_id, access_token, notification_email, data, answers, created_at, is_archived, coverage_mode, covered_by_submission_id, payment_group_id, form_submission_payments(id, receipt_path, amount_claimed, extracted_data, status, manual_disposition, payment_group_id)")
     .eq("form_id", formId)
     .eq("is_archived", false);
 
@@ -746,6 +746,48 @@ async function loadActiveFinancialSubmissionsForConflict(supabaseAdmin: any, for
   }
 
   return data || [];
+}
+
+async function ensureSharedPaymentGroup(supabaseAdmin: any, {
+  formId,
+  matchedSubmission,
+  matchedPayment,
+}: {
+  formId: string;
+  matchedSubmission: any;
+  matchedPayment: any;
+}) {
+  let paymentGroupId = matchedSubmission?.payment_group_id || matchedPayment?.payment_group_id || null;
+
+  if (!paymentGroupId) {
+    const { data: group, error: groupError } = await supabaseAdmin
+      .from("payment_groups")
+      .insert([{
+        form_id: formId,
+        created_by_submission_id: matchedSubmission.id,
+      }])
+      .select("id")
+      .single();
+
+    if (groupError) throw groupError;
+    paymentGroupId = group.id;
+  }
+
+  await supabaseAdmin
+    .from("form_submissions")
+    .update({ payment_group_id: paymentGroupId })
+    .eq("id", matchedSubmission.id)
+    .is("payment_group_id", null);
+
+  if (matchedPayment?.id) {
+    await supabaseAdmin
+      .from("form_submission_payments")
+      .update({ payment_group_id: paymentGroupId })
+      .eq("id", matchedPayment.id)
+      .is("payment_group_id", null);
+  }
+
+  return paymentGroupId;
 }
 
 async function loadActiveBankAccountsForReceiptValidation(supabaseAdmin: any) {
@@ -901,6 +943,7 @@ export async function submitFormAction(payload: {
       matchedSubmissionId: string;
       matchedPaymentId: string;
       matchedPaymentStatus?: string | null;
+      paymentGroupId?: string | null;
     } | null = null;
 
     // 2. Si el formulario es financiero, procesar con IA
@@ -1023,10 +1066,16 @@ export async function submitFormAction(payload: {
         const confirmedSharedPayment = matchesSharedPaymentConfirmation(conflict, sharedPaymentConfirmation);
 
         if (confirmedSharedPayment) {
+          const paymentGroupId = await ensureSharedPaymentGroup(supabaseAdmin, {
+            formId,
+            matchedSubmission: conflict.matchedSubmission,
+            matchedPayment: conflict.matchedPayment,
+          });
           sharedPaymentCoverage = {
             matchedSubmissionId: conflict.matchedSubmission.id,
             matchedPaymentId: conflict.matchedPayment.id,
             matchedPaymentStatus: conflict.matchedPayment.status || null,
+            paymentGroupId,
           };
         } else {
           await cleanupUploadedFinanceReceipt(supabaseAdmin, receiptPath);
@@ -1098,6 +1147,7 @@ export async function submitFormAction(payload: {
       Object.assign(submissionData, {
         coverage_mode: "covered_by_used_payment",
         covered_by_submission_id: sharedPaymentCoverage.matchedSubmissionId,
+        payment_group_id: sharedPaymentCoverage.paymentGroupId,
         coverage_created_at: new Date().toISOString(),
       });
     }
@@ -1124,6 +1174,7 @@ export async function submitFormAction(payload: {
       await supabaseAdmin.from("form_submission_payments").insert([{
         submission_id: submission.id,
         receipt_path: receiptPath,
+        payment_group_id: sharedPaymentCoverage?.paymentGroupId || null,
         amount_claimed: Math.abs(Number(aiExtractedData?.amount || 0)),
         extracted_data: sharedPaymentCoverage
           ? {
@@ -1131,6 +1182,7 @@ export async function submitFormAction(payload: {
               shared_payment: {
                 covered_by_submission_id: sharedPaymentCoverage.matchedSubmissionId,
                 covered_by_payment_id: sharedPaymentCoverage.matchedPaymentId,
+                payment_group_id: sharedPaymentCoverage.paymentGroupId,
               },
             }
           : aiExtractedData,
