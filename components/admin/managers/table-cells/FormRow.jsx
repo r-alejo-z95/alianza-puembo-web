@@ -38,6 +38,7 @@ import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { revalidateForms } from "@/lib/actions/cache";
 import { isFormSetupComplete } from "@/lib/forms/setup";
+import { FormShareTools } from "@/components/admin/forms/FormShareTools";
 
 export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect, isInternalView }) {
   const [isEnabled, setEnabled] = useState(form.enabled ?? true);
@@ -104,6 +105,8 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
           <TooltipContent>{responsesLabel}</TooltipContent>
         </Tooltip>
       </TooltipProvider>
+
+      <FormShareTools form={form} />
 
       <TooltipProvider>
         <Tooltip>
