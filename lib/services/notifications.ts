@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 
+export { sendRegistrationConfirmationEmail } from "@/lib/services/form-emails";
+
 // 1. Configuración Estática y Segura
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

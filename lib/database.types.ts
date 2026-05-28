@@ -282,6 +282,285 @@ export type Database = {
           },
         ]
       }
+      form_email_campaign_attachments: {
+        Row: {
+          bucket: string
+          campaign_id: string | null
+          content_type: string
+          created_at: string
+          created_by: string | null
+          filename: string
+          id: string
+          path: string
+          size_bytes: number
+          template_id: string | null
+        }
+        Insert: {
+          bucket?: string
+          campaign_id?: string | null
+          content_type: string
+          created_at?: string
+          created_by?: string | null
+          filename: string
+          id?: string
+          path: string
+          size_bytes: number
+          template_id?: string | null
+        }
+        Update: {
+          bucket?: string
+          campaign_id?: string | null
+          content_type?: string
+          created_at?: string
+          created_by?: string | null
+          filename?: string
+          id?: string
+          path?: string
+          size_bytes?: number
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_email_campaign_attachments_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "form_email_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_email_campaign_attachments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_email_campaign_attachments_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "form_email_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_email_campaign_exclusions: {
+        Row: {
+          campaign_id: string
+          created_at: string
+          created_by: string | null
+          submission_id: string
+        }
+        Insert: {
+          campaign_id: string
+          created_at?: string
+          created_by?: string | null
+          submission_id: string
+        }
+        Update: {
+          campaign_id?: string
+          created_at?: string
+          created_by?: string | null
+          submission_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_email_campaign_exclusions_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "form_email_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_email_campaign_exclusions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_email_campaign_exclusions_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "form_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_email_campaigns: {
+        Row: {
+          body_html: string
+          body_json: Json | null
+          created_at: string
+          created_by: string | null
+          form_id: string
+          id: string
+          name: string
+          scheduled_at: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          template_id: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body_html: string
+          body_json?: Json | null
+          created_at?: string
+          created_by?: string | null
+          form_id: string
+          id?: string
+          name: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          template_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body_html?: string
+          body_json?: Json | null
+          created_at?: string
+          created_by?: string | null
+          form_id?: string
+          id?: string
+          name?: string
+          scheduled_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          template_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_email_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_email_campaigns_form_id_fkey"
+            columns: ["form_id"]
+            isOneToOne: false
+            referencedRelation: "forms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_email_campaigns_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "form_email_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_email_campaigns_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_email_delivery_events: {
+        Row: {
+          attempted_at: string
+          campaign_id: string
+          email: string
+          error_message: string | null
+          id: string
+          provider_message_id: string | null
+          sent_at: string | null
+          status: string
+          submission_id: string | null
+        }
+        Insert: {
+          attempted_at?: string
+          campaign_id: string
+          email: string
+          error_message?: string | null
+          id?: string
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status: string
+          submission_id?: string | null
+        }
+        Update: {
+          attempted_at?: string
+          campaign_id?: string
+          email?: string
+          error_message?: string | null
+          id?: string
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+          submission_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_email_delivery_events_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "form_email_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "form_email_delivery_events_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "form_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      form_email_templates: {
+        Row: {
+          body_html: string
+          body_json: Json | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_archived: boolean
+          name: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body_html: string
+          body_json?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          name: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body_html?: string
+          body_json?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_archived?: boolean
+          name?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "form_email_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       form_fields: {
         Row: {
           attachment_type: string | null
@@ -1138,6 +1417,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      form_email_attachments_total_size_check: {
+        Args: { target_campaign_id: string }
+        Returns: number
+      }
       get_form_financial_summary: {
         Args: { target_form_id: string }
         Returns: {

@@ -11,7 +11,7 @@ import { after } from "next/server";
 import { loginSchema } from "@/lib/schemas";
 import {
   sendSystemNotification,
-  sendConfirmationEmail,
+  sendRegistrationConfirmationEmail,
   sendSubmissionTrackingLinksEmail,
 } from "@/lib/services/notifications";
 import { headers } from "next/headers";
@@ -874,12 +874,28 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_financial, payment_type, total_amount, allow_shared_receipts, shared_receipt_max_submissions, destination_account_id, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label)")
+      .select("id, title, slug, is_internal, is_financial, payment_type, total_amount, allow_shared_receipts, shared_receipt_max_submissions, destination_account_id, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label)")
       .eq("id", formId)
       .single();
 
     if (formErr || !form) throw new Error("Formulario no encontrado");
     console.log(`[Submit] Form: ${form.slug}, Is Financial: ${form.is_financial}, Target Label: "${form.financial_field_label}"`);
+
+    if (!form.is_internal && !String(notificationEmail || "").trim()) {
+      return {
+        error: "Necesitamos un correo electrónico para confirmar tu registro.",
+        outcome: buildSubmissionOutcome({
+          status: "error",
+          title: "Falta el correo de confirmación",
+          message: "Ingresa un correo electrónico válido para recibir la confirmación y el enlace de seguimiento de tu inscripción.",
+          steps: [
+            "Vuelve al formulario y completa el campo de correo para notificaciones.",
+            "Usaremos ese correo para enviarte la confirmación y cualquier actualización importante.",
+          ],
+          primaryAction: { label: "Completar correo" },
+        }),
+      };
+    }
 
     let destinationAccount: {
       bank_name?: string | null;
@@ -1211,35 +1227,44 @@ export async function submitFormAction(payload: {
     }
 
     // 4. TAREAS EN BACKGROUND (No bloquean la respuesta al usuario)
-    if (notificationEmail && form.is_financial) {
-      const { data: payments } = await supabaseAdmin
-        .from("form_submission_payments")
-        .select("amount_claimed, extracted_data, status")
-        .eq("submission_id", submission.id);
+    if (notificationEmail && !form.is_internal) {
+      let financialSummary = null;
 
-      const totalAmount = Number(form.total_amount || 0);
-      const emailSummary = sharedPaymentCoverage
-        ? {
-            amountPaid: totalAmount,
-            remainingBalance: 0,
-            hasPendingVerification: sharedPaymentCoverage.matchedPaymentStatus !== "verified",
-          }
-        : getInstallmentEmailSummary({
-            totalAmount,
-            payments: payments || [],
-          });
+      if (form.is_financial) {
+        const { data: payments } = await supabaseAdmin
+          .from("form_submission_payments")
+          .select("amount_claimed, extracted_data, status")
+          .eq("submission_id", submission.id);
 
-      if (sharedPaymentCoverage || emailSummary.remainingBalance > 0) {
-        sendConfirmationEmail(notificationEmail, {
-          formTitle: form.title,
-          accessToken: submission.access_token,
-          paymentType: form.payment_type,
+        const totalAmount = Number(form.total_amount || 0);
+        const emailSummary = sharedPaymentCoverage
+          ? {
+              amountPaid: totalAmount,
+              remainingBalance: 0,
+              hasPendingVerification: sharedPaymentCoverage.matchedPaymentStatus !== "verified",
+            }
+          : getInstallmentEmailSummary({
+              totalAmount,
+              payments: payments || [],
+            });
+
+        financialSummary = {
           totalAmount,
           amountPaid: emailSummary.amountPaid,
           remainingBalance: emailSummary.remainingBalance,
           hasPendingVerification: emailSummary.hasPendingVerification,
-        }).catch(err => console.error("[Confirmation Email Error]:", err));
+          statusLabel: emailSummary.remainingBalance > 0
+            ? "Saldo pendiente"
+            : "Registro recibido",
+        };
       }
+
+      sendRegistrationConfirmationEmail({
+        email: notificationEmail,
+        form,
+        submission,
+        financialSummary,
+      }).catch(err => console.error("[Registration Confirmation Email Error]:", err));
     }
 
     notifyFormSubmission(form.title, form.slug, form.user_id, user?.id)

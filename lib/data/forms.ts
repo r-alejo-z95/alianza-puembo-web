@@ -423,3 +423,26 @@ export async function getAllSubmissions() {
     ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()),
   })) as FormSubmission[];
 }
+
+export async function getFormEmailCampaigns(formId: string) {
+  if (!formId) return [];
+
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from("form_email_campaigns")
+    .select(`
+      *,
+      form_email_campaign_attachments(*),
+      form_email_campaign_exclusions(*),
+      form_email_delivery_events(*)
+    `)
+    .eq("form_id", formId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[getFormEmailCampaigns]", error);
+    return [];
+  }
+
+  return data ?? [];
+}

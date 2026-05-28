@@ -143,13 +143,15 @@ function useFormLogic(form) {
       groups.push(currentGroup);
     }
 
-    // Paso Virtual de Notificación para formularios públicos FINANCIEROS
-    if (!form.is_internal && form.is_financial) {
+    // Paso Virtual de Notificación para formularios públicos
+    if (!form.is_internal) {
       groups.push({
         section: {
           id: "virtual-notification",
           label: "Contacto de Seguimiento",
-          help_text: "Para procesar tu pago y enviarte tu código de seguimiento, necesitamos un correo electrónico de contacto."
+          help_text: form.is_financial
+            ? "Para procesar tu pago y enviarte tu código de seguimiento, necesitamos un correo electrónico de contacto."
+            : "Para confirmar tu registro y enviarte tu enlace de seguimiento, necesitamos un correo electrónico de contacto."
         },
         fields: [{
           id: "notification-email-field",

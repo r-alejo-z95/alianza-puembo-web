@@ -68,12 +68,13 @@ test("vercel cron is configured for daily payment reminders", () => {
   assert.equal(existsSync(vercelConfigUrl), true);
 
   const config = JSON.parse(readFileSync(vercelConfigUrl, "utf8"));
-  assert.deepEqual(config.crons, [
-    {
-      path: "/api/cron/payment-reminders",
-      schedule: "0 13 * * *",
-    },
-  ]);
+  assert.ok(
+    config.crons.some(
+      (cron) =>
+        cron.path === "/api/cron/payment-reminders" &&
+        cron.schedule === "0 13 * * *",
+    ),
+  );
 });
 
 test("notification service exposes payment reminder email sender", () => {

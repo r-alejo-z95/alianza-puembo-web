@@ -42,6 +42,7 @@ import {
   Trash2,
   MessageSquare,
   Check,
+  Mail,
 } from "lucide-react";
 import {
   Select,
@@ -89,6 +90,7 @@ import {
   buildEditableSubmissionValues,
   getEditableSubmissionFields,
 } from "@/lib/forms/submission-admin.mjs";
+import FormEmailCampaignsPanel from "@/components/admin/forms/email/FormEmailCampaignsPanel";
 import RecycleBin from "./RecycleBin";
 
 // ------------------------------------------------------------------
@@ -366,6 +368,8 @@ export default function AnalyticsDashboard({
   form,
   submissions: initialSubmissions = [],
   canManageResponses = false,
+  emailCampaigns = [],
+  canManageEmails = false,
 }) {
   const [submissions, setSubmissions] = useState(initialSubmissions);
   const [dateFilter, setDateFilter] = useState("all");
@@ -1391,17 +1395,24 @@ export default function AnalyticsDashboard({
           <TabsList className="bg-white border border-gray-100 shadow-lg shadow-gray-200/20 p-1.5 rounded-full h-auto">
             <TabsTrigger
               value="summary"
-              className="rounded-full px-6 md:px-8 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all duration-300 gap-2"
+              className="cursor-pointer rounded-full px-6 md:px-8 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all duration-300 gap-2"
             >
               <PieIcon className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Resumen</span>
             </TabsTrigger>
             <TabsTrigger
               value="individual"
-              className="rounded-full px-6 md:px-8 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all duration-300 gap-2"
+              className="cursor-pointer rounded-full px-6 md:px-8 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all duration-300 gap-2"
             >
               <User className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Respuestas</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="emails"
+              className="cursor-pointer rounded-full px-6 md:px-8 py-2.5 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white transition-all duration-300 gap-2"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Correos</span>
             </TabsTrigger>
           </TabsList>
         </div>
@@ -2019,6 +2030,14 @@ export default function AnalyticsDashboard({
               )}
             </div>
           )}
+        </TabsContent>
+        <TabsContent value="emails" className="space-y-6 focus-visible:outline-none">
+          <FormEmailCampaignsPanel
+            form={form}
+            submissions={submissions}
+            campaigns={emailCampaigns}
+            canManageEmails={canManageEmails}
+          />
         </TabsContent>
       </Tabs>
     </div>
