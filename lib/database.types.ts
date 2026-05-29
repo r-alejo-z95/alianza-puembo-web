@@ -1114,6 +1114,7 @@ export type Database = {
           slug: string | null
           title: string
           user_id: string | null
+          view_count: number
         }
         Insert: {
           archived_at?: string | null
@@ -1125,6 +1126,7 @@ export type Database = {
           slug?: string | null
           title: string
           user_id?: string | null
+          view_count?: number
         }
         Update: {
           archived_at?: string | null
@@ -1136,6 +1138,7 @@ export type Database = {
           slug?: string | null
           title?: string
           user_id?: string | null
+          view_count?: number
         }
         Relationships: [
           {
@@ -1432,6 +1435,7 @@ export type Database = {
           verified_submissions: number
         }[]
       }
+      increment_lom_post_view: { Args: { post_slug: string }; Returns: number }
     }
     Enums: {
       financial_status_type:

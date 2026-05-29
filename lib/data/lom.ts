@@ -67,6 +67,22 @@ export async function getLomPostBySlug(slug: string): Promise<any | null> {
 }
 
 /**
+ * @description Incrementa el contador público de lecturas para un LOM publicado.
+ */
+export async function incrementLomPostView(slug: string): Promise<number | null> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase.rpc("increment_lom_post_view", { post_slug: slug });
+
+  if (error) {
+    console.error("Error incrementing LOM post view:", error);
+    return null;
+  }
+
+  return typeof data === "number" ? data : null;
+}
+
+/**
  * @description Obtiene los posts de navegación (anterior y siguiente).
  * `currentPostDate` DEBE ser YYYY-MM-DD (DATE).
  */

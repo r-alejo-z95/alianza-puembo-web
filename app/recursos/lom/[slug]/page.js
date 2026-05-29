@@ -2,9 +2,15 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Home, BookOpen, ArrowDown } from "lucide-react";
-import { getLomPostBySlug, getLomNavigationPosts } from "@/lib/data/lom.ts";
+import {
+  getLomPostBySlug,
+  getLomNavigationPosts,
+  incrementLomPostView,
+} from "@/lib/data/lom.ts";
 import { formatLiteralDate, getTodayEcuadorDateLiteral } from "@/lib/date-utils";
-import { parseWhatsAppFormatting } from "@/lib/lomUtils";
+import { parseWhatsAppFormatting, linkBibleReferences } from "@/lib/lomUtils";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
@@ -33,7 +39,11 @@ export default async function LomPostPage({ params }) {
     "EEEE d 'de' MMMM, yyyy",
   );
 
-  const processedContent = parseWhatsAppFormatting(post.content);
+  const incrementedViewCount = await incrementLomPostView(slug);
+  const viewCount = typeof incrementedViewCount === "number" ? incrementedViewCount : post.view_count ?? 0;
+  const formattedViewCount = new Intl.NumberFormat("es-EC").format(viewCount);
+
+  const processedContent = linkBibleReferences(parseWhatsAppFormatting(post.content));
 
   return (
     <div className="bg-[#0A0804]">
@@ -97,9 +107,13 @@ export default async function LomPostPage({ params }) {
           </h1>
 
           {/* Date */}
-          <time className="text-[10px] font-black tracking-[0.45em] text-white/35 capitalize">
-            {publicationDate}
-          </time>
+          <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] font-black tracking-[0.45em] text-white/35">
+            <time className="capitalize">{publicationDate}</time>
+            <span aria-hidden="true">·</span>
+            <span>
+              {formattedViewCount} {viewCount === 1 ? "lectura" : "lecturas"}
+            </span>
+          </div>
 
           {/* Scroll cue */}
           <div className="mt-6 flex flex-col items-center gap-1.5 text-white/20 animate-bounce">
