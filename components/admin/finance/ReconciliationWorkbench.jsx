@@ -1143,15 +1143,21 @@ export function ReconciliationWorkbench({
   };
 
   const movementsPanelContent = (
-    <div className="flex h-full min-h-0 flex-col">
-      <div className="bg-gray-900 px-6 py-5 text-white">
-        <div className="flex items-center gap-3 pr-8">
+    <div className="flex h-full min-h-0 flex-col bg-[#F8F9FA]">
+      <div className="relative shrink-0 bg-black px-6 pb-5 pt-5 text-white">
+        <div className="flex items-start gap-3 pr-8">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[var(--puembo-green)] text-black shadow-lg">
             <Banknote className="h-5 w-5" />
           </div>
           <div className="min-w-0">
+            <div className="mb-2 flex items-center gap-3">
+              <div className="h-px w-6 bg-[var(--puembo-green)]" />
+              <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+                Finanzas
+              </span>
+            </div>
             <p className="font-serif text-2xl font-bold text-white">Movimientos bancarios</p>
-            <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-gray-400">
+            <p className="mt-1 text-[10px] font-light leading-relaxed text-gray-400">
               Pool de ingresos históricos
             </p>
           </div>
@@ -1182,6 +1188,7 @@ export function ReconciliationWorkbench({
             </Select>
           </div>
         )}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-[var(--puembo-green)]/40 via-[var(--puembo-green)]/10 to-transparent" />
       </div>
 
       <div className="border-b border-gray-100 bg-white px-5 py-4">
@@ -1254,7 +1261,7 @@ export function ReconciliationWorkbench({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto bg-gray-50/30">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-[#F8F9FA]">
         <Table>
           <TableHeader className="sticky top-0 z-10 bg-gray-50/95 shadow-sm backdrop-blur-md">
             <TableRow className="border-b border-gray-100">
@@ -1379,7 +1386,7 @@ export function ReconciliationWorkbench({
         </Sheet>
       ) : (
         <Drawer open={isMovementsSheetOpen} onOpenChange={setIsMovementsSheetOpen}>
-          <DrawerContent className="max-h-[92vh] bg-white p-0">
+          <DrawerContent className="max-h-[92vh] flex flex-col z-[400] bg-black overflow-hidden border-none p-0">
             <DrawerHeader className="sr-only">
               <DrawerTitle>Movimientos bancarios</DrawerTitle>
               <DrawerDescription>Pool de ingresos históricos</DrawerDescription>

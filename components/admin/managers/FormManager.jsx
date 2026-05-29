@@ -212,24 +212,27 @@ export default function FormManager({ initialForms = [], isInternal = false }) {
               {isInternal ? "Procesos Operativos" : "Gestión de Formularios"}
             </CardTitle>
           </div>
-          <div className="flex gap-3">
-            <Link href="/admin/formularios/inscripciones">
+          <div className="grid w-full grid-cols-2 gap-3 md:flex md:w-auto">
+            <Link href="/admin/formularios/inscripciones" className="min-w-0">
               <Button
                 variant="outline"
-                className="rounded-full px-5 py-6 font-bold border-gray-200 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm"
+                className="w-full md:w-auto rounded-full px-3 py-5 md:px-5 md:py-6 font-bold border-gray-200 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-sm"
               >
-                <ClipboardList className="w-5 h-5 mr-2" />{" "}
-                <span className="text-xs uppercase tracking-widest">
+                <ClipboardList className="w-4 h-4 md:w-5 md:h-5 mr-2 shrink-0" />{" "}
+                <span className="md:hidden text-xs uppercase tracking-widest">
+                  Pagos
+                </span>
+                <span className="hidden md:inline text-xs uppercase tracking-widest">
                   Inscripciones con pagos
                 </span>
               </Button>
             </Link>
             <Button
               variant="outline"
-              className="rounded-full px-5 py-6 font-bold border-gray-200 hover:bg-red-50 hover:text-red-600 transition-all"
+              className="w-full md:w-auto rounded-full px-3 py-5 md:px-5 md:py-6 font-bold border-gray-200 hover:bg-red-50 hover:text-red-600 transition-all"
               onClick={() => setIsRecycleBinOpen(true)}
             >
-              <Trash2 className="w-5 h-5 mr-2" />{" "}
+              <Trash2 className="w-4 h-4 md:w-5 md:h-5 mr-2 shrink-0" />{" "}
               <span className="text-xs uppercase tracking-widest">
                 Papelera
               </span>

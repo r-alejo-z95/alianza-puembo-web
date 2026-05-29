@@ -23,3 +23,20 @@ test("all submissions table uses concise one-line finance badges without forcing
   assert.doesNotMatch(manager, /title=\{financeState\}/);
   assert.match(manager, /aria-label=\{financeState\}/);
 });
+
+test("manual inscription CTA and mobile cards avoid horizontal overflow", () => {
+  const page = readFileSync(
+    new URL("../app/admin/formularios/inscripciones/page.js", import.meta.url),
+    "utf8",
+  );
+  const manager = readFileSync(
+    new URL("../components/admin/managers/AllSubmissionsManager.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(page, /flex flex-col md:flex-row/);
+  assert.match(page, /w-full sm:w-auto/);
+  assert.match(page, /<span className="sm:hidden">Nueva manual<\/span>/);
+  assert.match(page, /<span className="hidden sm:inline">Nueva inscripción manual<\/span>/);
+  assert.match(manager, /min-w-0 rounded-2xl/);
+});

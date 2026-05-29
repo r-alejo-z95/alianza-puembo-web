@@ -30,3 +30,15 @@ test("form builder persists payment reminder interval configuration", () => {
   assert.match(setupWizard, /Cada 7 dias/);
   assert.match(formBuilder, /Recordatorios de pago/);
 });
+
+test("forms manager mobile header keeps payment and trash actions visible", () => {
+  const manager = readFileSync(
+    new URL("../components/admin/managers/FormManager.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(manager, /grid w-full grid-cols-2 gap-3 md:flex md:w-auto/);
+  assert.match(manager, /<span className="[^"]*md:hidden[^"]*">\s*Pagos\s*<\/span>/);
+  assert.match(manager, /<span className="[^"]*hidden md:inline[^"]*">\s*Inscripciones con pagos\s*<\/span>/);
+  assert.match(manager, /w-full md:w-auto/);
+});

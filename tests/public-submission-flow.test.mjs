@@ -52,3 +52,38 @@ test("tracking and recovery flows use canonical submission balance summaries", (
   assert.match(actions, /getSubmissionBalanceSummary/);
   assert.match(actions, /coverage_mode,\s*coverage_amount,\s*covered_by_submission_id/);
 });
+
+test("tracking status badge wraps long labels on mobile", () => {
+  const trackingClient = readFileSync(
+    new URL("../app/inscripcion/[token]/TrackingClient.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(trackingClient, /max-w-full/);
+  assert.match(trackingClient, /whitespace-normal/);
+  assert.match(trackingClient, /sm:whitespace-nowrap/);
+  assert.match(trackingClient, /leading-tight/);
+});
+
+test("tracking payment history rows keep receipt arrow inside mobile width", () => {
+  const trackingClient = readFileSync(
+    new URL("../app/inscripcion/[token]/TrackingClient.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(trackingClient, /flex flex-col gap-4 p-5 bg-white rounded-2xl/);
+  assert.match(trackingClient, /sm:flex-row sm:items-center sm:justify-between/);
+  assert.match(trackingClient, /max-w-\[calc\(100%-3rem\)\]/);
+  assert.match(trackingClient, /shrink-0 hover:bg-\[var\(--puembo-green\)\]\/10/);
+});
+
+test("tracking page fills the mobile viewport background", () => {
+  const trackingPage = readFileSync(
+    new URL("../app/inscripcion/[token]/page.js", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(trackingPage, /min-h-\[100dvh\]/);
+  assert.match(trackingPage, /overflow-x-hidden/);
+  assert.match(trackingPage, /env\(safe-area-inset-bottom\)/);
+});

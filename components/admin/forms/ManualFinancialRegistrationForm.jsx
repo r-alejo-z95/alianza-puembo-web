@@ -335,13 +335,13 @@ export default function ManualFinancialRegistrationForm({ forms = [] }) {
                   setValues({});
                 }}
               >
-                <SelectTrigger className="h-12 rounded-2xl bg-gray-50 border-gray-100 shadow-sm">
+                <SelectTrigger className="h-12 w-full min-w-0 overflow-hidden rounded-2xl bg-gray-50 border-gray-100 shadow-sm [&_[data-slot=select-value]]:min-w-0 [&_[data-slot=select-value]]:truncate">
                   <SelectValue placeholder="Selecciona un evento…" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-w-[calc(100vw-3rem)]">
                   {forms.map((form) => (
-                    <SelectItem key={form.id} value={form.id}>
-                      {form.title}
+                    <SelectItem key={form.id} value={form.id} className="truncate">
+                      <span className="block truncate">{form.title}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>

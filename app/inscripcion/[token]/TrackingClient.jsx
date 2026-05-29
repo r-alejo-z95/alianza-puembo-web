@@ -241,7 +241,7 @@ export default function TrackingClient({ submission }) {
                 <currentStatus.icon className="w-10 h-10" />
             </div>
             <div className="space-y-2">
-                <Badge variant="outline" className={cn("px-4 py-1 rounded-full font-black uppercase tracking-widest text-[10px] border-2", currentStatus.color, "border-current bg-white")}>
+                <Badge variant="outline" className={cn("max-w-full whitespace-normal px-3 py-1 rounded-full text-center font-black uppercase tracking-[0.12em] text-[10px] leading-tight border-2 sm:px-4 sm:tracking-widest sm:whitespace-nowrap", currentStatus.color, "border-current bg-white")}>
                     {currentStatus.label}
                 </Badge>
                 <h2 className="text-2xl font-black text-gray-900">
@@ -340,11 +340,11 @@ export default function TrackingClient({ submission }) {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.1 }}
-                                className="flex items-center justify-between p-5 bg-white rounded-2xl shadow-sm border border-gray-100 group hover:shadow-md transition-all"
+                                className="flex flex-col gap-4 p-5 bg-white rounded-2xl shadow-sm border border-gray-100 group hover:shadow-md transition-all sm:flex-row sm:items-center sm:justify-between"
                             >
-                                <div className="flex items-center gap-4">
+                                <div className="flex w-full min-w-0 items-center gap-4 sm:w-auto">
                                     <div className={cn(
-                                        "w-12 h-12 rounded-xl flex items-center justify-center",
+                                        "w-12 h-12 shrink-0 rounded-xl flex items-center justify-center",
                                         isRejected
                                           ? "bg-red-50 text-red-600"
                                           : paymentStatus === 'verified'
@@ -353,23 +353,23 @@ export default function TrackingClient({ submission }) {
                                     )}>
                                         <FileText className="w-6 h-6" />
                                     </div>
-                                    <div>
+                                    <div className="min-w-0">
                                         <p className="font-bold text-gray-900">Abono #{idx + 1}</p>
                                         {payment.extracted_data?.label ? (
-                                          <p className="text-[10px] font-medium text-gray-500">
+                                          <p className="max-w-full truncate text-[10px] font-medium text-gray-500">
                                             {payment.extracted_data.label}
                                           </p>
                                         ) : null}
-                                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-wider">
+                                        <p className="break-words text-[10px] text-gray-400 uppercase font-black tracking-wider">
                                             {format(new Date(payment.created_at), "d MMM, HH:mm", { locale: es })}
                                             {isRejected ? (
-                                              <span className="ml-2 text-red-600">No contabilizado</span>
+                                              <span className="ml-0 inline-block text-red-600 sm:ml-2">No contabilizado</span>
                                             ) : (
-                                              <span className="ml-2 text-blue-600">(${paymentAmount(payment).toFixed(2)})</span>
+                                              <span className="ml-0 inline-block text-blue-600 sm:ml-2">(${paymentAmount(payment).toFixed(2)})</span>
                                             )}
                                         </p>
                                         {isRejected ? (
-                                          <p className="mt-1 max-w-md text-[10px] font-medium leading-relaxed text-red-600 normal-case">
+                                          <p className="mt-1 max-w-md break-words text-[10px] font-medium leading-relaxed text-red-600 normal-case">
                                             {discardReason}
                                             {payment.manual_disposition_notes ? `: ${payment.manual_disposition_notes}` : ""}
                                           </p>
@@ -377,9 +377,9 @@ export default function TrackingClient({ submission }) {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4">
+                                <div className="flex w-full min-w-0 items-center justify-between gap-3 sm:w-auto sm:justify-end sm:gap-4">
                                     <Badge variant="secondary" className={cn(
-                                        "rounded-full font-black text-[9px] uppercase tracking-widest",
+                                        "max-w-[calc(100%-3rem)] whitespace-normal rounded-full text-center font-black text-[9px] uppercase tracking-widest leading-tight sm:max-w-none sm:whitespace-nowrap",
                                         isRejected
                                           ? "bg-red-100 text-red-700"
                                           : paymentStatus === 'verified'
@@ -392,8 +392,9 @@ export default function TrackingClient({ submission }) {
                                       <Button
                                           variant="ghost"
                                           size="icon"
-                                          className="rounded-full hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)]"
+                                          className="shrink-0 hover:bg-[var(--puembo-green)]/10 hover:text-[var(--puembo-green)] rounded-full"
                                           onClick={() => viewReceipt(payment, idx)}
+                                          aria-label={`Ver comprobante de abono ${idx + 1}`}
                                       >
                                           <ChevronRight className="w-5 h-5" />
                                       </Button>

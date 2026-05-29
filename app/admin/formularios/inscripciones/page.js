@@ -34,7 +34,7 @@ export default async function InscripcionesAdminPage() {
         <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
         Inventario de Formularios
       </Link>
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <header className={adminPageHeaderContainer}>
           <div className="flex items-center gap-4 mb-6">
             <div className="h-px w-12 bg-[var(--puembo-green)]" />
@@ -47,10 +47,11 @@ export default async function InscripcionesAdminPage() {
             Busca y gestiona inscripciones de todos los formularios activos.
           </p>
         </header>
-        <Button asChild variant="green" className="rounded-full px-6 mb-10 shadow-lg shadow-[var(--puembo-green)]/20 shrink-0">
+        <Button asChild variant="green" className="w-full sm:w-auto rounded-full px-5 sm:px-6 mb-0 md:mb-10 shadow-lg shadow-[var(--puembo-green)]/20 shrink-0 justify-center">
           <Link href="/admin/formularios/inscripciones/manual">
-            <PlusCircle className="w-4 h-4 mr-2" />
-            Nueva inscripción manual
+            <PlusCircle className="w-4 h-4 mr-2 shrink-0" />
+            <span className="sm:hidden">Nueva manual</span>
+            <span className="hidden sm:inline">Nueva inscripción manual</span>
           </Link>
         </Button>
       </div>

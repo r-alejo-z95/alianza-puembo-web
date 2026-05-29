@@ -12,8 +12,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useScreenSize } from "@/lib/hooks/useScreenSize";
 import { updateFormShortCode } from "@/lib/actions/forms";
 import {
   getFormShortUrl,
@@ -23,6 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export function FormShareTools({ form }) {
+  const { isLg } = useScreenSize();
   const [open, setOpen] = useState(false);
   const [origin, setOrigin] = useState("");
   const [shortCode, setShortCode] = useState(form.short_code || "");
@@ -129,6 +138,74 @@ export function FormShareTools({ form }) {
     anchor.click();
   };
 
+  const shareContent = (
+    <div className="space-y-6 p-5 sm:p-8">
+      <div className="space-y-2">
+        <Label className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">
+          Link corto
+        </Label>
+        <div className="flex min-w-0 gap-2">
+          <div className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 px-4 text-sm font-semibold text-gray-700">
+            <Link2 className="h-4 w-4 shrink-0 text-[var(--puembo-green)]" />
+            <span className="block min-w-0 truncate">{shortUrl || "Genera un link corto"}</span>
+          </div>
+          <Button type="button" onClick={copyShortUrl} disabled={!shortUrl} className="h-12 w-12 shrink-0 rounded-xl p-0">
+            <Copy className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor={`short-code-${form.id}`} className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">
+          Codigo editable
+        </Label>
+        <div className="flex min-w-0 gap-2">
+          <div className="relative min-w-0 flex-1">
+            <Pencil className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Input
+              id={`short-code-${form.id}`}
+              value={draftCode}
+              onChange={(event) => setDraftCode(normalizeFormShortCode(event.target.value))}
+              className="h-12 rounded-xl border-gray-100 pl-11 font-mono text-sm"
+              placeholder="ret-fin-int"
+            />
+          </div>
+          <Button type="button" onClick={saveShortCode} disabled={isSaving} className="h-12 w-12 shrink-0 rounded-xl p-0">
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 sm:p-6">
+        <div
+          className={cn(
+            "flex h-[240px] w-[240px] items-center justify-center rounded-xl bg-white sm:h-[280px] sm:w-[280px]",
+            isGeneratingQr && "bg-gray-50",
+          )}
+        >
+          {isGeneratingQr ? (
+            <Loader2 className="h-7 w-7 animate-spin text-gray-400" />
+          ) : qrSvg ? (
+            <div className="h-full w-full [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: qrSvg }} />
+          ) : (
+            <QrCode className="h-10 w-10 text-gray-300" />
+          )}
+        </div>
+
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+          <Button type="button" variant="outline" onClick={downloadSvg} disabled={!qrSvg} className="rounded-xl">
+            <Download className="mr-2 h-4 w-4" />
+            Descargar SVG
+          </Button>
+          <Button type="button" variant="outline" onClick={downloadPng} disabled={!shortUrl} className="rounded-xl">
+            <Download className="mr-2 h-4 w-4" />
+            Descargar PNG
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       <Button
@@ -137,89 +214,55 @@ export function FormShareTools({ form }) {
         size="icon"
         aria-label="Link corto y QR"
         onClick={() => setOpen(true)}
-        className="rounded-xl flex-1 lg:flex-none text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)] transition-all duration-300"
+        className="h-11 w-full flex-none rounded-xl text-[var(--puembo-green)] transition-all duration-300 hover:bg-[var(--puembo-green)]/10 lg:h-9 lg:w-9 lg:text-black lg:hover:text-[var(--puembo-green)]"
       >
         <QrCode className="w-4 h-4" />
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg rounded-[2rem] border-none p-0 overflow-hidden shadow-2xl">
-          <div className="bg-gray-950 px-8 py-7 text-white">
-            <DialogHeader>
-              <DialogTitle className="font-serif text-2xl">Compartir formulario</DialogTitle>
-              <DialogDescription className="text-gray-300">
-                Usa este link corto para WhatsApp, anuncios y material impreso.
-              </DialogDescription>
-            </DialogHeader>
-          </div>
+      {isLg ? (
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="flex max-h-[min(680px,calc(100dvh-4rem))] w-[520px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-[2rem] border-none p-0 shadow-2xl sm:max-w-none">
+            <div className="shrink-0 bg-gray-950 px-8 py-7 text-white">
+              <DialogHeader>
+                <DialogTitle className="font-serif text-2xl">Compartir formulario</DialogTitle>
+                <DialogDescription className="text-gray-300">
+                  Usa este link corto para WhatsApp, anuncios y material impreso.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
 
-          <div className="space-y-6 p-8">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">
-                Link corto
-              </Label>
-              <div className="flex gap-2">
-                <div className="flex min-h-12 flex-1 items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 px-4 text-sm font-semibold text-gray-700">
-                  <Link2 className="h-4 w-4 shrink-0 text-[var(--puembo-green)]" />
-                  <span className="truncate">{shortUrl || "Genera un link corto"}</span>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              {shareContent}
+            </div>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Drawer open={open} onOpenChange={setOpen}>
+          <DrawerContent className="max-h-[92vh] flex flex-col z-[400] bg-black overflow-hidden border-none p-0">
+            <div className="shrink-0 bg-black px-6 pb-4 pt-5 text-white relative">
+              <DrawerHeader className="space-y-2 p-0 text-left">
+                <div className="flex items-center gap-3">
+                  <div className="h-px w-6 bg-[var(--puembo-green)]" />
+                  <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[var(--puembo-green)]">
+                    Compartir
+                  </span>
                 </div>
-                <Button type="button" onClick={copyShortUrl} disabled={!shortUrl} className="rounded-xl">
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
+                <DrawerTitle className="font-serif text-xl font-bold leading-tight text-white">
+                  Link y QR
+                </DrawerTitle>
+                <DrawerDescription className="text-[10px] font-light leading-relaxed text-gray-400">
+                  Usa este link corto para WhatsApp, anuncios y material impreso.
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-[var(--puembo-green)]/40 via-[var(--puembo-green)]/10 to-transparent" />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor={`short-code-${form.id}`} className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-400">
-                Codigo editable
-              </Label>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Pencil className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <Input
-                    id={`short-code-${form.id}`}
-                    value={draftCode}
-                    onChange={(event) => setDraftCode(normalizeFormShortCode(event.target.value))}
-                    className="h-12 rounded-xl border-gray-100 pl-11 font-mono text-sm"
-                    placeholder="ret-fin-int"
-                  />
-                </div>
-                <Button type="button" onClick={saveShortCode} disabled={isSaving} className="rounded-xl">
-                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                </Button>
-              </div>
+            <div className="min-h-0 flex-1 overflow-y-auto bg-[#F8F9FA]">
+              {shareContent}
             </div>
-
-            <div className="flex flex-col items-center gap-4 rounded-2xl border border-gray-100 bg-white p-6">
-              <div
-                className={cn(
-                  "flex h-[280px] w-[280px] items-center justify-center rounded-xl bg-white",
-                  isGeneratingQr && "bg-gray-50",
-                )}
-              >
-                {isGeneratingQr ? (
-                  <Loader2 className="h-7 w-7 animate-spin text-gray-400" />
-                ) : qrSvg ? (
-                  <div className="h-[280px] w-[280px]" dangerouslySetInnerHTML={{ __html: qrSvg }} />
-                ) : (
-                  <QrCode className="h-10 w-10 text-gray-300" />
-                )}
-              </div>
-
-              <div className="grid w-full grid-cols-2 gap-3">
-                <Button type="button" variant="outline" onClick={downloadSvg} disabled={!qrSvg} className="rounded-xl">
-                  <Download className="mr-2 h-4 w-4" />
-                  Descargar SVG
-                </Button>
-                <Button type="button" variant="outline" onClick={downloadPng} disabled={!shortUrl} className="rounded-xl">
-                  <Download className="mr-2 h-4 w-4" />
-                  Descargar PNG
-                </Button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DrawerContent>
+        </Drawer>
+      )}
     </>
   );
 }

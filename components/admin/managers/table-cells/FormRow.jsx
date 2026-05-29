@@ -80,21 +80,23 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
     form.is_financial && (!isFormSetupComplete(form) || !form.financial_field_label);
 
   const actions = (
-    <div className="flex items-center justify-end lg:justify-center gap-2 w-full lg:w-auto">
+    <div className="grid w-full grid-cols-4 items-center gap-3 lg:flex lg:w-auto lg:justify-center lg:gap-2">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               asChild
               variant="ghost"
-              className="group h-auto flex-1 lg:flex-none rounded-[1rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-700 shadow-sm transition-all duration-300 hover:bg-emerald-100 hover:text-emerald-800 hover:shadow-md"
+              className="group col-span-4 h-11 min-w-0 rounded-xl border border-gray-100 bg-gray-50 px-3 py-0 text-gray-700 shadow-sm transition-all duration-300 hover:bg-gray-100 hover:text-gray-900 lg:col-auto lg:h-auto lg:flex-none lg:rounded-[1rem] lg:border-emerald-200 lg:bg-emerald-50 lg:px-4 lg:py-3 lg:text-emerald-700 lg:hover:bg-emerald-100 lg:hover:text-emerald-800 lg:hover:shadow-md"
             >
-              <Link href={responsesPath} className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-(--puembo-green) text-white shadow-sm transition-transform duration-300 group-hover:scale-105">
+              <Link href={responsesPath} className="flex min-w-0 items-center gap-2 lg:gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-(--puembo-green) text-white shadow-sm transition-transform duration-300 group-hover:scale-105 lg:h-9 lg:w-9">
                   <BarChart3 className="w-4 h-4" />
                 </span>
-                <span className="flex flex-col items-start text-left">
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">{responsesLabel}</span>
+                <span className="flex min-w-0 flex-col items-start text-left">
+                  <span className="max-w-full truncate text-[9px] font-black uppercase tracking-[0.18em] lg:text-[10px] lg:tracking-[0.3em]">
+                    Ver {responsesLabel}
+                  </span>
                   <span className="hidden text-[11px] font-medium leading-tight text-emerald-700/80 lg:block">
                     Abrir estado y exportación
                   </span>
@@ -116,7 +118,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
               variant="ghost"
               size="icon"
               className={cn(
-                "rounded-xl flex-1 lg:flex-none transition-all duration-300",
+                "h-11 w-full flex-none rounded-xl transition-all duration-300 lg:h-9 lg:w-9",
                 hasIncompleteFinancialConfig
                   ? "bg-amber-50 text-amber-700 hover:bg-amber-100 lg:hover:text-amber-700"
                   : "text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)]",
@@ -138,7 +140,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
               variant="ghost"
               size="icon"
               onClick={() => onEdit(form)}
-              className="rounded-xl flex-1 lg:flex-none text-[var(--puembo-green)] lg:text-black hover:bg-[var(--puembo-green)]/10 lg:hover:text-[var(--puembo-green)] transition-all duration-300"
+              className="h-11 w-full flex-none rounded-xl text-[var(--puembo-green)] transition-all duration-300 hover:bg-[var(--puembo-green)]/10 lg:h-9 lg:w-9 lg:text-black lg:hover:text-[var(--puembo-green)]"
             >
               <Edit className="w-4 h-4" />
             </Button>
@@ -146,38 +148,39 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
           <TooltipContent>Editar</TooltipContent>
         </Tooltip>
       </TooltipProvider>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="rounded-xl flex-1 lg:flex-none text-red-500 lg:text-black hover:bg-red-50 lg:hover:text-red-500 transition-all duration-300"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
-                <AlertDialogHeader className="space-y-4">
-                  <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">
-                    ¿Mover a la papelera?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
-                    Este formulario dejará de estar disponible para el público, pero podrás restaurarlo desde la papelera de reciclaje si lo necesitas.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter className="pt-6">
-                  <AlertDialogCancel className="rounded-full border-gray-100">
-                    Cancelar
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => onDelete(form.id)}
-                    className="rounded-full bg-red-500 hover:bg-red-600"
-                  >
-                    Mover a papelera
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-11 w-full flex-none rounded-xl text-red-500 transition-all duration-300 hover:bg-red-50 lg:h-9 lg:w-9 lg:text-black lg:hover:text-red-500"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent className="rounded-[2rem] border-none shadow-2xl p-8">
+          <AlertDialogHeader className="space-y-4">
+            <AlertDialogTitle className="text-2xl font-serif font-bold text-gray-900">
+              ¿Mover a la papelera?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-500 font-light leading-relaxed">
+              Este formulario dejará de estar disponible para el público, pero podrás restaurarlo desde la papelera de reciclaje si lo necesitas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="pt-6">
+            <AlertDialogCancel className="rounded-full border-gray-100">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onDelete(form.id)}
+              className="rounded-full bg-red-500 hover:bg-red-600"
+            >
+              Mover a papelera
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 
@@ -252,7 +255,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
             </div>
         </div>
 
-        <div className="flex justify-end pt-2 border-t border-gray-50 pl-9">
+        <div className="flex justify-end pt-2 border-t border-gray-50 sm:pl-9">
           {actions}
         </div>
       </div>

@@ -91,7 +91,7 @@ export function AdminEditorPanel({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent
-        className={cn("max-h-[92vh] flex flex-col z-[400] bg-black", className)}
+        className={cn("max-h-[92vh] flex flex-col z-[400] bg-black overflow-hidden border-none p-0", className)}
       >
         <div
           className={cn("bg-black px-6 pt-5 pb-4 shrink-0 relative", headerClassName)}
@@ -114,7 +114,7 @@ export function AdminEditorPanel({
           </DrawerHeader>
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-[var(--puembo-green)]/40 via-[var(--puembo-green)]/10 to-transparent" />
         </div>
-        <div className="flex-1 min-h-0 overflow-y-auto bg-[#F8F9FA] flex flex-col">
+        <div className="flex-1 min-h-0 overflow-y-auto bg-[#F8F9FA] flex flex-col p-4 pt-6">
           {children}
         </div>
       </DrawerContent>

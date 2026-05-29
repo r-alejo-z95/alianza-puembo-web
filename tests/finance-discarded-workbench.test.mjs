@@ -64,6 +64,8 @@ test("finance movements panel uses a mobile drawer and desktop sheet", () => {
   assert.match(workbench, /<DrawerContent/);
   assert.match(workbench, /<DrawerHeader/);
   assert.match(workbench, /<DrawerTitle/);
+  assert.match(workbench, /max-h-\[92vh\] flex flex-col z-\[400\] bg-black overflow-hidden border-none p-0/);
+  assert.match(workbench, /bg-\[#F8F9FA\]/);
 });
 
 test("finance movements panel can change the active bank account context", () => {

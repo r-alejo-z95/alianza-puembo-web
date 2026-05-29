@@ -24,7 +24,7 @@ export default async function TrackingPage({ params }) {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 py-24 md:py-36">
+    <main className="min-h-[100dvh] overflow-x-hidden bg-gray-50 pt-24 pb-[calc(6rem+env(safe-area-inset-bottom))] md:py-36">
       <TrackingClient submission={submission} />
     </main>
   );
