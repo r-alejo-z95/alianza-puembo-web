@@ -76,6 +76,7 @@ import {
   buildFinancialAnalyticsPaymentColumns,
   getFinancialAnalyticsPaymentFilePaths,
 } from "@/lib/finance/analytics-export.mjs";
+import { flattenParticipantDetailsForExport } from "@/lib/finance/pricing-packages.mjs";
 import { buildFinanceReceiptAccessUrl, normalizeFinanceReceiptPath } from "@/lib/finance/receipt-links.mjs";
 import { cn } from "@/lib/utils.ts";
 import { getFileSignedUrl } from "@/lib/actions";
@@ -588,8 +589,12 @@ export default function AnalyticsDashboard({
         submissionId: submission.id,
         timestamp: formatInEcuador(submission.created_at, "dd/MM/yyyy HH:mm"),
         values: dataFields.map((field) => getSubmissionValueForField(submission, field)),
+        participantColumns: flattenParticipantDetailsForExport(submission.participant_details || []),
         adminComments: formatCommentsForExport(submission),
       }));
+      const participantHeaders = Array.from(
+        new Set(exportRows.flatMap((row) => Object.keys(row.participantColumns))),
+      );
 
       const filePaths = new Set();
       exportRows.forEach((row) => {
@@ -639,7 +644,12 @@ export default function AnalyticsDashboard({
       const financialPaymentColumns = form.is_financial
         ? buildFinancialAnalyticsPaymentColumns(filteredSubmissions, fileUrlMap)
         : { headers: [], valuesBySubmissionId: new Map() };
-      const headers = [...baseHeaders, ...financialPaymentColumns.headers, "Observaciones internas"];
+      const headers = [
+        ...baseHeaders,
+        ...participantHeaders,
+        ...financialPaymentColumns.headers,
+        "Observaciones internas",
+      ];
 
       const columnWidths = headers.map((header, colIndex) => {
         const values = [header];
@@ -656,6 +666,7 @@ export default function AnalyticsDashboard({
           const rowValues = [
             row.timestamp,
             ...row.values.map((value) => getExportCellValue(value, fileUrlMap)),
+            ...participantHeaders.map((header) => row.participantColumns[header] || ""),
             ...(financialPaymentColumns.valuesBySubmissionId.get(row.submissionId) || []),
             row.adminComments,
           ];
@@ -737,6 +748,7 @@ export default function AnalyticsDashboard({
         const excelRow = worksheet.addRow([
           row.timestamp,
           ...row.values.map((value) => getExportCellValue(value, fileUrlMap)),
+          ...participantHeaders.map((header) => row.participantColumns[header] || ""),
           ...(financialPaymentColumns.valuesBySubmissionId.get(row.submissionId) || []),
           row.adminComments,
         ]);

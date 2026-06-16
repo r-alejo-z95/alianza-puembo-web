@@ -16,6 +16,7 @@ import {
 import { normalizeFormKey } from "@/lib/form-response-history";
 import { findNameInSubmission } from "@/lib/form-utils";
 import {
+  buildManualPricingSnapshot,
   validateManualFinancialForm,
   validateManualRegistrationValues,
 } from "@/lib/finance/manual-registration.mjs";
@@ -791,7 +792,7 @@ export async function createManualFinancialRegistration(payload: {
 
     const { data: form, error: formError } = await admin
       .from("forms")
-      .select("id, is_financial, is_archived, financial_field_id, financial_field_label, form_fields!form_id(id, label, type, required, options, order_index)")
+      .select("id, is_financial, is_archived, financial_field_id, financial_field_label, total_amount, pricing_mode, pricing_packages, pricing_field_id, form_fields!form_id(id, label, type, required, options, order_index)")
       .eq("id", payload.formId)
       .maybeSingle();
 
@@ -821,11 +822,14 @@ export async function createManualFinancialRegistration(payload: {
       coverageMode: payload.coverageMode,
       coverageAmount: payload.coverageAmount,
     });
+    const manualPricing = buildManualPricingSnapshot(form, payload.rawValues || {});
 
     const submissionPayload = {
       form_id: payload.formId,
       data: submissionValues.data,
       answers: submissionValues.answers,
+      expected_amount: manualPricing.expected_amount,
+      pricing_snapshot: manualPricing.pricingSnapshot,
       notification_email: payload.notificationEmail || null,
       user_agent: "admin-manual-registration",
       is_manual: true,

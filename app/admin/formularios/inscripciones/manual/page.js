@@ -18,7 +18,7 @@ export default async function ManualFinancialRegistrationPage() {
   const supabase = createAdminClient();
   const { data: forms, error } = await supabase
     .from("forms")
-    .select("id, title, slug, is_financial, financial_field_id, form_fields!form_id(*)")
+    .select("id, title, slug, is_financial, financial_field_id, pricing_mode, pricing_packages, pricing_field_id, form_fields!form_id(*)")
     .eq("is_financial", true)
     .eq("is_archived", false)
     .order("title");

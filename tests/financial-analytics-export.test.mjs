@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   buildFinancialAnalyticsPaymentColumns,
@@ -73,4 +74,14 @@ test("getFinancialAnalyticsPaymentFilePaths includes every active payment receip
   ]);
 
   assert.deepEqual(paths, ["finance_receipts/valid.png"]);
+});
+
+test("analytics export includes participant detail flattening", () => {
+  const dashboard = readFileSync(
+    new URL("../components/admin/managers/AnalyticsDashboard.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(dashboard, /flattenParticipantDetailsForExport/);
+  assert.match(dashboard, /participant_details/);
 });

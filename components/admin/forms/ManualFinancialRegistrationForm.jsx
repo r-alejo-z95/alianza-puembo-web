@@ -79,6 +79,10 @@ export default function ManualFinancialRegistrationForm({ forms = [] }) {
     () => forms.find((form) => form.id === selectedFormId) || null,
     [forms, selectedFormId],
   );
+  const selectedFormUsesPricingPackages = selectedForm?.pricing_mode === "packages";
+  const selectedFormPricingPackageCount = (selectedForm?.pricing_packages || []).filter(
+    (pkg) => pkg.enabled !== false,
+  ).length;
 
   const fields = useMemo(() => {
     const rawFields = selectedForm?.form_fields || [];
@@ -270,6 +274,12 @@ export default function ManualFinancialRegistrationForm({ forms = [] }) {
       toast.error("Selecciona un formulario.");
       return;
     }
+    if (selectedFormUsesPricingPackages) {
+      toast.error(
+        "Las inscripciones manuales para formularios con paquetes se registran desde el formulario público por ahora.",
+      );
+      return;
+    }
     if ((coverageMode === "cash" || coverageMode === "card") && !coverageAmount) {
       toast.error("Ingresa el monto para efectivo o tarjeta.");
       return;
@@ -393,12 +403,25 @@ export default function ManualFinancialRegistrationForm({ forms = [] }) {
                 </SelectContent>
               </Select>
               {selectedForm && (
-                <div className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[var(--puembo-green)] animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)]">
-                    {fields.length} campos cargados
-                  </span>
-                </div>
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--puembo-green)] animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--puembo-green)]">
+                      {fields.length} campos cargados
+                    </span>
+                  </div>
+                  {selectedFormUsesPricingPackages && (
+                    <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-amber-700">
+                        Paquetes no disponibles aquí
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-amber-700/80">
+                        Este formulario tiene {selectedFormPricingPackageCount} paquetes de precio.
+                        Registra estas inscripciones desde el formulario público por ahora.
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -564,7 +587,7 @@ export default function ManualFinancialRegistrationForm({ forms = [] }) {
             <Button
               type="submit"
               variant="green"
-              disabled={isSubmitting || !selectedForm}
+              disabled={isSubmitting || !selectedForm || selectedFormUsesPricingPackages}
               className="w-full rounded-2xl h-14 font-bold shadow-lg shadow-[var(--puembo-green)]/25 transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
               {isSubmitting ? (

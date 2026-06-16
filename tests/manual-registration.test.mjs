@@ -179,6 +179,21 @@ test("createManualFinancialRegistration disambiguates the forms to form_fields r
 
   assert.match(
     financeActions,
-    /\.select\("id, is_financial, is_archived, financial_field_id, financial_field_label, form_fields!form_id\(id, label, type, required, options, order_index\)"\)/,
+    /\.select\("id, is_financial, is_archived, financial_field_id, financial_field_label, total_amount, pricing_mode, pricing_packages, pricing_field_id, form_fields!form_id\(id, label, type, required, options, order_index\)"\)/,
   );
+});
+
+test("manual registration helpers are aware of pricing package fields", () => {
+  const manualRegistration = readFileSync(
+    new URL("../lib/finance/manual-registration.mjs", import.meta.url),
+    "utf8",
+  );
+  const manualForm = readFileSync(
+    new URL("../components/admin/forms/ManualFinancialRegistrationForm.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(manualRegistration, /pricing_mode/);
+  assert.match(manualRegistration, /expected_amount/);
+  assert.match(manualForm, /pricing_packages/);
 });
