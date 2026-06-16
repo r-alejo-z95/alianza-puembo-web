@@ -179,6 +179,36 @@ test("detectFinancialSubmissionConflict recovers an existing partial inscription
   assert.equal(conflict?.remainingBalance, 40);
 });
 
+test("detectFinancialSubmissionConflict uses expected amount snapshot for remaining balance", () => {
+  const conflict = detectFinancialSubmissionConflict({
+    incoming: {
+      notificationEmail: " ANA@example.com ",
+      participantName: "Ana Gomez",
+      receiptData: {
+        amount: 15,
+        date: "2026-04-22",
+        reference: "TRXNEW",
+      },
+    },
+    existingSubmissions: [
+      {
+        ...existingSubmission,
+        expected_amount: 80,
+        form_submission_payments: [
+          {
+            status: "pending",
+            amount_claimed: 30,
+          },
+        ],
+      },
+    ],
+    totalAmount: 100,
+  });
+
+  assert.equal(conflict?.type, "existing_partial_registration");
+  assert.equal(conflict?.remainingBalance, 50);
+});
+
 test("detectFinancialSubmissionConflict does not block on name similarity alone", () => {
   const conflict = detectFinancialSubmissionConflict({
     incoming: {

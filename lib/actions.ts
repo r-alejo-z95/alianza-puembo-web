@@ -29,7 +29,10 @@ import { getSubmissionBalanceSummary } from "@/lib/finance/submission-balance.mj
 import { detectFinancialSubmissionConflict } from "@/lib/finance/submission-dedupe.mjs";
 import { findNameInSubmission } from "@/lib/form-utils";
 import { validateChoiceOtherAnswers } from "@/lib/forms/choice-other.mjs";
-import { buildPricingSnapshot } from "@/lib/finance/pricing-packages.mjs";
+import {
+  buildPricingSnapshot,
+  calculateGroupExpectedAmount,
+} from "@/lib/finance/pricing-packages.mjs";
 import {
   getReceiptFileExtension,
   isSupportedReceiptMimeType,
@@ -738,7 +741,7 @@ async function cleanupUploadedFinanceReceipt(supabaseAdmin: any, receiptPath?: s
 async function loadActiveFinancialSubmissionsForConflict(supabaseAdmin: any, formId: string) {
   const { data, error } = await supabaseAdmin
     .from("form_submissions")
-    .select("id, form_id, access_token, notification_email, data, answers, created_at, is_archived, coverage_mode, covered_by_submission_id, payment_group_id, form_submission_payments(id, receipt_path, amount_claimed, extracted_data, status, manual_disposition, payment_group_id)")
+    .select("id, form_id, access_token, notification_email, data, answers, created_at, is_archived, coverage_mode, covered_by_submission_id, payment_group_id, expected_amount, form_submission_payments(id, receipt_path, amount_claimed, extracted_data, status, manual_disposition, payment_group_id)")
     .eq("form_id", formId)
     .eq("is_archived", false);
 
@@ -767,6 +770,9 @@ async function ensureSharedPaymentGroup(supabaseAdmin: any, {
       .insert([{
         form_id: formId,
         created_by_submission_id: matchedSubmission.id,
+        expected_amount_source: "calculated",
+        calculated_expected_amount: Number(matchedSubmission.expected_amount || 0),
+        expected_amount: Number(matchedSubmission.expected_amount || 0),
       }])
       .select("id")
       .single();
@@ -790,6 +796,35 @@ async function ensureSharedPaymentGroup(supabaseAdmin: any, {
   }
 
   return paymentGroupId;
+}
+
+async function recalculatePaymentGroupExpectedAmount(supabaseAdmin: any, paymentGroupId: string) {
+  if (!paymentGroupId) return null;
+
+  const { data: group, error: groupError } = await supabaseAdmin
+    .from("payment_groups")
+    .select("id, expected_amount_source")
+    .eq("id", paymentGroupId)
+    .maybeSingle();
+
+  if (groupError || !group) return null;
+
+  const { data: submissions, error: submissionsError } = await supabaseAdmin
+    .from("form_submissions")
+    .select("id, expected_amount, is_archived, submission_status")
+    .eq("payment_group_id", paymentGroupId);
+
+  if (submissionsError) return null;
+
+  const calculated = calculateGroupExpectedAmount(submissions || []);
+  const update: any = { calculated_expected_amount: calculated };
+  if (group.expected_amount_source !== "manual") {
+    update.expected_amount = calculated;
+    update.expected_amount_source = "calculated";
+  }
+
+  await supabaseAdmin.from("payment_groups").update(update).eq("id", paymentGroupId);
+  return calculated;
 }
 
 async function loadActiveBankAccountsForReceiptValidation(supabaseAdmin: any) {
@@ -1225,6 +1260,10 @@ export async function submitFormAction(payload: {
       throw dbError;
     }
     console.log(`[Submit] Éxito: Registro guardado ID ${submission.id}`);
+
+    if (sharedPaymentCoverage?.paymentGroupId) {
+      await recalculatePaymentGroupExpectedAmount(supabaseAdmin, sharedPaymentCoverage.paymentGroupId);
+    }
 
     // 3.1. Si es financiero y hay recibo, guardar en la nueva tabla de pagos
     if (form.is_financial && receiptPath) {

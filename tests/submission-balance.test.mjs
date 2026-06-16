@@ -178,3 +178,34 @@ test("payment group without expected amount keeps balance open but does not inve
   assert.equal(summary.isReminderEligible, false);
   assert.equal(summary.needsExpectedAmount, true);
 });
+
+test("submission balance uses expected amount snapshot before form total", () => {
+  const summary = getSubmissionBalanceSummary({
+    totalAmount: 100,
+    submission: {
+      expected_amount: 80,
+      form_submission_payments: [{ status: "pending", amount_claimed: 30 }],
+    },
+  });
+
+  assert.equal(summary.totalAmount, 80);
+  assert.equal(summary.remainingBalance, 50);
+});
+
+test("payment group balance uses effective calculated group total", () => {
+  const summary = getSubmissionBalanceSummary({
+    totalAmount: 100,
+    submission: {
+      expected_amount: 80,
+      payment_group: {
+        expected_amount: 220,
+        calculated_expected_amount: 220,
+        expected_amount_source: "calculated",
+        form_submission_payments: [{ status: "pending", amount_claimed: 140 }],
+      },
+    },
+  });
+
+  assert.equal(summary.totalAmount, 220);
+  assert.equal(summary.remainingBalance, 80);
+});

@@ -72,3 +72,13 @@ test("finance reconciliation owns the shared payment group total editor", () => 
   assert.match(reconciliationWorkbench, /Total esperado del grupo/);
   assert.match(reconciliationWorkbench, /paymentGroupDrafts/);
 });
+
+test("shared payment groups update calculated expected amount without overriding manual totals", () => {
+  const actions = readFileSync(new URL("../lib/actions.ts", import.meta.url), "utf8");
+  const financeActions = readFileSync(new URL("../lib/actions/finance.ts", import.meta.url), "utf8");
+
+  assert.match(actions, /recalculatePaymentGroupExpectedAmount/);
+  assert.match(actions, /calculated_expected_amount/);
+  assert.match(actions, /expected_amount_source/);
+  assert.match(financeActions, /expected_amount_source:\s*"manual"/);
+});

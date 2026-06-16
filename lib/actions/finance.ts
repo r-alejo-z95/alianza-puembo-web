@@ -54,11 +54,12 @@ async function ensurePaymentGroupForDuplicate(admin: any, {
 }) {
   const { data: primarySubmission } = await admin
     .from("form_submissions")
-    .select("payment_group_id")
+    .select("payment_group_id, expected_amount")
     .eq("id", primarySubmissionId)
     .maybeSingle();
 
   let paymentGroupId = primarySubmission?.payment_group_id || null;
+  const initialExpectedAmount = Math.abs(Number(primarySubmission?.expected_amount || 0));
 
   if (!paymentGroupId) {
     const { data: group, error: groupError } = await admin
@@ -66,6 +67,9 @@ async function ensurePaymentGroupForDuplicate(admin: any, {
       .insert([{
         form_id: formId,
         created_by_submission_id: primarySubmissionId,
+        expected_amount: initialExpectedAmount,
+        calculated_expected_amount: initialExpectedAmount,
+        expected_amount_source: "calculated",
       }])
       .select("id")
       .single();
@@ -87,7 +91,39 @@ async function ensurePaymentGroupForDuplicate(admin: any, {
       .is("payment_group_id", null);
   }
 
+  await recalculatePaymentGroupExpectedAmount(admin, paymentGroupId);
+
   return paymentGroupId;
+}
+
+async function recalculatePaymentGroupExpectedAmount(admin: any, paymentGroupId: string) {
+  if (!paymentGroupId) return null;
+
+  const { data: group } = await admin
+    .from("payment_groups")
+    .select("id, expected_amount_source")
+    .eq("id", paymentGroupId)
+    .maybeSingle();
+
+  if (!group) return null;
+
+  const { data: submissions } = await admin
+    .from("form_submissions")
+    .select("id, expected_amount, is_archived, submission_status")
+    .eq("payment_group_id", paymentGroupId);
+
+  const calculated = (submissions || [])
+    .filter((submission: any) => !submission.is_archived && submission.submission_status !== "cancelled")
+    .reduce((sum: number, submission: any) => sum + Math.abs(Number(submission.expected_amount || 0)), 0);
+
+  const update: Record<string, any> = { calculated_expected_amount: calculated };
+  if (group.expected_amount_source !== "manual") {
+    update.expected_amount = calculated;
+    update.expected_amount_source = "calculated";
+  }
+
+  await admin.from("payment_groups").update(update).eq("id", paymentGroupId);
+  return calculated;
 }
 
 /**
@@ -320,7 +356,7 @@ export async function analyzeFormReceipts(formId: string) {
 
     const { data: submissions, error: subError } = await supabase
       .from("form_submissions")
-      .select("*, profiles:profiles!form_submissions_user_id_fkey(full_name, email), payment_groups!form_submissions_payment_group_id_fkey(id, expected_amount), form_submission_payments(id, receipt_path, extracted_data, status, bank_transaction_id, created_at, manual_disposition, manual_disposition_at, manual_disposition_by, manual_disposition_notes, payment_group_id)")
+      .select("*, profiles:profiles!form_submissions_user_id_fkey(full_name, email), payment_groups!form_submissions_payment_group_id_fkey(id, expected_amount, calculated_expected_amount, expected_amount_source), form_submission_payments(id, receipt_path, extracted_data, status, bank_transaction_id, created_at, manual_disposition, manual_disposition_at, manual_disposition_by, manual_disposition_notes, payment_group_id)")
       .eq("form_id", formId)
       .eq("is_archived", false);
 
@@ -440,7 +476,7 @@ export async function analyzeFormReceipts(formId: string) {
 
     const { data: updated } = await supabase
       .from("form_submissions")
-      .select("*, profiles:profiles!form_submissions_user_id_fkey(full_name, email), payment_groups!form_submissions_payment_group_id_fkey(id, expected_amount), form_submission_payments(*)")
+      .select("*, profiles:profiles!form_submissions_user_id_fkey(full_name, email), payment_groups!form_submissions_payment_group_id_fkey(id, expected_amount, calculated_expected_amount, expected_amount_source), form_submission_payments(*)")
       .eq("form_id", formId)
       .eq("is_archived", false)
       .order("created_at", { ascending: false });
@@ -1021,7 +1057,7 @@ export async function addMultipartPayment(payload: {
     if (paymentGroupId) {
       const { data: paymentGroup } = await supabaseAdmin
         .from("payment_groups")
-        .select("id, expected_amount")
+        .select("id, expected_amount, calculated_expected_amount, expected_amount_source")
         .eq("id", paymentGroupId)
         .maybeSingle();
 
@@ -1033,7 +1069,11 @@ export async function addMultipartPayment(payload: {
       const submitted = (groupPayments || [])
         .filter((payment: any) => !payment?.manual_disposition && ["pending", "manual_review", "verified"].includes(payment?.status))
         .reduce((sum: number, payment: any) => sum + Math.abs(Number(payment?.extracted_data?.amount ?? payment?.amount_claimed ?? 0)), 0);
-      const expected = Number((paymentGroup as any)?.expected_amount || 0);
+      const expected = Number(
+        (paymentGroup as any)?.expected_amount ||
+          (paymentGroup as any)?.calculated_expected_amount ||
+          0,
+      );
       if (expected > 0 && submitted >= expected) {
         return { error: "El total de este grupo de pago ya está cubierto. No necesitas subir otro abono." };
       }
@@ -1160,10 +1200,11 @@ export async function updatePaymentGroupExpectedAmount(payload: {
       .from("payment_groups")
       .update({
         expected_amount: expectedAmount,
+        expected_amount_source: "manual",
         updated_at: new Date().toISOString(),
       })
       .eq("id", payload.paymentGroupId)
-      .select("id, form_id, expected_amount")
+      .select("id, form_id, expected_amount, calculated_expected_amount, expected_amount_source")
       .single();
 
     if (error) throw error;
