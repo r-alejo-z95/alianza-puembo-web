@@ -5,6 +5,16 @@ interface YouTubeChannelStatus {
   videoUrl: string;
 }
 
+type NextFetchInit = RequestInit & {
+  next?: {
+    revalidate?: number;
+  };
+};
+
+function nextFetchRevalidate(seconds: number): NextFetchInit {
+  return { next: { revalidate: seconds } };
+}
+
 /**
  * Verifica si es horario de servicio en Ecuador (UTC-5).
  * Domingo: 09:00 - 12:00
@@ -41,7 +51,7 @@ export async function getYouTubeChannelStatus(): Promise<YouTubeChannelStatus> {
   try {
     // 1. Obtener el Playlist ID de "Uploads" (Costo: 1 | Cache: 24h)
     const channelsUrl = `${baseApiUrl}/channels?part=contentDetails&id=${channelId}&key=${apiKey}`;
-    const channelsResponse = await fetch(channelsUrl, { next: { revalidate: 86400 } });
+    const channelsResponse = await fetch(channelsUrl, nextFetchRevalidate(86400));
     const channelsData = await channelsResponse.json();
     const uploadsPlaylistId = channelsData.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
 
@@ -49,7 +59,7 @@ export async function getYouTubeChannelStatus(): Promise<YouTubeChannelStatus> {
 
     // 2. Obtener los últimos 5 items de la playlist (Costo: 1 | Cache: 60s)
     const playlistUrl = `${baseApiUrl}/playlistItems?part=snippet&playlistId=${uploadsPlaylistId}&maxResults=5&key=${apiKey}`;
-    const playlistResponse = await fetch(playlistUrl, { next: { revalidate: 60 } });
+    const playlistResponse = await fetch(playlistUrl, nextFetchRevalidate(60));
     const playlistData = await playlistResponse.json();
     const items = playlistData.items || [];
 
@@ -59,7 +69,7 @@ export async function getYouTubeChannelStatus(): Promise<YouTubeChannelStatus> {
     // Esto nos permite saber si son "live", "upcoming" o videos terminados ("none").
     const videoIds = items.map((i: any) => i.snippet.resourceId.videoId).join(',');
     const videoDetailUrl = `${baseApiUrl}/videos?part=snippet&id=${videoIds}&key=${apiKey}`;
-    const videoDetailResp = await fetch(videoDetailUrl, { next: { revalidate: 60 } });
+    const videoDetailResp = await fetch(videoDetailUrl, nextFetchRevalidate(60));
     const videoDetailData = await videoDetailResp.json();
     const videoDetails = videoDetailData.items || [];
 
