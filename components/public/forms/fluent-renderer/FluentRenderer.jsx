@@ -49,6 +49,13 @@ import { createClient } from "@/lib/supabase/client";
 import { formatInEcuador, getNowInEcuador } from "@/lib/date-utils";
 import { isFinancialReceiptField } from "@/lib/finance/financial-field.mjs";
 import {
+  buildChoiceSubmissionValue,
+  getChoiceOtherOption,
+  getChoiceOtherTextKey,
+  isChoiceOtherSelected,
+  validateChoiceOtherResponse,
+} from "@/lib/forms/choice-other.mjs";
+import {
   isSupportedReceiptMimeType,
   MAX_RECEIPT_FILE_SIZE_BYTES,
   RECEIPT_FILE_ACCEPT,
@@ -227,11 +234,16 @@ const FieldInput = ({
 }) => {
   const fieldId = `field-${field.id}`;
   const fieldName = field.id || field.label;
+  const otherTextName = getChoiceOtherTextKey(fieldName);
+  const fieldValue = watch(fieldName);
+  const otherTextValue = watch(otherTextName);
+  const otherOption = getChoiceOtherOption(field);
+  const otherSelected = isChoiceOtherSelected(field, fieldValue);
 
   const baseClass =
     "w-full min-h-[56px] bg-white/50 backdrop-blur-sm border border-gray-200 rounded-2xl focus:ring-4 focus:ring-[var(--puembo-green)]/10 focus:border-[var(--puembo-green)] transition-all px-5 text-base shadow-sm hover:border-gray-300 hover:bg-white";
 
-  const selectedFile = watch(fieldName);
+  const selectedFile = fieldValue;
 
   const fileName =
     selectedFile && selectedFile instanceof FileList && selectedFile.length > 0
@@ -239,6 +251,50 @@ const FieldInput = ({
       : null;
 
   const options = field.options || [];
+
+  useEffect(() => {
+    if (!otherSelected && otherTextValue) {
+      setValue(otherTextName, "", { shouldValidate: true });
+    }
+  }, [otherSelected, otherTextName, otherTextValue, setValue]);
+
+  const writtenResponseInput = otherSelected ? (
+    <motion.div
+      initial={{ opacity: 0, height: 0, y: -8 }}
+      animate={{ opacity: 1, height: "auto", y: 0 }}
+      exit={{ opacity: 0, height: 0, y: -8 }}
+      className="overflow-hidden"
+    >
+      <div className="mt-3 rounded-2xl border border-[var(--puembo-green)]/20 bg-[var(--puembo-green)]/5 p-4">
+        <Label
+          htmlFor={`${fieldId}-other-text`}
+          className="mb-2 block text-[10px] font-black uppercase tracking-[0.2em] text-[var(--puembo-green)]"
+        >
+          Especifica tu respuesta *
+        </Label>
+        <Input
+          id={`${fieldId}-other-text`}
+          placeholder="Escribe la otra respuesta..."
+          className={cn(
+            baseClass,
+            "min-h-[52px] bg-white",
+            errors?.[otherTextName] && "border-red-400 focus:border-red-500",
+          )}
+          {...register(otherTextName, {
+            validate: (value) =>
+              validateChoiceOtherResponse(field, watch(fieldName), value).valid ||
+              "Especifica la otra respuesta.",
+          })}
+        />
+        {errors?.[otherTextName] && (
+          <p className="mt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-red-500">
+            <AlertCircle className="h-3.5 w-3.5" />
+            Especifica la otra respuesta.
+          </p>
+        )}
+      </div>
+    </motion.div>
+  ) : null;
 
   switch (field.type) {
     case "text":
@@ -301,113 +357,128 @@ const FieldInput = ({
 
     case "radio":
       return (
-        <Controller
-          name={fieldName}
-          control={control}
-          rules={{ required: isRequired }}
-          render={({ field: ctrlField }) => (
-            <RadioGroup
-              onValueChange={ctrlField.onChange}
-              value={ctrlField.value || ""}
-              className="grid grid-cols-1 gap-3"
-            >
-              {options.map((opt) => (
-                <Label
-                  key={opt.id}
-                  htmlFor={`${fieldId}-${opt.id}`}
-                  className={cn(
-                    "flex items-center gap-4 p-5 rounded-2xl border-2 transition-all cursor-pointer group relative overflow-hidden",
-
-                    ctrlField.value === opt.value
-                      ? "bg-[var(--puembo-green)]/5 border-[var(--puembo-green)] ring-4 ring-[var(--puembo-green)]/10"
-                      : "bg-white/50 backdrop-blur-sm border-gray-100 shadow-sm hover:border-gray-200 hover:bg-white",
-                  )}
-                >
-                  <RadioGroupItem
-                    value={opt.value}
-                    id={`${fieldId}-${opt.id}`}
+        <div>
+          <Controller
+            name={fieldName}
+            control={control}
+            rules={{ required: isRequired }}
+            render={({ field: ctrlField }) => (
+              <RadioGroup
+                onValueChange={(value) => {
+                  ctrlField.onChange(value);
+                  if (
+                    otherOption &&
+                    value !== otherOption.value &&
+                    value !== otherOption.label
+                  ) {
+                    setValue(otherTextName, "", { shouldValidate: true });
+                  }
+                }}
+                value={ctrlField.value || ""}
+                className="grid grid-cols-1 gap-3"
+              >
+                {options.map((opt) => (
+                  <Label
+                    key={opt.id}
+                    htmlFor={`${fieldId}-${opt.id}`}
                     className={cn(
-                      "w-5 h-5 border-2",
+                      "flex items-center gap-4 p-5 rounded-2xl border-2 transition-all cursor-pointer group relative overflow-hidden",
 
                       ctrlField.value === opt.value
-                        ? "text-[var(--puembo-green)] border-[var(--puembo-green)]"
-                        : "border-gray-300",
-                    )}
-                  />
-
-                  <span
-                    className={cn(
-                      "font-semibold text-base transition-colors",
-
-                      ctrlField.value === opt.value
-                        ? "text-[var(--puembo-green)]"
-                        : "text-gray-700",
+                        ? "bg-[var(--puembo-green)]/5 border-[var(--puembo-green)] ring-4 ring-[var(--puembo-green)]/10"
+                        : "bg-white/50 backdrop-blur-sm border-gray-100 shadow-sm hover:border-gray-200 hover:bg-white",
                     )}
                   >
-                    {opt.label}
-                  </span>
+                    <RadioGroupItem
+                      value={opt.value}
+                      id={`${fieldId}-${opt.id}`}
+                      className={cn(
+                        "w-5 h-5 border-2",
 
-                  {ctrlField.value === opt.value && (
-                    <motion.div
-                      layoutId={`radio-bg-${field.id}`}
-                      className="absolute inset-0 bg-[var(--puembo-green)]/5 -z-10"
-                      initial={false}
+                        ctrlField.value === opt.value
+                          ? "text-[var(--puembo-green)] border-[var(--puembo-green)]"
+                          : "border-gray-300",
+                      )}
                     />
-                  )}
-                </Label>
-              ))}
-            </RadioGroup>
-          )}
-        />
+
+                    <span
+                      className={cn(
+                        "font-semibold text-base transition-colors",
+
+                        ctrlField.value === opt.value
+                          ? "text-[var(--puembo-green)]"
+                          : "text-gray-700",
+                      )}
+                    >
+                      {opt.label}
+                    </span>
+
+                    {ctrlField.value === opt.value && (
+                      <motion.div
+                        layoutId={`radio-bg-${field.id}`}
+                        className="absolute inset-0 bg-[var(--puembo-green)]/5 -z-10"
+                        initial={false}
+                      />
+                    )}
+                  </Label>
+                ))}
+              </RadioGroup>
+            )}
+          />
+          <AnimatePresence>{writtenResponseInput}</AnimatePresence>
+        </div>
       );
 
     case "checkbox":
       return (
-        <div className="grid grid-cols-1 gap-3">
-          {options.map((opt) => (
-            <Controller
-              key={opt.id}
-              name={`${fieldName}.${opt.value}`}
-              control={control}
-              render={({ field: ctrlField }) => (
-                <Label
-                  htmlFor={`${fieldId}-${opt.id}`}
-                  className={cn(
-                    "flex items-center gap-4 p-5 rounded-2xl border-2 transition-all cursor-pointer group",
-
-                    ctrlField.value
-                      ? "bg-[var(--puembo-green)]/5 border-[var(--puembo-green)] ring-4 ring-[var(--puembo-green)]/10"
-                      : "bg-white/50 backdrop-blur-sm border-gray-100 shadow-sm hover:border-gray-200 hover:bg-white",
-                  )}
-                >
-                  <Checkbox
-                    id={`${fieldId}-${opt.id}`}
-                    checked={ctrlField.value}
-                    onCheckedChange={ctrlField.onChange}
+        <div>
+          <div className="grid grid-cols-1 gap-3">
+            {options.map((opt) => (
+              <Controller
+                key={opt.id}
+                name={`${fieldName}.${opt.value}`}
+                control={control}
+                render={({ field: ctrlField }) => (
+                  <Label
+                    htmlFor={`${fieldId}-${opt.id}`}
                     className={cn(
-                      "w-5 h-5 rounded-lg transition-all",
+                      "flex items-center gap-4 p-5 rounded-2xl border-2 transition-all cursor-pointer group",
 
                       ctrlField.value
-                        ? "data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
-                        : "border-gray-300",
-                    )}
-                  />
-
-                  <span
-                    className={cn(
-                      "font-semibold text-base transition-colors",
-
-                      ctrlField.value
-                        ? "text-[var(--puembo-green)]"
-                        : "text-gray-700",
+                        ? "bg-[var(--puembo-green)]/5 border-[var(--puembo-green)] ring-4 ring-[var(--puembo-green)]/10"
+                        : "bg-white/50 backdrop-blur-sm border-gray-100 shadow-sm hover:border-gray-200 hover:bg-white",
                     )}
                   >
-                    {opt.label}
-                  </span>
-                </Label>
-              )}
-            />
-          ))}
+                    <Checkbox
+                      id={`${fieldId}-${opt.id}`}
+                      checked={ctrlField.value}
+                      onCheckedChange={ctrlField.onChange}
+                      className={cn(
+                        "w-5 h-5 rounded-lg transition-all",
+
+                        ctrlField.value
+                          ? "data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+                          : "border-gray-300",
+                      )}
+                    />
+
+                    <span
+                      className={cn(
+                        "font-semibold text-base transition-colors",
+
+                        ctrlField.value
+                          ? "text-[var(--puembo-green)]"
+                          : "text-gray-700",
+                      )}
+                    >
+                      {opt.label}
+                    </span>
+                  </Label>
+                )}
+              />
+            ))}
+          </div>
+          <AnimatePresence>{writtenResponseInput}</AnimatePresence>
         </div>
       );
 
@@ -673,6 +744,9 @@ export default function FluentRenderer({ form, isPreview = false }) {
       } else {
         fieldLabels.push(f.id || f.label);
       }
+      if (getChoiceOtherOption(f)) {
+        fieldLabels.push(getChoiceOtherTextKey(f.id || f.label));
+      }
     });
 
     // Validar con trigger
@@ -696,6 +770,20 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
     if (missingRequiredCheckbox) {
       toast.error("Por favor selecciona al menos una opción.");
+      return;
+    }
+
+    const missingWrittenResponse = visibleFields.some((field) => {
+      const fieldKey = field.id || field.label;
+      return !validateChoiceOtherResponse(
+        field,
+        values[fieldKey],
+        values[getChoiceOtherTextKey(fieldKey)],
+      ).valid;
+    });
+
+    if (missingWrittenResponse) {
+      toast.error("Especifica la otra respuesta.");
       return;
     }
 
@@ -949,7 +1037,23 @@ export default function FluentRenderer({ form, isPreview = false }) {
             value: storedValue,
           };
         } 
-        // OTROS CAMPOS (Radio, Select, Checkbox, Text)
+        // OPCIONES ÚNICAS Y MÚLTIPLES
+        else if (["radio", "checkbox"].includes(fieldType)) {
+          const choiceValue = buildChoiceSubmissionValue(
+            { ...fieldDef, type: fieldType },
+            value,
+            data[getChoiceOtherTextKey(key)],
+          );
+          processedDataForGoogle[key] = Array.isArray(choiceValue.value)
+            ? choiceValue.value.join("\n")
+            : choiceValue.value;
+          storeCompatibleValue(choiceValue.value);
+          return {
+            ...answerBase,
+            ...choiceValue,
+          };
+        }
+        // OTROS CAMPOS
         else if (typeof value === "object" && !Array.isArray(value)) {
           const fieldOptions = typeof fieldDef.options === "string" ? JSON.parse(fieldDef.options) : fieldDef.options || [];
           const selected = Object.keys(value).filter((k) => value[k]).map((k) => fieldOptions.find((o) => o.value === k)?.label || k);

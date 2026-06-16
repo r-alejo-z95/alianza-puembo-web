@@ -83,6 +83,7 @@ import { findNameInSubmission } from "@/lib/form-utils";
 import { getValueDisplayText } from "@/lib/finance/manual-payment.mjs";
 import {
   buildHistoricalFormFields,
+  getSubmissionAnswerForField,
   getSubmissionValueForField,
   getHistoricalFieldDisplay,
 } from "@/lib/form-response-history";
@@ -90,6 +91,12 @@ import {
   buildEditableSubmissionValues,
   getEditableSubmissionFields,
 } from "@/lib/forms/submission-admin.mjs";
+import {
+  getChoiceAnalyticsValues,
+  getChoiceOtherOption,
+  getChoiceOtherTextKey,
+  isChoiceOtherSelected,
+} from "@/lib/forms/choice-other.mjs";
 import FormEmailCampaignsPanel from "@/components/admin/forms/email/FormEmailCampaignsPanel";
 import RecycleBin from "./RecycleBin";
 
@@ -525,7 +532,13 @@ export default function AnalyticsDashboard({
       const val = getSubmissionValueForField(s, field);
       if (isValueEmpty(val)) return;
       respondedCount++;
-      if (Array.isArray(val)) {
+      const fieldType = field.field_type || field.type;
+      if (["radio", "checkbox"].includes(fieldType)) {
+        const answer = getSubmissionAnswerForField(s, field);
+        getChoiceAnalyticsValues(field, val, answer || {}).forEach((option) => {
+          counts[option] = (counts[option] || 0) + 1;
+        });
+      } else if (Array.isArray(val)) {
         val.forEach((v) => { counts[v] = (counts[v] || 0) + 1; });
       } else if (typeof val === "object" && val._type === "file") {
         counts["Archivos Recibidos"] = (counts["Archivos Recibidos"] || 0) + 1;
@@ -1037,8 +1050,27 @@ export default function AnalyticsDashboard({
 
   const renderEditFieldControl = (field) => {
     const fieldType = field.field_type || field.type || "text";
-    const options = getFieldOptions(field).map(getFieldOptionLabel).filter(Boolean);
+    const fieldOptions = getFieldOptions(field);
+    const options = fieldOptions.map(getFieldOptionLabel).filter(Boolean);
     const value = editValues[field.id];
+    const choiceField = { ...field, type: fieldType, options: fieldOptions };
+    const otherOption = getChoiceOtherOption(choiceField);
+    const otherOptionLabel = getFieldOptionLabel(otherOption);
+    const otherTextKey = getChoiceOtherTextKey(field.id);
+    const otherSelected = isChoiceOtherSelected(choiceField, value);
+    const writtenResponseInput = otherSelected ? (
+      <div className="mt-3 rounded-2xl border border-[var(--puembo-green)]/20 bg-[var(--puembo-green)]/5 p-4">
+        <label className="mb-2 block text-[9px] font-black uppercase tracking-[0.2em] text-[var(--puembo-green)]">
+          Especifica la otra respuesta *
+        </label>
+        <Input
+          value={String(editValues[otherTextKey] ?? "")}
+          onChange={(event) => updateEditValue(otherTextKey, event.target.value)}
+          placeholder="Escribe la otra respuesta..."
+          className="h-12 rounded-2xl border-gray-100 bg-white text-sm font-medium focus-visible:ring-[var(--puembo-green)]/20"
+        />
+      </div>
+    ) : null;
 
     if (fieldType === "textarea") {
       return (
@@ -1053,48 +1085,62 @@ export default function AnalyticsDashboard({
     if (fieldType === "checkbox" && options.length > 0) {
       const selectedValues = Array.isArray(value) ? value : [];
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {options.map((option) => {
-            const checked = selectedValues.includes(option);
-            return (
-              <label
-                key={option}
-                className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50/60 px-4 py-3 text-sm font-bold text-gray-700"
-              >
-                <Checkbox
-                  checked={checked}
-                  onCheckedChange={(nextChecked) => {
-                    updateEditValue(
-                      field.id,
-                      nextChecked
-                        ? [...selectedValues, option]
-                        : selectedValues.filter((item) => item !== option),
-                    );
-                  }}
-                  className="rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
-                />
-                <span className="min-w-0 break-words">{option}</span>
-              </label>
-            );
-          })}
+        <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {options.map((option) => {
+              const checked = selectedValues.includes(option);
+              return (
+                <label
+                  key={option}
+                  className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50/60 px-4 py-3 text-sm font-bold text-gray-700"
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(nextChecked) => {
+                      updateEditValue(
+                        field.id,
+                        nextChecked
+                          ? [...selectedValues, option]
+                          : selectedValues.filter((item) => item !== option),
+                      );
+                      if (option === otherOptionLabel && !nextChecked) {
+                        updateEditValue(otherTextKey, "");
+                      }
+                    }}
+                    className="rounded-md border-gray-300 data-[state=checked]:bg-[var(--puembo-green)] data-[state=checked]:border-[var(--puembo-green)]"
+                  />
+                  <span className="min-w-0 break-words">{option}</span>
+                </label>
+              );
+            })}
+          </div>
+          {writtenResponseInput}
         </div>
       );
     }
 
     if ((fieldType === "select" || fieldType === "radio") && options.length > 0) {
       return (
-        <select
-          value={String(value ?? "")}
-          onChange={(event) => updateEditValue(field.id, event.target.value)}
-          className="h-12 w-full rounded-2xl border border-gray-100 bg-gray-50/60 px-4 text-sm font-bold text-gray-700 outline-none focus:border-[var(--puembo-green)] focus:ring-4 focus:ring-[var(--puembo-green)]/10"
-        >
-          <option value="">Sin seleccionar</option>
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        <div>
+          <select
+            value={String(value ?? "")}
+            onChange={(event) => {
+              updateEditValue(field.id, event.target.value);
+              if (event.target.value !== otherOptionLabel) {
+                updateEditValue(otherTextKey, "");
+              }
+            }}
+            className="h-12 w-full rounded-2xl border border-gray-100 bg-gray-50/60 px-4 text-sm font-bold text-gray-700 outline-none focus:border-[var(--puembo-green)] focus:ring-4 focus:ring-[var(--puembo-green)]/10"
+          >
+            <option value="">Sin seleccionar</option>
+            {options.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          {writtenResponseInput}
+        </div>
       );
     }
 

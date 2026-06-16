@@ -39,6 +39,11 @@ import {
   normalizeManualFieldValue,
   validateManualRegistrationValues,
 } from "@/lib/finance/manual-registration.mjs";
+import {
+  getChoiceOtherOption,
+  getChoiceOtherTextKey,
+  isChoiceOtherSelected,
+} from "@/lib/forms/choice-other.mjs";
 
 const COVERAGE_OPTIONS = [
   {
@@ -89,6 +94,30 @@ export default function ManualFinancialRegistrationForm({ forms = [] }) {
   const renderField = (field) => {
     const options = normalizeFieldOptions(field.options);
     const value = values[field.id];
+    const choiceField = { ...field, options };
+    const otherOption = getChoiceOtherOption(choiceField);
+    const otherTextKey = getChoiceOtherTextKey(field.id);
+    const otherSelected = isChoiceOtherSelected(choiceField, value);
+    const writtenResponseInput = otherSelected ? (
+      <motion.div
+        initial={{ opacity: 0, height: 0, y: -6 }}
+        animate={{ opacity: 1, height: "auto", y: 0 }}
+        exit={{ opacity: 0, height: 0, y: -6 }}
+        className="overflow-hidden"
+      >
+        <div className="mt-3 rounded-2xl border border-[var(--puembo-green)]/20 bg-[var(--puembo-green)]/5 p-4">
+          <Label className="mb-2 block text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]">
+            Especifica la otra respuesta *
+          </Label>
+          <Input
+            value={values[otherTextKey] || ""}
+            onChange={(event) => setFieldValue(otherTextKey, event.target.value)}
+            placeholder="Escribe la otra respuesta..."
+            className="h-12 rounded-2xl border-gray-100 bg-white shadow-sm"
+          />
+        </div>
+      </motion.div>
+    ) : null;
 
     if (["section", "section_header", "separator"].includes(field.type)) {
       return (
@@ -153,54 +182,71 @@ export default function ManualFinancialRegistrationForm({ forms = [] }) {
             </SelectContent>
           </Select>
         ) : field.type === "radio" ? (
-          <RadioGroup
-            value={value || ""}
-            onValueChange={(v) => setFieldValue(field.id, v)}
-            className="space-y-2"
-          >
-            {options.map((opt) => (
-              <div
-                key={opt.value || opt.label}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 cursor-pointer hover:border-[var(--puembo-green)]/30 transition-colors"
-              >
-                <RadioGroupItem
-                  value={opt.value || opt.label}
-                  id={`${field.id}-${opt.value || opt.label}`}
-                />
-                <Label
-                  htmlFor={`${field.id}-${opt.value || opt.label}`}
-                  className="cursor-pointer text-sm font-medium text-gray-700"
-                >
-                  {opt.label || opt.value}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
-        ) : field.type === "checkbox" ? (
-          <div className="space-y-2">
-            {options.map((opt) => {
-              const optionKey = opt.value || opt.label;
-              const normalizedValue = normalizeManualFieldValue(field, value);
-              return (
-                <label
-                  key={optionKey}
+          <div>
+            <RadioGroup
+              value={value || ""}
+              onValueChange={(nextValue) => {
+                setFieldValue(field.id, nextValue);
+                if (
+                  otherOption &&
+                  nextValue !== (otherOption.value || otherOption.label)
+                ) {
+                  setFieldValue(otherTextKey, "");
+                }
+              }}
+              className="space-y-2"
+            >
+              {options.map((opt) => (
+                <div
+                  key={opt.value || opt.label}
                   className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 cursor-pointer hover:border-[var(--puembo-green)]/30 transition-colors"
                 >
-                  <Checkbox
-                    checked={Boolean(normalizedValue?.[optionKey])}
-                    onCheckedChange={(checked) =>
-                      setFieldValue(field.id, {
-                        ...normalizedValue,
-                        [optionKey]: Boolean(checked),
-                      })
-                    }
+                  <RadioGroupItem
+                    value={opt.value || opt.label}
+                    id={`${field.id}-${opt.value || opt.label}`}
                   />
-                  <span className="text-sm font-medium text-gray-700">
+                  <Label
+                    htmlFor={`${field.id}-${opt.value || opt.label}`}
+                    className="cursor-pointer text-sm font-medium text-gray-700"
+                  >
                     {opt.label || opt.value}
-                  </span>
-                </label>
-              );
-            })}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+            <AnimatePresence>{writtenResponseInput}</AnimatePresence>
+          </div>
+        ) : field.type === "checkbox" ? (
+          <div>
+            <div className="space-y-2">
+              {options.map((opt) => {
+                const optionKey = opt.value || opt.label;
+                const normalizedValue = normalizeManualFieldValue(field, value);
+                return (
+                  <label
+                    key={optionKey}
+                    className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-gray-50 border border-gray-100 cursor-pointer hover:border-[var(--puembo-green)]/30 transition-colors"
+                  >
+                    <Checkbox
+                      checked={Boolean(normalizedValue?.[optionKey])}
+                      onCheckedChange={(checked) => {
+                        setFieldValue(field.id, {
+                          ...normalizedValue,
+                          [optionKey]: Boolean(checked),
+                        });
+                        if (opt.allows_other && !checked) {
+                          setFieldValue(otherTextKey, "");
+                        }
+                      }}
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      {opt.label || opt.value}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+            <AnimatePresence>{writtenResponseInput}</AnimatePresence>
           </div>
         ) : (
           <Input

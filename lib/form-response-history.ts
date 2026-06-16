@@ -52,17 +52,24 @@ export function getSubmissionAnswerMap(submission: FormSubmission) {
   return { byFieldId, byLabel };
 }
 
-export function getSubmissionValueForField(
+export function getSubmissionAnswerForField(
   submission: FormSubmission,
   field: Pick<FormField, "id" | "label">,
 ) {
   const answers = getSubmissionAnswerMap(submission);
+  return (
+    answers.byFieldId.get(field.id) ??
+    answers.byLabel.get(normalizeFormKey(field.label)) ??
+    null
+  );
+}
 
-  const byId = answers.byFieldId.get(field.id);
-  if (byId) return byId.value;
-
-  const byLabel = answers.byLabel.get(normalizeFormKey(field.label));
-  if (byLabel) return byLabel.value;
+export function getSubmissionValueForField(
+  submission: FormSubmission,
+  field: Pick<FormField, "id" | "label">,
+) {
+  const answer = getSubmissionAnswerForField(submission, field);
+  if (answer) return answer.value;
 
   const legacyData = submission.data ?? {};
   if (Object.prototype.hasOwnProperty.call(legacyData, field.label)) {

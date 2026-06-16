@@ -29,6 +29,7 @@ import {
   Sparkles,
   Settings2,
   ChevronRight,
+  MessageSquareText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -145,6 +146,13 @@ function QuestionCard({
 
   const handleTypeChange = (newType) => {
     setValue(`fields.${index}.type`, newType);
+    if (!["radio", "checkbox"].includes(newType) && options?.length) {
+      setValue(
+        `fields.${index}.options`,
+        options.map((option) => ({ ...option, allows_other: false })),
+        { shouldDirty: true },
+      );
+    }
     if (
       ["radio", "checkbox", "select"].includes(newType) &&
       (!options || options.length === 0)
@@ -169,6 +177,20 @@ function QuestionCard({
     setValue(
       `fields.${index}.options`,
       current.filter((_, i) => i !== optIndex),
+    );
+  };
+
+  const toggleWrittenResponse = (optIndex) => {
+    const current = getValues(`fields.${index}.options`) || [];
+    const shouldEnable = !current[optIndex]?.allows_other;
+
+    setValue(
+      `fields.${index}.options`,
+      current.map((option, indexToUpdate) => ({
+        ...option,
+        allows_other: shouldEnable && indexToUpdate === optIndex,
+      })),
+      { shouldDirty: true, shouldValidate: true },
     );
   };
 
@@ -246,6 +268,11 @@ function QuestionCard({
                 <span className="truncate">
                   {opt.label || `Opción ${i + 1}`}
                 </span>
+                {opt.allows_other && ["radio", "checkbox"].includes(type) && (
+                  <span className="shrink-0 rounded-full border border-[var(--puembo-green)]/20 bg-[var(--puembo-green)]/5 px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-[var(--puembo-green)]">
+                    Respuesta escrita
+                  </span>
+                )}
               </div>
 
                               {["radio", "select"].includes(type) &&
@@ -494,6 +521,25 @@ function QuestionCard({
                       />
                     )}
                   />
+
+                  {["radio", "checkbox"].includes(type) && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className={cn(
+                        "h-9 shrink-0 rounded-xl px-3 text-[9px] font-black uppercase tracking-wider transition-all",
+                        opt.allows_other
+                          ? "bg-[var(--puembo-green)]/10 text-[var(--puembo-green)] hover:bg-[var(--puembo-green)]/15"
+                          : "text-gray-300 hover:bg-gray-50 hover:text-gray-600",
+                      )}
+                      onClick={() => toggleWrittenResponse(optIdx)}
+                      aria-pressed={Boolean(opt.allows_other)}
+                      title="Permitir que la persona escriba una respuesta al seleccionar esta opción"
+                    >
+                      <MessageSquareText className="mr-1.5 h-3.5 w-3.5" />
+                      Respuesta escrita
+                    </Button>
+                  )}
 
                   {["radio", "select"].includes(type) && sections?.length > 0 && (
                     <div className="flex items-center gap-2 min-w-[140px]">

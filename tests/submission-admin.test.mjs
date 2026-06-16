@@ -137,6 +137,117 @@ test("submission response update preserves files and timestamp while changing ed
   );
 });
 
+test("open choice answers restore their selection and written response for editing", () => {
+  const choiceForm = {
+    id: "form-choice",
+    form_fields: [
+      {
+        id: "activity",
+        label: "Actividad",
+        type: "radio",
+        order_index: 1,
+        options: [
+          { label: "Correr", value: "run" },
+          { label: "Otra", value: "other", allows_other: true },
+        ],
+      },
+      {
+        id: "days",
+        label: "Días",
+        type: "checkbox",
+        order_index: 2,
+        options: [
+          { label: "Viernes", value: "friday" },
+          { label: "Otro día", value: "other", allows_other: true },
+        ],
+      },
+    ],
+  };
+  const choiceSubmission = {
+    data: {},
+    answers: [
+      {
+        field_id: "activity",
+        label: "Actividad",
+        value: "Otra: Natación",
+        choice_options: ["Otra"],
+        other_text: "Natación",
+      },
+      {
+        field_id: "days",
+        label: "Días",
+        value: ["Viernes", "Otro día: Domingo"],
+        choice_options: ["Viernes", "Otro día"],
+        other_text: "Domingo",
+      },
+    ],
+  };
+
+  assert.deepEqual(buildEditableSubmissionValues(choiceForm, choiceSubmission), {
+    activity: "Otra",
+    activity__other: "Natación",
+    days: ["Viernes", "Otro día"],
+    days__other: "Domingo",
+  });
+});
+
+test("submission response update serializes edited open choices and rejects empty text", () => {
+  const choiceForm = {
+    id: "form-choice",
+    form_fields: [
+      {
+        id: "activity",
+        label: "Actividad",
+        type: "radio",
+        order_index: 1,
+        options: [
+          { label: "Correr", value: "run" },
+          { label: "Otra", value: "other", allows_other: true },
+        ],
+      },
+    ],
+  };
+  const choiceSubmission = {
+    data: { activity: "Correr", Actividad: "Correr" },
+    answers: [
+      {
+        field_id: "activity",
+        key: "activity",
+        label: "Actividad",
+        type: "radio",
+        value: "Correr",
+      },
+    ],
+  };
+
+  const update = buildSubmissionResponseUpdate({
+    form: choiceForm,
+    submission: choiceSubmission,
+    values: {
+      activity: "Otra",
+      activity__other: "Natación",
+    },
+  });
+
+  assert.equal(update.data.activity, "Otra: Natación");
+  assert.equal(update.data.Actividad, "Otra: Natación");
+  assert.deepEqual(update.answers[0].choice_options, ["Otra"]);
+  assert.equal(update.answers[0].other_text, "Natación");
+
+  assert.throws(
+    () =>
+      buildSubmissionResponseUpdate({
+        form: choiceForm,
+        submission: choiceSubmission,
+        values: {
+          activity: "Otra",
+          activity__other: " ",
+        },
+      }),
+    /Especifica la otra respuesta/,
+  );
+});
+
 test("submission response management is wired through server actions and analytics", () => {
   const formsActions = readFileSync(new URL("../lib/actions/forms.ts", import.meta.url), "utf8");
   const rootActions = readFileSync(new URL("../lib/actions.ts", import.meta.url), "utf8");

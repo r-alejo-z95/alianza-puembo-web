@@ -73,6 +73,61 @@ test("validateManualRegistrationValues reports missing required text and checkbo
   assert.deepEqual(result.missingFieldLabels, ["Nombre", "Asistencia"]);
 });
 
+test("validateManualRegistrationValues requires text for a selected open option", () => {
+  const fields = [
+    {
+      id: "activity",
+      label: "Actividad",
+      type: "radio",
+      options: [
+        { label: "Correr", value: "run" },
+        { label: "Otra", value: "other", allows_other: true },
+      ],
+    },
+  ];
+
+  const result = validateManualRegistrationValues(fields, {
+    activity: "other",
+    activity__other: "   ",
+  });
+
+  assert.equal(result.valid, false);
+  assert.deepEqual(result.missingFieldLabels, ["Actividad (especifica la otra respuesta)"]);
+});
+
+test("buildManualAnswers serializes open choices with display value and metadata", () => {
+  const fields = [
+    {
+      id: "activity",
+      label: "Actividad",
+      type: "radio",
+      options: [
+        { label: "Correr", value: "run" },
+        { label: "Otra", value: "other", allows_other: true },
+      ],
+      order_index: 1,
+    },
+  ];
+
+  assert.deepEqual(
+    buildManualAnswers(fields, {
+      activity: "other",
+      activity__other: "Natación",
+    }),
+    [
+      {
+        field_id: "activity",
+        key: "activity",
+        label: "Actividad",
+        value: "Otra: Natación",
+        choice_options: ["Otra"],
+        other_text: "Natación",
+        order_index: 1,
+      },
+    ],
+  );
+});
+
 test("buildManualData keeps normalized field values for manual submissions", () => {
   const fields = [
     { id: "name", label: "Nombre", type: "text" },
@@ -124,6 +179,6 @@ test("createManualFinancialRegistration disambiguates the forms to form_fields r
 
   assert.match(
     financeActions,
-    /\.select\("id, is_financial, is_archived, financial_field_id, financial_field_label, form_fields!form_id\(id, label, order_index\)"\)/,
+    /\.select\("id, is_financial, is_archived, financial_field_id, financial_field_label, form_fields!form_id\(id, label, type, required, options, order_index\)"\)/,
   );
 });

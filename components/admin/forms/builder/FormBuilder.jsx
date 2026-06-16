@@ -69,6 +69,7 @@ import { AdminFAB } from "@/components/admin/layout/AdminFAB";
 import { AdminEditorPanel } from "@/components/admin/layout/AdminEditorPanel";
 import { CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { normalizeChoiceOtherOptions } from "@/lib/forms/choice-other.mjs";
 
 // --- Blocks Picker ---
 const FIELD_TYPES = [
@@ -179,6 +180,7 @@ const fieldSchema = z.object({
         value: z.string(),
         label: z.string(),
         next_section_id: z.string().optional().nullable(),
+        allows_other: z.boolean().optional().default(false),
       }),
     )
     .optional()
@@ -378,11 +380,13 @@ export default function FormBuilder({
           type: f.type || f.field_type,
           required: f.required ?? f.is_required,
           order_index: f.order_index ?? f.order,
-          options: (f.options || []).map((o) => ({
-            ...o,
-            id: o.id || uuidv4(),
-            value: o.value || o.label,
-          })),
+          options: normalizeChoiceOtherOptions(
+            (f.options || []).map((o) => ({
+              ...o,
+              id: o.id || uuidv4(),
+              value: o.value || o.label,
+            })),
+          ),
         }))
         .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
 
@@ -546,7 +550,9 @@ export default function FormBuilder({
       const preparedQuestions = questions.map((q) => ({
         ...q,
         id: uuidv4(),
-        options: q.options?.map((o) => ({ ...o, id: uuidv4() })),
+        options: normalizeChoiceOtherOptions(
+          q.options?.map((o) => ({ ...o, id: uuidv4() })),
+        ),
       }));
 
       // Insertar después del campo activo o al final
@@ -571,7 +577,9 @@ export default function FormBuilder({
         ...field,
         id: newId,
         label: field.label ? `${field.label} (Copia)` : "",
-        options: field.options?.map((o) => ({ ...o, id: uuidv4() })),
+        options: normalizeChoiceOtherOptions(
+          field.options?.map((o) => ({ ...o, id: uuidv4() })),
+        ),
       };
 
       const targetIndex = index + 1;

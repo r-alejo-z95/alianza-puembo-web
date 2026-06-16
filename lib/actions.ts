@@ -28,6 +28,7 @@ import { getInstallmentEmailSummary } from "@/lib/finance/payment-summary.mjs";
 import { getSubmissionBalanceSummary } from "@/lib/finance/submission-balance.mjs";
 import { detectFinancialSubmissionConflict } from "@/lib/finance/submission-dedupe.mjs";
 import { findNameInSubmission } from "@/lib/form-utils";
+import { validateChoiceOtherAnswers } from "@/lib/forms/choice-other.mjs";
 import {
   getReceiptFileExtension,
   isSupportedReceiptMimeType,
@@ -874,12 +875,28 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_internal, is_financial, payment_type, total_amount, allow_shared_receipts, shared_receipt_max_submissions, destination_account_id, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label)")
+      .select("id, title, slug, is_internal, is_financial, payment_type, total_amount, allow_shared_receipts, shared_receipt_max_submissions, destination_account_id, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label, type, options)")
       .eq("id", formId)
       .single();
 
     if (formErr || !form) throw new Error("Formulario no encontrado");
     console.log(`[Submit] Form: ${form.slug}, Is Financial: ${form.is_financial}, Target Label: "${form.financial_field_label}"`);
+
+    const choiceValidation = validateChoiceOtherAnswers(
+      (form as any).form_fields || [],
+      answers,
+    );
+    if (!choiceValidation.valid) {
+      return {
+        error: `Especifica la otra respuesta en: ${choiceValidation.fieldLabels.join(", ")}.`,
+        outcome: buildSubmissionOutcome({
+          status: "error",
+          title: "Falta completar una respuesta",
+          message: "Cuando seleccionas una opción abierta debes escribir la otra respuesta.",
+          primaryAction: { label: "Completar respuesta" },
+        }),
+      };
+    }
 
     if (!form.is_internal && !String(notificationEmail || "").trim()) {
       return {
