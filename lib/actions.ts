@@ -29,6 +29,7 @@ import { getSubmissionBalanceSummary } from "@/lib/finance/submission-balance.mj
 import { detectFinancialSubmissionConflict } from "@/lib/finance/submission-dedupe.mjs";
 import { findNameInSubmission } from "@/lib/form-utils";
 import { validateChoiceOtherAnswers } from "@/lib/forms/choice-other.mjs";
+import { buildPricingSnapshot } from "@/lib/finance/pricing-packages.mjs";
 import {
   getReceiptFileExtension,
   isSupportedReceiptMimeType,
@@ -849,6 +850,8 @@ export async function submitFormAction(payload: {
   userAgent: string;
   isInternal: boolean;
   notificationEmail?: string;
+  pricingPackageId?: string | null;
+  participantDetails?: any[] | null;
   sharedPaymentConfirmation?: {
     accepted?: boolean;
     matchedSubmissionId?: string;
@@ -863,6 +866,8 @@ export async function submitFormAction(payload: {
     userAgent,
     isInternal,
     notificationEmail,
+    pricingPackageId,
+    participantDetails: incomingParticipantDetails = [],
     sharedPaymentConfirmation,
   } = payload;
   console.log(`[Submit] Iniciando procesamiento para formulario: ${formId}`);
@@ -875,7 +880,7 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_internal, is_financial, payment_type, total_amount, allow_shared_receipts, shared_receipt_max_submissions, destination_account_id, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label, type, options)")
+      .select("id, title, slug, is_internal, is_financial, payment_type, total_amount, pricing_mode, pricing_packages, pricing_field_id, collect_participant_details, participant_template, allow_shared_receipts, shared_receipt_max_submissions, destination_account_id, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label, type, options)")
       .eq("id", formId)
       .single();
 
@@ -913,6 +918,17 @@ export async function submitFormAction(payload: {
         }),
       };
     }
+
+    const pricingSnapshot = form.is_financial
+      ? buildPricingSnapshot({
+          form,
+          selectedPackageId: (form as any).pricing_mode === "packages" ? pricingPackageId : null,
+        })
+      : null;
+    const participantDetails = Array.isArray(incomingParticipantDetails) && incomingParticipantDetails.length
+      ? incomingParticipantDetails
+      : null;
+    const expectedAmount = Number(pricingSnapshot?.amount ?? form.total_amount ?? 0);
 
     let destinationAccount: {
       bank_name?: string | null;
@@ -1088,7 +1104,7 @@ export async function submitFormAction(payload: {
           receiptData: aiExtractedData || {},
         },
         existingSubmissions: activeSubmissions,
-        totalAmount: Number(form.total_amount || 0),
+        totalAmount: expectedAmount,
         allowSharedReceipts: !!form.allow_shared_receipts,
         sharedReceiptMaxSubmissions: Number(form.shared_receipt_max_submissions || 1),
       });
@@ -1176,6 +1192,14 @@ export async function submitFormAction(payload: {
       notification_email: notificationEmail,
     };
 
+    if (pricingSnapshot) {
+      Object.assign(submissionData, {
+        expected_amount: pricingSnapshot.amount,
+        pricing_snapshot: pricingSnapshot,
+        participant_details: participantDetails,
+      });
+    }
+
     if (sharedPaymentCoverage) {
       Object.assign(submissionData, {
         coverage_mode: "covered_by_used_payment",
@@ -1253,7 +1277,7 @@ export async function submitFormAction(payload: {
           .select("amount_claimed, extracted_data, status")
           .eq("submission_id", submission.id);
 
-        const totalAmount = Number(form.total_amount || 0);
+        const totalAmount = Number(pricingSnapshot?.amount ?? form.total_amount ?? 0);
         const emailSummary = sharedPaymentCoverage
           ? {
               amountPaid: totalAmount,

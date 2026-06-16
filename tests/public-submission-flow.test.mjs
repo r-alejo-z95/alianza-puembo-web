@@ -87,3 +87,15 @@ test("tracking page fills the mobile viewport background", () => {
   assert.match(trackingPage, /overflow-x-hidden/);
   assert.match(trackingPage, /env\(safe-area-inset-bottom\)/);
 });
+
+test("public renderer submits pricing package and participant details", () => {
+  const renderer = readFileSync(
+    new URL("../components/public/forms/fluent-renderer/FluentRenderer.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(renderer, /participant_details/);
+  assert.match(renderer, /pricingPackageId/);
+  assert.match(renderer, /collect_participant_details/);
+  assert.match(renderer, /participant_template/);
+});

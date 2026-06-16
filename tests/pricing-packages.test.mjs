@@ -190,3 +190,12 @@ test("builder synchronizes automatic pricing field", () => {
   assert.match(builderPage, /buildPricingFieldOptions/);
   assert.match(builderPage, /Selecciona tu opción de inscripción|Selecciona tu opcion de inscripcion/);
 });
+
+test("submitFormAction stores expected amount and pricing snapshot", () => {
+  const actions = readFileSync(new URL("../lib/actions.ts", import.meta.url), "utf8");
+
+  assert.match(actions, /buildPricingSnapshot/);
+  assert.match(actions, /expected_amount:\s*pricingSnapshot\.amount/);
+  assert.match(actions, /pricing_snapshot:\s*pricingSnapshot/);
+  assert.match(actions, /participant_details:\s*participantDetails/);
+});

@@ -103,6 +103,47 @@ const buildClientSubmissionOutcome = ({
   secondaryAction,
 });
 
+function getSelectedPricingPackageId(form, values = {}) {
+  if (form?.pricing_mode !== "packages") return null;
+  const fieldId = form.pricing_field_id;
+  if (fieldId && values[fieldId]) return values[fieldId];
+  const pricingField = (form.form_fields || []).find((field) => field.id === fieldId);
+  if (pricingField?.label && values[pricingField.label]) return values[pricingField.label];
+  return null;
+}
+
+function getParticipantFieldNames(form, values = {}) {
+  if (!form?.collect_participant_details || form?.pricing_mode !== "packages") return [];
+  const selectedPackageId = getSelectedPricingPackageId(form, values);
+  const selectedPackage = (form.pricing_packages || []).find((pkg) => pkg.id === selectedPackageId);
+  const count = Number(selectedPackage?.participant_count || 0);
+  const template = Array.isArray(form.participant_template) ? form.participant_template : [];
+  if (!count || template.length === 0) return [];
+
+  return Array.from({ length: count }, (_, index) => {
+    const number = index + 1;
+    return template.map((field) => `participant_${number}_${field.id}`);
+  }).flat();
+}
+
+function buildParticipantDetails(form, values = {}, selectedPackageId) {
+  if (!form?.collect_participant_details || form?.pricing_mode !== "packages") return [];
+  const pkg = (form.pricing_packages || []).find((item) => item.id === selectedPackageId);
+  const count = Number(pkg?.participant_count || 0);
+  const template = Array.isArray(form.participant_template) ? form.participant_template : [];
+  if (!count || template.length === 0) return [];
+
+  return Array.from({ length: count }, (_, index) => {
+    const number = index + 1;
+    const answers = {};
+    template.forEach((field) => {
+      const key = `participant_${number}_${field.id}`;
+      answers[field.label] = values[key] ?? "";
+    });
+    return { index: number, answers };
+  });
+}
+
 // --- Logic Hook ---
 function useFormLogic(form) {
   const [currentStep, setCurrentStep] = useState(0);
@@ -737,6 +778,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
   }, [currentStep, steps, visibleFields, watchedValues, jumpTargets]);
 
   const handleNext = async () => {
+    const values = getValues();
     const fieldLabels = [];
     visibleFields.forEach((f) => {
       if (f.type === "checkbox") {
@@ -748,6 +790,9 @@ export default function FluentRenderer({ form, isPreview = false }) {
         fieldLabels.push(getChoiceOtherTextKey(f.id || f.label));
       }
     });
+    if (visibleFields.some((field) => field.id === form.pricing_field_id)) {
+      fieldLabels.push(...getParticipantFieldNames(form, values));
+    }
 
     // Validar con trigger
     const isStepValid = isPreview ? true : await trigger(fieldLabels);
@@ -756,8 +801,6 @@ export default function FluentRenderer({ form, isPreview = false }) {
       toast.error("Por favor completa los campos requeridos.");
       return;
     }
-
-    const values = getValues();
 
     // Validación manual para checkboxes (al menos uno)
     const missingRequiredCheckbox = visibleFields.some((f) => {
@@ -897,6 +940,9 @@ export default function FluentRenderer({ form, isPreview = false }) {
     setSubmissionResult(null);
 
     try {
+      const pricingPackageId = getSelectedPricingPackageId(form, data);
+      const participantDetails = buildParticipantDetails(form, data, pricingPackageId);
+
       // 1. Identificar campos visibles en este envío específico
       const visibleFieldLabels = new Set();
       stepHistory.forEach((entry) => {
@@ -1099,6 +1145,8 @@ export default function FluentRenderer({ form, isPreview = false }) {
         userAgent: navigator.userAgent,
         isInternal: form.is_internal && !!user?.id,
         notificationEmail: data["notification-email-field"] || data["Correo para Notificaciones"],
+        pricingPackageId,
+        participantDetails,
         sharedPaymentConfirmation: options.sharedPaymentConfirmation || null,
       });
 
@@ -1427,6 +1475,91 @@ export default function FluentRenderer({ form, isPreview = false }) {
                   </AnimatePresence>
                 </motion.div>
               ))}
+
+              {form.collect_participant_details &&
+                form.pricing_mode === "packages" &&
+                visibleFields.some((field) => field.id === form.pricing_field_id) &&
+                (() => {
+                  const selectedPackageId = getSelectedPricingPackageId(form, watchedValues);
+                  const selectedPackage = (form.pricing_packages || []).find(
+                    (pkg) => pkg.id === selectedPackageId,
+                  );
+                  const count = Number(selectedPackage?.participant_count || 0);
+                  const template = Array.isArray(form.participant_template)
+                    ? form.participant_template
+                    : [];
+
+                  if (!count || template.length === 0) return null;
+
+                  return (
+                    <div className="space-y-5">
+                      {Array.from({ length: count }, (_, index) => {
+                        const number = index + 1;
+                        return (
+                          <motion.div
+                            key={number}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 + index * 0.08 }}
+                            className="rounded-[2rem] border border-blue-100 bg-blue-50/40 p-5 md:p-6"
+                          >
+                            <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-blue-800">
+                              Niño {number}
+                            </h3>
+                            <div className="space-y-4">
+                              {template.map((templateField) => {
+                                const name = `participant_${number}_${templateField.id}`;
+                                const inputType =
+                                  templateField.type === "number"
+                                    ? "number"
+                                    : templateField.type === "date"
+                                      ? "date"
+                                      : "text";
+
+                                return (
+                                  <div key={templateField.id} className="space-y-2">
+                                    <Label className="text-xs font-bold text-gray-700">
+                                      {templateField.label}
+                                      {templateField.required !== false && (
+                                        <span className="ml-1 text-red-500">*</span>
+                                      )}
+                                    </Label>
+
+                                    {templateField.type === "textarea" ? (
+                                      <Textarea
+                                        placeholder={templateField.placeholder || ""}
+                                        {...register(name, {
+                                          required: templateField.required !== false,
+                                        })}
+                                        className="min-h-[120px] rounded-2xl border-gray-200 bg-white"
+                                      />
+                                    ) : (
+                                      <Input
+                                        type={inputType}
+                                        placeholder={templateField.placeholder || ""}
+                                        {...register(name, {
+                                          required: templateField.required !== false,
+                                        })}
+                                        className="h-12 rounded-2xl border-gray-200 bg-white"
+                                      />
+                                    )}
+
+                                    {errors[name] && (
+                                      <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-500">
+                                        <AlertCircle className="h-3.5 w-3.5" />
+                                        Este campo es obligatorio
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
             </div>
           </div>
 
