@@ -75,7 +75,7 @@ export default function TrackingClient({ submission }) {
   
   const paymentAmount = getTrackingPaymentAmount;
 
-  const totalAmount = Number(form?.total_amount || 0);
+  const totalAmount = Number(submission?.expected_amount ?? form?.total_amount ?? 0);
   const balanceSummary = getSubmissionBalanceSummary({
     submission: {
       ...submission,
@@ -85,7 +85,7 @@ export default function TrackingClient({ submission }) {
   });
   const totalVerified = balanceSummary.verifiedAmount;
   const totalSubmitted = balanceSummary.submittedAmount;
-  const remainingBalance = totalAmount > 0 ? balanceSummary.remainingBalance : null;
+  const remainingBalance = balanceSummary.totalAmount > 0 ? balanceSummary.remainingBalance : null;
   const canUploadAdditionalPayment = remainingBalance === null || remainingBalance > 0;
 
   // Status config

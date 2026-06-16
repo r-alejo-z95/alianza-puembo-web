@@ -63,3 +63,14 @@ test("registration confirmation does not add tracking link for non-financial for
   );
   assert.doesNotMatch(service, /Guarda este enlace/);
 });
+
+test("registration and campaign emails use expected amount snapshots", () => {
+  const service = readFileSync(
+    new URL("../lib/services/form-emails.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(service, /expected_amount/);
+  assert.match(service, /getSubmissionBalanceSummary/);
+  assert.match(service, /totalAmount:\s*Number\(submission\?\.expected_amount/);
+});

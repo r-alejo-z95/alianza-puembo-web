@@ -31,6 +31,8 @@ type RegistrationConfirmationPayload = {
     created_at?: string | null;
     answers?: unknown[] | null;
     data?: Record<string, unknown> | null;
+    expected_amount?: number | null;
+    pricing_snapshot?: Record<string, unknown> | null;
   };
   financialSummary?: RegistrationFinancialSummary;
 };
@@ -120,9 +122,13 @@ function singleRelation<T>(value: T | T[] | null | undefined): T | null {
 function buildSubmissionFinancialSummary(form: any, submission: any) {
   if (!form?.is_financial) return null;
 
+  const paymentGroup = singleRelation(submission?.payment_groups);
   const summary = getSubmissionBalanceSummary({
-    submission,
-    totalAmount: Number(form.total_amount || 0),
+    submission: {
+      ...submission,
+      payment_group: paymentGroup || submission?.payment_group || null,
+    },
+    totalAmount: Number(submission?.expected_amount ?? form.total_amount ?? 0),
   });
 
   return {
@@ -202,7 +208,7 @@ async function loadCampaignBundle(supabase: any, campaignId: string) {
 
   const { data: submissions, error: submissionsError } = await supabase
     .from("form_submissions")
-    .select("*, form_submission_payments(*)")
+    .select("*, form_submission_payments(*), payment_groups!form_submissions_payment_group_id_fkey(*)")
     .eq("form_id", campaign.form_id)
     .eq("is_archived", false);
 

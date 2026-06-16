@@ -87,3 +87,15 @@ test("notification service exposes payment reminder email sender", () => {
   assert.match(notifications, /Recordatorio de pago/);
   assert.match(notifications, /remainingBalance/);
 });
+
+test("payment reminder cron queries expected amount and payment group totals", () => {
+  const route = readFileSync(
+    new URL("../app/api/cron/payment-reminders/route.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(route, /expected_amount/);
+  assert.match(route, /payment_groups!form_submissions_payment_group_id_fkey/);
+  assert.match(route, /calculated_expected_amount/);
+  assert.match(route, /expected_amount_source/);
+});

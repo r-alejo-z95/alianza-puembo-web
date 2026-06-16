@@ -49,9 +49,12 @@ export async function GET(request: Request) {
       coverage_mode,
       coverage_amount,
       covered_by_submission_id,
+      expected_amount,
+      pricing_snapshot,
       payment_reminder_last_sent_at,
       submission_status,
       form_submission_payments(id, amount_claimed, extracted_data, status, manual_disposition, created_at),
+      payment_groups!form_submissions_payment_group_id_fkey(id, expected_amount, calculated_expected_amount, expected_amount_source, form_submission_payments(id, amount_claimed, extracted_data, status, manual_disposition, created_at)),
       forms!inner(id, title, total_amount, is_financial, is_internal, is_archived, payment_reminder_interval_days)
     `)
     .eq("is_archived", false)
@@ -81,9 +84,13 @@ export async function GET(request: Request) {
       continue;
     }
 
+    const paymentGroup = singleRelation((submission as any).payment_groups);
     const balance = getSubmissionBalanceSummary({
-      submission,
-      totalAmount: Number(form.total_amount || 0),
+      submission: {
+        ...submission,
+        payment_group: paymentGroup,
+      },
+      totalAmount: Number((submission as any).expected_amount ?? form.total_amount ?? 0),
     });
 
     if (!balance.isReminderEligible || balance.remainingBalance <= 0) {
