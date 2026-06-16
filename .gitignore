@@ -61,4 +61,6 @@ supabase/functions/sheets-drive-integration/original-index.ts
 
 /docs/superpowers
 
+/.worktrees/
+
 /comprobantes
