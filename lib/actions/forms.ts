@@ -15,6 +15,12 @@ import {
   isValidFormShortCode,
   normalizeFormShortCode,
 } from "@/lib/forms/short-links.mjs";
+import {
+  normalizeParticipantTemplate,
+  normalizePricingMode,
+  normalizePricingPackages,
+  validatePricingConfiguration,
+} from "@/lib/finance/pricing-packages.mjs";
 
 interface FormSetupValues {
   id?: string | null;
@@ -25,6 +31,10 @@ interface FormSetupValues {
   payment_type?: "single" | "installments" | null;
   max_installments?: number | null;
   total_amount?: number | null;
+  pricing_mode?: "fixed" | "packages" | null;
+  pricing_packages?: any[] | null;
+  collect_participant_details?: boolean | null;
+  participant_template?: any[] | null;
   allow_shared_receipts?: boolean;
   shared_receipt_max_submissions?: number | null;
   destination_account_id?: string | null;
@@ -45,6 +55,28 @@ export async function saveFormSetup(
 
     const supabase = createAdminClient();
     const isEditing = !!values.id;
+    const pricingMode = values.is_financial
+      ? normalizePricingMode(values.pricing_mode)
+      : "fixed";
+    const pricingPackages = pricingMode === "packages"
+      ? normalizePricingPackages(values.pricing_packages)
+      : [];
+    const participantTemplate = pricingMode === "packages" && values.collect_participant_details
+      ? normalizeParticipantTemplate(values.participant_template)
+      : [];
+    const pricingValidation = values.is_financial
+      ? validatePricingConfiguration({
+          pricing_mode: pricingMode,
+          total_amount: values.total_amount,
+          pricing_packages: pricingPackages,
+          collect_participant_details: !!values.collect_participant_details,
+          participant_template: participantTemplate,
+        })
+      : { valid: true, errors: [] };
+
+    if (!pricingValidation.valid) {
+      return { error: pricingValidation.errors.join(" ") };
+    }
 
     const payload: Record<string, any> = {
       title: values.title.trim(),
@@ -56,7 +88,18 @@ export async function saveFormSetup(
         values.is_financial && values.payment_type === "installments"
           ? (values.max_installments ?? null)
           : null,
-      total_amount: values.is_financial ? (values.total_amount ?? null) : null,
+      total_amount:
+        values.is_financial && pricingMode === "fixed"
+          ? (values.total_amount ?? null)
+          : null,
+      pricing_mode: values.is_financial ? pricingMode : "fixed",
+      pricing_packages: values.is_financial && pricingMode === "packages" ? pricingPackages : [],
+      collect_participant_details:
+        values.is_financial && pricingMode === "packages"
+          ? !!values.collect_participant_details
+          : false,
+      participant_template:
+        values.is_financial && pricingMode === "packages" ? participantTemplate : [],
       allow_shared_receipts: values.is_financial ? !!values.allow_shared_receipts : false,
       shared_receipt_max_submissions:
         values.is_financial && values.allow_shared_receipts

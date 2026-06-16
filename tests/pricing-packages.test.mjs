@@ -160,3 +160,21 @@ test("pricing packages migration adds form, submission, and payment group column
   assert.match(migration, /add column if not exists calculated_expected_amount numeric\(12,2\)/);
   assert.match(migration, /add column if not exists expected_amount_source text not null default 'manual'/);
 });
+
+test("form setup completion accepts package pricing without total_amount", () => {
+  const setup = readFileSync(new URL("../lib/forms/setup.ts", import.meta.url), "utf8");
+
+  assert.match(setup, /pricing_mode/);
+  assert.match(setup, /validatePricingConfiguration/);
+  assert.match(setup, /pricing_packages/);
+});
+
+test("saveFormSetup persists pricing package fields", () => {
+  const actions = readFileSync(new URL("../lib/actions/forms.ts", import.meta.url), "utf8");
+
+  assert.match(actions, /pricing_mode/);
+  assert.match(actions, /pricing_packages/);
+  assert.match(actions, /collect_participant_details/);
+  assert.match(actions, /participant_template/);
+  assert.match(actions, /validatePricingConfiguration/);
+});

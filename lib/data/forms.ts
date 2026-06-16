@@ -32,6 +32,23 @@ export interface Form {
   payment_type?: "single" | "installments" | null;
   max_installments?: number | null;
   total_amount?: number | string | null;
+  pricing_mode?: "fixed" | "packages";
+  pricing_packages?: Array<{
+    id: string;
+    label: string;
+    amount: number;
+    participant_count?: number | null;
+    enabled?: boolean;
+  }> | null;
+  pricing_field_id?: string | null;
+  collect_participant_details?: boolean;
+  participant_template?: Array<{
+    id: string;
+    label: string;
+    type: string;
+    required?: boolean;
+    placeholder?: string | null;
+  }> | null;
   allow_shared_receipts?: boolean;
   shared_receipt_max_submissions?: number;
   destination_account_id?: string | null;
@@ -300,6 +317,9 @@ export interface FormSubmission {
   coverage_created_by?: string | null;
   coverage_backup_path?: string | null;
   covered_by_submission_id?: string | null;
+  expected_amount?: number | null;
+  pricing_snapshot?: Record<string, any> | null;
+  participant_details?: Array<Record<string, any>> | null;
   payment_group_id?: string | null;
   payment_reminder_last_sent_at?: string | null;
   profiles?: {
@@ -327,6 +347,8 @@ export interface FormSubmission {
   payment_groups?: {
     id: string;
     expected_amount?: number | null;
+    calculated_expected_amount?: number | null;
+    expected_amount_source?: "calculated" | "manual" | null;
     form_id?: string | null;
     created_by_submission_id?: string | null;
     notes?: string | null;
@@ -334,6 +356,8 @@ export interface FormSubmission {
   payment_group?: {
     id: string;
     expected_amount?: number | null;
+    calculated_expected_amount?: number | null;
+    expected_amount_source?: "calculated" | "manual" | null;
     form_id?: string | null;
     created_by_submission_id?: string | null;
     notes?: string | null;

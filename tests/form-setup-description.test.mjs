@@ -131,3 +131,23 @@ test("buildPaymentDescription omits account fields that are not available", () =
   assert.doesNotMatch(paymentDescription, /Tipo:/);
   assert.doesNotMatch(paymentDescription, /RUC:/);
 });
+
+test("buildPaymentDescription lists pricing packages when package mode is active", () => {
+  const paymentDescription = buildPaymentDescription(
+    {
+      is_financial: true,
+      pricing_mode: "packages",
+      pricing_packages: [
+        { id: "pkg-1", label: "1 niño", amount: 80, participant_count: 1, enabled: true },
+        { id: "pkg-2", label: "2 niños", amount: 140, participant_count: 2, enabled: true },
+      ],
+      destination_account_id: "bank-1",
+    },
+    [{ id: "bank-1", bank_name: "Banco Pichincha", account_number: "1234567890" }],
+  );
+
+  assert.match(paymentDescription, /Selecciona una opción de inscripción y paga el valor correspondiente/);
+  assert.match(paymentDescription, /1 niño: \$80\.00/);
+  assert.match(paymentDescription, /2 niños: \$140\.00/);
+  assert.match(paymentDescription, /<strong>Banco:<\/strong> Banco Pichincha/);
+});
