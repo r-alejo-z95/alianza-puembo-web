@@ -178,3 +178,15 @@ test("saveFormSetup persists pricing package fields", () => {
   assert.match(actions, /participant_template/);
   assert.match(actions, /validatePricingConfiguration/);
 });
+
+test("builder synchronizes automatic pricing field", () => {
+  const builderPage = readFileSync(
+    new URL("../app/admin/formularios/builder/page.js", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(builderPage, /syncPricingField/);
+  assert.match(builderPage, /pricing_field_id/);
+  assert.match(builderPage, /buildPricingFieldOptions/);
+  assert.match(builderPage, /Selecciona tu opción de inscripción|Selecciona tu opcion de inscripcion/);
+});

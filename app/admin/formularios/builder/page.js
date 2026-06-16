@@ -11,9 +11,71 @@ import { slugify } from "@/lib/utils";
 import { isFormSetupComplete } from "@/lib/forms/setup";
 import { prepareFinancialReceiptsBucket } from "@/lib/actions/forms";
 import { findAvailableFormShortCode } from "@/lib/forms/short-links.mjs";
+import {
+  buildPricingFieldOptions,
+  normalizeParticipantTemplate,
+  normalizePricingMode,
+  normalizePricingPackages,
+  validatePricingConfiguration,
+} from "@/lib/finance/pricing-packages.mjs";
 
 function sanitizeFileName(name) {
   return name.replace(/[^a-z0-9.]/gi, "_").toLowerCase();
+}
+
+function createPricingFieldId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `pricing-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getObjectValue(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function syncPricingField({ fields = [], pricingMode, pricingPackages, pricingFieldId }) {
+  const safeFields = Array.isArray(fields) ? fields : [];
+
+  if (pricingMode !== "packages") {
+    const fieldsWithoutPricing = pricingFieldId
+      ? safeFields.filter((field) => field.id !== pricingFieldId)
+      : safeFields;
+    return {
+      fields: fieldsWithoutPricing.map((field, index) => ({ ...field, order_index: index })),
+      pricingFieldId: null,
+    };
+  }
+
+  const options = buildPricingFieldOptions(pricingPackages);
+  const existingIndex = safeFields.findIndex((field) => field.id === pricingFieldId);
+  const existing = existingIndex >= 0 ? safeFields[existingIndex] : null;
+  const pricingField = {
+    ...(existing || {}),
+    id: existing?.id || createPricingFieldId(),
+    type: "radio",
+    label: existing?.label || "Selecciona tu opción de inscripción",
+    help_text: existing?.help_text || "Esta opción define el valor a pagar.",
+    placeholder: existing?.placeholder || null,
+    required: true,
+    options,
+    order_index: existing?.order_index ?? 0,
+    validation: {
+      ...getObjectValue(existing?.validation),
+      is_pricing_field: true,
+    },
+    width: existing?.width || "full",
+    attachment_url: null,
+    attachment_type: null,
+    next_section_id: null,
+  };
+
+  const nextFields = existing
+    ? safeFields.map((field, index) => (index === existingIndex ? pricingField : field))
+    : [pricingField, ...safeFields.map((field, index) => ({ ...field, order_index: index + 1 }))];
+
+  return {
+    fields: nextFields.map((field, index) => ({ ...field, order_index: index })),
+    pricingFieldId: pricingField.id,
+  };
 }
 
 function BuilderContent() {
@@ -108,13 +170,19 @@ function BuilderContent() {
       payment_type,
       max_installments,
       total_amount,
+      pricing_mode,
+      pricing_packages,
+      pricing_field_id,
+      collect_participant_details,
+      participant_template,
       allow_shared_receipts,
       shared_receipt_max_submissions,
       destination_account_id,
       payment_reminder_interval_days,
     } = formData;
+    const safeFields = Array.isArray(fields) ? fields : [];
     // Derive the current label from the selected field ID (keeps financial_field_label in sync for legacy lookups)
-    const financialField = fields?.find((f) => f.id === financial_field_id);
+    const financialField = safeFields.find((f) => f.id === financial_field_id);
     const derivedFinancialLabel = financialField?.label ?? financial_field_label ?? null;
     const {
       data: { user },
@@ -125,6 +193,37 @@ function BuilderContent() {
     const slug = form && form.title === title ? form.slug : slugify(title);
 
     try {
+      const pricingModeForSave = is_financial ? normalizePricingMode(pricing_mode) : "fixed";
+      const normalizedPricingPackages =
+        is_financial && pricingModeForSave === "packages"
+          ? normalizePricingPackages(pricing_packages)
+          : [];
+      const collectParticipantDetailsForSave =
+        is_financial && pricingModeForSave === "packages" ? !!collect_participant_details : false;
+      const normalizedParticipantTemplate =
+        collectParticipantDetailsForSave
+          ? normalizeParticipantTemplate(participant_template)
+          : [];
+      const pricingValidation = validatePricingConfiguration({
+        pricing_mode: pricingModeForSave,
+        total_amount,
+        pricing_packages: normalizedPricingPackages,
+        collect_participant_details: collectParticipantDetailsForSave,
+        participant_template: normalizedParticipantTemplate,
+      });
+
+      if (is_financial && !pricingValidation.valid) {
+        throw new Error(pricingValidation.errors[0] || "Configura el monto del formulario.");
+      }
+
+      const pricingSync = syncPricingField({
+        fields: safeFields,
+        pricingMode: pricingModeForSave,
+        pricingPackages: normalizedPricingPackages,
+        pricingFieldId: pricing_field_id || form?.pricing_field_id || null,
+      });
+      const fieldsForSave = pricingSync.fields;
+
       if (is_financial) {
         const bucketRes = await prepareFinancialReceiptsBucket();
         if (bucketRes?.error) throw new Error(bucketRes.error);
@@ -148,7 +247,13 @@ function BuilderContent() {
             max_responses: max_responses ?? null,
             payment_type: is_financial ? payment_type ?? "single" : null,
             max_installments: is_financial && payment_type === "installments" ? max_installments ?? null : null,
-            total_amount: is_financial ? total_amount ?? null : null,
+            total_amount:
+              is_financial && pricingModeForSave === "fixed" ? total_amount ?? null : null,
+            pricing_mode: pricingModeForSave,
+            pricing_packages: normalizedPricingPackages,
+            pricing_field_id: null,
+            collect_participant_details: collectParticipantDetailsForSave,
+            participant_template: normalizedParticipantTemplate,
             allow_shared_receipts: is_financial ? !!allow_shared_receipts : false,
             shared_receipt_max_submissions:
               is_financial && allow_shared_receipts
@@ -194,7 +299,7 @@ function BuilderContent() {
 
       // 2. Process Fields
       const processedFields = await Promise.all(
-        fields.map(async (field) => {
+        fieldsForSave.map(async (field) => {
           let attachmentUrl = field.attachment_url;
 
           // Check for new file upload in attachment_file prop (passed from builder)
@@ -281,7 +386,14 @@ function BuilderContent() {
           max_responses: max_responses ?? null,
           payment_type: is_financial ? payment_type ?? "single" : null,
           max_installments: is_financial && payment_type === "installments" ? max_installments ?? null : null,
-          total_amount: is_financial ? total_amount ?? null : null,
+          total_amount:
+            is_financial && pricingModeForSave === "fixed" ? total_amount ?? null : null,
+          pricing_mode: pricingModeForSave,
+          pricing_packages: normalizedPricingPackages,
+          pricing_field_id:
+            is_financial && pricingModeForSave === "packages" ? pricingSync.pricingFieldId : null,
+          collect_participant_details: collectParticipantDetailsForSave,
+          participant_template: normalizedParticipantTemplate,
           allow_shared_receipts: is_financial ? !!allow_shared_receipts : false,
           shared_receipt_max_submissions:
             is_financial && allow_shared_receipts
