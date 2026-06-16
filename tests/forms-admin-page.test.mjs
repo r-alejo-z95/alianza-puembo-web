@@ -42,3 +42,25 @@ test("forms manager mobile header keeps payment and trash actions visible", () =
   assert.match(manager, /<span className="[^"]*hidden md:inline[^"]*">\s*Inscripciones con pagos\s*<\/span>/);
   assert.match(manager, /w-full md:w-auto/);
 });
+
+test("form admin exposes pricing package controls", () => {
+  const setupWizard = readFileSync(
+    new URL("../components/admin/forms/builder/FormSetupWizard.jsx", import.meta.url),
+    "utf8",
+  );
+  const builder = readFileSync(
+    new URL("../components/admin/forms/builder/FormBuilder.jsx", import.meta.url),
+    "utf8",
+  );
+  const canvas = readFileSync(
+    new URL("../components/admin/forms/builder/FormCanvas.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(setupWizard, /PricingPackagesEditor/);
+  assert.match(setupWizard, /pricing_mode/);
+  assert.match(builder, /pricing_packages/);
+  assert.match(builder, /participant_template/);
+  assert.match(canvas, /Paquetes de precio/);
+  assert.match(canvas, /pedir datos por participante/i);
+});

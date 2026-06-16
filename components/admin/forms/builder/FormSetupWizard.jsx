@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import PricingPackagesEditor from "@/components/admin/forms/builder/PricingPackagesEditor";
 
 const setupSchema = z
   .object({
@@ -34,6 +35,22 @@ const setupSchema = z
     payment_type: z.enum(["single", "installments"]).nullable().optional(),
     max_installments: z.number().int().min(1).nullable().optional(),
     total_amount: z.number().positive("El monto total debe ser mayor a 0").nullable().optional(),
+    pricing_mode: z.enum(["fixed", "packages"]).default("fixed"),
+    pricing_packages: z.array(z.object({
+      id: z.string(),
+      label: z.string(),
+      amount: z.number().positive().nullable().optional(),
+      participant_count: z.number().int().min(1).nullable().optional(),
+      enabled: z.boolean().optional(),
+    })).default([]),
+    collect_participant_details: z.boolean().default(false),
+    participant_template: z.array(z.object({
+      id: z.string(),
+      label: z.string(),
+      type: z.string(),
+      required: z.boolean().optional(),
+      placeholder: z.string().optional().nullable(),
+    })).default([]),
     allow_shared_receipts: z.boolean().default(false),
     shared_receipt_max_submissions: z.number().int().min(1).nullable().optional(),
     destination_account_id: z.string().nullable().optional(),
@@ -55,12 +72,30 @@ const setupSchema = z
       });
     }
 
-    if (!data.total_amount || data.total_amount <= 0) {
+    if ((data.pricing_mode || "fixed") === "fixed" && (!data.total_amount || data.total_amount <= 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["total_amount"],
         message: "Define el monto total",
       });
+    }
+
+    if (data.pricing_mode === "packages") {
+      const activePackages = (data.pricing_packages || []).filter((pkg) => pkg.enabled !== false);
+      if (activePackages.length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["pricing_packages"],
+          message: "Agrega al menos un paquete activo",
+        });
+      }
+      if (data.collect_participant_details && (data.participant_template || []).length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["participant_template"],
+          message: "Agrega al menos un campo para participantes",
+        });
+      }
     }
 
     if (!data.destination_account_id) {
@@ -101,6 +136,10 @@ function mapInitialValues(initialValues = {}) {
       initialValues.total_amount === null || initialValues.total_amount === undefined
         ? null
         : Number(initialValues.total_amount),
+    pricing_mode: initialValues.pricing_mode ?? "fixed",
+    pricing_packages: initialValues.pricing_packages ?? [],
+    collect_participant_details: !!initialValues.collect_participant_details,
+    participant_template: initialValues.participant_template ?? [],
     allow_shared_receipts: !!initialValues.allow_shared_receipts,
     shared_receipt_max_submissions: initialValues.shared_receipt_max_submissions ?? 2,
     destination_account_id: initialValues.destination_account_id ?? null,
@@ -126,6 +165,7 @@ export default function FormSetupWizard({
 
   const isFinancial = form.watch("is_financial");
   const paymentType = form.watch("payment_type");
+  const pricingMode = form.watch("pricing_mode") || "fixed";
   const allowSharedReceipts = form.watch("allow_shared_receipts");
   const hasBankAccounts = bankAccounts.length > 0;
 
@@ -252,6 +292,10 @@ export default function FormSetupWizard({
                       if (!checked) {
                         form.setValue("allow_shared_receipts", false);
                         form.setValue("shared_receipt_max_submissions", 1);
+                        form.setValue("pricing_mode", "fixed");
+                        form.setValue("pricing_packages", []);
+                        form.setValue("collect_participant_details", false);
+                        form.setValue("participant_template", []);
                       }
                     }}
                   />
@@ -289,13 +333,35 @@ export default function FormSetupWizard({
 
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                          Modo de monto
+                        </Label>
+                        <Select
+                          value={pricingMode}
+                          onValueChange={(value) =>
+                            form.setValue("pricing_mode", value, { shouldValidate: true })
+                          }
+                        >
+                          <SelectTrigger className="h-11 rounded-xl bg-white border-gray-200">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="fixed">Monto fijo</SelectItem>
+                            <SelectItem value="packages">Paquetes de precio</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {pricingMode === "fixed" ? (
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
                           Monto total
                         </Label>
                         <Input
                           type="number"
                           min={0}
                           step="0.01"
-                          className="h-11 rounded-xl bg-white border-gray-200"
+                          className="h-11 rounded-xl bg-white border-gray-200 md:max-w-xs"
                           value={form.watch("total_amount") ?? ""}
                           onChange={(e) =>
                             form.setValue(
@@ -309,7 +375,22 @@ export default function FormSetupWizard({
                           <p className="text-xs text-red-500">{form.formState.errors.total_amount.message}</p>
                         )}
                       </div>
-                    </div>
+                    ) : (
+                      <PricingPackagesEditor
+                        packages={form.watch("pricing_packages") || []}
+                        onPackagesChange={(value) =>
+                          form.setValue("pricing_packages", value, { shouldValidate: true })
+                        }
+                        collectParticipantDetails={form.watch("collect_participant_details")}
+                        onCollectParticipantDetailsChange={(value) =>
+                          form.setValue("collect_participant_details", value, { shouldValidate: true })
+                        }
+                        participantTemplate={form.watch("participant_template") || []}
+                        onParticipantTemplateChange={(value) =>
+                          form.setValue("participant_template", value, { shouldValidate: true })
+                        }
+                      />
+                    )}
 
                     {paymentType === "installments" && (
                       <div className="space-y-2">

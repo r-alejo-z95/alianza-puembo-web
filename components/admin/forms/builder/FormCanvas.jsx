@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { ImageIcon, Trash2, Layout, Plus, ShieldCheck, Globe, Receipt, Banknote, Hash, AlertCircle, CheckCircle2, Circle, ArrowDown, Users } from "lucide-react";
 import QuestionCard from "./QuestionCard";
+import PricingPackagesEditor from "./PricingPackagesEditor";
 import { useRef, useMemo } from "react";
 import RichTextEditor from "../RichTextEditor";
 import { toast } from "sonner";
@@ -38,6 +39,10 @@ const FormHeader = ({
   const isInternal = watch("is_internal");
   const isFinancial = watch("is_financial");
   const allowSharedReceipts = watch("allow_shared_receipts");
+  const pricingMode = watch("pricing_mode") || "fixed";
+  const pricingPackages = watch("pricing_packages") || [];
+  const collectParticipantDetails = watch("collect_participant_details");
+  const participantTemplate = watch("participant_template") || [];
   const fileInputRef = useRef(null);
 
   const currentFields = watch("fields") || [];
@@ -48,6 +53,9 @@ const FormHeader = ({
   const hasSettingsError = !!(
     errors?.financial_field_id ||
     errors?.max_responses ||
+    errors?.pricing_packages ||
+    errors?.participant_template ||
+    errors?.total_amount ||
     errors?.shared_receipt_max_submissions
   );
   const hasError = error || hasSettingsError;
@@ -330,6 +338,10 @@ const FormHeader = ({
                           setValue("payment_reminder_interval_days", null);
                           setValue("allow_shared_receipts", false);
                           setValue("shared_receipt_max_submissions", 1);
+                          setValue("pricing_mode", "fixed");
+                          setValue("pricing_packages", []);
+                          setValue("collect_participant_details", false);
+                          setValue("participant_template", []);
                         }
                       }}
                       className="data-[state=checked]:bg-amber-500"
@@ -399,6 +411,68 @@ const FormHeader = ({
                           );
                         }}
 	                      />
+                        <div className="space-y-2 pt-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                            Monto financiero
+                          </Label>
+                          <Select
+                            value={pricingMode}
+                            onValueChange={(value) => setValue("pricing_mode", value, { shouldValidate: true })}
+                          >
+                            <SelectTrigger className="h-10 w-full bg-white text-xs font-medium rounded-xl border-amber-200/50">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent align="left">
+                              <SelectItem value="fixed">Monto fijo</SelectItem>
+                              <SelectItem value="packages">Paquetes de precio</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {pricingMode === "packages" ? (
+                          <div className="space-y-2">
+                            <p className="text-[10px] text-gray-500 leading-relaxed">
+                              Configura los valores disponibles y, si aplica, activa pedir datos por participante.
+                            </p>
+                            <PricingPackagesEditor
+                              compact
+                              packages={pricingPackages}
+                              onPackagesChange={(value) =>
+                                setValue("pricing_packages", value, { shouldValidate: true, shouldDirty: true })
+                              }
+                              collectParticipantDetails={collectParticipantDetails}
+                              onCollectParticipantDetailsChange={(value) =>
+                                setValue("collect_participant_details", value, { shouldValidate: true, shouldDirty: true })
+                              }
+                              participantTemplate={participantTemplate}
+                              onParticipantTemplateChange={(value) =>
+                                setValue("participant_template", value, { shouldValidate: true, shouldDirty: true })
+                              }
+                            />
+                          </div>
+                        ) : (
+                          <Controller
+                            control={control}
+                            name="total_amount"
+                            render={({ field }) => (
+                              <div className="space-y-1.5">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                                  Monto total
+                                </Label>
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  value={field.value ?? ""}
+                                  onChange={(event) =>
+                                    field.onChange(event.target.value ? Number(event.target.value) : null)
+                                  }
+                                  className="h-10 w-36 bg-white text-xs font-bold rounded-xl border-amber-200/50"
+                                />
+                              </div>
+                            )}
+                          />
+                        )}
 	                      <Controller
 	                        control={control}
 	                        name="payment_reminder_interval_days"

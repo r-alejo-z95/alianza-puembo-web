@@ -203,6 +203,23 @@ const formSchema = z.object({
   payment_type: z.enum(["single", "installments"]).optional().nullable(),
   max_installments: z.number().int().min(1).optional().nullable(),
   total_amount: z.number().positive().optional().nullable(),
+  pricing_mode: z.enum(["fixed", "packages"]).default("fixed"),
+  pricing_packages: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    amount: z.number().positive().nullable().optional(),
+    participant_count: z.number().int().min(1).nullable().optional(),
+    enabled: z.boolean().optional(),
+  })).default([]),
+  pricing_field_id: z.string().optional().nullable(),
+  collect_participant_details: z.boolean().default(false),
+  participant_template: z.array(z.object({
+    id: z.string(),
+    label: z.string(),
+    type: z.string(),
+    required: z.boolean().optional(),
+    placeholder: z.string().optional().nullable(),
+  })).default([]),
   allow_shared_receipts: z.boolean().default(false),
   shared_receipt_max_submissions: z.number().int().min(1).optional().nullable(),
   destination_account_id: z.string().optional().nullable(),
@@ -231,12 +248,29 @@ const formSchema = z.object({
       message: "Debes seleccionar una cuenta de destino",
     });
   }
-  if (data.is_financial && (!data.total_amount || data.total_amount <= 0)) {
+  if (data.is_financial && (data.pricing_mode || "fixed") === "fixed" && (!data.total_amount || data.total_amount <= 0)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["total_amount"],
       message: "Debes definir el monto total del formulario",
     });
+  }
+  if (data.is_financial && data.pricing_mode === "packages") {
+    const activePackages = (data.pricing_packages || []).filter((pkg) => pkg.enabled !== false);
+    if (activePackages.length === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["pricing_packages"],
+        message: "Agrega al menos un paquete de precio activo",
+      });
+    }
+    if (data.collect_participant_details && !(data.participant_template || []).length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["participant_template"],
+        message: "Agrega al menos un campo para participantes",
+      });
+    }
   }
   if (data.is_financial && data.payment_type === "installments" && (!data.max_installments || data.max_installments < 1)) {
     ctx.addIssue({
@@ -278,6 +312,11 @@ export default function FormBuilder({
     payment_type: "single",
     max_installments: null,
     total_amount: null,
+    pricing_mode: "fixed",
+    pricing_packages: [],
+    pricing_field_id: "",
+    collect_participant_details: false,
+    participant_template: [],
     allow_shared_receipts: false,
     shared_receipt_max_submissions: 2,
     destination_account_id: "",
@@ -350,6 +389,11 @@ export default function FormBuilder({
       payment_type: "single",
       max_installments: null,
       total_amount: null,
+      pricing_mode: "fixed",
+      pricing_packages: [],
+      pricing_field_id: "",
+      collect_participant_details: false,
+      participant_template: [],
       allow_shared_receipts: false,
       shared_receipt_max_submissions: 2,
       destination_account_id: "",
@@ -411,6 +455,11 @@ export default function FormBuilder({
           initialForm.total_amount === null || initialForm.total_amount === undefined
             ? null
             : Number(initialForm.total_amount),
+        pricing_mode: initialForm.pricing_mode || "fixed",
+        pricing_packages: initialForm.pricing_packages || [],
+        pricing_field_id: initialForm.pricing_field_id || "",
+        collect_participant_details: !!initialForm.collect_participant_details,
+        participant_template: initialForm.participant_template || [],
         allow_shared_receipts: !!initialForm.allow_shared_receipts,
         shared_receipt_max_submissions: initialForm.shared_receipt_max_submissions ?? 2,
         destination_account_id: initialForm.destination_account_id || "",
@@ -825,9 +874,13 @@ export default function FormBuilder({
                       </p>
                     </div>
                     <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]/70 mb-1">Monto total</p>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-[var(--puembo-green)]/70 mb-1">
+                        {pendingSaveData?.pricing_mode === "packages" ? "Paquetes" : "Monto total"}
+                      </p>
                       <p className="font-semibold text-[var(--puembo-green)]">
-                        ${Number(pendingSaveData?.total_amount || 0).toFixed(2)}
+                        {pendingSaveData?.pricing_mode === "packages"
+                          ? `${(pendingSaveData?.pricing_packages || []).filter((pkg) => pkg.enabled !== false).length} paquetes`
+                          : `$${Number(pendingSaveData?.total_amount || 0).toFixed(2)}`}
                       </p>
                     </div>
                     {pendingSaveData?.payment_type === "installments" && (
