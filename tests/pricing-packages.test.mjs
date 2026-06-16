@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   buildPricingSnapshot,
@@ -144,4 +145,18 @@ test("flattens participant details for exports", () => {
     "Niño 2 - Nombre": "Luis",
     "Niño 2 - Edad": "6",
   });
+});
+
+test("pricing packages migration adds form, submission, and payment group columns", () => {
+  const migration = readFileSync(
+    new URL("../supabase/migrations/20260616000000_add_form_pricing_packages.sql", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(migration, /add column if not exists pricing_mode text not null default 'fixed'/);
+  assert.match(migration, /add column if not exists pricing_packages jsonb not null default '\[\]'::jsonb/);
+  assert.match(migration, /add column if not exists expected_amount numeric\(12,2\)/);
+  assert.match(migration, /add column if not exists pricing_snapshot jsonb/);
+  assert.match(migration, /add column if not exists calculated_expected_amount numeric\(12,2\)/);
+  assert.match(migration, /add column if not exists expected_amount_source text not null default 'manual'/);
 });

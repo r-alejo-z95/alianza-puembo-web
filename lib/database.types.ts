@@ -802,6 +802,7 @@ export type Database = {
           covered_by_submission_id: string | null
           created_at: string | null
           data: Json
+          expected_amount: number | null
           external_activity_name: string | null
           form_id: string
           id: string
@@ -809,8 +810,10 @@ export type Database = {
           is_archived: boolean | null
           is_manual: boolean
           notification_email: string | null
+          participant_details: Json | null
           payment_group_id: string | null
           payment_reminder_last_sent_at: string | null
+          pricing_snapshot: Json | null
           status: string | null
           submission_status: string
           user_agent: string | null
@@ -829,6 +832,7 @@ export type Database = {
           covered_by_submission_id?: string | null
           created_at?: string | null
           data?: Json
+          expected_amount?: number | null
           external_activity_name?: string | null
           form_id: string
           id?: string
@@ -836,8 +840,10 @@ export type Database = {
           is_archived?: boolean | null
           is_manual?: boolean
           notification_email?: string | null
+          participant_details?: Json | null
           payment_group_id?: string | null
           payment_reminder_last_sent_at?: string | null
+          pricing_snapshot?: Json | null
           status?: string | null
           submission_status?: string
           user_agent?: string | null
@@ -856,6 +862,7 @@ export type Database = {
           covered_by_submission_id?: string | null
           created_at?: string | null
           data?: Json
+          expected_amount?: number | null
           external_activity_name?: string | null
           form_id?: string
           id?: string
@@ -863,8 +870,10 @@ export type Database = {
           is_archived?: boolean | null
           is_manual?: boolean
           notification_email?: string | null
+          participant_details?: Json | null
           payment_group_id?: string | null
           payment_reminder_last_sent_at?: string | null
+          pricing_snapshot?: Json | null
           status?: string | null
           submission_status?: string
           user_agent?: string | null
@@ -913,6 +922,7 @@ export type Database = {
           allow_shared_receipts: boolean
           archived_at: string | null
           closed_by_limit: boolean
+          collect_participant_details: boolean
           created_at: string | null
           description: string | null
           destination_account_id: string | null
@@ -930,8 +940,12 @@ export type Database = {
           last_synced_at: string | null
           max_installments: number | null
           max_responses: number | null
+          participant_template: Json
           payment_reminder_interval_days: number | null
           payment_type: string | null
+          pricing_field_id: string | null
+          pricing_mode: string
+          pricing_packages: Json
           shared_receipt_max_submissions: number
           short_code: string | null
           slug: string | null
@@ -944,6 +958,7 @@ export type Database = {
           allow_shared_receipts?: boolean
           archived_at?: string | null
           closed_by_limit?: boolean
+          collect_participant_details?: boolean
           created_at?: string | null
           description?: string | null
           destination_account_id?: string | null
@@ -961,8 +976,12 @@ export type Database = {
           last_synced_at?: string | null
           max_installments?: number | null
           max_responses?: number | null
+          participant_template?: Json
           payment_reminder_interval_days?: number | null
           payment_type?: string | null
+          pricing_field_id?: string | null
+          pricing_mode?: string
+          pricing_packages?: Json
           shared_receipt_max_submissions?: number
           short_code?: string | null
           slug?: string | null
@@ -975,6 +994,7 @@ export type Database = {
           allow_shared_receipts?: boolean
           archived_at?: string | null
           closed_by_limit?: boolean
+          collect_participant_details?: boolean
           created_at?: string | null
           description?: string | null
           destination_account_id?: string | null
@@ -992,8 +1012,12 @@ export type Database = {
           last_synced_at?: string | null
           max_installments?: number | null
           max_responses?: number | null
+          participant_template?: Json
           payment_reminder_interval_days?: number | null
           payment_type?: string | null
+          pricing_field_id?: string | null
+          pricing_mode?: string
+          pricing_packages?: Json
           shared_receipt_max_submissions?: number
           short_code?: string | null
           slug?: string | null
@@ -1013,6 +1037,13 @@ export type Database = {
           {
             foreignKeyName: "forms_financial_field_id_fkey"
             columns: ["financial_field_id"]
+            isOneToOne: false
+            referencedRelation: "form_fields"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forms_pricing_field_id_fkey"
+            columns: ["pricing_field_id"]
             isOneToOne: false
             referencedRelation: "form_fields"
             referencedColumns: ["id"]
@@ -1246,27 +1277,33 @@ export type Database = {
       }
       payment_groups: {
         Row: {
+          calculated_expected_amount: number | null
           created_at: string
           created_by_submission_id: string | null
           expected_amount: number | null
+          expected_amount_source: string
           form_id: string
           id: string
           notes: string | null
           updated_at: string
         }
         Insert: {
+          calculated_expected_amount?: number | null
           created_at?: string
           created_by_submission_id?: string | null
           expected_amount?: number | null
+          expected_amount_source?: string
           form_id: string
           id?: string
           notes?: string | null
           updated_at?: string
         }
         Update: {
+          calculated_expected_amount?: number | null
           created_at?: string
           created_by_submission_id?: string | null
           expected_amount?: number | null
+          expected_amount_source?: string
           form_id?: string
           id?: string
           notes?: string | null
