@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Funcionalidades del sitio web de Alianza Puembo</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: #182014;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      font-size: 11pt;
+      line-height: 1.45;
+    }
+
+    .cover {
+      padding: 28mm 0 18mm;
+      border-bottom: 4px solid #8fc641;
+      margin-bottom: 9mm;
+    }
+
+    .eyebrow {
+      color: #5f7f25;
+      font-size: 8.5pt;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin: 0 0 6mm;
+    }
+
+    h1 {
+      color: #111827;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 28pt;
+      line-height: 1.05;
+      margin: 0 0 8mm;
+      max-width: 155mm;
+    }
+
+    .subtitle {
+      color: #4b5563;
+      font-size: 12pt;
+      max-width: 150mm;
+      margin: 0 0 12mm;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4mm;
+      max-width: 150mm;
+    }
+
+    .meta-card {
+      border: 1px solid #d7e8bd;
+      border-radius: 8px;
+      padding: 4mm;
+      background: #f8fbf2;
+    }
+
+    .meta-label {
+      color: #6b7280;
+      font-size: 8pt;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin: 0 0 1mm;
+    }
+
+    .meta-value {
+      color: #111827;
+      font-size: 11pt;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    h2 {
+      color: #111827;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 17pt;
+      line-height: 1.15;
+      margin: 8mm 0 3mm;
+      padding-bottom: 1.5mm;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    h3 {
+      color: #26331b;
+      font-size: 11pt;
+      font-weight: 800;
+      margin: 5mm 0 2mm;
+    }
+
+    p {
+      margin: 0 0 3mm;
+    }
+
+    ul {
+      margin: 0 0 3mm 0;
+      padding-left: 5mm;
+    }
+
+    li {
+      margin: 0 0 1.5mm;
+    }
+
+    .summary {
+      border-left: 4px solid #8fc641;
+      background: #f8fbf2;
+      padding: 5mm;
+      margin-bottom: 6mm;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4mm 7mm;
+    }
+
+    .section-card {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 4mm;
+      background: #ffffff;
+    }
+
+    .section-card h3 {
+      margin-top: 0;
+    }
+
+    .status-note {
+      border: 1px solid #dbeafe;
+      background: #f0f7ff;
+      color: #1f3a5f;
+      border-radius: 8px;
+      padding: 4mm;
+      margin: 4mm 0;
+      break-inside: avoid;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .footer-note {
+      color: #6b7280;
+      font-size: 9pt;
+      margin-top: 8mm;
+      padding-top: 4mm;
+      border-top: 1px solid #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <p class="eyebrow">Iglesia Alianza Puembo</p>
+    <h1>Funcionalidades del sitio web de la iglesia</h1>
+    <p class="subtitle">
+      Resumen ejecutivo de las funciones actuales, procesos automatizados,
+      mejoras logradas y próximos pasos para fortalecer la gestión digital de la iglesia.
+    </p>
+    <div class="meta">
+      <div class="meta-card">
+        <p class="meta-label">Presentado por</p>
+        <p class="meta-value">Alejandro Zambrano</p>
+      </div>
+      <div class="meta-card">
+        <p class="meta-label">Fecha</p>
+        <p class="meta-value">17 de junio de 2026</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="summary">
+    <h2>Propósito general</h2>
+    <p>
+      El sitio web de Alianza Puembo centraliza la presencia digital de la iglesia
+      y reduce trabajo operativo manual. Permite informar a la comunidad, publicar
+      eventos y noticias, recibir peticiones, administrar inscripciones, dar
+      seguimiento a pagos y organizar comunicaciones desde un solo panel administrativo.
+    </p>
+  </section>
+
+  <h2>Funcionalidades actuales</h2>
+  <div class="grid">
+    <div class="section-card">
+      <h3>Sitio público</h3>
+      <ul>
+        <li>Página principal con información de la iglesia, accesos rápidos, ubicación y enlaces principales.</li>
+        <li>Secciones de Conócenos, Equipo, Creencias, Involúcrate, Ministerios, Noticias, Recursos, Donaciones, Oración y Contacto.</li>
+        <li>Calendario de eventos, listado de próximos eventos y páginas individuales para cada actividad.</li>
+        <li>Recursos LOM: publicaciones devocionales para lectura, oración y meditación.</li>
+        <li>Formularios públicos para contacto, peticiones de oración, registros e inscripciones.</li>
+      </ul>
+    </div>
+
+    <div class="section-card">
+      <h3>Panel administrativo</h3>
+      <ul>
+        <li>Acceso protegido por usuarios y permisos.</li>
+        <li>Gestión de eventos, noticias, LOM, formularios, comunidad, comunicaciones, finanzas y procesos internos del staff.</li>
+        <li>Papelera, restauración, búsqueda, filtros y ordenamiento en las áreas principales.</li>
+        <li>Notificaciones internas en el panel y notificaciones por correo según permisos o suscripciones.</li>
+      </ul>
+    </div>
+
+    <div class="section-card">
+      <h3>Formularios e inscripciones</h3>
+      <ul>
+        <li>Constructor dinámico con campos de texto, número, email, fecha, opciones, archivos, imágenes y secciones.</li>
+        <li>Vista previa, límite de cupos, formularios públicos e internos, enlaces compartibles y enlaces cortos.</li>
+        <li>Seguimiento privado por enlace para consultar estado y subir comprobantes adicionales.</li>
+        <li>Formularios financieros con monto fijo o paquetes, pagos únicos o por cuotas, comprobantes compartidos y cuenta bancaria de destino.</li>
+        <li>Delegación de respuestas para revisar formularios específicos sin acceso completo al panel.</li>
+      </ul>
+    </div>
+
+    <div class="section-card">
+      <h3>Finanzas</h3>
+      <ul>
+        <li>Registro y revisión de comprobantes de pago enviados por formularios.</li>
+        <li>Conciliación bancaria con carga de extractos en Excel/CSV.</li>
+        <li>Uso de IA para interpretar extractos y datos de comprobantes.</li>
+        <li>Manejo de pagos verificados, pendientes, rechazados, compartidos, en efectivo o registrados manualmente.</li>
+        <li>Reportes, analíticas, exportaciones y recordatorios de pago por correo.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section-card" style="margin-top: 5mm;">
+    <h3>Comunicaciones</h3>
+    <ul>
+      <li>Campañas de correo asociadas a formularios, con destinatarios basados en inscripciones, exclusiones manuales, adjuntos, pruebas, envíos y programación.</li>
+      <li>Confirmaciones automáticas por correo cuando una persona completa una inscripción.</li>
+      <li>Gestión de contactos, audiencias y consentimientos para comunicaciones.</li>
+    </ul>
+    <div class="status-note">
+      <strong>WhatsApp en desarrollo:</strong> ya existe captación de interesados desde la página del evento,
+      manejo de audiencias, borradores generados con Gemini, aprobación de mensajes, programación
+      y registro de entregas. Falta terminar la configuración final del proveedor/plantillas de
+      WhatsApp y cerrar pruebas de envío en producción.
+    </div>
+  </div>
+
+  <div class="section-card" style="margin-top: 5mm;">
+    <h3>Comunidad y procesos internos</h3>
+    <ul>
+      <li>Bandeja de mensajes de contacto con estados de lectura/respuesta y opción de contestar.</li>
+      <li>Moderación de peticiones de oración para atenderlas y controlar su visibilidad.</li>
+      <li>Formularios internos para procesos operativos del staff, separados de los formularios públicos.</li>
+    </ul>
+  </div>
+
+  <h2 class="page-break">Procesos automatizados</h2>
+  <ul>
+    <li>Publicación de contenido desde el panel hacia el sitio público.</li>
+    <li>Recepción ordenada de mensajes, peticiones, formularios e inscripciones.</li>
+    <li>Envío de correos de confirmación, seguimiento y campañas.</li>
+    <li>Seguimiento de saldos pendientes y recordatorios de pago.</li>
+    <li>Generación de enlaces privados para que cada persona revise su inscripción.</li>
+    <li>Validación y conciliación asistida de comprobantes y extractos bancarios.</li>
+    <li>Control de permisos, delegación de acceso y trazabilidad de acciones administrativas.</li>
+    <li>Captación de contactos y consentimientos para futuras comunicaciones por WhatsApp.</li>
+  </ul>
+
+  <h2>Mejoras logradas</h2>
+  <ul>
+    <li>Menos dependencia de hojas de cálculo, mensajes sueltos y procesos manuales.</li>
+    <li>Mejor experiencia para la comunidad: información clara, formularios accesibles, enlaces de seguimiento y confirmaciones automáticas.</li>
+    <li>Mayor control financiero: estados de pago, conciliación, reportes y auditoría de comprobantes.</li>
+    <li>Mejor organización interna: permisos por área, panel único y procesos separados para staff.</li>
+    <li>Mayor capacidad de comunicación: campañas por correo, audiencias y base para recordatorios por WhatsApp.</li>
+  </ul>
+
+  <h2>Planes a futuro</h2>
+  <ul>
+    <li>Finalizar las notificaciones de WhatsApp para eventos: plantillas aprobadas, proveedor configurado, pruebas de envío, manejo de errores y reportes de entrega.</li>
+    <li>Implementar pagos de ofrendas, diezmos y donaciones con tarjeta de crédito/débito desde la página de Donaciones.</li>
+    <li>Integrar esos pagos en los reportes financieros para que transferencias, comprobantes y pagos con tarjeta convivan en un mismo flujo.</li>
+    <li>Automatizar recibos o confirmaciones para donaciones realizadas en línea.</li>
+    <li>Trabajar en campañas de compromiso de ofrendas.</li>
+    <li>Seguir mejorando los procesos internos del staff con formularios, estados y reportes específicos.</li>
+  </ul>
+
+  <p class="footer-note">
+    Documento preparado para presentar el avance funcional del sitio web y las oportunidades de mejora
+    en la gestión digital de Alianza Puembo.
+  </p>
+</body>
+</html>
