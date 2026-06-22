@@ -34,6 +34,15 @@ function cleanNameKey(value: any): string {
     .trim();
 }
 
+function isFileLikeValue(value: any): boolean {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      !Array.isArray(value) &&
+      (value._type === "file" || value.financial_receipt_path || value.receipt_path),
+  );
+}
+
 function getStructuredNameCandidate(value: any): string {
   if (value === null || value === undefined) return "";
 
@@ -49,10 +58,7 @@ function getStructuredNameCandidate(value: any): string {
     return String(value).trim();
   }
 
-  for (const key of ["name", "nombre", "full_name", "fullName", "label", "value"]) {
-    const candidate = getStructuredNameCandidate(value[key]);
-    if (candidate) return candidate;
-  }
+  if (isFileLikeValue(value)) return "";
 
   const nestedAnswers = value.answers && typeof value.answers === "object" ? value.answers : null;
   if (nestedAnswers) {
@@ -71,6 +77,11 @@ function getStructuredNameCandidate(value: any): string {
       !noisePatterns.some((noise) => entry.cleanKey.includes(noise)),
     );
     if (generic) return getStructuredNameCandidate(generic.value);
+  }
+
+  for (const key of ["nombre", "full_name", "fullName", "value"]) {
+    const candidate = getStructuredNameCandidate(value[key]);
+    if (candidate) return candidate;
   }
 
   return "";

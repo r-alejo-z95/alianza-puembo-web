@@ -54,3 +54,29 @@ test("findNameInSubmission extracts a display name from structured participant v
 
   assert.equal(name, "Ana Perez");
 });
+
+test("findNameInSubmission falls back to Inscrito instead of uploaded file names", async () => {
+  const { findNameInSubmission } = await loadFormUtils();
+
+  const name = findNameInSubmission({
+    answers: [
+      {
+        label: "Participante",
+        value: {
+          _type: "file",
+          name: "comprobante-bancario.jpg",
+          financial_receipt_path: "finance_receipts/forms/comprobante-bancario.jpg",
+        },
+      },
+    ],
+    data: {
+      Participante: {
+        _type: "file",
+        name: "comprobante-bancario.jpg",
+        financial_receipt_path: "finance_receipts/forms/comprobante-bancario.jpg",
+      },
+    },
+  });
+
+  assert.equal(name, "Inscrito");
+});
