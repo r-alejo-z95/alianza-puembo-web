@@ -99,3 +99,28 @@ test("public renderer submits pricing package and participant details", () => {
   assert.match(renderer, /collect_participant_details/);
   assert.match(renderer, /participant_template/);
 });
+
+test("public file fields upload to the correct Supabase bucket without Drive payloads", () => {
+  const renderer = readFileSync(
+    new URL("../components/public/forms/fluent-renderer/FluentRenderer.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(renderer, /uploadFormAttachment/);
+  assert.match(renderer, /const\s+uploadAction\s*=\s*isFinancialField\s*\?\s*uploadReceipt\s*:\s*uploadFormAttachment/);
+  assert.match(renderer, /storage_path/);
+  assert.match(renderer, /financial_receipt_path/);
+  assert.doesNotMatch(renderer, /processedDataForGoogle/);
+  assert.doesNotMatch(renderer, /FileReader/);
+});
+
+test("public submit action no longer exposes Sheets or Drive integration actions", () => {
+  const actions = readFileSync(new URL("../lib/actions.ts", import.meta.url), "utf8");
+
+  assert.doesNotMatch(actions, /processedDataForGoogle/);
+  assert.doesNotMatch(actions, /export async function createFormAndSheet/);
+  assert.doesNotMatch(actions, /export async function regenerateFormAndSheet/);
+  assert.doesNotMatch(actions, /export async function initializeGoogleIntegration/);
+  assert.doesNotMatch(actions, /export async function syncFormToSheets/);
+  assert.doesNotMatch(actions, /sheets-drive-integration/);
+});

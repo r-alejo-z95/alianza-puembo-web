@@ -24,9 +24,6 @@ export interface Form {
   is_internal: boolean;
   is_archived: boolean;
   enabled: boolean;
-  google_sheet_id?: string;
-  google_sheet_url?: string;
-  last_synced_at?: string;
   max_responses?: number | null;
   is_financial?: boolean;
   payment_type?: "single" | "installments" | null;

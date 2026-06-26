@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,8 +39,7 @@ import {
 import TurnstileCaptcha from "@/components/shared/TurnstileCaptcha";
 import { cn } from "@/lib/utils";
 import {
-  verifyCaptcha,
-  notifyFormSubmission,
+  uploadFormAttachment,
   uploadReceipt,
   submitFormAction,
 } from "@/lib/actions";
@@ -969,7 +968,6 @@ export default function FluentRenderer({ form, isPreview = false }) {
         }
       });
 
-      const processedDataForGoogle = {};
       const rawDataForDb = {};
 
       // 2. Procesar todos los campos en paralelo
@@ -1029,52 +1027,36 @@ export default function FluentRenderer({ form, isPreview = false }) {
             }
           }
 
-          // 2. Subida para conciliación financiera
-          let financialReceiptPath = null;
-          
           const isFinancialField = isFinancialReceiptField({ form, fieldDef, key });
-          
-          if (isFinancialField) {
-            console.log(`[Form] Subiendo comprobante financiero: "${file.name}"`);
-            const formData = new FormData();
-            formData.append("file", file);
-            formData.append("formSlug", form.slug);
+          const uploadAction = isFinancialField ? uploadReceipt : uploadFormAttachment;
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("formSlug", form.slug);
+          formData.append("fieldId", fieldDef.id || key);
+          formData.append("fieldType", fieldType);
 
-            try {
-              const uploadRes = await uploadReceipt(formData);
-              if (uploadRes?.success) {
-                financialReceiptPath = uploadRes.fullPath;
-                console.log(`[Form] Subida OK: ${financialReceiptPath}`);
-              } else {
-                console.error(`[Form] Error suvida:`, uploadRes?.error);
-                throw new Error(uploadRes?.error || "No se pudo subir el comprobante financiero.");
-              }
-            } catch (e) {
-              console.error("[Form] Excepción subida:", e);
-              throw e;
-            }
-          } else if (form.is_financial) {
-             console.log(`[Form Debug] Campo "${key}" no es el comprobante configurado.`);
+          const uploadRes = await uploadAction(formData);
+          if (!uploadRes?.success || !uploadRes.fullPath) {
+            throw new Error(
+              uploadRes?.error ||
+                (isFinancialField
+                  ? "No se pudo subir el comprobante financiero."
+                  : "No se pudo subir el archivo."),
+            );
           }
 
-          const reader = new FileReader();
-          const fileDataBase64 = await new Promise((resolve) => {
-            reader.onload = () => resolve(reader.result.split(",")[1]);
-            reader.readAsDataURL(file);
-          });
-
-          processedDataForGoogle[key] = {
-            type: "file",
-            name: file.name,
-            data: fileDataBase64,
-            mimeType: file.type,
-          };
+          const storagePath = uploadRes.fullPath;
+          const storageBucket = uploadRes.bucket || (isFinancialField ? "finance_receipts" : "form_uploads");
 
           const storedValue = {
             _type: "file",
             name: file.name,
-            info: "Archivo en Drive",
-            ...(financialReceiptPath ? { financial_receipt_path: financialReceiptPath } : {}),
+            bucket: storageBucket,
+            path: uploadRes.path,
+            storage_path: storagePath,
+            mime_type: file.type,
+            size_bytes: file.size,
+            ...(isFinancialField ? { financial_receipt_path: storagePath } : {}),
           };
           storeCompatibleValue(storedValue);
 
@@ -1090,9 +1072,6 @@ export default function FluentRenderer({ form, isPreview = false }) {
             value,
             data[getChoiceOtherTextKey(key)],
           );
-          processedDataForGoogle[key] = Array.isArray(choiceValue.value)
-            ? choiceValue.value.join("\n")
-            : choiceValue.value;
           storeCompatibleValue(choiceValue.value);
           return {
             ...answerBase,
@@ -1103,7 +1082,6 @@ export default function FluentRenderer({ form, isPreview = false }) {
         else if (typeof value === "object" && !Array.isArray(value)) {
           const fieldOptions = typeof fieldDef.options === "string" ? JSON.parse(fieldDef.options) : fieldDef.options || [];
           const selected = Object.keys(value).filter((k) => value[k]).map((k) => fieldOptions.find((o) => o.value === k)?.label || k);
-          processedDataForGoogle[key] = selected.join("\n");
           storeCompatibleValue(selected);
           return {
             ...answerBase,
@@ -1113,14 +1091,12 @@ export default function FluentRenderer({ form, isPreview = false }) {
           const fieldOptions = typeof fieldDef.options === "string" ? JSON.parse(fieldDef.options) : fieldDef.options || [];
           const opt = fieldOptions.find((o) => o.value === value);
           const label = opt ? opt.label : value;
-          processedDataForGoogle[key] = label;
           storeCompatibleValue(label);
           return {
             ...answerBase,
             value: label,
           };
         } else {
-          processedDataForGoogle[key] = value;
           storeCompatibleValue(value);
           return {
             ...answerBase,
@@ -1131,8 +1107,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
 
       const submissionAnswers = (await Promise.all(processingPromises)).filter(Boolean);
 
-      processedDataForGoogle.Timestamp = formatInEcuador(getNowInEcuador(), "d/M/yyyy HH:mm:ss");
-      rawDataForDb.Timestamp = processedDataForGoogle.Timestamp;
+      rawDataForDb.Timestamp = formatInEcuador(getNowInEcuador(), "d/M/yyyy HH:mm:ss");
 
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
@@ -1141,7 +1116,6 @@ export default function FluentRenderer({ form, isPreview = false }) {
         formId: form.id,
         rawData: rawDataForDb,
         answers: submissionAnswers,
-        processedDataForGoogle: processedDataForGoogle,
         userAgent: navigator.userAgent,
         isInternal: form.is_internal && !!user?.id,
         notificationEmail: data["notification-email-field"] || data["Correo para Notificaciones"],

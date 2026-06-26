@@ -1329,7 +1329,7 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
     const updatedFieldValue =
       existingFieldValue && typeof existingFieldValue === "object"
         ? { ...existingFieldValue, financial_receipt_path: fullPath }
-        : { _type: "file", info: "Archivo en Drive", financial_receipt_path: fullPath };
+        : { _type: "file", info: "Archivo en Supabase", financial_receipt_path: fullPath };
 
     const updatedData = {
       ...currentData,
@@ -1345,7 +1345,7 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
           if (!matchesFieldId && !matchesLabel) return answer;
           const value = answer?.value && typeof answer.value === "object"
             ? { ...answer.value, financial_receipt_path: fullPath }
-            : { _type: "file", info: "Archivo en Drive", financial_receipt_path: fullPath };
+            : { _type: "file", info: "Archivo en Supabase", financial_receipt_path: fullPath };
           return { ...answer, value };
         })
       : [];

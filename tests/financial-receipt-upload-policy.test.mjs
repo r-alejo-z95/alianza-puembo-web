@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 test("public file uploads only offer images and PDFs", () => {
   const renderer = readFileSync(
@@ -21,6 +21,37 @@ test("financial receipt upload rejects unsupported mime types on the server", ()
 
   assert.match(actions, /isSupportedReceiptMimeType/);
   assert.match(actions, /Tipo de archivo no permitido/);
+});
+
+test("financial and general form uploads use separate storage buckets", () => {
+  const actions = readFileSync(new URL("../lib/actions.ts", import.meta.url), "utf8");
+  const storage = readFileSync(new URL("../lib/finance/storage.ts", import.meta.url), "utf8");
+  const migrationUrl = new URL(
+    "../supabase/migrations/20260626000000_add_form_uploads_bucket.sql",
+    import.meta.url,
+  );
+
+  assert.match(storage, /FORM_UPLOADS_BUCKET\s*=\s*"form_uploads"/);
+  assert.match(storage, /ensureFormUploadsBucket/);
+  assert.equal(existsSync(migrationUrl), true);
+
+  const attachmentStart = actions.indexOf("export async function uploadFormAttachment");
+  const receiptStart = actions.indexOf("export async function uploadReceipt");
+  assert.notEqual(attachmentStart, -1);
+  assert.notEqual(receiptStart, -1);
+
+  const attachmentBlock = actions.slice(attachmentStart, receiptStart);
+  const receiptBlock = actions.slice(receiptStart);
+
+  assert.match(attachmentBlock, /ensureFormUploadsBucket/);
+  assert.match(attachmentBlock, /isFinancialReceiptField/);
+  assert.match(attachmentBlock, /El comprobante financiero debe subirse al bucket financiero/);
+  assert.match(attachmentBlock, /\.from\("form_uploads"\)/);
+  assert.doesNotMatch(attachmentBlock, /finance_receipts/);
+
+  assert.match(receiptBlock, /ensureFinanceReceiptsBucket/);
+  assert.match(receiptBlock, /\.from\("finance_receipts"\)/);
+  assert.doesNotMatch(receiptBlock, /form_uploads/);
 });
 
 test("financial submissions use strict receipt validation policy", () => {

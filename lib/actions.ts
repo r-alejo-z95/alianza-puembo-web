@@ -4,7 +4,6 @@
 
 import { z } from "zod";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
-import { slugify } from "@/lib/utils";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
@@ -15,7 +14,7 @@ import {
   sendSubmissionTrackingLinksEmail,
 } from "@/lib/services/notifications";
 import { headers } from "next/headers";
-import { revalidateForms, revalidateFormSubmissions } from "./actions/cache";
+import { revalidateFormSubmissions } from "./actions/cache";
 import { extractReceiptDataDetailed } from "@/lib/services/ai-reconciliation";
 import {
   INVALID_RECEIPT_MESSAGE,
@@ -23,7 +22,7 @@ import {
   resolveFinancialReceiptValidation,
 } from "@/lib/services/receipt-validation";
 import crypto from "crypto";
-import { ensureFinanceReceiptsBucket } from "@/lib/finance/storage";
+import { ensureFinanceReceiptsBucket, ensureFormUploadsBucket } from "@/lib/finance/storage";
 import { getInstallmentEmailSummary } from "@/lib/finance/payment-summary.mjs";
 import { getSubmissionBalanceSummary } from "@/lib/finance/submission-balance.mjs";
 import { detectFinancialSubmissionConflict } from "@/lib/finance/submission-dedupe.mjs";
@@ -33,6 +32,7 @@ import {
   buildPricingSnapshot,
   calculateGroupExpectedAmount,
 } from "@/lib/finance/pricing-packages.mjs";
+import { isFinancialReceiptField } from "@/lib/finance/financial-field.mjs";
 import {
   getReceiptFileExtension,
   isSupportedReceiptMimeType,
@@ -461,240 +461,6 @@ export async function notifyFormSubmission(
   }
 }
 
-// Create Form and Sheet Action
-export async function createFormAndSheet(formTitle: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "User not authenticated." };
-  }
-
-  const slug = slugify(formTitle);
-
-  try {
-    // 1. Create the form entry in Supabase
-    const { data: newForm, error: formError } = await supabase
-      .from("forms")
-      .insert([{ title: formTitle, user_id: user.id, slug }])
-      .select("id, slug")
-      .single();
-
-    if (formError || !newForm) {
-      console.error("Error creating form in DB:", formError);
-      return { error: "Error al crear el formulario en la base de datos." };
-    }
-
-    const formId = newForm.id;
-    const formSlug = newForm.slug;
-
-    // 2. Call the Edge Function to create the Google Sheet
-    const edgeFunctionUrl =
-      process.env.NEXT_PUBLIC_SUPABASE_URL +
-      "/functions/v1/sheets-drive-integration/create-sheet";
-    console.log("Calling Edge Function at:", edgeFunctionUrl);
-    console.log("Sending body:", { formId, formTitle, formSlug });
-    const response = await fetch(edgeFunctionUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-      },
-      body: JSON.stringify({ formId, formTitle, formSlug }),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error("Error calling edge function:", result);
-      console.error("Edge function response status:", response.status);
-      console.error("Edge function response status text:", response.statusText);
-      return {
-        error: result.error || "Error al crear la hoja de cálculo de Google.",
-      };
-    }
-
-    revalidatePath("/admin/formularios");
-    await revalidateForms(); // Revalidate cached forms
-
-    return {
-      success: true,
-      formId,
-      formSlug,
-      formUrl: `/formularios/${formSlug}`,
-    };
-  } catch (error) {
-    console.error("Unexpected error in createFormAndSheet:", error);
-    return { error: "Ocurrió un error inesperado." };
-  }
-}
-
-// Regenerate Form and Sheet Action (Using slug instead of form_id)
-export async function regenerateFormAndSheet(
-  formSlug: string,
-  newFormTitle: string,
-) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { error: "User not authenticated." };
-  }
-
-  console.log("Regenerating form with slug:", formSlug);
-
-  try {
-    // 1. Buscar el formulario por slug
-    const { data: oldForm, error: fetchError } = await supabase
-      .from("forms")
-      .select("id, slug, title, google_sheet_id")
-      .eq("slug", formSlug)
-      .eq("is_archived", false)
-      .single();
-
-    if (fetchError || !oldForm) {
-      console.error("Error fetching form by slug:", fetchError);
-      return { error: "Error al obtener el formulario anterior." };
-    }
-
-    const formId = oldForm.id;
-
-    // 2. Actualizar el formulario existente con el nuevo título
-    const { data: updatedForm, error: updateError } = await supabase
-      .from("forms")
-      .update({
-        title: newFormTitle,
-      })
-      .eq("id", formId)
-      .select("id, slug")
-      .single();
-
-    if (updateError || !updatedForm) {
-      console.error("Error updating form in DB:", updateError);
-      return {
-        error: "Error al actualizar el formulario en la base de datos.",
-      };
-    }
-
-    // 3. Crear un nuevo Google Sheet (manteniendo el anterior)
-    const edgeFunctionUrl =
-      process.env.NEXT_PUBLIC_SUPABASE_URL +
-      "/functions/v1/sheets-drive-integration/create-sheet";
-    console.log("Creating new sheet for regenerated form");
-
-    const response = await fetch(edgeFunctionUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-      },
-      body: JSON.stringify({
-        formId,
-        formTitle: `${newFormTitle} (Regenerado)`,
-        formSlug,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error("Error calling edge function:", result);
-      return {
-        error:
-          result.error || "Error al crear la nueva hoja de cálculo de Google.",
-      };
-    }
-
-    revalidatePath("/admin/formularios");
-    await revalidateForms();
-
-    return { success: true, formId, formUrl: `/formularios/${formSlug}` };
-  } catch (error) {
-    console.error("Unexpected error in regenerateFormAndSheet:", error);
-
-    return { error: "Ocurrió un error inesperado." };
-  }
-}
-
-// Initialize Google Integration for an existing form
-export async function initializeGoogleIntegration(
-  formId: string,
-  formTitle: string,
-  formSlug: string,
-  formFields?: any[],
-) {
-  const supabase = await createClient();
-  
-  // 1. Verificación de Seguridad: Solo usuarios autenticados
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: "No autorizado", details: "Debes estar autenticado para realizar esta acción." };
-  }
-
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!serviceRoleKey) {
-    console.error("CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing in the current environment.");
-    return { 
-      error: "Error de configuración: Llave de servicio no encontrada en el servidor.",
-      details: "Verifica las variables de entorno en Vercel."
-    };
-  }
-
-  try {
-    // Check if the form already has a Google Sheet ID to avoid double initialization
-    const { data: existingForm, error: fetchError } = await supabase
-      .from("forms")
-      .select("google_sheet_id")
-      .eq("id", formId)
-      .single();
-
-    if (fetchError) {
-      console.error("Error checking existing form:", fetchError);
-      return { error: "Error al verificar el estado del formulario." };
-    }
-
-    if (existingForm?.google_sheet_id) {
-      return { success: true, alreadyInitialized: true };
-    }
-
-    const edgeFunctionUrl =
-      process.env.NEXT_PUBLIC_SUPABASE_URL +
-      "/functions/v1/sheets-drive-integration/create-sheet";
-
-    const response = await fetch(edgeFunctionUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${serviceRoleKey}`,
-      },
-      body: JSON.stringify({ formId, formTitle, formSlug, formFields }),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error("Edge Function Error:", result);
-      return {
-        error: result.error || "La conexión con Google falló.",
-        details: result.details || response.statusText,
-        status: response.status
-      };
-    }
-
-    revalidatePath("/admin/formularios");
-    await revalidateForms();
-    return { success: true };
-  } catch (error: any) {
-    console.error("Unexpected error in initializeGoogleIntegration:", error);
-    return { error: "Error inesperado al conectar con Google.", details: error.message };
-  }
-}
-
 function buildSubmissionOutcome({
   status,
   title,
@@ -881,7 +647,6 @@ export async function submitFormAction(payload: {
   formId: string;
   rawData: any;
   answers?: any[];
-  processedDataForGoogle: any;
   userAgent: string;
   isInternal: boolean;
   notificationEmail?: string;
@@ -897,7 +662,6 @@ export async function submitFormAction(payload: {
     formId,
     rawData,
     answers = [],
-    processedDataForGoogle,
     userAgent,
     isInternal,
     notificationEmail,
@@ -915,7 +679,7 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_internal, is_financial, payment_type, total_amount, pricing_mode, pricing_packages, pricing_field_id, collect_participant_details, participant_template, allow_shared_receipts, shared_receipt_max_submissions, destination_account_id, financial_field_label, financial_field_id, user_id, google_sheet_id, max_responses, form_fields!form_id(id, label, type, options)")
+      .select("id, title, slug, is_internal, is_financial, payment_type, total_amount, pricing_mode, pricing_packages, pricing_field_id, collect_participant_details, participant_template, allow_shared_receipts, shared_receipt_max_submissions, destination_account_id, financial_field_label, financial_field_id, user_id, max_responses, form_fields!form_id(id, label, type, options)")
       .eq("id", formId)
       .single();
 
@@ -1503,46 +1267,28 @@ export async function requestSubmissionTrackingLinks(email: string) {
   }
 }
 
-/**
- * Sincroniza el Google Sheet de un formulario desde la base de datos.
- * Solo agrega respuestas que faltan (no elimina ni modifica las existentes).
- * Las anotaciones del equipo en el sheet se preservan.
- */
-export async function syncFormToSheets(formId: string): Promise<{
-  added?: number;
-  total?: number;
-  error?: string;
-}> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "No autorizado" };
-
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/sheets-drive-integration/sync-sheet`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-        body: JSON.stringify({ formId }),
-      },
-    );
-
-    const result = await response.json();
-    if (!response.ok) {
-      return { error: result.error || "La sincronización con Google Sheets falló." };
-    }
-    return { added: result.added, total: result.total };
-  } catch (error: any) {
-    console.error("[syncFormToSheets] Error:", error);
-    return { error: error.message || "Error inesperado al sincronizar." };
+function normalizePrivateStoragePath(path: string) {
+  const rawPath = String(path || "").trim();
+  if (rawPath.startsWith("finance_receipts/")) {
+    return {
+      bucket: "finance_receipts",
+      path: rawPath.replace("finance_receipts/", ""),
+    };
   }
+  if (rawPath.startsWith("form_uploads/")) {
+    return {
+      bucket: "form_uploads",
+      path: rawPath.replace("form_uploads/", ""),
+    };
+  }
+  return {
+    bucket: "finance_receipts",
+    path: rawPath,
+  };
 }
 
 /**
- * Genera una URL firmada temporal (1 hora) para un recibo en el bucket finance_receipts.
+ * Genera una URL firmada temporal (1 hora) para archivos privados de formularios.
  */
 export async function getFileSignedUrl(
   path: string,
@@ -1552,22 +1298,121 @@ export async function getFileSignedUrl(
   if (!user) return { error: "No autorizado" };
 
   const supabaseAdmin = createAdminClient();
-  // financial_receipt_path se guarda con el prefijo "finance_receipts/" — quitarlo antes de createSignedUrl
-  const storagePath = path.replace("finance_receipts/", "");
+  const storagePath = normalizePrivateStoragePath(path);
   const { data, error } = await supabaseAdmin.storage
-    .from("finance_receipts")
-    .createSignedUrl(storagePath, 3600);
+    .from(storagePath.bucket)
+    .createSignedUrl(storagePath.path, 3600);
 
   if (error) return { error: error.message };
   return { url: data.signedUrl };
 }
 
 /**
- * Subida de archivos usando el cliente administrativo para asegurar permisos.
+ * Subida de adjuntos generales de formularios.
+ */
+function sanitizeStorageSegment(value: string | null | undefined, fallback: string) {
+  const sanitized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return sanitized || fallback;
+}
+
+async function loadFormUploadFieldContext(
+  supabaseAdmin: any,
+  formSlug: string,
+  fieldId: string,
+) {
+  const { data: form, error } = await supabaseAdmin
+    .from("forms")
+    .select("id, is_financial, financial_field_id, financial_field_label, form_fields!form_id(id, label, type)")
+    .eq("slug", formSlug)
+    .maybeSingle();
+
+  if (error || !form) {
+    return { error: "No se encontró el formulario." };
+  }
+
+  const fieldDef = (form.form_fields || []).find((field: any) => field.id === fieldId);
+  if (!fieldDef) {
+    return { error: "No se encontró el campo de archivo." };
+  }
+
+  const fieldType = fieldDef.type || "text";
+  if (!["file", "image"].includes(fieldType)) {
+    return { error: "El campo indicado no acepta archivos." };
+  }
+
+  return { form, fieldDef };
+}
+
+export async function uploadFormAttachment(formData: FormData) {
+  const file = formData.get("file") as File;
+  const formSlug = formData.get("formSlug") as string;
+  const fieldId = formData.get("fieldId") as string;
+  const fieldType = String(formData.get("fieldType") || "");
+
+  if (!file || !formSlug || !fieldId) return { error: "Datos incompletos" };
+  if (fieldType === "image" && !file.type.startsWith("image/")) {
+    return { error: "Solo se permiten imágenes en este campo." };
+  }
+  if (!isSupportedReceiptMimeType(file.type)) {
+    return { error: "Tipo de archivo no permitido. Sube una imagen o PDF." };
+  }
+  if (file.size > MAX_RECEIPT_FILE_SIZE_BYTES) {
+    return { error: "El archivo no puede superar 5MB." };
+  }
+
+  try {
+    const supabaseAdmin = createAdminClient();
+    const uploadContext = await loadFormUploadFieldContext(supabaseAdmin, formSlug, fieldId);
+    if ("error" in uploadContext) {
+      return { error: uploadContext.error };
+    }
+    if (isFinancialReceiptField({ form: uploadContext.form, fieldDef: uploadContext.fieldDef, key: fieldId })) {
+      return { error: "El comprobante financiero debe subirse al bucket financiero." };
+    }
+
+    const bucketResult = await ensureFormUploadsBucket();
+    if (bucketResult?.error) {
+      throw new Error(bucketResult.error);
+    }
+
+    const date = new Date();
+    const safeFormSlug = sanitizeStorageSegment(formSlug, "form");
+    const safeFieldId = sanitizeStorageSegment(fieldId, "field");
+    const extension = getReceiptFileExtension(file.name, file.type);
+    const path = `${safeFormSlug}/${safeFieldId}/${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}/${crypto.randomUUID()}.${extension}`;
+
+    const { data, error } = await supabaseAdmin.storage
+      .from("form_uploads")
+      .upload(path, file, { cacheControl: "3600", upsert: false });
+
+    if (error) {
+      console.error(`[Form-Upload] Error Supabase: ${error.message}`);
+      throw error;
+    }
+
+    return {
+      success: true,
+      bucket: "form_uploads",
+      path: data.path,
+      fullPath: `form_uploads/${data.path}`,
+    };
+  } catch (error: any) {
+    console.error("[Form-Upload] Excepción:", error.message);
+    return { error: `No se pudo guardar el archivo: ${error.message}` };
+  }
+}
+
+/**
+ * Subida de comprobantes financieros usando el cliente administrativo para asegurar permisos.
  */
 export async function uploadReceipt(formData: FormData) {
   const file = formData.get("file") as File;
   const formSlug = formData.get("formSlug") as string;
+  const fieldId = formData.get("fieldId") as string | null;
   
   if (!file || !formSlug) return { error: "Datos incompletos" };
   if (!isSupportedReceiptMimeType(file.type)) {
@@ -1578,12 +1423,22 @@ export async function uploadReceipt(formData: FormData) {
   }
 
   try {
+    const supabaseAdmin = createAdminClient();
+    if (fieldId) {
+      const uploadContext = await loadFormUploadFieldContext(supabaseAdmin, formSlug, fieldId);
+      if ("error" in uploadContext) {
+        return { error: uploadContext.error };
+      }
+      if (!isFinancialReceiptField({ form: uploadContext.form, fieldDef: uploadContext.fieldDef, key: fieldId })) {
+        return { error: "Este campo no está configurado como comprobante financiero." };
+      }
+    }
+
     const bucketResult = await ensureFinanceReceiptsBucket();
     if (bucketResult?.error) {
       throw new Error(bucketResult.error);
     }
 
-    const supabaseAdmin = createAdminClient();
     const date = new Date();
     const extension = getReceiptFileExtension(file.name, file.type);
     const path = `${formSlug}/${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, '0')}/${crypto.randomUUID()}.${extension}`;

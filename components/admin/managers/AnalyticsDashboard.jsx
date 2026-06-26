@@ -104,22 +104,31 @@ import RecycleBin from "./RecycleBin";
 // ------------------------------------------------------------------
 // FileDisplay — cached signed URL + modal viewer
 // ------------------------------------------------------------------
+function getStoredFilePath(value) {
+  if (!value || typeof value !== "object") return null;
+  if (value.storage_path) return value.storage_path;
+  if (value.financial_receipt_path) return value.financial_receipt_path;
+  if (value.bucket && value.path) return `${value.bucket}/${value.path}`;
+  return value.path || value.url || null;
+}
+
 function FileDisplay({ val, urlCache }) {
+  const filePath = getStoredFilePath(val);
   const [resolvedUrl, setResolvedUrl] = useState(
-    () => urlCache?.get(val?.financial_receipt_path) ?? null
+    () => urlCache?.get(filePath) ?? null
   );
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const isImage = /\.(jpg|jpeg|png|gif|webp|heic)$/i.test(val?.name ?? "");
 
   const resolveUrl = async () => {
-    if (resolvedUrl || !val?.financial_receipt_path) return resolvedUrl;
+    if (resolvedUrl || !filePath) return resolvedUrl;
 
     setLoading(true);
-    const res = await getFileSignedUrl(val.financial_receipt_path);
+    const res = await getFileSignedUrl(filePath);
     if (res.url) {
       setResolvedUrl(res.url);
-      urlCache?.set(val.financial_receipt_path, res.url);
+      urlCache?.set(filePath, res.url);
     }
     setLoading(false);
     return res.url || null;
@@ -192,7 +201,7 @@ function FileDisplay({ val, urlCache }) {
               </div>
               <div className="text-center">
                 <p className="font-bold text-gray-900">{val.name}</p>
-                <p className="text-xs text-gray-400 mt-1">Comprobante financiero</p>
+                <p className="text-xs text-gray-400 mt-1">Archivo del formulario</p>
               </div>
               <a
                 href={resolvedUrl}
@@ -299,7 +308,7 @@ function isExportFileValue(value) {
 }
 
 function getExportFilePath(value) {
-  return value?.financial_receipt_path || value?.path || null;
+  return getStoredFilePath(value);
 }
 
 function getExportCellValue(value, fileUrlMap) {

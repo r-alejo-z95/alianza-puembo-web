@@ -772,7 +772,7 @@ export default function EventForm({ event, onSave, onCancel }) {
                       Se generará un formulario automáticamente
                     </p>
                     <p className="text-[10px] text-emerald-600 uppercase tracking-widest">
-                      Crea Google Sheet + Carpeta Drive
+                      Crea formulario + enlace público
                     </p>
                   </div>
                 </motion.div>
