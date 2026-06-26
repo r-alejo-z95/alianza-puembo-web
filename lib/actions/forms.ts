@@ -9,7 +9,7 @@ import {
   buildSubmissionResponseUpdate,
   canManageSubmissionResponses,
 } from "@/lib/forms/submission-admin.mjs";
-import { collectFinanceReceiptPathsFromSubmission } from "@/lib/finance/submission-lifecycle.mjs";
+import { collectStoragePathsFromSubmission } from "@/lib/finance/submission-lifecycle.mjs";
 import {
   findAvailableFormShortCode,
   isValidFormShortCode,
@@ -364,6 +364,33 @@ async function getSubmissionAdminCommentWithProfile(supabase: any, commentId: st
   return data;
 }
 
+async function cleanupDeletedSubmissionStorage(
+  supabase: any,
+  storagePathsByBucket: Record<string, string[]>,
+) {
+  const financeReceiptPaths = storagePathsByBucket.finance_receipts ?? [];
+  if (financeReceiptPaths.length > 0) {
+    const { error: storageError } = await supabase.storage
+      .from("finance_receipts")
+      .remove(financeReceiptPaths);
+
+    if (storageError) {
+      console.error("[permanentlyDeleteFormSubmissionResponse] finance receipt cleanup failed:", storageError);
+    }
+  }
+
+  const formUploadPaths = storagePathsByBucket.form_uploads ?? [];
+  if (formUploadPaths.length > 0) {
+    const { error: storageError } = await supabase.storage
+      .from("form_uploads")
+      .remove(formUploadPaths);
+
+    if (storageError) {
+      console.error("[permanentlyDeleteFormSubmissionResponse] form upload cleanup failed:", storageError);
+    }
+  }
+}
+
 export async function updateFormSubmissionResponse({
   submissionId,
   values,
@@ -518,7 +545,7 @@ export async function permanentlyDeleteFormSubmissionResponse(
       return { error: "Solo puedes eliminar definitivamente respuestas archivadas." };
     }
 
-    const receiptPaths = collectFinanceReceiptPathsFromSubmission(submission);
+    const storagePathsByBucket = collectStoragePathsFromSubmission(submission);
 
     const { error } = await supabase
       .from("form_submissions")
@@ -528,15 +555,7 @@ export async function permanentlyDeleteFormSubmissionResponse(
 
     if (error) throw error;
 
-    if (receiptPaths.length > 0) {
-      const { error: storageError } = await supabase.storage
-        .from("finance_receipts")
-        .remove(receiptPaths);
-
-      if (storageError) {
-        console.error("[permanentlyDeleteFormSubmissionResponse] receipt cleanup failed:", storageError);
-      }
-    }
+    await cleanupDeletedSubmissionStorage(supabase, storagePathsByBucket);
 
     await revalidateFormSubmissions((submission as any).form_id);
 

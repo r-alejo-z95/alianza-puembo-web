@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import {
   buildActiveReconciledTransactionIds,
   collectFinanceReceiptPathsFromSubmission,
+  collectStoragePathsFromSubmission,
 } from "../lib/finance/submission-lifecycle.mjs";
 
 test("buildActiveReconciledTransactionIds ignores payments from archived submissions", () => {
@@ -70,6 +71,58 @@ test("collectFinanceReceiptPathsFromSubmission finds every storage object tied t
   ]);
 });
 
+test("collectStoragePathsFromSubmission groups response files by storage bucket", () => {
+  const pathsByBucket = collectStoragePathsFromSubmission({
+    coverage_backup_path: "finance_receipts/manual/cash.png",
+    data: {
+      receipt: {
+        _type: "file",
+        financial_receipt_path: "finance_receipts/form/main.png",
+      },
+      profilePhoto: {
+        _type: "file",
+        storage_path: "form_uploads/public-form/photo.jpg",
+      },
+      document: {
+        _type: "file",
+        bucket: "form_uploads",
+        path: "public-form/document.pdf",
+      },
+      unsafe: {
+        storage_path: "../secret.png",
+      },
+    },
+    answers: [
+      {
+        value: {
+          storage_path: "form_uploads/public-form/photo.jpg",
+        },
+      },
+      {
+        value: {
+          path: "finance_receipts/form/answer-only.jpg",
+        },
+      },
+    ],
+    form_submission_payments: [
+      { receipt_path: "finance_receipts/form/payment-1.jpg" },
+    ],
+  });
+
+  assert.deepEqual(pathsByBucket, {
+    finance_receipts: [
+      "manual/cash.png",
+      "form/main.png",
+      "form/answer-only.jpg",
+      "form/payment-1.jpg",
+    ],
+    form_uploads: [
+      "public-form/photo.jpg",
+      "public-form/document.pdf",
+    ],
+  });
+});
+
 test("finance actions wire active reconciliation and permanent storage cleanup", () => {
   const financeActions = readFileSync(new URL("../lib/actions/finance.ts", import.meta.url), "utf8");
   const formActions = readFileSync(new URL("../lib/actions/forms.ts", import.meta.url), "utf8");
@@ -77,7 +130,8 @@ test("finance actions wire active reconciliation and permanent storage cleanup",
 
   assert.match(financeActions, /form_submissions!inner\(is_archived\)/);
   assert.match(financeActions, /buildActiveReconciledTransactionIds/);
-  assert.match(formActions, /collectFinanceReceiptPathsFromSubmission/);
+  assert.match(formActions, /collectStoragePathsFromSubmission/);
   assert.match(formActions, /\.storage\s*[\s\S]*\.from\("finance_receipts"\)\s*[\s\S]*\.remove\(/);
+  assert.match(formActions, /\.storage\s*[\s\S]*\.from\("form_uploads"\)\s*[\s\S]*\.remove\(/);
   assert.match(formsData, /getSubmissionByToken[\s\S]*\.eq\("is_archived", false\)/);
 });
