@@ -101,6 +101,13 @@ export function findNameInSubmission(input: any): string {
       : [];
 
   const cleanEntries = [
+    ...(Array.isArray(input?.participant_details) ? input.participant_details : []).map(
+      (participant: any, idx: number) => ({
+        key: `participante-${participant?.index || idx + 1}`,
+        cleanKey: "participante",
+        value: getStructuredNameCandidate(participant),
+      }),
+    ),
     ...answers.map((answer: any, idx: number) => ({
       key: answer?.label || answer?.key || `answer-${idx}`,
       cleanKey: cleanNameKey(answer?.label || answer?.key || ""),

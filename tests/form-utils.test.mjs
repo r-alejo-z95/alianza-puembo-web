@@ -80,3 +80,23 @@ test("findNameInSubmission falls back to Inscrito instead of uploaded file names
 
   assert.equal(name, "Inscrito");
 });
+
+test("findNameInSubmission reads the canonical participant_details column", async () => {
+  const { findNameInSubmission } = await loadFormUtils();
+
+  const name = findNameInSubmission({
+    data: { "Nombre del padre o madre": "Representante" },
+    answers: [],
+    participant_details: [
+      {
+        index: 1,
+        answers: {
+          "Nombre del Niño/a Campista": "Ana Perez",
+          Edad: "8",
+        },
+      },
+    ],
+  });
+
+  assert.equal(name, "Ana Perez");
+});
