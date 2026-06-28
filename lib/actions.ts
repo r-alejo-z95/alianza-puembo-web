@@ -6,7 +6,6 @@ import { z } from "zod";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { after } from "next/server";
 import { loginSchema } from "@/lib/schemas";
 import {
   sendSystemNotification,
@@ -28,6 +27,7 @@ import { getSubmissionBalanceSummary } from "@/lib/finance/submission-balance.mj
 import { detectFinancialSubmissionConflict } from "@/lib/finance/submission-dedupe.mjs";
 import { findNameInSubmission } from "@/lib/form-utils";
 import { validateChoiceOtherAnswers } from "@/lib/forms/choice-other.mjs";
+import { validateParticipantDetails } from "@/lib/forms/participant-details.mjs";
 import {
   buildPricingSnapshot,
   calculateGroupExpectedAmount,
@@ -724,9 +724,34 @@ export async function submitFormAction(payload: {
           selectedPackageId: (form as any).pricing_mode === "packages" ? pricingPackageId : null,
         })
       : null;
-    const participantDetails = Array.isArray(incomingParticipantDetails) && incomingParticipantDetails.length
-      ? incomingParticipantDetails
-      : null;
+    let participantDetails: any[] | null = null;
+    const expectedParticipantCount = Number(pricingSnapshot?.participant_count || 0);
+    if (
+      form.collect_participant_details &&
+      pricingSnapshot?.mode === "packages" &&
+      expectedParticipantCount > 0
+    ) {
+      const participantValidation = validateParticipantDetails({
+        participantDetails: incomingParticipantDetails,
+        participantTemplate: form.participant_template,
+        expectedCount: expectedParticipantCount,
+      });
+
+      if (!participantValidation.valid) {
+        const participantError = participantValidation.errors.join(" ");
+        return {
+          error: participantError,
+          outcome: buildSubmissionOutcome({
+            status: "error",
+            title: "Revisa los datos de los participantes",
+            message: participantError,
+            primaryAction: { label: "Completar participantes" },
+          }),
+        };
+      }
+
+      participantDetails = participantValidation.value;
+    }
     const expectedAmount = Number(pricingSnapshot?.amount ?? form.total_amount ?? 0);
 
     let destinationAccount: {
@@ -1070,6 +1095,12 @@ export async function submitFormAction(payload: {
       }
     }
 
+    try {
+      await revalidateFormSubmissions(formId);
+    } catch (err) {
+      console.error("[Revalidate Error]:", err);
+    }
+
     // 4. TAREAS EN BACKGROUND (No bloquean la respuesta al usuario)
     if (notificationEmail && !form.is_internal) {
       let financialSummary = null;
@@ -1113,15 +1144,6 @@ export async function submitFormAction(payload: {
 
     notifyFormSubmission(form.title, form.slug, form.user_id, user?.id)
       .catch(err => console.error("[Notification Error]:", err));
-
-    // Revalidar fuera del camino crítico de respuesta
-    after(async () => {
-      try {
-        await revalidateFormSubmissions(formId);
-      } catch (err) {
-        console.error("[Revalidate Error]:", err);
-      }
-    });
 
     const isFinancialSuccess = !!form.is_financial;
     const isSharedPaymentSuccess = !!sharedPaymentCoverage;

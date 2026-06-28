@@ -100,6 +100,14 @@ test("public renderer submits pricing package and participant details", () => {
   assert.match(renderer, /participant_template/);
 });
 
+test("submitFormAction validates participants and revalidates analytics submissions", () => {
+  const actions = readFileSync(new URL("../lib/actions.ts", import.meta.url), "utf8");
+
+  assert.match(actions, /validateParticipantDetails/);
+  assert.match(actions, /participantValidation\.value/);
+  assert.match(actions, /await revalidateFormSubmissions\(formId\)/);
+});
+
 test("public file fields upload to the correct Supabase bucket without Drive payloads", () => {
   const renderer = readFileSync(
     new URL("../components/public/forms/fluent-renderer/FluentRenderer.jsx", import.meta.url),
