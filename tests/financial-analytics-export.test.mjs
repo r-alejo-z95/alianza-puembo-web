@@ -85,3 +85,21 @@ test("analytics export includes participant detail flattening", () => {
   assert.match(dashboard, /flattenParticipantDetailsForExport/);
   assert.match(dashboard, /participant_details/);
 });
+
+test("analytics renders and searches repeated participant details", () => {
+  const dashboard = readFileSync(
+    new URL("../components/admin/managers/AnalyticsDashboard.jsx", import.meta.url),
+    "utf8",
+  );
+  const section = readFileSync(
+    new URL("../components/admin/managers/ParticipantDetailsSection.jsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(dashboard, /ParticipantDetailsSection/);
+  assert.match(dashboard, /getParticipantSearchValues/);
+  assert.match(dashboard, /totalParticipantCount/);
+  assert.match(dashboard, /participant_details/);
+  assert.match(section, /Inscritos/);
+  assert.match(section, /participant\.answers/);
+});

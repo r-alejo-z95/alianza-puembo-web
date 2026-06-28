@@ -25,6 +25,7 @@ import {
   Filter,
   PieChart as PieIcon,
   User,
+  Users,
   Inbox,
   TrendingUp,
   ExternalLink,
@@ -77,6 +78,10 @@ import {
   getFinancialAnalyticsPaymentFilePaths,
 } from "@/lib/finance/analytics-export.mjs";
 import { flattenParticipantDetailsForExport } from "@/lib/finance/pricing-packages.mjs";
+import {
+  getParticipantSearchValues,
+  normalizeParticipantDetails,
+} from "@/lib/forms/participant-details.mjs";
 import { buildFinanceReceiptAccessUrl, normalizeFinanceReceiptPath } from "@/lib/finance/receipt-links.mjs";
 import { cn } from "@/lib/utils.ts";
 import { getFileSignedUrl } from "@/lib/actions";
@@ -100,6 +105,7 @@ import {
 } from "@/lib/forms/choice-other.mjs";
 import FormEmailCampaignsPanel from "@/components/admin/forms/email/FormEmailCampaignsPanel";
 import RecycleBin from "./RecycleBin";
+import ParticipantDetailsSection from "./ParticipantDetailsSection";
 
 // ------------------------------------------------------------------
 // FileDisplay — cached signed URL + modal viewer
@@ -466,11 +472,21 @@ export default function AnalyticsDashboard({
       [
         ...((s.answers ?? []).map((answer) => answer?.value)),
         ...Object.values(s.data ?? {}),
+        ...getParticipantSearchValues(s.participant_details),
       ].some((v) => String(v ?? "").toLowerCase().includes(q))
     );
   }, [filteredSubmissions, searchQuery]);
 
   const totalSubmissions = filteredSubmissions.length;
+  const totalParticipantCount = useMemo(
+    () =>
+      filteredSubmissions.reduce(
+        (total, submission) =>
+          total + normalizeParticipantDetails(submission.participant_details).length,
+        0,
+      ),
+    [filteredSubmissions],
+  );
   const submissionsWithComments = useMemo(
     () =>
       filteredSubmissions.filter(
@@ -1423,9 +1439,23 @@ export default function AnalyticsDashboard({
       </div>
 
       {/* ── KPI Bar ── */}
-      <div className={cn("grid grid-cols-2 gap-3", form.is_financial ? "lg:grid-cols-5" : "lg:grid-cols-4")}>
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-3",
+          form.is_financial
+            ? totalParticipantCount > 0
+              ? "lg:grid-cols-3 xl:grid-cols-6"
+              : "lg:grid-cols-5"
+            : totalParticipantCount > 0
+              ? "lg:grid-cols-5"
+              : "lg:grid-cols-4",
+        )}
+      >
         {[
           { label: "Registros", value: totalSubmissions, icon: Inbox, color: "#10b981", borderColor: "border-emerald-400" },
+          ...(totalParticipantCount > 0 ? [
+            { label: "Inscritos", value: totalParticipantCount, icon: Users, color: "#0f766e", borderColor: "border-teal-500" },
+          ] : []),
           { label: "Actividad 24h", value: last24Hours, icon: Activity, color: "#3b82f6", borderColor: "border-blue-400" },
           { label: "Estado", value: form.enabled ? "Activo" : "Cerrado", icon: TrendingUp, color: form.enabled ? "#10b981" : "#94a3b8", borderColor: form.enabled ? "border-emerald-400" : "border-gray-300" },
           { label: "Último registro", value: lastSubmissionDate ? formatInEcuador(lastSubmissionDate, "d MMM") : "—", icon: CalendarDays, color: "#8b5cf6", borderColor: "border-purple-400" },
@@ -1879,6 +1909,9 @@ export default function AnalyticsDashboard({
                                 Esta inscripción quedó cubierta por un pago ya usado en otra inscripción.
                               </div>
                             ) : null}
+                            <ParticipantDetailsSection
+                              participantDetails={s.participant_details || []}
+                            />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                               {historicalFields.map((field) => {
                                 const fieldType = field.field_type || field.type;
