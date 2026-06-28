@@ -11,6 +11,63 @@ import {
   normalizePricingPackages,
   validatePricingConfiguration,
 } from "../lib/finance/pricing-packages.mjs";
+import {
+  buildParticipantColumns,
+  getParticipantSearchValues,
+  validateParticipantDetails,
+} from "../lib/forms/participant-details.mjs";
+
+test("validates and normalizes participant details against package count and template", () => {
+  const result = validateParticipantDetails({
+    participantDetails: [
+      { index: 1, answers: { Nombre: " Ana ", Edad: "8", Ignorado: "x" } },
+      { index: 2, answers: { Nombre: "Luis", Edad: 6 } },
+    ],
+    participantTemplate: [
+      { id: "name", label: "Nombre", required: true },
+      { id: "age", label: "Edad", required: true },
+    ],
+    expectedCount: 2,
+  });
+
+  assert.deepEqual(result, {
+    valid: true,
+    errors: [],
+    value: [
+      { index: 1, answers: { Nombre: "Ana", Edad: "8" } },
+      { index: 2, answers: { Nombre: "Luis", Edad: "6" } },
+    ],
+  });
+});
+
+test("rejects missing participant rows and required answers", () => {
+  const result = validateParticipantDetails({
+    participantDetails: [{ index: 1, answers: { Nombre: "" } }],
+    participantTemplate: [{ id: "name", label: "Nombre", required: true }],
+    expectedCount: 2,
+  });
+
+  assert.equal(result.valid, false);
+  assert.deepEqual(result.errors, [
+    "Se esperaban 2 participantes y se recibieron 1.",
+    "Participante 1: falta Nombre.",
+  ]);
+});
+
+test("builds participant columns and searchable values", () => {
+  const details = [
+    { index: 1, answers: { Nombre: "Ana", Edad: "8" } },
+    { index: 2, answers: { Nombre: "Luis", Edad: "6" } },
+  ];
+
+  assert.deepEqual(buildParticipantColumns(details), {
+    "Participante 1 - Nombre": "Ana",
+    "Participante 1 - Edad": "8",
+    "Participante 2 - Nombre": "Luis",
+    "Participante 2 - Edad": "6",
+  });
+  assert.deepEqual(getParticipantSearchValues(details), ["Ana", "8", "Luis", "6"]);
+});
 
 test("normalizes pricing packages with stable enabled options", () => {
   const packages = normalizePricingPackages([
