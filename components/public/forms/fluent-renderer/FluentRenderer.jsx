@@ -1478,7 +1478,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
                             className="rounded-[2rem] border border-blue-100 bg-blue-50/40 p-5 md:p-6"
                           >
                             <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-blue-800">
-                              Niño {number}
+                              Inscrito {number}
                             </h3>
                             <div className="space-y-4">
                               {template.map((templateField) => {
