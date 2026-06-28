@@ -75,9 +75,9 @@ import {
 import { getFinanceDisplayState, getRevenueContribution } from "@/lib/finance/status";
 import {
   buildFinancialAnalyticsPaymentColumns,
+  buildParticipantAnalyticsColumns,
   getFinancialAnalyticsPaymentFilePaths,
 } from "@/lib/finance/analytics-export.mjs";
-import { flattenParticipantDetailsForExport } from "@/lib/finance/pricing-packages.mjs";
 import {
   getParticipantSearchValues,
   normalizeParticipantDetails,
@@ -610,16 +610,14 @@ export default function AnalyticsDashboard({
         (f) => f.type !== "section_header" && f.type !== "separator" && f.type !== "section"
       );
       const baseHeaders = ["Timestamp", ...dataFields.map((f) => getFieldHeaderLabel(f))];
+      const participantColumns = buildParticipantAnalyticsColumns(filteredSubmissions);
+      const participantHeaders = participantColumns.headers;
       const exportRows = filteredSubmissions.map((submission) => ({
         submissionId: submission.id,
         timestamp: formatInEcuador(submission.created_at, "dd/MM/yyyy HH:mm"),
         values: dataFields.map((field) => getSubmissionValueForField(submission, field)),
-        participantColumns: flattenParticipantDetailsForExport(submission.participant_details || []),
         adminComments: formatCommentsForExport(submission),
       }));
-      const participantHeaders = Array.from(
-        new Set(exportRows.flatMap((row) => Object.keys(row.participantColumns))),
-      );
 
       const filePaths = new Set();
       exportRows.forEach((row) => {
@@ -691,7 +689,10 @@ export default function AnalyticsDashboard({
           const rowValues = [
             row.timestamp,
             ...row.values.map((value) => getExportCellValue(value, fileUrlMap)),
-            ...participantHeaders.map((header) => row.participantColumns[header] || ""),
+            ...participantHeaders.map(
+              (header) =>
+                participantColumns.valuesBySubmissionId.get(row.submissionId)?.[header] || "",
+            ),
             ...(financialPaymentColumns.valuesBySubmissionId.get(row.submissionId) || []),
             row.adminComments,
           ];
@@ -773,7 +774,10 @@ export default function AnalyticsDashboard({
         const excelRow = worksheet.addRow([
           row.timestamp,
           ...row.values.map((value) => getExportCellValue(value, fileUrlMap)),
-          ...participantHeaders.map((header) => row.participantColumns[header] || ""),
+          ...participantHeaders.map(
+            (header) =>
+              participantColumns.valuesBySubmissionId.get(row.submissionId)?.[header] || "",
+          ),
           ...(financialPaymentColumns.valuesBySubmissionId.get(row.submissionId) || []),
           row.adminComments,
         ]);

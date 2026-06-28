@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 import {
   buildFinancialAnalyticsPaymentColumns,
+  buildParticipantAnalyticsColumns,
   getFinancialAnalyticsPaymentFilePaths,
 } from "../lib/finance/analytics-export.mjs";
 
@@ -76,14 +77,39 @@ test("getFinancialAnalyticsPaymentFilePaths includes every active payment receip
   assert.deepEqual(paths, ["finance_receipts/valid.png"]);
 });
 
-test("analytics export includes participant detail flattening", () => {
+test("buildParticipantAnalyticsColumns preserves all participant values across submissions", () => {
+  const result = buildParticipantAnalyticsColumns([
+    {
+      id: "sub-1",
+      participant_details: [
+        { index: 1, answers: { Nombre: "Ana", Edad: "8" } },
+        { index: 2, answers: { Nombre: "Luis", Edad: "6" } },
+      ],
+    },
+    {
+      id: "sub-2",
+      participant_details: [{ index: 1, answers: { Nombre: "Eva", Edad: "7" } }],
+    },
+  ]);
+
+  assert.deepEqual(result.headers, [
+    "Inscrito 1 - Nombre",
+    "Inscrito 1 - Edad",
+    "Inscrito 2 - Nombre",
+    "Inscrito 2 - Edad",
+  ]);
+  assert.equal(result.valuesBySubmissionId.get("sub-1")["Inscrito 2 - Nombre"], "Luis");
+  assert.equal(result.valuesBySubmissionId.get("sub-2")["Inscrito 1 - Nombre"], "Eva");
+});
+
+test("analytics export uses participant analytics columns", () => {
   const dashboard = readFileSync(
     new URL("../components/admin/managers/AnalyticsDashboard.jsx", import.meta.url),
     "utf8",
   );
 
-  assert.match(dashboard, /flattenParticipantDetailsForExport/);
-  assert.match(dashboard, /participant_details/);
+  assert.match(dashboard, /buildParticipantAnalyticsColumns/);
+  assert.match(dashboard, /participantColumns\.valuesBySubmissionId/);
 });
 
 test("analytics renders and searches repeated participant details", () => {
