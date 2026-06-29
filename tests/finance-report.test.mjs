@@ -194,3 +194,28 @@ test("buildFinanceIncomeReport marks verified payments without bank movement as 
   assert.equal(report.rows[0].observation, "CONCILIADO");
   assert.equal(report.rows[0].reconciliationStatus, "NO CONCILIADO");
 });
+
+test("buildFinanceIncomeReport renders every package participant as text", () => {
+  const report = buildFinanceIncomeReport({
+    submissions: [
+      {
+        coverage_mode: "cash",
+        coverage_amount: 25,
+        data: {
+          Participante: {
+            index: 1,
+            answers: { Nombre: "Ana Perez", Edad: "8" },
+          },
+        },
+        participant_details: [
+          { index: 1, answers: { Nombre: "Ana Perez", Edad: "8" } },
+          { index: 2, answers: { Nombre: "Luis Perez", Edad: "6" } },
+        ],
+        form_submission_payments: [],
+      },
+    ],
+  });
+
+  assert.equal(report.rows[0].registrantName, "Ana Perez, Luis Perez");
+  assert.doesNotMatch(report.rows[0].registrantName, /\[object Object\]/);
+});

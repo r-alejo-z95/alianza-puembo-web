@@ -45,6 +45,26 @@ test("buildFormEmailVariables only exposes tracking links for financial forms", 
   );
 });
 
+test("buildFormEmailVariables renders every package participant as text", () => {
+  const variables = buildFormEmailVariables({
+    form: { title: "Campamento", is_financial: true },
+    submission: {
+      data: {
+        Participante: {
+          answers: { Nombre: "Ana Perez" },
+        },
+      },
+      participant_details: [
+        { index: 1, answers: { Nombre: "Ana Perez" } },
+        { index: 2, answers: { Nombre: "Luis Perez" } },
+      ],
+    },
+  });
+
+  assert.equal(variables.nombre, "Ana Perez, Luis Perez");
+  assert.doesNotMatch(variables.nombre, /\[object Object\]/);
+});
+
 test("renderFormEmailTemplate replaces known variables and reports unknown variables", () => {
   const rendered = renderFormEmailTemplate({
     subject: "Hola {{nombre}}",

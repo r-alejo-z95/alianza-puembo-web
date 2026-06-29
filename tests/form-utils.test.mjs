@@ -7,11 +7,16 @@ import { pathToFileURL } from "node:url";
 
 async function loadFormUtils() {
   const source = readFileSync(new URL("../lib/form-utils.ts", import.meta.url), "utf8");
+  const submissionNameModuleUrl = new URL(
+    "../lib/forms/submission-name.mjs",
+    import.meta.url,
+  ).href;
   const tempDir = mkdtempSync(join(tmpdir(), "form-utils-"));
   const tempModule = join(tempDir, "form-utils.ts");
-  const testableSource = source.replace(
-    'import { normalizeFormKey } from "@/lib/form-response-history";',
-    `function normalizeFormKey(value) {
+  const testableSource = source
+    .replace(
+      'import { normalizeFormKey } from "@/lib/form-response-history";',
+      `function normalizeFormKey(value) {
   return String(value ?? "")
     .normalize("NFKD")
     .replace(/[\\u0300-\\u036f]/g, "")
@@ -19,7 +24,11 @@ async function loadFormUtils() {
     .toLowerCase()
     .replace(/\\s+/g, " ");
 }`,
-  );
+    )
+    .replace(
+      'from "@/lib/forms/submission-name.mjs"',
+      `from "${submissionNameModuleUrl}"`,
+    );
 
   writeFileSync(tempModule, testableSource);
   return import(pathToFileURL(tempModule));
@@ -95,8 +104,16 @@ test("findNameInSubmission reads the canonical participant_details column", asyn
           Edad: "8",
         },
       },
+      {
+        index: 2,
+        answers: {
+          "Nombre del Niño/a Campista": "Luis Perez",
+          Edad: "6",
+        },
+      },
     ],
   });
 
-  assert.equal(name, "Ana Perez");
+  assert.equal(name, "Ana Perez, Luis Perez");
+  assert.doesNotMatch(name, /\[object Object\]/);
 });

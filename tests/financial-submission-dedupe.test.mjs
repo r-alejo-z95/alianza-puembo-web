@@ -179,6 +179,41 @@ test("detectFinancialSubmissionConflict recovers an existing partial inscription
   assert.equal(conflict?.remainingBalance, 40);
 });
 
+test("detectFinancialSubmissionConflict distinguishes package registrations by participant names", () => {
+  const packageSubmission = {
+    id: "package-submission",
+    notification_email: "family@example.com",
+    participant_details: [
+      { index: 1, answers: { Nombre: "Ana Perez" } },
+      { index: 2, answers: { Nombre: "Luis Perez" } },
+    ],
+    form_submission_payments: [],
+  };
+
+  const differentPerson = detectFinancialSubmissionConflict({
+    incoming: {
+      notificationEmail: "family@example.com",
+      participantName: "Carlos Vega",
+      receiptData: {},
+    },
+    existingSubmissions: [packageSubmission],
+    totalAmount: 0,
+  });
+  const registeredParticipant = detectFinancialSubmissionConflict({
+    incoming: {
+      notificationEmail: "family@example.com",
+      participantName: "Luis Perez",
+      receiptData: {},
+    },
+    existingSubmissions: [packageSubmission],
+    totalAmount: 0,
+  });
+
+  assert.equal(differentPerson, null);
+  assert.equal(registeredParticipant?.type, "existing_registration");
+  assert.equal(registeredParticipant?.matchedSubmission.id, "package-submission");
+});
+
 test("detectFinancialSubmissionConflict uses expected amount snapshot for remaining balance", () => {
   const conflict = detectFinancialSubmissionConflict({
     incoming: {
