@@ -5,7 +5,9 @@ import {
   applyShortCodeSuffix,
   findAvailableFormShortCode,
   generateFormShortCode,
+  getFormShortDisplayUrl,
   getFormShortUrl,
+  isReservedFormShortCode,
   isValidFormShortCode,
   normalizeFormShortCode,
 } from "../lib/forms/short-links.mjs";
@@ -42,11 +44,16 @@ test("applyShortCodeSuffix preserves the 40 character limit", () => {
   assert.equal(applyShortCodeSuffix("abcdefghijklmnopqrstuvwxyz-abcdefghijk", 12).length, 40);
 });
 
-test("getFormShortUrl builds a full short url from an origin", () => {
-  assert.equal(
-    getFormShortUrl("ret-fin-int", "https://www.alianzapuembo.org/"),
-    "https://www.alianzapuembo.org/f/ret-fin-int",
-  );
+test("getFormShortUrl builds root-domain URLs for navigation and display", () => {
+  assert.equal(getFormShortUrl("ret-fin-int"), "https://alianzapuembo.org/ret-fin-int");
+  assert.equal(getFormShortDisplayUrl("ret-fin-int"), "alianzapuembo.org/ret-fin-int");
+});
+
+test("reserved site routes cannot become root short codes", () => {
+  assert.equal(isReservedFormShortCode("eventos"), true);
+  assert.equal(isReservedFormShortCode("ORACIÓN"), true);
+  assert.equal(isReservedFormShortCode("ministerios"), true);
+  assert.equal(isReservedFormShortCode("cel-gra"), false);
 });
 
 test("findAvailableFormShortCode appends a suffix when a candidate already exists", async () => {
@@ -78,4 +85,34 @@ test("findAvailableFormShortCode appends a suffix when a candidate already exist
   };
 
   assert.equal(await findAvailableFormShortCode(supabase, "Retiro Finanzas Inteligentes"), "ret-fin-int-3");
+});
+
+test("findAvailableFormShortCode skips a reserved generated candidate", async () => {
+  const queriedCodes = [];
+  const supabase = {
+    from() {
+      return {
+        select() {
+          return this;
+        },
+        eq(_column, value) {
+          this.value = value;
+          return this;
+        },
+        neq() {
+          return this;
+        },
+        limit() {
+          return this;
+        },
+        async maybeSingle() {
+          queriedCodes.push(this.value);
+          return { data: null, error: null };
+        },
+      };
+    },
+  };
+
+  assert.equal(await findAvailableFormShortCode(supabase, "API"), "api-2");
+  assert.deepEqual(queriedCodes, ["api-2"]);
 });
