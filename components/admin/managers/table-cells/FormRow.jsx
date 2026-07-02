@@ -80,14 +80,14 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
     form.is_financial && (!isFormSetupComplete(form) || !form.financial_field_label);
 
   const actions = (
-    <div className="grid w-full grid-cols-4 items-center gap-3 lg:flex lg:w-auto lg:justify-center lg:gap-2">
+    <div className="grid w-full grid-cols-5 items-center gap-3 lg:flex lg:w-auto lg:justify-center lg:gap-2">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               asChild
               variant="ghost"
-              className="group col-span-4 h-11 min-w-0 rounded-xl border border-gray-100 bg-gray-50 px-3 py-0 text-gray-700 shadow-sm transition-all duration-300 hover:bg-gray-100 hover:text-gray-900 lg:col-auto lg:h-auto lg:flex-none lg:rounded-[1rem] lg:border-emerald-200 lg:bg-emerald-50 lg:px-4 lg:py-3 lg:text-emerald-700 lg:hover:bg-emerald-100 lg:hover:text-emerald-800 lg:hover:shadow-md"
+              className="group col-span-5 h-11 min-w-0 rounded-xl border border-gray-100 bg-gray-50 px-3 py-0 text-gray-700 shadow-sm transition-all duration-300 hover:bg-gray-100 hover:text-gray-900 lg:col-auto lg:h-auto lg:flex-none lg:rounded-[1rem] lg:border-emerald-200 lg:bg-emerald-50 lg:px-4 lg:py-3 lg:text-emerald-700 lg:hover:bg-emerald-100 lg:hover:text-emerald-800 lg:hover:shadow-md"
             >
               <Link href={responsesPath} className="flex min-w-0 items-center gap-2 lg:gap-3">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-(--puembo-green) text-white shadow-sm transition-transform duration-300 group-hover:scale-105 lg:h-9 lg:w-9">
@@ -108,7 +108,7 @@ export function FormRow({ form, onEdit, onDelete, compact, isSelected, onSelect,
         </Tooltip>
       </TooltipProvider>
 
-      <FormShareTools form={form} />
+      <FormShareTools form={form} showLabel={compact} />
 
       <TooltipProvider>
         <Tooltip>

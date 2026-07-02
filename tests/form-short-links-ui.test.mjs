@@ -13,10 +13,20 @@ test("admin share tools render editable short links and QR downloads", () => {
   assert.match(source, /QRCode\.toString/);
   assert.match(source, /QRCode\.toDataURL/);
   assert.match(source, /updateFormShortCode/);
-  assert.match(source, /navigator\.clipboard\.writeText/);
+  assert.match(source, /getFormShortDisplayUrl/);
   assert.match(source, /getFormShortUrl/);
+  assert.match(source, /isReservedFormShortCode/);
+  assert.match(source, /navigator\.clipboard\.writeText\(displayUrl\)/);
+  assert.match(source, /QRCode\.toString\(shortUrl/);
+  assert.match(source, /QRCode\.toDataURL\(shortUrl/);
+  assert.match(source, /Share2/);
+  assert.match(source, /Compartir link corto y QR/);
+  assert.match(source, /TooltipContent/);
+  assert.match(source, /Copiar link/);
   assert.match(source, /Descargar SVG/);
   assert.match(source, /Descargar PNG/);
+  assert.doesNotMatch(source, /window\.location\.origin/);
+  assert.doesNotMatch(source, /\/formularios\/\$\{form\.slug\}/);
 });
 
 test("admin QR share tools constrain long links and switch to a mobile drawer", () => {
@@ -56,9 +66,9 @@ test("form rows expose share tools for each form", () => {
   );
 
   assert.match(source, /FormShareTools/);
-  assert.match(source, /<FormShareTools form=\{form\}/);
-  assert.match(source, /grid-cols-4/);
-  assert.match(source, /col-span-4/);
+  assert.match(source, /<FormShareTools form=\{form\} showLabel=\{compact\}/);
+  assert.match(source, /grid-cols-5/);
+  assert.match(source, /col-span-5/);
   assert.match(source, /lg:flex/);
   assert.match(source, /Ver\s+\{responsesLabel\}/);
 });

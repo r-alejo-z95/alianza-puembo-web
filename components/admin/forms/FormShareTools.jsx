@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
-import { Copy, Download, Link2, Loader2, Pencil, QrCode, Save } from "lucide-react";
+import { Copy, Download, Link2, Loader2, Pencil, QrCode, Save, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,19 +21,26 @@ import {
 } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useScreenSize } from "@/lib/hooks/useScreenSize";
 import { updateFormShortCode } from "@/lib/actions/forms";
 import {
+  getFormShortDisplayUrl,
   getFormShortUrl,
+  isReservedFormShortCode,
   isValidFormShortCode,
   normalizeFormShortCode,
 } from "@/lib/forms/short-links.mjs";
 import { cn } from "@/lib/utils";
 
-export function FormShareTools({ form }) {
+export function FormShareTools({ form, showLabel = false }) {
   const { isLg } = useScreenSize();
   const [open, setOpen] = useState(false);
-  const [origin, setOrigin] = useState("");
   const [shortCode, setShortCode] = useState(form.short_code || "");
   const [draftCode, setDraftCode] = useState(form.short_code || "");
   const [qrSvg, setQrSvg] = useState("");
@@ -41,18 +48,18 @@ export function FormShareTools({ form }) {
   const [isGeneratingQr, setIsGeneratingQr] = useState(false);
 
   useEffect(() => {
-    setOrigin(window.location.origin);
-  }, []);
-
-  useEffect(() => {
     setShortCode(form.short_code || "");
     setDraftCode(form.short_code || "");
   }, [form.short_code]);
 
-  const shortUrl = useMemo(() => {
-    if (!origin || !shortCode) return "";
-    return getFormShortUrl(shortCode, origin);
-  }, [origin, shortCode]);
+  const shortUrl = useMemo(
+    () => (shortCode ? getFormShortUrl(shortCode) : ""),
+    [shortCode],
+  );
+  const displayUrl = useMemo(
+    () => (shortCode ? getFormShortDisplayUrl(shortCode) : ""),
+    [shortCode],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -85,15 +92,25 @@ export function FormShareTools({ form }) {
   }, [open, shortUrl]);
 
   const copyShortUrl = async () => {
-    if (!shortUrl) return;
-    await navigator.clipboard.writeText(shortUrl);
-    toast.success("Link corto copiado");
+    if (!displayUrl) return;
+
+    try {
+      await navigator.clipboard.writeText(displayUrl);
+      toast.success("Link corto copiado");
+    } catch {
+      toast.error("No se pudo copiar el link corto.");
+    }
   };
 
   const saveShortCode = async () => {
     const normalized = normalizeFormShortCode(draftCode);
     if (!isValidFormShortCode(normalized)) {
       toast.error("Usa 3 a 40 caracteres: letras minúsculas, números y guiones.");
+      return;
+    }
+
+    if (isReservedFormShortCode(normalized)) {
+      toast.error("Ese link corto está reservado por otra sección del sitio.");
       return;
     }
 
@@ -147,10 +164,16 @@ export function FormShareTools({ form }) {
         <div className="flex min-w-0 gap-2">
           <div className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-xl border border-gray-100 bg-gray-50 px-4 text-sm font-semibold text-gray-700">
             <Link2 className="h-4 w-4 shrink-0 text-[var(--puembo-green)]" />
-            <span className="block min-w-0 truncate">{shortUrl || "Genera un link corto"}</span>
+            <span className="block min-w-0 truncate">{displayUrl || "Genera un link corto"}</span>
           </div>
-          <Button type="button" onClick={copyShortUrl} disabled={!shortUrl} className="h-12 w-12 shrink-0 rounded-xl p-0">
-            <Copy className="h-4 w-4" />
+          <Button
+            type="button"
+            onClick={copyShortUrl}
+            disabled={!displayUrl}
+            className="h-12 shrink-0 rounded-xl px-4"
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            Copiar link
           </Button>
         </div>
       </div>
@@ -208,16 +231,31 @@ export function FormShareTools({ form }) {
 
   return (
     <>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label="Link corto y QR"
-        onClick={() => setOpen(true)}
-        className="h-11 w-full flex-none rounded-xl text-[var(--puembo-green)] transition-all duration-300 hover:bg-[var(--puembo-green)]/10 lg:h-9 lg:w-9 lg:text-black lg:hover:text-[var(--puembo-green)]"
-      >
-        <QrCode className="w-4 h-4" />
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Compartir link corto y QR"
+              onClick={() => setOpen(true)}
+              className={cn(
+                "h-11 flex-none rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 transition-all duration-300 hover:bg-emerald-100 hover:text-emerald-800",
+                showLabel ? "col-span-2 w-full gap-2 px-3" : "w-full lg:h-9 lg:w-9",
+              )}
+            >
+              <Share2 className="h-4 w-4" />
+              {showLabel && (
+                <span className="text-[9px] font-black uppercase tracking-[0.16em]">
+                  Compartir
+                </span>
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Compartir link corto y QR</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       {isLg ? (
         <Dialog open={open} onOpenChange={setOpen}>

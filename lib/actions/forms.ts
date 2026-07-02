@@ -12,6 +12,7 @@ import {
 import { collectStoragePathsFromSubmission } from "@/lib/finance/submission-lifecycle.mjs";
 import {
   findAvailableFormShortCode,
+  isReservedFormShortCode,
   isValidFormShortCode,
   normalizeFormShortCode,
 } from "@/lib/forms/short-links.mjs";
@@ -180,6 +181,10 @@ export async function updateFormShortCode(
       return {
         error: "El link corto debe tener entre 3 y 40 caracteres: letras minúsculas, números y guiones.",
       };
+    }
+
+    if (isReservedFormShortCode(normalizedShortCode)) {
+      return { error: "Ese link corto está reservado por otra sección del sitio." };
     }
 
     const supabase = createAdminClient();
