@@ -10,7 +10,6 @@ import { uploadReceipt } from "@/lib/actions";
 import {
   INVALID_RECEIPT_MESSAGE,
   UNRECOGNIZED_DESTINATION_ACCOUNT_MESSAGE,
-  classifyFinancialReceipt,
   resolveFinancialReceiptValidation,
 } from "@/lib/services/receipt-validation";
 import { normalizeFormKey } from "@/lib/form-response-history";
@@ -1282,6 +1281,17 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
       destinationAccount = account || null;
     }
 
+    const { data: activeBankAccounts, error: activeAccountsError } = await supabaseAdmin
+      .from("bank_accounts")
+      .select("bank_name, account_holder, account_number")
+      .eq("is_active", true);
+
+    if (activeAccountsError) {
+      console.error("[Reprocess] Error cargando cuentas activas:", activeAccountsError.message);
+    }
+
+    const acceptedDestinationAccounts = activeBankAccounts || [];
+
     // 3. Run AI extraction before touching DB state
     let aiData = null;
     let aiTransientFailure = false;
@@ -1303,7 +1313,11 @@ export async function reprocessSubmissionWithReceipt(formData: FormData) {
 
     const validation = aiTransientFailure
       ? { status: "manual_review" as const, reason: "La validación automática falló temporalmente." }
-      : classifyFinancialReceipt(aiData, destinationAccount);
+      : resolveFinancialReceiptValidation({
+          extractedData: aiData,
+          destinationAccount,
+          acceptedDestinationAccounts,
+        });
     if (validation.status === "invalid") {
       const cleanupPath = fullPath.replace("finance_receipts/", "");
       const { error: cleanupError } = await supabaseAdmin.storage

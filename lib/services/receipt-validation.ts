@@ -35,6 +35,11 @@ const RECEIPT_KEYWORDS = [
   "depósito",
   "transaccion",
   "transacción",
+  "deuna",
+  "pagaste a",
+  "pago exitoso",
+  "codigo de verificacion",
+  "código de verificación",
 ];
 
 const CASH_KEYWORDS = ["efectivo", "cash", "pago en efectivo"];
@@ -151,7 +156,7 @@ function countBankSignals(extractedData: ExtractedReceiptData) {
   if (extractedData.reference) count += 1;
   if (extractedData.beneficiary_account) count += 1;
   if (["transfer", "deposit", "payment"].includes(extractedData.operation_type || "unknown")) count += 1;
-  if (extractedData.document_kind === "bank_receipt") count += 2;
+  if (["bank_receipt", "payment_receipt"].includes(extractedData.document_kind || "")) count += 2;
   return count;
 }
 
@@ -326,6 +331,19 @@ export function classifyFinancialReceipt(
     (!!extractedData.bank_name || !!extractedData.reference || !!extractedData.beneficiary_account);
 
   const beneficiaryMatch = getBeneficiaryMatchScore(extractedData, destinationAccount);
+  const isPaymentReceipt = documentKind === "payment_receipt";
+  const hasPaymentReceiptCoreFields =
+    amount > 0 &&
+    !!extractedData.date &&
+    !!extractedData.reference;
+  const expectedDestinationAccountNumber = normalizeDigits(destinationAccount?.account_number || "");
+  const paymentReceiptAccountMatched =
+    hasVisibleBeneficiaryAccountNumber(extractedData) &&
+    !!expectedDestinationAccountNumber &&
+    getAccountNumberMatchScore(
+      extractedData.beneficiary_account || "",
+      expectedDestinationAccountNumber,
+    ) >= 40;
 
   if (hasCashLanguage) {
     return {
@@ -339,6 +357,14 @@ export function classifyFinancialReceipt(
     return {
       status: "invalid",
       reason: `El documento parece ser ${documentKind} y no un comprobante bancario.`,
+      beneficiaryMatch,
+    };
+  }
+
+  if (isPaymentReceipt && !hasPaymentReceiptCoreFields) {
+    return {
+      status: "invalid",
+      reason: "Faltan monto, fecha o número de transacción del comprobante de pago.",
       beneficiaryMatch,
     };
   }
@@ -367,8 +393,12 @@ export function classifyFinancialReceipt(
     };
   }
 
+  const destinationMatchedForAutomaticApproval = isPaymentReceipt
+    ? paymentReceiptAccountMatched
+    : beneficiaryMatch.matched;
+
   if (
-    beneficiaryMatch.matched &&
+    destinationMatchedForAutomaticApproval &&
     extractedData.is_valid_receipt &&
     bankSignalCount >= 4 &&
     ["high", "medium"].includes(extractedData.receipt_confidence || "low")

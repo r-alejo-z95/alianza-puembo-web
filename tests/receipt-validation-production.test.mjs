@@ -11,6 +11,29 @@ const {
 } = await import("../lib/services/ai-reconciliation.ts");
 const { compareReceiptBeneficiary } = await import("../lib/services/receipt-validation.ts");
 
+function buildDeUnaReceipt(overrides = {}) {
+  return {
+    amount: 80,
+    date: "2026-07-02",
+    reference: "22165634",
+    description: "Pago desde DeUna",
+    sender_name: "Carol Stefanía Olmedo Estrella",
+    bank_name: null,
+    beneficiary_name: "Alianza Cristiana y Misionera Iglesia Evangélica Ecuatoriana",
+    beneficiary_account: "******3009",
+    currency: "USD",
+    is_valid_receipt: true,
+    is_correct_beneficiary: true,
+    document_kind: "payment_receipt",
+    operation_type: "payment",
+    receipt_confidence: "high",
+    rejection_signals: [],
+    bank_signals: ["DeUna", "pagaste a", "código de verificación"],
+    ocr_summary: "DeUna pagaste a Alianza Cristiana y Misionera código de verificación",
+    ...overrides,
+  };
+}
+
 test("production receipt validation keeps unmatched beneficiary receipts in manual review", () => {
   const result = classifyFinancialReceipt(
     {
@@ -159,6 +182,65 @@ test("strict receipt validation accepts masked or truncated active church accoun
   });
 
   assert.equal(result.status, "valid");
+});
+
+test("DeUna receipts match any active church account", () => {
+  const result = resolveFinancialReceiptValidation({
+    extractedData: buildDeUnaReceipt(),
+    destinationAccount: {
+      bank_name: "Produbanco",
+      account_holder: "Iglesia Alianza Puembo",
+      account_number: "4455667788",
+    },
+    acceptedDestinationAccounts: [
+      {
+        bank_name: "Produbanco",
+        account_holder: "Iglesia Alianza Puembo",
+        account_number: "4455667788",
+      },
+      {
+        bank_name: "Pichincha",
+        account_holder: "Alianza Cristiana y Misionera Iglesia Evangélica Ecuatoriana",
+        account_number: "2208033009",
+      },
+    ],
+  });
+
+  assert.equal(result.status, "valid");
+});
+
+test("payment-app receipts without a visible destination account require manual review", () => {
+  const result = classifyFinancialReceipt(
+    buildDeUnaReceipt({
+      bank_name: "DeUna",
+      beneficiary_account: null,
+      bank_signals: ["DeUna", "pagaste a", "transacción", "código de verificación"],
+    }),
+    {
+      bank_name: "Pichincha",
+      account_holder: "Alianza Cristiana y Misionera Iglesia Evangélica Ecuatoriana",
+      account_number: "2208033009",
+    },
+  );
+
+  assert.equal(result.status, "manual_review");
+});
+
+test("payment-app receipts without a transaction reference are invalid", () => {
+  const result = classifyFinancialReceipt(
+    buildDeUnaReceipt({
+      reference: null,
+      bank_name: "DeUna",
+      bank_signals: ["DeUna", "pagaste a", "transacción", "código de verificación"],
+    }),
+    {
+      bank_name: "Pichincha",
+      account_holder: "Alianza Cristiana y Misionera Iglesia Evangélica Ecuatoriana",
+      account_number: "2208033009",
+    },
+  );
+
+  assert.equal(result.status, "invalid");
 });
 
 test("production receipt validation rejects identity documents", () => {
@@ -312,6 +394,47 @@ test("beneficiary account matching recognizes masked and truncated account varia
 
     assert.equal(result.matched, true, `variant ${beneficiary_account} should match`);
   }
+});
+
+test("receipt extraction prompt recognizes payment-app receipts", async () => {
+  let receivedPrompt = "";
+  const fakeModel = {
+    async generateContent(input) {
+      receivedPrompt = input.find((part) => typeof part.text === "string")?.text || "";
+      return {
+        response: {
+          text() {
+            return JSON.stringify({
+              amount: 80,
+              date: "2026-07-02",
+              reference: "22165634",
+              description: "Pago desde DeUna",
+              sender_name: "Carol Stefanía Olmedo Estrella",
+              bank_name: "Banco Pichincha",
+              beneficiary_name: "Alianza Cristiana y Misionera Iglesia Evangélica Ecuatoriana",
+              beneficiary_account: "******3009",
+              currency: "USD",
+              is_valid_receipt: true,
+              is_correct_beneficiary: true,
+              document_kind: "payment_receipt",
+              operation_type: "payment",
+              receipt_confidence: "high",
+              rejection_signals: [],
+              bank_signals: ["DeUna", "pagaste a", "código de verificación"],
+              ocr_summary: "Pago DeUna a Alianza Cristiana y Misionera",
+            });
+          },
+        },
+      };
+    },
+  };
+
+  const result = await extractReceiptDataWithModel(fakeModel, "ZmFrZQ==", "image/jpeg");
+
+  assert.match(receivedPrompt, /payment_receipt/);
+  assert.match(receivedPrompt, /DeUna/);
+  assert.match(receivedPrompt, /aplicaciones de pago/i);
+  assert.equal(result.data.document_kind, "payment_receipt");
 });
 
 test("retries transient Gemini failures and succeeds on a later attempt", async () => {

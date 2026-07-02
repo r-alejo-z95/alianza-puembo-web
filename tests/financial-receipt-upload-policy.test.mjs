@@ -84,3 +84,14 @@ test("public financial uploads validate receipts against all active church bank 
   assert.match(financeActions, /\.from\("bank_accounts"\)[\s\S]*?\.eq\("is_active", true\)/);
   assert.match(financeActions, /acceptedDestinationAccounts/);
 });
+
+test("receipt reprocessing validates against every active church account", () => {
+  const financeActions = readFileSync(new URL("../lib/actions/finance.ts", import.meta.url), "utf8");
+  const start = financeActions.indexOf("export async function reprocessSubmissionWithReceipt");
+  const reprocessBlock = financeActions.slice(start);
+
+  assert.notEqual(start, -1);
+  assert.match(reprocessBlock, /\.from\("bank_accounts"\)[\s\S]*?\.eq\("is_active", true\)/);
+  assert.match(reprocessBlock, /resolveFinancialReceiptValidation\(\{[\s\S]*?acceptedDestinationAccounts/);
+  assert.doesNotMatch(reprocessBlock, /classifyFinancialReceipt\(/);
+});

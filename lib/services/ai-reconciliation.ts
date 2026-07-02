@@ -297,7 +297,14 @@ export interface ExtractedReceiptData {
   currency: string | null;
   is_valid_receipt: boolean;
   is_correct_beneficiary: boolean; // Flag for security
-  document_kind?: "bank_receipt" | "invoice" | "identity_document" | "non_bank_document" | "unknown" | null;
+  document_kind?:
+    | "bank_receipt"
+    | "payment_receipt"
+    | "invoice"
+    | "identity_document"
+    | "non_bank_document"
+    | "unknown"
+    | null;
   operation_type?: "transfer" | "deposit" | "payment" | "unknown" | null;
   receipt_confidence?: "high" | "medium" | "low" | null;
   rejection_signals?: string[] | null;
@@ -360,7 +367,7 @@ export async function extractReceiptDataWithModel(
   mimeType: string = "image/jpeg",
 ): Promise<ReceiptExtractionResult> {
   const prompt = `
-      Actúa como un auditor contable experto en Ecuador. Tu tarea es extraer información financiera de este comprobante de transferencia bancaria.
+      Actúa como un auditor contable experto en Ecuador. Tu tarea es extraer información financiera de un comprobante de transferencia, depósito o pago realizado desde una aplicación de pago.
       
       Debes devolver un objeto JSON estrictamente con la siguiente estructura:
       {
@@ -375,7 +382,7 @@ export async function extractReceiptDataWithModel(
         "currency": (código de moneda, ej: "USD"),
         "is_valid_receipt": (booleano, true si parece un comprobante real),
         "is_correct_beneficiary": (booleano),
-        "document_kind": ("bank_receipt" | "invoice" | "identity_document" | "non_bank_document" | "unknown"),
+        "document_kind": ("bank_receipt" | "payment_receipt" | "invoice" | "identity_document" | "non_bank_document" | "unknown"),
         "operation_type": ("transfer" | "deposit" | "payment" | "unknown"),
         "receipt_confidence": ("high" | "medium" | "low"),
         "rejection_signals": (array de strings),
@@ -394,12 +401,15 @@ export async function extractReceiptDataWithModel(
       2. Si no hay nada explícito, deja null.
 
       Otras Reglas:
-      1. En reference, busca números de "Comprobante", "Referencia", "Secuencial" o "Autorización".
+      1. En reference, busca números de "Comprobante", "Referencia", "Secuencial", "Autorización", "Nro. de transacción" o "Número de transacción".
       2. Si el comprobante muestra comisiones, cargos, valores debitados o totales debitados, ignóralos por completo.
       3. El campo amount debe contener únicamente el monto real transferido o depositado, nunca el total debitado con cargos.
       4. Si el documento parece cédula, factura, nota de venta u otro documento no bancario, refléjalo en document_kind y rejection_signals.
       5. Marca bank_signals con palabras/señales concretas que indiquen que sí parece comprobante bancario.
-      6. Devuelve SOLO el JSON, sin bloques de código markdown ni texto adicional.
+      6. Los comprobantes reales de billeteras digitales o aplicaciones de pago son documentos financieros válidos. Usa document_kind "payment_receipt" y operation_type "payment" cuando muestren evidencia transaccional.
+      7. DeUna es un ejemplo de aplicación de pago válida. Señales como "Pagaste a", "Nro. de transacción", "Código de verificación", monto, fecha, beneficiario y cuenta de destino deben registrarse en bank_signals.
+      8. No clasifiques una captura como válida únicamente por mencionar una aplicación: debe mostrar monto, fecha y número de transacción o referencia.
+      9. Devuelve SOLO el JSON, sin bloques de código markdown ni texto adicional.
     `;
 
   const maxAttempts = 3;
