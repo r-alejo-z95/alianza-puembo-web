@@ -27,6 +27,7 @@ interface FormSetupValues {
   id?: string | null;
   title: string;
   is_internal: boolean;
+  is_publicly_listed?: boolean;
   max_responses: number;
   is_financial: boolean;
   payment_type?: "single" | "installments" | null;
@@ -82,6 +83,7 @@ export async function saveFormSetup(
     const payload: Record<string, any> = {
       title: values.title.trim(),
       is_internal: values.is_internal,
+      is_publicly_listed: values.is_internal ? false : !!values.is_publicly_listed,
       max_responses: values.max_responses,
       is_financial: values.is_financial,
       payment_type: values.is_financial ? (values.payment_type ?? "single") : null,

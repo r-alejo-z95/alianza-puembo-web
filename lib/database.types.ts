@@ -139,6 +139,151 @@ export type Database = {
           },
         ]
       }
+      communication_audience_subscriptions: {
+        Row: {
+          audience_id: string
+          consent_source: string | null
+          consented_at: string | null
+          contact_id: string
+          created_at: string
+          id: string
+          source_event_id: string | null
+          status: string
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          audience_id: string
+          consent_source?: string | null
+          consented_at?: string | null
+          contact_id: string
+          created_at?: string
+          id?: string
+          source_event_id?: string | null
+          status?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          audience_id?: string
+          consent_source?: string | null
+          consented_at?: string | null
+          contact_id?: string
+          created_at?: string
+          id?: string
+          source_event_id?: string | null
+          status?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_audience_subscriptions_audience_id_fkey"
+            columns: ["audience_id"]
+            isOneToOne: false
+            referencedRelation: "communication_audiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_audience_subscriptions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "communication_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_audience_subscriptions_source_event_id_fkey"
+            columns: ["source_event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communication_audiences: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_archived: boolean
+          name: string
+          public_name: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_archived?: boolean
+          name: string
+          public_name: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_archived?: boolean
+          name?: string
+          public_name?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "communication_audiences_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "communication_audiences_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      communication_contacts: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+          phone_display: string | null
+          phone_e164: string
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          id?: string
+          phone_display?: string | null
+          phone_e164: string
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+          phone_display?: string | null
+          phone_e164?: string
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contact_messages: {
         Row: {
           archived_at: string | null
@@ -186,6 +331,311 @@ export type Database = {
           {
             foreignKeyName: "contact_messages_replied_by_fkey"
             columns: ["replied_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_communication_audiences: {
+        Row: {
+          audience_id: string
+          created_at: string
+          created_by: string | null
+          event_id: string
+        }
+        Insert: {
+          audience_id: string
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+        }
+        Update: {
+          audience_id?: string
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_communication_audiences_audience_id_fkey"
+            columns: ["audience_id"]
+            isOneToOne: false
+            referencedRelation: "communication_audiences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_communication_audiences_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_communication_audiences_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_communication_settings: {
+        Row: {
+          attendee_count_enabled: boolean
+          created_at: string
+          created_by: string | null
+          event_id: string
+          updated_at: string
+          updated_by: string | null
+          whatsapp_reminders_enabled: boolean
+        }
+        Insert: {
+          attendee_count_enabled?: boolean
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          updated_at?: string
+          updated_by?: string | null
+          whatsapp_reminders_enabled?: boolean
+        }
+        Update: {
+          attendee_count_enabled?: boolean
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          whatsapp_reminders_enabled?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_communication_settings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_communication_settings_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_communication_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_reminder_interests: {
+        Row: {
+          attendee_count: number | null
+          audience_opt_in: boolean
+          contact_id: string
+          created_at: string
+          event_consent_at: string
+          event_id: string
+          id: string
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attendee_count?: number | null
+          audience_opt_in?: boolean
+          contact_id: string
+          created_at?: string
+          event_consent_at?: string
+          event_id: string
+          id?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attendee_count?: number | null
+          audience_opt_in?: boolean
+          contact_id?: string
+          created_at?: string
+          event_consent_at?: string
+          event_id?: string
+          id?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_reminder_interests_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "communication_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_reminder_interests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_whatsapp_delivery_events: {
+        Row: {
+          attempted_at: string
+          contact_id: string | null
+          error_message: string | null
+          event_id: string
+          id: string
+          message_id: string
+          phone_e164: string
+          provider: string | null
+          provider_message_id: string | null
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          attempted_at?: string
+          contact_id?: string | null
+          error_message?: string | null
+          event_id: string
+          id?: string
+          message_id: string
+          phone_e164: string
+          provider?: string | null
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status: string
+        }
+        Update: {
+          attempted_at?: string
+          contact_id?: string | null
+          error_message?: string | null
+          event_id?: string
+          id?: string
+          message_id?: string
+          phone_e164?: string
+          provider?: string | null
+          provider_message_id?: string | null
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_whatsapp_delivery_events_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "communication_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_whatsapp_delivery_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_whatsapp_delivery_events_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "event_whatsapp_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_whatsapp_messages: {
+        Row: {
+          ai_generated: boolean
+          ai_prompt_snapshot: Json | null
+          ai_warnings: Json | null
+          approved_at: string | null
+          approved_by: string | null
+          body: string
+          created_at: string
+          created_by: string | null
+          event_id: string
+          id: string
+          message_type: string
+          provider_payload: Json | null
+          provider_template_language: string | null
+          provider_template_name: string | null
+          scheduled_at: string | null
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          ai_generated?: boolean
+          ai_prompt_snapshot?: Json | null
+          ai_warnings?: Json | null
+          approved_at?: string | null
+          approved_by?: string | null
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          event_id: string
+          id?: string
+          message_type: string
+          provider_payload?: Json | null
+          provider_template_language?: string | null
+          provider_template_name?: string | null
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          ai_generated?: boolean
+          ai_prompt_snapshot?: Json | null
+          ai_warnings?: Json | null
+          approved_at?: string | null
+          approved_by?: string | null
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          event_id?: string
+          id?: string
+          message_type?: string
+          provider_payload?: Json | null
+          provider_template_language?: string | null
+          provider_template_name?: string | null
+          scheduled_at?: string | null
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_whatsapp_messages_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_whatsapp_messages_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_whatsapp_messages_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_whatsapp_messages_updated_by_fkey"
+            columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -937,6 +1387,7 @@ export type Database = {
           is_archived: boolean
           is_financial: boolean | null
           is_internal: boolean | null
+          is_publicly_listed: boolean
           last_synced_at: string | null
           max_installments: number | null
           max_responses: number | null
@@ -973,6 +1424,7 @@ export type Database = {
           is_archived?: boolean
           is_financial?: boolean | null
           is_internal?: boolean | null
+          is_publicly_listed?: boolean
           last_synced_at?: string | null
           max_installments?: number | null
           max_responses?: number | null
@@ -1009,6 +1461,7 @@ export type Database = {
           is_archived?: boolean
           is_financial?: boolean | null
           is_internal?: boolean | null
+          is_publicly_listed?: boolean
           last_synced_at?: string | null
           max_installments?: number | null
           max_responses?: number | null
@@ -1374,6 +1827,7 @@ export type Database = {
           notify_email_contact: boolean | null
           notify_email_internal: boolean | null
           notify_email_prayer: boolean | null
+          perm_comunicaciones: boolean
           perm_comunidad: boolean | null
           perm_events: boolean | null
           perm_finanzas: boolean | null
@@ -1394,6 +1848,7 @@ export type Database = {
           notify_email_contact?: boolean | null
           notify_email_internal?: boolean | null
           notify_email_prayer?: boolean | null
+          perm_comunicaciones?: boolean
           perm_comunidad?: boolean | null
           perm_events?: boolean | null
           perm_finanzas?: boolean | null
@@ -1414,6 +1869,7 @@ export type Database = {
           notify_email_contact?: boolean | null
           notify_email_internal?: boolean | null
           notify_email_prayer?: boolean | null
+          perm_comunicaciones?: boolean
           perm_comunidad?: boolean | null
           perm_events?: boolean | null
           perm_finanzas?: boolean | null

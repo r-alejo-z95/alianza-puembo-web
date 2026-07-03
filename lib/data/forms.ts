@@ -23,6 +23,7 @@ export interface Form {
   image_url?: string;
   is_internal: boolean;
   is_archived: boolean;
+  is_publicly_listed?: boolean;
   enabled: boolean;
   max_responses?: number | null;
   is_financial?: boolean;
@@ -118,6 +119,50 @@ export const getCachedForms = unstable_cache(
     revalidate: 3600
   }
 );
+
+export type PublicFormListing = Pick<
+  Form,
+  | "id"
+  | "title"
+  | "slug"
+  | "description"
+  | "image_url"
+  | "enabled"
+  | "is_financial"
+  | "created_at"
+  | "is_publicly_listed"
+> & { closed_by_limit?: boolean | null };
+
+/**
+ * Public, explicitly listed forms used by the inscriptions catalog and lookup.
+ */
+export async function getPubliclyListedForms(): Promise<PublicFormListing[]> {
+  const fetchForms = unstable_cache(
+    async () => {
+      const supabase = createAdminClient();
+      const { data, error } = await supabase
+        .from("forms")
+        .select(
+          "id, title, slug, description, image_url, enabled, closed_by_limit, is_financial, created_at, is_publicly_listed",
+        )
+        .eq("is_publicly_listed", true)
+        .eq("is_internal", false)
+        .eq("is_archived", false)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("[getPubliclyListedForms]", error);
+        return [];
+      }
+
+      return (data ?? []) as PublicFormListing[];
+    },
+    ["public-form-listings"],
+    { tags: ["forms"], revalidate: 3600 },
+  );
+
+  return fetchForms();
+}
 
 /**
  * @description Cached fetch of a single form by slug, including its fields.

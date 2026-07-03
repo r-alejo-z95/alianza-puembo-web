@@ -30,6 +30,7 @@ const setupSchema = z
   .object({
     title: z.string().min(3, "El título debe tener al menos 3 caracteres"),
     is_internal: z.boolean(),
+    is_publicly_listed: z.boolean().default(false),
     max_responses: z.number().int().min(1, "El límite debe ser mayor a 0"),
     is_financial: z.boolean(),
     payment_type: z.enum(["single", "installments"]).nullable().optional(),
@@ -128,6 +129,7 @@ function mapInitialValues(initialValues = {}) {
     id: initialValues.id ?? null,
     title: initialValues.title ?? "",
     is_internal: !!initialValues.is_internal,
+    is_publicly_listed: !!initialValues.is_publicly_listed,
     max_responses: initialValues.max_responses ?? 100,
     is_financial: initialValues.is_financial ?? false,
     payment_type: initialValues.payment_type ?? "single",
@@ -245,8 +247,34 @@ export default function FormSetupWizard({
                     </p>
                     <Switch
                       checked={form.watch("is_internal")}
-                      onCheckedChange={(checked) => form.setValue("is_internal", checked)}
+                      onCheckedChange={(checked) => {
+                        form.setValue("is_internal", checked);
+                        if (checked) {
+                          form.setValue("is_publicly_listed", false);
+                        }
+                      }}
                     />
+                  </div>
+
+                  <div className="border-t border-gray-200 pt-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <Label className="text-xs font-bold text-gray-700">
+                          Mostrar en el portal público
+                        </Label>
+                        <p className="text-[10px] leading-relaxed text-gray-500">
+                          Permite que las personas encuentren este formulario y consulten su inscripción.
+                        </p>
+                      </div>
+                      <Switch
+                        aria-label="Mostrar en el portal público"
+                        checked={form.watch("is_publicly_listed")}
+                        disabled={form.watch("is_internal")}
+                        onCheckedChange={(checked) =>
+                          form.setValue("is_publicly_listed", checked)
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
 

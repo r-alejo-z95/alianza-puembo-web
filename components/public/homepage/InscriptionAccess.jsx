@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ChevronRight, ReceiptText } from "lucide-react";
+import { ChevronRight, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils.ts";
 import { sectionPx } from "@/lib/styles.ts";
@@ -36,22 +36,18 @@ export default function InscriptionAccess() {
             className="space-y-4 md:space-y-6"
           >
             <div className="flex items-center gap-3 md:gap-4">
-              <ReceiptText className="w-5 h-5 text-[var(--puembo-green)]" />
+              <Compass className="w-5 h-5 text-[var(--puembo-green)]" />
               <span className="text-[10px] font-black uppercase tracking-[0.35em] text-[var(--puembo-green)]">
-                Pagos de eventos
+                Inscripciones abiertas
               </span>
             </div>
 
             <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif font-bold text-white leading-[1.1] tracking-tight">
-              ¿Ya te inscribiste <br />
-              <span className="italic text-[var(--puembo-green)] font-medium">
-                a un evento?
-              </span>
+              Encuentra tu próximo paso
             </h2>
 
             <p className="text-base md:text-xl text-gray-200/90 font-light leading-relaxed max-w-sm md:max-w-lg">
-              Sube otro abono o revisa tu saldo pendiente sin llenar el
-              formulario otra vez.
+              Explora actividades, talleres y encuentros abiertos. Si ya te inscribiste, también puedes consultar tu registro y seguimiento de pagos.
             </p>
           </motion.div>
 
@@ -67,7 +63,7 @@ export default function InscriptionAccess() {
                 variant="green"
                 className="rounded-full px-8 py-4 md:px-7 md:py-3.5 text-sm font-bold transition-all duration-300 flex items-center justify-center gap-2 h-auto shadow-lg shadow-[var(--puembo-green)]/20 group w-full sm:w-auto"
               >
-                Subir otro abono
+                Explorar inscripciones
                 <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
             </Link>
@@ -79,7 +75,7 @@ export default function InscriptionAccess() {
         <div className="flex items-center gap-6">
           <div className="h-px w-24 bg-white/20" />
           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30">
-            Inscripciones y abonos
+            Inscripciones · seguimiento · abonos
           </span>
         </div>
       </div>

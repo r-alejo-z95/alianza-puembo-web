@@ -16,7 +16,21 @@ test("public form submission uses persistent result messaging instead of submit 
 
 test("public inscription lookup portal and homepage entry are wired", () => {
   assert.equal(existsSync(new URL("../app/inscripcion/page.js", import.meta.url)), true);
-  assert.equal(existsSync(new URL("../app/inscripcion/InscripcionLookupClient.jsx", import.meta.url)), true);
+  assert.equal(
+    existsSync(
+      new URL(
+        "../components/public/inscriptions/InscriptionPortal.jsx",
+        import.meta.url,
+      ),
+    ),
+    true,
+  );
+  assert.equal(
+    existsSync(
+      new URL("../app/inscripcion/InscripcionLookupClient.jsx", import.meta.url),
+    ),
+    false,
+  );
 
   const home = readFileSync(new URL("../app/page.js", import.meta.url), "utf8");
   const formRenderer = readFileSync(
@@ -40,17 +54,20 @@ test("public form result modal can confirm a shared payment and resubmit current
   assert.match(renderer, /sharedPaymentConfirmation:\s*options\.sharedPaymentConfirmation \|\| null/);
 });
 
-test("tracking and recovery flows use canonical submission balance summaries", () => {
+test("tracking uses canonical balances and recovery is limited to one form", () => {
   const trackingClient = readFileSync(
     new URL("../app/inscripcion/[token]/TrackingClient.jsx", import.meta.url),
     "utf8",
   );
-  const actions = readFileSync(new URL("../lib/actions.ts", import.meta.url), "utf8");
+  const lookupAction = readFileSync(
+    new URL("../lib/actions/public-form-lookup.ts", import.meta.url),
+    "utf8",
+  );
 
   assert.match(trackingClient, /getSubmissionBalanceSummary/);
   assert.doesNotMatch(trackingClient, /getSubmissionPaymentSummary/);
-  assert.match(actions, /getSubmissionBalanceSummary/);
-  assert.match(actions, /coverage_mode,\s*coverage_amount,\s*covered_by_submission_id/);
+  assert.match(lookupAction, /\.eq\("form_id", form\.id\)/);
+  assert.doesNotMatch(lookupAction, /requestSubmissionTrackingLinks/);
 });
 
 test("tracking status badge wraps long labels on mobile", () => {

@@ -23,7 +23,6 @@ import {
 import crypto from "crypto";
 import { ensureFinanceReceiptsBucket, ensureFormUploadsBucket } from "@/lib/finance/storage";
 import { getInstallmentEmailSummary } from "@/lib/finance/payment-summary.mjs";
-import { getSubmissionBalanceSummary } from "@/lib/finance/submission-balance.mjs";
 import { detectFinancialSubmissionConflict } from "@/lib/finance/submission-dedupe.mjs";
 import { findNameInSubmission } from "@/lib/form-utils";
 import { validateChoiceOtherAnswers } from "@/lib/forms/choice-other.mjs";
@@ -38,39 +37,7 @@ import {
   isSupportedReceiptMimeType,
   MAX_RECEIPT_FILE_SIZE_BYTES,
 } from "@/lib/finance/receipt-file";
-
-/**
- * Verifica un token de Cloudflare Turnstile.
- */
-async function verifyTurnstileToken(token: string | null) {
-  if (!token) return false;
-
-  const secretKey = process.env.TURNSTILE_SECRET_KEY;
-  if (!secretKey) {
-    console.error("ERROR: TURNSTILE_SECRET_KEY no está configurada en las variables de entorno.");
-    return false;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("secret", secretKey);
-    formData.append("response", token);
-
-    const result = await fetch(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      {
-        body: formData,
-        method: "POST",
-      },
-    );
-
-    const outcome = await result.json();
-    return outcome.success;
-  } catch (error) {
-    console.error("Error verificando Turnstile:", error);
-    return false;
-  }
-}
+import { verifyTurnstileToken } from "@/lib/security/turnstile";
 
 /**
  * Helper para Rate Limiting básico basado en IP y Email/Nombre
@@ -1200,90 +1167,6 @@ export async function submitFormAction(payload: {
           "Si el problema continúa, comunícate con el equipo organizador.",
         ],
         primaryAction: { label: "Intentar de nuevo" },
-      }),
-    };
-  }
-}
-
-export async function requestSubmissionTrackingLinks(email: string) {
-  const parsed = z.string().email().safeParse(String(email || "").trim().toLowerCase());
-  if (!parsed.success) {
-    return {
-      error: "Ingresa un correo electrónico válido.",
-      outcome: buildSubmissionOutcome({
-        status: "error",
-        title: "Correo inválido",
-        message: "Necesitamos un correo válido para buscar inscripciones activas.",
-        steps: ["Revisa que el correo esté escrito completo, por ejemplo nombre@correo.com."],
-        primaryAction: { label: "Corregir correo" },
-      }),
-    };
-  }
-
-  const normalizedEmail = parsed.data;
-  const supabaseAdmin = createAdminClient();
-
-  try {
-    const { data, error } = await supabaseAdmin
-      .from("form_submissions")
-      .select("id, access_token, created_at, coverage_mode, coverage_amount, covered_by_submission_id, form_submission_payments(amount_claimed, extracted_data, status, manual_disposition, created_at), forms!inner(title, total_amount, is_financial, is_internal)")
-      .eq("is_archived", false)
-      .eq("forms.is_financial", true)
-      .eq("forms.is_internal", false)
-      .ilike("notification_email", normalizedEmail);
-
-    if (error) {
-      console.error("[requestSubmissionTrackingLinks] lookup failed:", error);
-    }
-
-    const submissions = (data || [])
-      .filter((submission: any) => submission?.access_token)
-      .map((submission: any) => {
-        const form = Array.isArray(submission.forms) ? submission.forms[0] : submission.forms;
-        const summary = getSubmissionBalanceSummary({
-          totalAmount: Number(form?.total_amount || 0),
-          submission,
-        });
-
-        return {
-          formTitle: form?.title || "Inscripción",
-          accessToken: submission.access_token,
-          createdAt: submission.created_at,
-          remainingBalance: summary.remainingBalance,
-        };
-      });
-
-    if (submissions.length > 0) {
-      await sendSubmissionTrackingLinksEmail(normalizedEmail, { submissions });
-    }
-
-    return {
-      success: true,
-      outcome: buildSubmissionOutcome({
-        status: "success",
-        title: "Revisa tu correo",
-        message: "Si encontramos inscripciones activas con ese correo, te enviaremos los enlaces de seguimiento.",
-        steps: [
-          "Busca un correo de Iglesia Alianza Puembo en tu bandeja de entrada.",
-          "Revisa spam o promociones si no lo ves en unos minutos.",
-          "Desde el enlace puedes subir abonos adicionales sin llenar otra inscripción.",
-        ],
-        primaryAction: { label: "Entendido" },
-      }),
-    };
-  } catch (error: any) {
-    console.error("[requestSubmissionTrackingLinks]", error);
-    return {
-      success: true,
-      outcome: buildSubmissionOutcome({
-        status: "success",
-        title: "Solicitud recibida",
-        message: "Si encontramos inscripciones activas con ese correo, te enviaremos los enlaces de seguimiento.",
-        steps: [
-          "Si no llega el correo, revisa que hayas usado el mismo correo de tu inscripción.",
-          "Si necesitas ayuda, comunícate con el equipo organizador.",
-        ],
-        primaryAction: { label: "Entendido" },
       }),
     };
   }
