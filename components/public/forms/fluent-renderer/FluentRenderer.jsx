@@ -55,6 +55,10 @@ import {
   validateChoiceOtherResponse,
 } from "@/lib/forms/choice-other.mjs";
 import {
+  NOTIFICATION_STEP_ID,
+  resolveSubmitDestination,
+} from "@/lib/forms/public-form-flow.mjs";
+import {
   isSupportedReceiptMimeType,
   MAX_RECEIPT_FILE_SIZE_BYTES,
   RECEIPT_FILE_ACCEPT,
@@ -194,7 +198,7 @@ function useFormLogic(form) {
     if (!form.is_internal) {
       groups.push({
         section: {
-          id: "virtual-notification",
+          id: NOTIFICATION_STEP_ID,
           label: "Contacto de Seguimiento",
           help_text: form.is_financial
             ? "Para procesar tu pago y enviarte tu código de seguimiento, necesitamos un correo electrónico de contacto."
@@ -760,7 +764,16 @@ export default function FluentRenderer({ form, isPreview = false }) {
     const lastVisibleField = visibleFields[visibleFields.length - 1];
     const jumpToId = getJumpTarget(lastVisibleField, watchedValues);
 
-    if (jumpToId === "submit") return true;
+    const submitDestination = resolveSubmitDestination({
+      isInternal: form.is_internal,
+      steps,
+      currentStep,
+      jumpTargetId: jumpToId,
+    });
+
+    if (jumpToId === "submit") {
+      return submitDestination.type === "submit";
+    }
 
     // Si hay un salto explícito a otra parte, no es el último paso "natural"
     if (jumpToId && jumpToId !== "default") return false;
@@ -774,7 +787,14 @@ export default function FluentRenderer({ form, isPreview = false }) {
     }
 
     return currentStep === steps.length - 1;
-  }, [currentStep, steps, visibleFields, watchedValues, jumpTargets]);
+  }, [
+    currentStep,
+    steps,
+    visibleFields,
+    watchedValues,
+    jumpTargets,
+    form.is_internal,
+  ]);
 
   const handleNext = async () => {
     const values = getValues();
@@ -837,8 +857,23 @@ export default function FluentRenderer({ form, isPreview = false }) {
     }
 
     if (jumpTargetId === "submit") {
-      onSubmit(values);
+      const submitDestination = resolveSubmitDestination({
+        isInternal: form.is_internal,
+        steps,
+        currentStep,
+        jumpTargetId,
+      });
 
+      if (submitDestination.type === "step") {
+        setStepHistory((prev) => [
+          ...prev,
+          { index: submitDestination.stepIndex, startFieldId: null },
+        ]);
+        setCurrentStep(submitDestination.stepIndex);
+        return;
+      }
+
+      onSubmit(values);
       return;
     }
 

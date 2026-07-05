@@ -22,6 +22,21 @@ test("public renderer asks every public form for notification email", () => {
   );
 });
 
+test("public finalize flow is wired to the notification-step resolver", () => {
+  const renderer = readFileSync(
+    new URL(
+      "../components/public/forms/fluent-renderer/FluentRenderer.jsx",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+
+  assert.match(renderer, /resolveSubmitDestination/);
+  assert.match(renderer, /id: NOTIFICATION_STEP_ID/);
+  assert.match(renderer, /submitDestination\.type === "step"/);
+  assert.match(renderer, /setCurrentStep\(submitDestination\.stepIndex\)/);
+});
+
 test("submitFormAction sends registration confirmation for all public submissions", () => {
   const actions = readFileSync(
     new URL("../lib/actions.ts", import.meta.url),
