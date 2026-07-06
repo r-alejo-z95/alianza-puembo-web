@@ -382,8 +382,8 @@ const FieldInput = ({
           render={({ field: ctrlField }) => (
             <Input
               id={fieldId}
-              type="number"
-              step="any"
+              type="text"
+              inputMode="decimal"
               placeholder={field.placeholder || "0"}
               className={baseClass}
               value={ctrlField.value ?? ""}
@@ -1540,12 +1540,11 @@ export default function FluentRenderer({ form, isPreview = false }) {
                                   ...templateField,
                                   required: templateField.required !== false,
                                 };
+                                const isNumberField = templateField.type === "number";
                                 const inputType =
-                                  templateField.type === "number"
-                                    ? "number"
-                                    : templateField.type === "date"
-                                      ? "date"
-                                      : "text";
+                                  templateField.type === "date"
+                                    ? "date"
+                                    : "text";
 
                                 return (
                                   <div key={templateField.id} className="space-y-2">
@@ -1570,11 +1569,7 @@ export default function FluentRenderer({ form, isPreview = false }) {
                                     ) : (
                                       <Input
                                         type={inputType}
-                                        step={
-                                          templateField.type === "number"
-                                            ? "any"
-                                            : undefined
-                                        }
+                                        inputMode={isNumberField ? "decimal" : undefined}
                                         placeholder={templateField.placeholder || ""}
                                         {...register(name, {
                                           validate:

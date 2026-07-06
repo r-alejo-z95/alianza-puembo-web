@@ -218,8 +218,16 @@ test("public renderer wires shared validation into fields and participant inputs
 
   assert.match(renderer, /createFieldValidationRule/);
   assert.match(renderer, /validateFieldValue/);
-  assert.match(renderer, /type="number"/);
-  assert.match(renderer, /step="any"/);
+  assert.match(renderer, /type="text"\s+inputMode="decimal"/);
+  assert.match(
+    renderer,
+    /const isNumberField = templateField\.type === "number"/,
+  );
+  assert.match(
+    renderer,
+    /inputMode=\{isNumberField \? "decimal" : undefined\}/,
+  );
+  assert.doesNotMatch(renderer, /step=/);
   assert.match(
     renderer,
     /errors\[field\.id \|\| field\.label\]\?\.message/,
