@@ -54,6 +54,24 @@ test("rejects missing participant rows and required answers", () => {
   ]);
 });
 
+test("participant details reject invalid number and date values", () => {
+  const result = validateParticipantDetails({
+    participantDetails: [
+      { index: 1, answers: { Edad: "ocho", Nacimiento: "2025-02-30" } },
+    ],
+    participantTemplate: [
+      { id: "age", label: "Edad", type: "number", required: true },
+      { id: "birth", label: "Nacimiento", type: "date", required: true },
+    ],
+    expectedCount: 1,
+  });
+
+  assert.deepEqual(result.errors, [
+    "Participante 1 - Edad: Ingresa un número válido.",
+    "Participante 1 - Nacimiento: Ingresa una fecha válida.",
+  ]);
+});
+
 test("builds participant columns and searchable values", () => {
   const details = [
     { index: 1, answers: { Nombre: "Ana", Edad: "8" } },

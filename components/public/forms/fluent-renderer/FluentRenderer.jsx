@@ -55,6 +55,10 @@ import {
   validateChoiceOtherResponse,
 } from "@/lib/forms/choice-other.mjs";
 import {
+  createFieldValidationRule,
+  validateFieldValue,
+} from "@/lib/forms/field-validation.mjs";
+import {
   NOTIFICATION_STEP_ID,
   resolveSubmitDestination,
 } from "@/lib/forms/public-form-flow.mjs";
@@ -270,8 +274,6 @@ const FieldInput = ({
 
   errors,
 
-  isRequired,
-
   watch,
 
   setValue,
@@ -350,7 +352,9 @@ const FieldInput = ({
           type={field.type === "email" ? "email" : "text"}
           placeholder={field.placeholder || "Tu respuesta..."}
           className={baseClass}
-          {...register(fieldName, { required: isRequired })}
+          {...register(fieldName, {
+            validate: createFieldValidationRule(field),
+          })}
         />
       );
 
@@ -363,7 +367,9 @@ const FieldInput = ({
             baseClass,
             "min-h-[140px] py-5 leading-relaxed resize-none",
           )}
-          {...register(fieldName, { required: isRequired })}
+          {...register(fieldName, {
+            validate: createFieldValidationRule(field),
+          })}
         />
       );
 
@@ -372,18 +378,17 @@ const FieldInput = ({
         <Controller
           name={fieldName}
           control={control}
-          rules={{ required: isRequired }}
+          rules={{ validate: createFieldValidationRule(field) }}
           render={({ field: ctrlField }) => (
             <Input
               id={fieldId}
-              type="text"
-              inputMode="numeric"
+              type="number"
+              step="any"
               placeholder={field.placeholder || "0"}
               className={baseClass}
-              value={ctrlField.value || ""}
-              onChange={(e) =>
-                ctrlField.onChange(e.target.value.replace(/[^0-9]/g, ""))
-              }
+              value={ctrlField.value ?? ""}
+              onBlur={ctrlField.onBlur}
+              onChange={(event) => ctrlField.onChange(event.target.value)}
             />
           )}
         />
@@ -395,7 +400,9 @@ const FieldInput = ({
           id={fieldId}
           type="date"
           className={baseClass}
-          {...register(fieldName, { required: isRequired })}
+          {...register(fieldName, {
+            validate: createFieldValidationRule(field),
+          })}
         />
       );
 
@@ -405,7 +412,7 @@ const FieldInput = ({
           <Controller
             name={fieldName}
             control={control}
-            rules={{ required: isRequired }}
+            rules={{ validate: createFieldValidationRule(field) }}
             render={({ field: ctrlField }) => (
               <RadioGroup
                 onValueChange={(value) => {
@@ -531,7 +538,7 @@ const FieldInput = ({
         <Controller
           name={fieldName}
           control={control}
-          rules={{ required: isRequired }}
+          rules={{ validate: createFieldValidationRule(field) }}
           render={({ field: ctrlField }) => (
             <Select
               onValueChange={ctrlField.onChange}
@@ -567,7 +574,9 @@ const FieldInput = ({
             type="file"
             accept={field.type === "image" ? "image/*" : RECEIPT_FILE_ACCEPT}
             className="hidden"
-            {...register(fieldName, { required: isRequired })}
+            {...register(fieldName, {
+              validate: createFieldValidationRule(field),
+            })}
           />
 
           {!fileName ? (
@@ -647,6 +656,8 @@ export default function FluentRenderer({ form, isPreview = false }) {
     trigger,
     getValues,
     setValue,
+    clearErrors,
+    setError,
   } = useForm({ mode: "onChange" });
 
   const {
@@ -821,17 +832,24 @@ export default function FluentRenderer({ form, isPreview = false }) {
       return;
     }
 
-    // Validación manual para checkboxes (al menos uno)
-    const missingRequiredCheckbox = visibleFields.some((f) => {
-      if (f.required && f.type === "checkbox") {
-        const val = values[f.id] ?? values[f.label];
-        return !val || !Object.values(val).some((v) => v === true);
-      }
-      return false;
-    });
+    const invalidCheckbox = visibleFields
+      .filter((field) => field.type === "checkbox")
+      .map((field) => {
+        const fieldKey = field.id || field.label;
+        clearErrors(fieldKey);
+        return {
+          fieldKey,
+          validation: validateFieldValue(field, values[fieldKey]),
+        };
+      })
+      .find(({ validation }) => !validation.valid);
 
-    if (missingRequiredCheckbox) {
-      toast.error("Por favor selecciona al menos una opción.");
+    if (invalidCheckbox) {
+      setError(invalidCheckbox.fieldKey, {
+        type: "validate",
+        message: invalidCheckbox.validation.error,
+      });
+      toast.error(invalidCheckbox.validation.error);
       return;
     }
 
@@ -1463,7 +1481,6 @@ export default function FluentRenderer({ form, isPreview = false }) {
                       register={register}
                       control={control}
                       errors={errors}
-                      isRequired={field.required}
                       watch={watch}
                       setValue={setValue}
                     />
@@ -1477,8 +1494,9 @@ export default function FluentRenderer({ form, isPreview = false }) {
                         exit={{ opacity: 0, height: 0 }}
                         className="text-red-500 text-[10px] font-black uppercase tracking-widest flex items-center gap-2 pt-1 px-1"
                       >
-                        <AlertCircle className="w-3.5 h-3.5" /> Este campo es
-                        obligatorio
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        {errors[field.id || field.label]?.message ||
+                          "Revisa este campo."}
                       </motion.p>
                     )}
                   </AnimatePresence>
@@ -1518,6 +1536,10 @@ export default function FluentRenderer({ form, isPreview = false }) {
                             <div className="space-y-4">
                               {template.map((templateField) => {
                                 const name = `participant_${number}_${templateField.id}`;
+                                const participantField = {
+                                  ...templateField,
+                                  required: templateField.required !== false,
+                                };
                                 const inputType =
                                   templateField.type === "number"
                                     ? "number"
@@ -1538,16 +1560,27 @@ export default function FluentRenderer({ form, isPreview = false }) {
                                       <Textarea
                                         placeholder={templateField.placeholder || ""}
                                         {...register(name, {
-                                          required: templateField.required !== false,
+                                          validate:
+                                            createFieldValidationRule(
+                                              participantField,
+                                            ),
                                         })}
                                         className="min-h-[120px] rounded-2xl border-gray-200 bg-white"
                                       />
                                     ) : (
                                       <Input
                                         type={inputType}
+                                        step={
+                                          templateField.type === "number"
+                                            ? "any"
+                                            : undefined
+                                        }
                                         placeholder={templateField.placeholder || ""}
                                         {...register(name, {
-                                          required: templateField.required !== false,
+                                          validate:
+                                            createFieldValidationRule(
+                                              participantField,
+                                            ),
                                         })}
                                         className="h-12 rounded-2xl border-gray-200 bg-white"
                                       />
@@ -1556,7 +1589,8 @@ export default function FluentRenderer({ form, isPreview = false }) {
                                     {errors[name] && (
                                       <p className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-red-500">
                                         <AlertCircle className="h-3.5 w-3.5" />
-                                        Este campo es obligatorio
+                                        {errors[name]?.message ||
+                                          "Revisa este campo."}
                                       </p>
                                     )}
                                   </div>

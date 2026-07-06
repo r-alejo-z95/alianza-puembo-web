@@ -45,7 +45,8 @@ test("submitFormAction sends registration confirmation for all public submission
 
   assert.match(actions, /sendRegistrationConfirmationEmail/);
   assert.match(actions, /\.select\("[^"]*is_internal[^"]*"/);
-  assert.match(actions, /if \(!form\.is_internal && !String\(notificationEmail \|\| ""\)\.trim\(\)\)/);
+  assert.match(actions, /validateFieldValue/);
+  assert.match(actions, /notificationEmailValidation/);
   assert.match(actions, /if \(notificationEmail && !form\.is_internal\)/);
   assert.doesNotMatch(
     actions,

@@ -26,6 +26,10 @@ import { getInstallmentEmailSummary } from "@/lib/finance/payment-summary.mjs";
 import { detectFinancialSubmissionConflict } from "@/lib/finance/submission-dedupe.mjs";
 import { findNameInSubmission } from "@/lib/form-utils";
 import { validateChoiceOtherAnswers } from "@/lib/forms/choice-other.mjs";
+import {
+  validateFieldValue,
+  validateSubmissionAnswers,
+} from "@/lib/forms/field-validation.mjs";
 import { validateParticipantDetails } from "@/lib/forms/participant-details.mjs";
 import {
   buildPricingSnapshot,
@@ -646,7 +650,7 @@ export async function submitFormAction(payload: {
     // 1. Obtener configuración del formulario (Usando Admin para asegurar acceso)
     const { data: form, error: formErr } = await supabaseAdmin
       .from("forms")
-      .select("id, title, slug, is_internal, is_financial, payment_type, total_amount, pricing_mode, pricing_packages, pricing_field_id, collect_participant_details, participant_template, allow_shared_receipts, shared_receipt_max_submissions, destination_account_id, financial_field_label, financial_field_id, user_id, max_responses, form_fields!form_id(id, label, type, options)")
+      .select("id, title, slug, is_internal, is_financial, payment_type, total_amount, pricing_mode, pricing_packages, pricing_field_id, collect_participant_details, participant_template, allow_shared_receipts, shared_receipt_max_submissions, destination_account_id, financial_field_label, financial_field_id, user_id, max_responses, form_fields!form_id(id, label, type, required, options)")
       .eq("id", formId)
       .single();
 
@@ -669,18 +673,42 @@ export async function submitFormAction(payload: {
       };
     }
 
-    if (!form.is_internal && !String(notificationEmail || "").trim()) {
+    const submissionValidation = validateSubmissionAnswers(
+      (form as any).form_fields || [],
+      answers,
+    );
+    if (!submissionValidation.valid) {
+      const validationMessages = submissionValidation.errors.map(
+        (item: any) => `${item.label}: ${item.message}`,
+      );
       return {
-        error: "Necesitamos un correo electrónico para confirmar tu registro.",
+        error: validationMessages.join(" "),
         outcome: buildSubmissionOutcome({
           status: "error",
-          title: "Falta el correo de confirmación",
-          message: "Ingresa un correo electrónico válido para recibir la confirmación y el enlace de seguimiento de tu inscripción.",
+          title: "Revisa tus respuestas",
+          message: "Uno o más campos no tienen el formato esperado.",
+          steps: validationMessages,
+          primaryAction: { label: "Corregir respuestas" },
+        }),
+      };
+    }
+
+    const notificationEmailValidation = validateFieldValue(
+      { type: "email", required: !form.is_internal },
+      notificationEmail,
+    );
+    if (!notificationEmailValidation.valid) {
+      return {
+        error: notificationEmailValidation.error,
+        outcome: buildSubmissionOutcome({
+          status: "error",
+          title: "Revisa el correo de confirmación",
+          message: notificationEmailValidation.error,
           steps: [
-            "Vuelve al formulario y completa el campo de correo para notificaciones.",
-            "Usaremos ese correo para enviarte la confirmación y cualquier actualización importante.",
+            "Vuelve al formulario y corrige el campo de correo para notificaciones.",
+            "Usaremos ese correo para enviarte la confirmación y las actualizaciones importantes.",
           ],
-          primaryAction: { label: "Completar correo" },
+          primaryAction: { label: "Corregir correo" },
         }),
       };
     }
