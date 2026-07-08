@@ -1,8 +1,6 @@
 # Propuesta de institucionalización y continuidad de la plataforma web/app
 
-Documento institucional de trabajo
-
-Preparado por: Alejandro Zambrano
+Documento preparado por: Alejandro Zambrano
 
 Fecha: 8 de julio de 2026
 

@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Propuesta de institucionalización y continuidad de la plataforma web/app</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 14mm 15mm 16mm;
+    }
+
+    @page:first {
+      margin: 12mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --ink: #172015;
+      --muted: #5f6b5e;
+      --soft: #eef6e4;
+      --soft-2: #f7faf2;
+      --line: #dfe8d5;
+      --green: #76a82a;
+      --green-dark: #365316;
+      --gold: #d79a2b;
+      --blue: #1f5f86;
+      --danger: #8b3a2b;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: #fff;
+      font-family: "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 9.7pt;
+      line-height: 1.42;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: var(--ink);
+      break-after: avoid;
+    }
+
+    h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 24pt;
+      line-height: 1.02;
+      margin: 0;
+      letter-spacing: -0.035em;
+    }
+
+    h2 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 16pt;
+      line-height: 1.15;
+      margin: 10mm 0 3.5mm;
+      padding-bottom: 2mm;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h3 {
+      font-size: 10.6pt;
+      margin: 5mm 0 2mm;
+      color: var(--green-dark);
+    }
+
+    p {
+      margin: 0 0 3mm;
+    }
+
+    ul,
+    ol {
+      margin: 0 0 3mm;
+      padding-left: 5mm;
+    }
+
+    li {
+      margin: 0 0 1.2mm;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 3mm 0 5mm;
+      font-size: 8.6pt;
+      break-inside: avoid;
+    }
+
+    th {
+      background: #edf4e4;
+      color: #253617;
+      text-align: left;
+      font-weight: 800;
+      border: 1px solid var(--line);
+      padding: 2.2mm;
+    }
+
+    td {
+      border: 1px solid var(--line);
+      padding: 2.1mm;
+      vertical-align: top;
+    }
+
+    .num {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .page {
+      break-after: page;
+    }
+
+    .avoid {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .summary-page {
+      position: relative;
+      height: 273mm;
+      overflow: hidden;
+      border: 1px solid #d5e3c5;
+      border-radius: 8mm;
+      padding: 8mm;
+      background:
+        radial-gradient(circle at 88% 4%, rgba(118, 168, 42, 0.23), transparent 38mm),
+        radial-gradient(circle at 4% 95%, rgba(215, 154, 43, 0.16), transparent 34mm),
+        linear-gradient(135deg, #ffffff 0%, #f9fbf5 100%);
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .summary-page::before {
+      content: "";
+      position: absolute;
+      inset: 6mm;
+      border: 1px solid rgba(118, 168, 42, 0.2);
+      border-radius: 6mm;
+      pointer-events: none;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 6mm;
+      align-items: flex-start;
+      margin-bottom: 5mm;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand {
+      display: flex;
+      gap: 3mm;
+      align-items: center;
+      min-height: 12mm;
+    }
+
+    .brand img {
+      width: 32mm;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .doc-meta {
+      text-align: right;
+      color: var(--muted);
+      font-size: 8.5pt;
+      line-height: 1.35;
+    }
+
+    .eyebrow {
+      color: var(--green-dark);
+      font-size: 8pt;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin: 0 0 2mm;
+    }
+
+    .subtitle {
+      max-width: 154mm;
+      color: #3d493b;
+      font-size: 10.2pt;
+      line-height: 1.3;
+      margin: 3mm 0 5mm;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 3mm;
+      position: relative;
+      z-index: 1;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .summary-card {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.88);
+      border-radius: 4mm;
+      padding: 3mm;
+      break-inside: avoid;
+      page-break-inside: avoid;
+      font-size: 8.8pt;
+      line-height: 1.34;
+    }
+
+    .summary-card h2 {
+      border: 0;
+      padding: 0;
+      margin: 0 0 1.6mm;
+      font-family: "Avenir Next", "Segoe UI", Helvetica, Arial, sans-serif;
+      font-size: 10pt;
+      color: var(--green-dark);
+      letter-spacing: 0.02em;
+    }
+
+    .summary-card ul {
+      margin-bottom: 0;
+      padding-left: 4mm;
+    }
+
+    .summary-card li {
+      margin-bottom: 0.8mm;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3mm;
+      margin: 4mm 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat {
+      border-radius: 4mm;
+      padding: 3mm;
+      background: #203015;
+      color: #fff;
+    }
+
+    .stat:nth-child(2) {
+      background: #365316;
+    }
+
+    .stat:nth-child(3) {
+      background: #6f8f24;
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 7.2pt;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      opacity: 0.82;
+      margin-bottom: 1mm;
+    }
+
+    .stat-value {
+      display: block;
+      font-size: 15pt;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .callout {
+      border-left: 4px solid var(--green);
+      background: var(--soft-2);
+      padding: 4mm;
+      margin: 4mm 0;
+      break-inside: avoid;
+    }
+
+    .callout.blue {
+      border-left-color: var(--blue);
+      background: #f0f7fb;
+    }
+
+    .callout.gold {
+      border-left-color: var(--gold);
+      background: #fff8ed;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4mm 7mm;
+    }
+
+    .three-col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4mm;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 3mm;
+      padding: 3.5mm;
+      background: #fff;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .timeline {
+      counter-reset: step;
+      list-style: none;
+      padding: 0;
+    }
+
+    .timeline li {
+      counter-increment: step;
+      position: relative;
+      padding: 0 0 2.6mm 9mm;
+      margin: 0 0 1mm;
+    }
+
+    .timeline li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0.1mm;
+      width: 5.4mm;
+      height: 5.4mm;
+      border-radius: 50%;
+      background: var(--green);
+      color: #fff;
+      text-align: center;
+      line-height: 5.4mm;
+      font-size: 7pt;
+      font-weight: 900;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 8.3pt;
+    }
+
+    .section-kicker {
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 7.6pt;
+      margin: 0 0 2mm;
+    }
+
+  </style>
+</head>
+<body>
+  <section class="summary-page page">
+    <div class="topbar">
+      <div class="brand">
+        <img src="../public/brand/logo-puembo.png" alt="Iglesia Alianza Puembo">
+      </div>
+      <div class="doc-meta">
+        Documento preparado por Alejandro Zambrano<br>
+        8 de julio de 2026
+      </div>
+    </div>
+
+    <p class="eyebrow">En breve · resumen en una página</p>
+    <h1>Institucionalizar una plataforma que ya sostiene operación, comunicación y finanzas</h1>
+    <p class="subtitle">
+      El proyecto empezó como una mejor página web, pero hoy es una plataforma operativa para publicar contenido,
+      gestionar formularios e inscripciones, dar seguimiento financiero, automatizar comunicaciones y preparar
+      procesos administrativos clave.
+    </p>
+
+    <div class="stat-row">
+      <div class="stat">
+        <span class="stat-label">Costo base nuevo</span>
+        <span class="stat-value">$5/mes</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Storage actual</span>
+        <span class="stat-value">626 MB</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Decisión técnica</span>
+        <span class="stat-value">Cloudflare</span>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <h2>Qué existe hoy</h2>
+        <ul>
+          <li>Sitio público de la iglesia: ministerios, eventos, noticias, recursos, donaciones, contacto y oración.</li>
+          <li>Panel administrativo con login, permisos, gestión de contenido, formularios, inscripciones, comunidad y finanzas.</li>
+          <li>Formularios financieros con pagos, cuotas, comprobantes, seguimiento privado, recordatorios y reportes.</li>
+          <li>Conciliación de comprobantes de ingreso para eventos e inscripciones, con apoyo de IA y exportaciones.</li>
+        </ul>
+      </div>
+
+      <div class="summary-card">
+        <h2>Por qué institucionalizar</h2>
+        <ul>
+          <li>Evitar dependencia de cuentas personales.</li>
+          <li>Garantizar continuidad si Alejandro deja el rol o no está disponible.</li>
+          <li>Permitir que otro desarrollador pueda continuar el proyecto.</li>
+          <li>Ordenar accesos, recuperación, facturación, secretos y propiedad de datos.</li>
+        </ul>
+      </div>
+
+      <div class="summary-card">
+        <h2>Decisión actual</h2>
+        <ul>
+          <li>Mover hosting a Cloudflare Workers/OpenNext si las pruebas pasan.</li>
+          <li>Optimizar imágenes existentes.</li>
+          <li>Migrar todos los buckets de Supabase Storage a Cloudflare R2.</li>
+          <li>Mantener Supabase para base de datos y autenticación.</li>
+          <li>Aprobar administradores institucionales, cuenta Cloudflare y costo base de $5/mes.</li>
+        </ul>
+      </div>
+
+      <div class="summary-card">
+        <h2>Procesos clave</h2>
+        <ul>
+          <li><strong>Proceso Eventos:</strong> presupuesto, anticipos, ingresos/egresos, comprobantes/facturas e informe final.</li>
+          <li><strong>Proceso Pagos:</strong> centralizar cuadro de pagos, aprobaciones, evidencias, notificaciones y comprobantes a proveedores.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="section-kicker">Origen y propósito</p>
+    <h2>1. Resumen ejecutivo</h2>
+    <p>
+      La plataforma web de Iglesia Alianza Puembo comenzó como un proyecto personal para mejorar la página web de la iglesia y ofrecer una presencia digital más clara, moderna y útil. Con el tiempo, el proyecto creció más allá de una página informativa: hoy funciona como una herramienta operativa para comunicación, formularios, inscripciones, eventos, seguimiento financiero, correos, administración de contenido y apoyo a procesos internos.
+    </p>
+    <p>
+      El siguiente paso recomendado es pasar el control operativo del proyecto a manos de la iglesia. Esto significa que el código, la infraestructura, la base de datos, los accesos, los dominios, las credenciales y los servicios externos deben quedar bajo cuentas institucionales, con al menos dos administradores designados por la iglesia y mecanismos claros de recuperación.
+    </p>
+    <div class="callout">
+      El objetivo no es solamente tener una página web, sino construir una plataforma institucional que comunique mejor, reduzca trabajo manual, ordene inscripciones, mejore seguimiento financiero y permita continuidad técnica.
+    </div>
+
+    <h2>2. Origen del proyecto</h2>
+    <p>
+      Este proyecto fue iniciado por Alejandro Zambrano como un proyecto personal, con la intención inicial de darle a la iglesia una mejor página web que la que tenía en ese momento. La primera necesidad era mejorar la presentación pública de la iglesia: información más clara, mejor diseño, acceso a ministerios, eventos, donaciones, ubicación, noticias y recursos.
+    </p>
+    <p>
+      Con el crecimiento del proyecto, se hizo evidente que la oportunidad era mayor. La plataforma podía convertirse en una herramienta para automatizar y optimizar procesos administrativos, financieros y de comunicación. En vez de depender únicamente de hojas de cálculo, mensajes sueltos, formularios aislados o procesos manuales, la iglesia puede tener un sistema centralizado para operar mejor.
+    </p>
+  </section>
+
+  <section>
+    <h2>3. Qué es la plataforma</h2>
+    <p>
+      La plataforma es una aplicación web institucional construida para servir tanto a la comunidad externa como al equipo interno de la iglesia. En su parte pública funciona como la página oficial de la iglesia; en su parte privada funciona como un panel administrativo para gestionar contenido, formularios, inscripciones, eventos, finanzas, comunidad y comunicaciones.
+    </p>
+
+    <div class="three-col">
+      <div class="card">
+        <h3>Presencia pública</h3>
+        <ul>
+          <li>Información institucional.</li>
+          <li>Ministerios y eventos.</li>
+          <li>Noticias y recursos LOM.</li>
+          <li>Donaciones, contacto y oración.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Operación interna</h3>
+        <ul>
+          <li>Panel administrativo.</li>
+          <li>Permisos por rol.</li>
+          <li>Contenido y formularios.</li>
+          <li>Comunidad y comunicaciones.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Finanzas</h3>
+        <ul>
+          <li>Formularios financieros.</li>
+          <li>Comprobantes y cuotas.</li>
+          <li>Conciliación de ingresos.</li>
+          <li>Reportes y exportaciones.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>4. Cómo ayuda actualmente a la iglesia</h2>
+    <div class="two-col">
+      <div class="card">
+        <h3>Sitio público</h3>
+        <p>Permite que miembros, visitantes y personas nuevas encuentren información sin depender de mensajes individuales.</p>
+        <ul>
+          <li>Mejora la primera impresión.</li>
+          <li>Reduce preguntas repetidas.</li>
+          <li>Centraliza información.</li>
+          <li>Facilita conexión de personas nuevas.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Panel administrativo</h3>
+        <p>Permite gestionar contenido y procesos sin tocar código.</p>
+        <ul>
+          <li>Disminuye dependencia técnica.</li>
+          <li>Permite delegar tareas.</li>
+          <li>Ordena responsabilidades.</li>
+          <li>Mejora trazabilidad.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Formularios e inscripciones</h3>
+        <p>Centraliza registros, procesos internos, inscripciones y pagos relacionados.</p>
+        <ul>
+          <li>Reduce hojas de cálculo sueltas.</li>
+          <li>Permite seguimiento privado.</li>
+          <li>Facilita pagos únicos o en cuotas.</li>
+          <li>Permite revisión delegada.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Finanzas y conciliación</h3>
+        <p>Ordena comprobantes de pago, estados, conciliación bancaria y reportes.</p>
+        <ul>
+          <li>Reduce revisión manual.</li>
+          <li>Detecta pagos duplicados o incompletos.</li>
+          <li>Ordena información para tesorería.</li>
+          <li>Facilita reportes por evento/formulario.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Comunicaciones</h3>
+        <p>Automatiza confirmaciones, recordatorios y campañas relacionadas con formularios.</p>
+        <ul>
+          <li>Mejora seguimiento con inscritos.</li>
+          <li>Reduce mensajes manuales.</li>
+          <li>Ordena campañas y adjuntos.</li>
+          <li>Prepara base para WhatsApp.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Comunidad</h3>
+        <p>Ayuda a recibir y organizar mensajes, peticiones de oración y procesos internos.</p>
+        <ul>
+          <li>Evita que solicitudes se pierdan.</li>
+          <li>Mejora respuesta pastoral/administrativa.</li>
+          <li>Controla visibilidad de peticiones.</li>
+          <li>Ordena necesidades internas.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>5. Procesos clave en desarrollo</h2>
+    <p>
+      El objetivo de la plataforma es avanzar hacia la automatización de procesos administrativos y financieros importantes. En este momento hay dos procesos clave: Proceso Eventos y Proceso Pagos.
+    </p>
+
+    <div class="avoid">
+      <h3>5.1 Proceso Eventos</h3>
+      <p>Busca ordenar la gestión financiera completa de un evento, desde la planificación hasta el cierre.</p>
+      <ol class="timeline">
+        <li>Desarrollo de presupuesto.</li>
+        <li>Liberación de anticipos.</li>
+        <li>Cuadre de ingresos y egresos.</li>
+        <li>Conciliación de comprobantes y facturas.</li>
+        <li>Informe final del evento.</li>
+      </ol>
+      <div class="callout blue">
+        <strong>Estado actual:</strong> ya está implementada una parte importante: conciliación de comprobantes de ingreso para eventos e inscripciones. Falta presupuesto, anticipos, egresos, facturas e informe final.
+      </div>
+    </div>
+
+    <div class="avoid">
+      <h3>5.2 Proceso Pagos</h3>
+      <p>
+        Busca automatizar y optimizar el desembolso de pagos a proveedores. Actualmente depende de cuadros, correos, fotos, aprobaciones por email y comprobantes enviados manualmente.
+      </p>
+      <ol class="timeline">
+        <li>Administrador y contador preparan flujo de caja y cuadro de pagos.</li>
+        <li>Pastor y tesorero revisan el cuadro por correo.</li>
+        <li>Si hay observaciones/rechazo, se corrige. Si se aprueba, continúa.</li>
+        <li>Administrador carga los pagos en Banco Pacífico.</li>
+        <li>Administrador envía fotos/capturas por bloques o categorías.</li>
+        <li>Pastor y tesorero aprueban esos bloques por correo.</li>
+        <li>Administrador verifica transferencias y envía comprobantes a proveedores y resumen a pastor/tesorero.</li>
+      </ol>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Primera fase</h3>
+        <p>Centralizar y automatizar el flujo dentro de la plataforma.</p>
+        <ul>
+          <li>Crear periodos de pago.</li>
+          <li>Gestionar estados y observaciones.</li>
+          <li>Aprobar o rechazar con pocos clics.</li>
+          <li>Notificar automáticamente a cada responsable.</li>
+          <li>Generar correos formales para proveedores.</li>
+          <li>Enviar resumen consolidado a pastor y tesorero.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Segunda fase</h3>
+        <p>Evaluar integración formal con Banco Pacífico.</p>
+        <ul>
+          <li>Archivos de carga masiva si el banco los permite.</li>
+          <li>Importación de reportes bancarios.</li>
+          <li>API o canal empresarial oficial.</li>
+          <li>Conciliación automática entre aprobaciones y pagos ejecutados.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout gold">
+      La integración bancaria debe hacerse solo por mecanismos oficiales. No se debe automatizar el portal bancario con credenciales personales, scraping, bots de navegador o métodos frágiles que comprometan seguridad.
+    </div>
+  </section>
+
+  <section>
+    <h2>6. Por qué debe pasar a manos de la iglesia</h2>
+    <p>
+      Varios servicios fueron iniciados desde cuentas personales. Esto fue práctico para comenzar, pero no es la estructura correcta para una plataforma institucional.
+    </p>
+    <div class="two-col">
+      <div class="card">
+        <h3>Riesgos actuales</h3>
+        <ul>
+          <li>Dependencia de una sola persona.</li>
+          <li>Riesgo de pérdida de acceso.</li>
+          <li>Dificultad para contratar otro desarrollador.</li>
+          <li>Facturación y propiedad mezcladas con cuentas personales.</li>
+          <li>Menor claridad para auditar o recuperar servicios.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Beneficios de institucionalizar</h3>
+        <ul>
+          <li>Continuidad operativa.</li>
+          <li>Gobierno claro.</li>
+          <li>Recuperación ante emergencias.</li>
+          <li>Mayor seguridad y control de costos.</li>
+          <li>Base sólida para procesos financieros futuros.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>7. Plan de propiedad institucional</h2>
+    <div class="two-col">
+      <div class="card">
+        <h3>Código fuente</h3>
+        <ul>
+          <li>Crear organización de GitHub de la iglesia.</li>
+          <li>Transferir el repositorio principal.</li>
+          <li>Proteger la rama principal.</li>
+          <li>Mantener espejo personal sin datos ni secretos.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Hosting</h3>
+        <ul>
+          <li>Evaluar Cloudflare Workers/OpenNext.</li>
+          <li>Probar login, admin, formularios, emails, crons e imágenes.</li>
+          <li>Cortar producción solo después de validar.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Base de datos y Auth</h3>
+        <ul>
+          <li>Mantener Supabase como fuente de verdad.</li>
+          <li>Pasar proyecto/organización a control institucional.</li>
+          <li>Agregar administradores y rotar llaves.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Storage</h3>
+        <ul>
+          <li>Optimizar imágenes existentes.</li>
+          <li>Migrar todos los buckets a Cloudflare R2.</li>
+          <li>Preservar archivos históricos y accesos privados.</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>Uso actual de buckets</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Bucket</th>
+          <th>Uso principal</th>
+          <th>Público</th>
+          <th class="num">Tamaño aprox.</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>event-posters</code></td><td>Posters de eventos</td><td>Sí</td><td class="num">385 MB</td></tr>
+        <tr><td><code>news-images</code></td><td>Imágenes de noticias</td><td>Sí</td><td class="num">98 MB</td></tr>
+        <tr><td><code>forms</code></td><td>Imágenes/PDFs usados en formularios</td><td>Sí</td><td class="num">67 MB</td></tr>
+        <tr><td><code>finance_receipts</code></td><td>Comprobantes financieros</td><td>No</td><td class="num">46 MB</td></tr>
+        <tr><td><code>form_email_attachments</code></td><td>Adjuntos de campañas de correo</td><td>No</td><td class="num">&lt;1 MB</td></tr>
+        <tr><td><code>form_uploads</code></td><td>Archivos subidos en formularios</td><td>No</td><td class="num">&lt;1 MB</td></tr>
+        <tr><td><code>public-images</code></td><td>Imágenes públicas generales</td><td>Sí</td><td class="num">0 MB</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>8. Estructura de costos</h2>
+    <p class="small">Estimaciones revisadas en julio de 2026. No incluyen impuestos, variaciones regionales ni comisiones de pagos con tarjeta.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Servicio</th>
+          <th>Uso en el proyecto</th>
+          <th class="num">Mensual</th>
+          <th class="num">Anual</th>
+          <th>Comentario</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Cloudflare Workers Paid</td><td>Hosting Next.js</td><td class="num">$5</td><td class="num">$60</td><td>Base recomendada para producción.</td></tr>
+        <tr><td>Cloudflare R2</td><td>Buckets y archivos</td><td class="num">$0 inicial</td><td class="num">$0 inicial</td><td>Uso actual muy debajo de 10 GB.</td></tr>
+        <tr><td>Cloudflare Turnstile</td><td>Anti-spam/captcha</td><td class="num">$0</td><td class="num">$0</td><td>Servicio gratuito para este caso.</td></tr>
+        <tr><td>Supabase Free</td><td>DB, Auth y APIs</td><td class="num">$0</td><td class="num">$0</td><td>Storage se migraría a R2.</td></tr>
+        <tr><td>GitHub Organization</td><td>Repositorio institucional</td><td class="num">$0 esperado</td><td class="num">$0 esperado</td><td>Colaboración básica.</td></tr>
+        <tr><td>Resend</td><td>Correos</td><td class="num">$0 esperado</td><td class="num">$0 esperado</td><td>Mientras el volumen esté dentro del plan gratuito.</td></tr>
+        <tr><td>Google Cloud / Maps / YouTube / Gemini</td><td>Mapa, videos e IA</td><td class="num">$0 esperado</td><td class="num">$0 esperado</td><td>Puede generar consumo si sube el uso.</td></tr>
+        <tr><td>Dominio y Microsoft 365</td><td>Servicios existentes</td><td class="num">Existente</td><td class="num">Existente</td><td>Ya bajo control institucional.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Costo nuevo base esperado:</strong> Cloudflare Workers Paid $5/mes, equivalente a $60/año. Este total asume que Supabase, Resend, Google APIs y R2 se mantienen dentro de sus límites gratuitos o de bajo consumo.
+    </div>
+
+    <h3>Costos que pueden activarse con crecimiento</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Servicio</th>
+          <th>Cuándo puede generar costo adicional</th>
+          <th>Referencia de costo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Cloudflare R2</td><td>Si se superan 10 GB u operaciones gratuitas.</td><td>$0.015 por GB-mes en Standard Storage; operaciones según volumen.</td></tr>
+        <tr><td>Cloudflare Workers</td><td>Si se superan requests o CPU incluidos.</td><td>Overages según pricing vigente.</td></tr>
+        <tr><td>Supabase Pro</td><td>Si se requiere más margen, backups o soporte.</td><td>Desde $25/mes.</td></tr>
+        <tr><td>Resend</td><td>Si aumentan correos transaccionales/campañas.</td><td>Según volumen y plan vigente.</td></tr>
+        <tr><td>Procesador de pagos</td><td>Cuando se implementen diezmos/ofrendas/donaciones con tarjeta.</td><td>Comisión por transacción según proveedor.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>9. Seguridad, continuidad y gobernanza</h2>
+    <div class="two-col">
+      <div class="card">
+        <h3>Gobierno mínimo</h3>
+        <ul>
+          <li>Dos administradores institucionales.</li>
+          <li>Cuentas individuales, no compartidas.</li>
+          <li>MFA en todos los servicios.</li>
+          <li>Gestor de contraseñas institucional.</li>
+          <li>Recuperación documentada.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Operación segura</h3>
+        <ul>
+          <li>Rotar llaves y secretos.</li>
+          <li>Separar producción y desarrollo.</li>
+          <li>Proteger rama principal.</li>
+          <li>Conservar respaldos y documentación.</li>
+          <li>Documentar offboarding.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout blue">
+      <strong>Principio operativo:</strong> ningún servicio crítico debe depender de una sola persona o de una cuenta personal.
+    </div>
+  </section>
+
+  <section>
+    <h2>10. Decisiones institucionales requeridas</h2>
+    <ol>
+      <li>Que la plataforma pase formalmente a control institucional de Iglesia Alianza Puembo.</li>
+      <li>Que se designen al menos dos administradores institucionales.</li>
+      <li>Que se cree o use una cuenta institucional de Cloudflare para hosting, R2 y Turnstile.</li>
+      <li>Que se autorice el costo base esperado de Cloudflare Workers Paid: $5/mes.</li>
+      <li>Que se migren los buckets de archivos a Cloudflare R2.</li>
+      <li>Que se optimicen las imágenes existentes antes o durante la migración.</li>
+      <li>Que Supabase se mantenga para base de datos y autenticación bajo control institucional.</li>
+      <li>Que se roten llaves, secretos y accesos personales después de cada migración.</li>
+      <li>Que Proceso Eventos y Proceso Pagos continúen como líneas de automatización administrativa y financiera.</li>
+      <li>Que cualquier futuro sistema de pagos con tarjeta se abra directamente a nombre legal de la iglesia.</li>
+    </ol>
+
+    <h2>11. Resultado esperado</h2>
+    <p>
+      Al completar esta institucionalización, la iglesia tendrá una plataforma web/app bajo su control, menor dependencia de cuentas personales, costos bajos y previsibles, mejor almacenamiento para crecer, continuidad técnica y una base sólida para automatizar procesos financieros.
+    </p>
+    <p>
+      La meta final es que la tecnología sirva a la misión de la iglesia: comunicar mejor, cuidar mejor, administrar con más orden y liberar tiempo del equipo para enfocarse en el ministerio.
+    </p>
+  </section>
+</body>
+</html>
