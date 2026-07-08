@@ -24,6 +24,8 @@ El objetivo no es solamente “tener una página web”, sino construir una plat
 
 La decisión técnica actual es mover la operación hacia Cloudflare como plataforma principal de hosting y almacenamiento, optimizar las imágenes del sitio y migrar los buckets de archivos desde Supabase Storage hacia Cloudflare R2. Supabase se mantendría para base de datos y autenticación, mientras siga siendo suficiente para el uso actual.
 
+Además del costo mínimo de operación, el desarrollo continuo actualmente se apoya en Codex/ChatGPT como herramienta de programación, análisis y documentación. Ese costo debe considerarse como herramienta de desarrollo activo: $20/mes mientras la iglesia quiera mantener evolución constante de la plataforma.
+
 ---
 
 ## 2. Origen del proyecto
@@ -182,6 +184,16 @@ Incluye:
 - adjuntos;
 - programación de envíos;
 - base para comunicaciones por WhatsApp.
+
+Próximo paso previsto:
+
+- usar WhatsApp Business Platform/API para campañas y recordatorios;
+- crear audiencias y contactos con consentimiento explícito;
+- permitir mensajes aprobados desde el panel administrativo;
+- programar recordatorios de eventos;
+- registrar historial de envíos y entregas;
+- incluir opción de salida o baja cuando aplique;
+- usar asistencia de IA para proponer textos, siempre con aprobación humana antes de enviar.
 
 Beneficio para la iglesia:
 
@@ -493,7 +505,7 @@ También deben revisarse o institucionalizarse:
 - Cloudflare Turnstile;
 - cron-job.org o mecanismo equivalente de tareas programadas;
 - Meta/Facebook/Instagram;
-- WhatsApp;
+- WhatsApp Business Platform/API;
 - Pixieset;
 - Google Business Profile;
 - GoDaddy/dominio;
@@ -516,21 +528,32 @@ Los valores son estimaciones de referencia revisadas en julio de 2026. Deben val
 | Cloudflare Turnstile | Protección anti-spam/captcha | $0 | $0 | Servicio gratuito para este caso de uso. |
 | Supabase Free | Base de datos, Auth y APIs | $0 | $0 | Se mantiene mientras los límites sean suficientes. Storage se migraría a R2 para liberar presión. |
 | GitHub Organization | Repositorio institucional | $0 esperado | $0 esperado | Suficiente para control de código y colaboración básica. |
+| Codex / ChatGPT Plus | Desarrollo asistido, revisión de código, documentación y mantenimiento continuo | $20 | $240 | Herramienta de desarrollo activo. No es necesaria para servir la app, pero sí para acelerar evolución y soporte técnico. |
 | Resend | Correos transaccionales y campañas | $0 esperado | $0 esperado | Mientras el volumen esté dentro del plan gratuito. Puede requerir upgrade si aumentan campañas. |
+| WhatsApp Business Platform/API | Campañas, recordatorios y comunicaciones por WhatsApp | Variable; sin costo fijo esperado de plataforma | Variable | Meta cobra por mensaje entregado según país y categoría. El costo unitario suele ser bajo, pero debe presupuestarse por volumen. |
 | Google Cloud / Maps / YouTube / Gemini | Mapa, videos/YouTube e IA | $0 esperado con uso bajo | $0 esperado con uso bajo | Requiere proyecto institucional y control de llaves. Puede generar consumo si sube el uso. |
 | cron-job.org o equivalente | Ejecución de tareas programadas | $0 esperado | $0 esperado | Puede reemplazarse o integrarse con Cloudflare si conviene. |
 | Dominio | `alianzapuembo.org` | Existente | Existente | Ya está bajo control institucional; costo depende de renovación del registrador. |
 | Microsoft 365 | Correos institucionales | Existente | Existente | Ya está bajo control institucional; no se considera costo nuevo de la plataforma. |
 
-Costo nuevo base esperado para operar la plataforma:
+Costo nuevo mínimo esperado para operar la plataforma:
 
 ```text
 Cloudflare Workers Paid: $5/mes
-Total nuevo esperado:    $5/mes
-Total anual esperado:    $60/año
+Total operación mínima:  $5/mes
+Total anual mínimo:      $60/año
 ```
 
-Este total asume que Supabase, Resend, Google APIs y R2 se mantienen dentro de sus límites gratuitos o de bajo consumo.
+Costo esperado si la iglesia mantiene desarrollo activo con Codex:
+
+```text
+Cloudflare Workers Paid: $5/mes
+Codex / ChatGPT Plus:    $20/mes
+Total con desarrollo:    $25/mes
+Total anual estimado:    $300/año
+```
+
+Este total asume que Supabase, Resend, Google APIs y R2 se mantienen dentro de sus límites gratuitos o de bajo consumo. No incluye costos variables de WhatsApp, comisiones de pagos con tarjeta, ni eventuales upgrades por crecimiento.
 
 ### 8.2 Costos que pueden activarse con crecimiento
 
@@ -540,6 +563,7 @@ Este total asume que Supabase, Resend, Google APIs y R2 se mantienen dentro de s
 | Cloudflare Workers | Si se superan requests o CPU incluidos en Workers Paid | overages por requests y CPU según pricing vigente |
 | Supabase Pro | Si se requiere más margen, backups, soporte o no depender de Free | desde $25/mes |
 | Resend | Si aumentan correos transaccionales/campañas | según volumen y plan vigente |
+| WhatsApp Business Platform/API | Cuando se envíen campañas, recordatorios o plantillas iniciadas por la iglesia | costo por mensaje entregado según país/categoría; bajo al inicio si el volumen es bajo |
 | Google Maps / Gemini | Si aumenta el uso de mapas o IA | según consumo del proyecto Google Cloud |
 | Procesador de pagos con tarjeta | Cuando se implementen diezmos/ofrendas/donaciones con tarjeta | comisión por transacción según proveedor |
 
@@ -587,12 +611,14 @@ Para continuar ordenadamente, se recomienda aprobar:
 2. Que se designen al menos dos administradores institucionales.
 3. Que se cree o use una cuenta institucional de Cloudflare para hosting, R2 y Turnstile.
 4. Que se autorice el costo base esperado de Cloudflare Workers Paid: $5/mes.
-5. Que se migren los buckets de archivos a Cloudflare R2.
-6. Que se optimicen las imágenes existentes antes o durante la migración.
-7. Que Supabase se mantenga para base de datos y autenticación bajo control institucional.
-8. Que se roten llaves, secretos y accesos personales después de cada migración.
-9. Que los procesos Proceso Eventos y Proceso Pagos continúen como líneas de automatización administrativa y financiera.
-10. Que cualquier futuro sistema de pagos con tarjeta se abra directamente a nombre legal de la iglesia, con cuenta bancaria, correo, facturación y recuperación institucional.
+5. Que se autorice Codex/ChatGPT Plus como herramienta de desarrollo activo mientras se mantenga evolución continua de la plataforma: $20/mes.
+6. Que se evalúe WhatsApp Business Platform/API para campañas y recordatorios, considerando consentimiento, plantillas aprobadas, baja de contactos y costo variable por mensaje entregado.
+7. Que se migren los buckets de archivos a Cloudflare R2.
+8. Que se optimicen las imágenes existentes antes o durante la migración.
+9. Que Supabase se mantenga para base de datos y autenticación bajo control institucional.
+10. Que se roten llaves, secretos y accesos personales después de cada migración.
+11. Que los procesos Proceso Eventos y Proceso Pagos continúen como líneas de automatización administrativa y financiera.
+12. Que cualquier futuro sistema de pagos con tarjeta se abra directamente a nombre legal de la iglesia, con cuenta bancaria, correo, facturación y recuperación institucional.
 
 ---
 

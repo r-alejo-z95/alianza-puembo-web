@@ -235,8 +235,8 @@
 
     .stat-row {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 3mm;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2.5mm;
       margin: 4mm 0;
       position: relative;
       z-index: 1;
@@ -244,7 +244,7 @@
 
     .stat {
       border-radius: 4mm;
-      padding: 3mm;
+      padding: 2.7mm;
       background: #203015;
       color: #fff;
     }
@@ -257,9 +257,13 @@
       background: #6f8f24;
     }
 
+    .stat:nth-child(4) {
+      background: #1f5f86;
+    }
+
     .stat-label {
       display: block;
-      font-size: 7.2pt;
+      font-size: 6.7pt;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       opacity: 0.82;
@@ -268,7 +272,7 @@
 
     .stat-value {
       display: block;
-      font-size: 15pt;
+      font-size: 12.6pt;
       line-height: 1;
       font-weight: 900;
       letter-spacing: -0.04em;
@@ -384,8 +388,12 @@
 
     <div class="stat-row">
       <div class="stat">
-        <span class="stat-label">Costo base nuevo</span>
+        <span class="stat-label">Operación base</span>
         <span class="stat-value">$5/mes</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Desarrollo activo</span>
+        <span class="stat-value">+$20/mes</span>
       </div>
       <div class="stat">
         <span class="stat-label">Storage actual</span>
@@ -425,7 +433,8 @@
           <li>Optimizar imágenes existentes.</li>
           <li>Migrar todos los buckets de Supabase Storage a Cloudflare R2.</li>
           <li>Mantener Supabase para base de datos y autenticación.</li>
-          <li>Aprobar administradores institucionales, cuenta Cloudflare y costo base de $5/mes.</li>
+          <li>Operación mínima: $5/mes; desarrollo activo con Codex: +$20/mes.</li>
+          <li>Preparar WhatsApp API para campañas/recordatorios con consentimiento y costo variable.</li>
         </ul>
       </div>
 
@@ -449,7 +458,7 @@
       El siguiente paso recomendado es pasar el control operativo del proyecto a manos de la iglesia. Esto significa que el código, la infraestructura, la base de datos, los accesos, los dominios, las credenciales y los servicios externos deben quedar bajo cuentas institucionales, con al menos dos administradores designados por la iglesia y mecanismos claros de recuperación.
     </p>
     <div class="callout">
-      El objetivo no es solamente tener una página web, sino construir una plataforma institucional que comunique mejor, reduzca trabajo manual, ordene inscripciones, mejore seguimiento financiero y permita continuidad técnica.
+      El objetivo no es solamente tener una página web, sino construir una plataforma institucional que comunique mejor, reduzca trabajo manual, ordene inscripciones, mejore seguimiento financiero y permita continuidad técnica. Para desarrollo continuo se contempla Codex/ChatGPT como herramienta de apoyo técnico por $20/mes mientras la plataforma siga evolucionando activamente.
     </div>
 
     <h2>2. Origen del proyecto</h2>
@@ -547,12 +556,12 @@
 
       <div class="card">
         <h3>Comunicaciones</h3>
-        <p>Automatiza confirmaciones, recordatorios y campañas relacionadas con formularios.</p>
+        <p>Automatiza confirmaciones, recordatorios y campañas relacionadas con formularios. El siguiente paso previsto es usar WhatsApp Business Platform/API para campañas y recordatorios con consentimiento.</p>
         <ul>
           <li>Mejora seguimiento con inscritos.</li>
           <li>Reduce mensajes manuales.</li>
           <li>Ordena campañas y adjuntos.</li>
-          <li>Prepara base para WhatsApp.</li>
+          <li>Prepara audiencias, plantillas, aprobaciones, historial de entregas y bajas.</li>
         </ul>
       </div>
 
@@ -745,14 +754,16 @@
         <tr><td>Cloudflare Turnstile</td><td>Anti-spam/captcha</td><td class="num">$0</td><td class="num">$0</td><td>Servicio gratuito para este caso.</td></tr>
         <tr><td>Supabase Free</td><td>DB, Auth y APIs</td><td class="num">$0</td><td class="num">$0</td><td>Storage se migraría a R2.</td></tr>
         <tr><td>GitHub Organization</td><td>Repositorio institucional</td><td class="num">$0 esperado</td><td class="num">$0 esperado</td><td>Colaboración básica.</td></tr>
+        <tr><td>Codex / ChatGPT Plus</td><td>Desarrollo asistido y mantenimiento</td><td class="num">$20</td><td class="num">$240</td><td>Herramienta de desarrollo activo; no es necesaria para servir la app.</td></tr>
         <tr><td>Resend</td><td>Correos</td><td class="num">$0 esperado</td><td class="num">$0 esperado</td><td>Mientras el volumen esté dentro del plan gratuito.</td></tr>
+        <tr><td>WhatsApp Business Platform/API</td><td>Campañas y recordatorios</td><td class="num">Variable</td><td class="num">Variable</td><td>Costo por mensaje entregado según país/categoría; bajo si el volumen inicial es bajo.</td></tr>
         <tr><td>Google Cloud / Maps / YouTube / Gemini</td><td>Mapa, videos e IA</td><td class="num">$0 esperado</td><td class="num">$0 esperado</td><td>Puede generar consumo si sube el uso.</td></tr>
         <tr><td>Dominio y Microsoft 365</td><td>Servicios existentes</td><td class="num">Existente</td><td class="num">Existente</td><td>Ya bajo control institucional.</td></tr>
       </tbody>
     </table>
 
     <div class="callout">
-      <strong>Costo nuevo base esperado:</strong> Cloudflare Workers Paid $5/mes, equivalente a $60/año. Este total asume que Supabase, Resend, Google APIs y R2 se mantienen dentro de sus límites gratuitos o de bajo consumo.
+      <strong>Costo nuevo mínimo de operación:</strong> Cloudflare Workers Paid $5/mes, equivalente a $60/año. <strong>Con desarrollo activo usando Codex:</strong> $25/mes, equivalente a $300/año. Este total no incluye costos variables de WhatsApp ni comisiones futuras de pagos con tarjeta.
     </div>
 
     <h3>Costos que pueden activarse con crecimiento</h3>
@@ -769,6 +780,7 @@
         <tr><td>Cloudflare Workers</td><td>Si se superan requests o CPU incluidos.</td><td>Overages según pricing vigente.</td></tr>
         <tr><td>Supabase Pro</td><td>Si se requiere más margen, backups o soporte.</td><td>Desde $25/mes.</td></tr>
         <tr><td>Resend</td><td>Si aumentan correos transaccionales/campañas.</td><td>Según volumen y plan vigente.</td></tr>
+        <tr><td>WhatsApp Business Platform/API</td><td>Cuando se envíen campañas, recordatorios o plantillas iniciadas por la iglesia.</td><td>Por mensaje entregado según país/categoría; bajo al inicio si el volumen es bajo.</td></tr>
         <tr><td>Procesador de pagos</td><td>Cuando se implementen diezmos/ofrendas/donaciones con tarjeta.</td><td>Comisión por transacción según proveedor.</td></tr>
       </tbody>
     </table>
@@ -811,6 +823,8 @@
       <li>Que se designen al menos dos administradores institucionales.</li>
       <li>Que se cree o use una cuenta institucional de Cloudflare para hosting, R2 y Turnstile.</li>
       <li>Que se autorice el costo base esperado de Cloudflare Workers Paid: $5/mes.</li>
+      <li>Que se autorice Codex/ChatGPT Plus como herramienta de desarrollo activo: $20/mes.</li>
+      <li>Que se evalúe WhatsApp Business Platform/API para campañas y recordatorios con consentimiento y costo variable por mensaje.</li>
       <li>Que se migren los buckets de archivos a Cloudflare R2.</li>
       <li>Que se optimicen las imágenes existentes antes o durante la migración.</li>
       <li>Que Supabase se mantenga para base de datos y autenticación bajo control institucional.</li>
