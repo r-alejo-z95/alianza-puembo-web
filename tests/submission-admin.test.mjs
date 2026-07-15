@@ -184,6 +184,24 @@ test("editing a pricing package recalculates the submission amount and snapshot"
   ]);
 });
 
+test("editing a pricing package accepts the visible legacy option label", () => {
+  const result = buildSubmissionFinancialUpdate({
+    form: {
+      pricing_mode: "packages",
+      pricing_field_id: "package",
+      pricing_packages: [
+        { id: "basic", label: "Paquete básico", amount: 80, enabled: true },
+      ],
+      form_fields: [{ id: "package", label: "Paquete", type: "radio" }],
+    },
+    submission: { expected_amount: 80 },
+    values: { package: "Paquete básico - $80.00" },
+  });
+
+  assert.equal(result.expected_amount, 80);
+  assert.equal(result.pricing_snapshot.package_id, "basic");
+});
+
 test("editing a pricing package rejects unavailable packages", () => {
   assert.throws(
     () =>

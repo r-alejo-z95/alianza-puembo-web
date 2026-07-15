@@ -1097,6 +1097,7 @@ export default function AnalyticsDashboard({
     const fieldOptions = getFieldOptions(field);
     const options = fieldOptions.map(getFieldOptionLabel).filter(Boolean);
     const value = editValues[field.id];
+    const isPricingField = field.id === form?.pricing_field_id;
     const choiceField = { ...field, type: fieldType, options: fieldOptions };
     const otherOption = getChoiceOtherOption(choiceField);
     const otherOptionLabel = getFieldOptionLabel(otherOption);
@@ -1164,10 +1165,23 @@ export default function AnalyticsDashboard({
     }
 
     if ((fieldType === "select" || fieldType === "radio") && options.length > 0) {
+      const selectedOption = isPricingField
+        ? fieldOptions.find((option) => {
+            const optionValue = option && typeof option === "object"
+              ? option.value ?? option.id ?? option.label
+              : option;
+            const optionLabel = getFieldOptionLabel(option);
+            return String(optionValue) === String(value ?? "") || optionLabel === String(value ?? "");
+          })
+        : null;
+      const selectValue = isPricingField && selectedOption && typeof selectedOption === "object"
+        ? String(selectedOption.value ?? selectedOption.id ?? selectedOption.label)
+        : String(value ?? "");
+
       return (
         <div>
           <select
-            value={String(value ?? "")}
+            value={selectValue}
             onChange={(event) => {
               updateEditValue(field.id, event.target.value);
               if (event.target.value !== otherOptionLabel) {
@@ -1177,11 +1191,17 @@ export default function AnalyticsDashboard({
             className="h-12 w-full rounded-2xl border border-gray-100 bg-gray-50/60 px-4 text-sm font-bold text-gray-700 outline-none focus:border-[var(--puembo-green)] focus:ring-4 focus:ring-[var(--puembo-green)]/10"
           >
             <option value="">Sin seleccionar</option>
-            {options.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
+            {fieldOptions.map((option) => {
+              const label = getFieldOptionLabel(option);
+              const optionValue = isPricingField && option && typeof option === "object"
+                ? option.value ?? option.id ?? label
+                : label;
+              return (
+                <option key={String(optionValue)} value={String(optionValue)}>
+                  {label}
+                </option>
+              );
+            })}
           </select>
           {writtenResponseInput}
         </div>
