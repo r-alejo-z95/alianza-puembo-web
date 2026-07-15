@@ -862,6 +862,9 @@ export default function AnalyticsDashboard({
                 ...submission,
                 data: result.submission?.data ?? submission.data,
                 answers: result.submission?.answers ?? submission.answers,
+                expected_amount: result.submission?.expected_amount ?? submission.expected_amount,
+                pricing_snapshot: result.submission?.pricing_snapshot ?? submission.pricing_snapshot,
+                participant_details: result.submission?.participant_details ?? submission.participant_details,
               }
             : submission,
         ),

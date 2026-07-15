@@ -7,6 +7,7 @@ import { revalidateFormSubmissions, revalidateForms } from "@/lib/actions/cache"
 import { ensureFinanceReceiptsBucket } from "@/lib/finance/storage";
 import {
   buildSubmissionResponseUpdate,
+  buildSubmissionFinancialUpdate,
   canManageSubmissionResponses,
 } from "@/lib/forms/submission-admin.mjs";
 import { collectStoragePathsFromSubmission } from "@/lib/finance/submission-lifecycle.mjs";
@@ -21,6 +22,7 @@ import {
   normalizePricingMode,
   normalizePricingPackages,
   validatePricingConfiguration,
+  calculateGroupExpectedAmount,
 } from "@/lib/finance/pricing-packages.mjs";
 
 interface FormSetupValues {
@@ -260,7 +262,7 @@ async function getManageableSubmission(submissionId: string) {
   const supabase = createAdminClient();
   const { data: submission, error: submissionError } = await supabase
     .from("form_submissions")
-    .select("id, form_id, data, answers, is_archived, coverage_backup_path, form_submission_payments(receipt_path)")
+    .select("id, form_id, data, answers, is_archived, expected_amount, pricing_snapshot, participant_details, payment_group_id, coverage_backup_path, form_submission_payments(receipt_path)")
     .eq("id", submissionId)
     .maybeSingle();
 
@@ -275,7 +277,7 @@ async function getManageableSubmission(submissionId: string) {
 
   const { data: form, error: formError } = await supabase
     .from("forms")
-    .select("id, user_id, is_internal, is_archived, form_fields!form_id(*)")
+    .select("id, user_id, is_internal, is_archived, pricing_mode, pricing_packages, pricing_field_id, collect_participant_details, participant_template, form_fields!form_id(*)")
     .eq("id", (submission as any).form_id)
     .maybeSingle();
 
@@ -299,6 +301,40 @@ async function getManageableSubmission(submissionId: string) {
   }
 
   return { supabase, submission, form: formWithAdmins, user };
+}
+
+async function recalculatePaymentGroupExpectedAmount(supabase: any, paymentGroupId: string) {
+  if (!paymentGroupId) return;
+
+  const { data: group, error: groupError } = await supabase
+    .from("payment_groups")
+    .select("id, expected_amount_source")
+    .eq("id", paymentGroupId)
+    .maybeSingle();
+
+  if (groupError) throw groupError;
+  if (!group) return;
+
+  const { data: submissions, error: submissionsError } = await supabase
+    .from("form_submissions")
+    .select("expected_amount, is_archived, submission_status")
+    .eq("payment_group_id", paymentGroupId);
+
+  if (submissionsError) throw submissionsError;
+
+  const calculated = calculateGroupExpectedAmount(submissions || []);
+  const update: Record<string, any> = { calculated_expected_amount: calculated };
+  if (group.expected_amount_source !== "manual") {
+    update.expected_amount = calculated;
+    update.expected_amount_source = "calculated";
+  }
+
+  const { error: updateError } = await supabase
+    .from("payment_groups")
+    .update(update)
+    .eq("id", paymentGroupId);
+
+  if (updateError) throw updateError;
 }
 
 async function getManageableForm(formId: string) {
@@ -404,7 +440,18 @@ export async function updateFormSubmissionResponse({
 }: {
   submissionId: string;
   values: Record<string, any>;
-}): Promise<{ success?: true; submission?: { id: string; data: any; answers: any[] }; error?: string }> {
+}): Promise<{
+  success?: true;
+  submission?: {
+    id: string;
+    data: any;
+    answers: any[];
+    expected_amount: number | null;
+    pricing_snapshot: any;
+    participant_details: any;
+  };
+  error?: string;
+}> {
   try {
     if (!submissionId) return { error: "Respuesta inválida." };
 
@@ -421,14 +468,32 @@ export async function updateFormSubmissionResponse({
       submission,
       values: values ?? {},
     });
+    const financialUpdate = buildSubmissionFinancialUpdate({
+      form,
+      submission,
+      values: values ?? {},
+    });
 
     const { error } = await supabase
       .from("form_submissions")
-      .update({ data: update.data, answers: update.answers })
+      .update({
+        data: update.data,
+        answers: update.answers,
+        expected_amount: financialUpdate.expected_amount,
+        pricing_snapshot: financialUpdate.pricing_snapshot,
+        participant_details: financialUpdate.participant_details,
+      })
       .eq("id", submissionId)
       .eq("form_id", (submission as any).form_id);
 
     if (error) throw error;
+
+    if ((submission as any).payment_group_id) {
+      await recalculatePaymentGroupExpectedAmount(
+        supabase,
+        (submission as any).payment_group_id,
+      );
+    }
 
     await revalidateFormSubmissions((submission as any).form_id);
 
@@ -438,6 +503,9 @@ export async function updateFormSubmissionResponse({
         id: submissionId,
         data: update.data,
         answers: update.answers,
+        expected_amount: financialUpdate.expected_amount,
+        pricing_snapshot: financialUpdate.pricing_snapshot,
+        participant_details: financialUpdate.participant_details,
       },
     };
   } catch (e: any) {

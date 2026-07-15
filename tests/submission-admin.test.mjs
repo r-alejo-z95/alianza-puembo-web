@@ -8,6 +8,7 @@ import {
   getEditableSubmissionFields,
   buildEditableSubmissionValues,
   buildSubmissionResponseUpdate,
+  buildSubmissionFinancialUpdate,
 } from "../lib/forms/submission-admin.mjs";
 
 const form = {
@@ -134,6 +135,94 @@ test("submission response update preserves files and timestamp while changing ed
   assert.deepEqual(
     update.answers.find((answer) => answer.field_id === "receipt").value,
     submission.answers.find((answer) => answer.field_id === "receipt").value,
+  );
+});
+
+test("editing a pricing package recalculates the submission amount and snapshot", () => {
+  const packageForm = {
+    pricing_mode: "packages",
+    pricing_field_id: "package",
+    collect_participant_details: true,
+    participant_template: [{ id: "name", label: "Nombre", required: true }],
+    pricing_packages: [
+      { id: "basic", label: "Paquete básico", amount: 80, participant_count: 1, enabled: true },
+      { id: "family", label: "Paquete familiar", amount: 140, participant_count: 2, enabled: true },
+    ],
+    form_fields: [{ id: "package", label: "Paquete", type: "select" }],
+  };
+
+  const result = buildSubmissionFinancialUpdate({
+    form: packageForm,
+    submission: {
+      expected_amount: 80,
+      pricing_snapshot: {
+        mode: "packages",
+        package_id: "basic",
+        package_label: "Paquete básico",
+        amount: 80,
+        participant_count: 1,
+      },
+      participant_details: [
+        { index: 1, answers: { Nombre: "Isabela" } },
+        { index: 2, answers: { Nombre: "Lucas" } },
+      ],
+    },
+    values: { package: "family" },
+  });
+
+  assert.equal(result.expected_amount, 140);
+  assert.deepEqual(result.pricing_snapshot, {
+    mode: "packages",
+    package_id: "family",
+    package_label: "Paquete familiar",
+    amount: 140,
+    participant_count: 2,
+  });
+  assert.deepEqual(result.participant_details, [
+    { index: 1, answers: { Nombre: "Isabela" } },
+    { index: 2, answers: { Nombre: "Lucas" } },
+  ]);
+});
+
+test("editing a pricing package rejects unavailable packages", () => {
+  assert.throws(
+    () =>
+      buildSubmissionFinancialUpdate({
+        form: {
+          pricing_mode: "packages",
+          pricing_field_id: "package",
+          pricing_packages: [
+            { id: "basic", label: "Paquete básico", amount: 80, enabled: false },
+          ],
+          form_fields: [{ id: "package", label: "Paquete", type: "select" }],
+        },
+        submission: { expected_amount: 80, participant_details: [] },
+        values: { package: "basic" },
+      }),
+    /La opción de inscripción ya no está disponible/,
+  );
+});
+
+test("editing a package rejects when saved participant details are insufficient", () => {
+  assert.throws(
+    () =>
+      buildSubmissionFinancialUpdate({
+        form: {
+          pricing_mode: "packages",
+          pricing_field_id: "package",
+          pricing_packages: [
+            { id: "family", label: "Paquete familiar", amount: 140, participant_count: 2, enabled: true },
+          ],
+          collect_participant_details: true,
+          participant_template: [{ id: "name", label: "Nombre", required: true }],
+          form_fields: [{ id: "package", label: "Paquete", type: "select" }],
+        },
+        submission: {
+          participant_details: [{ index: 1, answers: { Nombre: "Isabela" } }],
+        },
+        values: { package: "family" },
+      }),
+    /Se esperaban 2 participantes y se recibieron 1/,
   );
 });
 
@@ -265,6 +354,11 @@ test("submission response management is wired through server actions and analyti
   assert.match(formsActions, /deleteFormSubmissionAdminComment/);
   assert.match(formsActions, /canManageSubmissionResponses/);
   assert.match(formsActions, /buildSubmissionResponseUpdate/);
+  assert.match(formsActions, /buildSubmissionFinancialUpdate/);
+  assert.match(formsActions, /pricing_snapshot: financialUpdate\.pricing_snapshot/);
+  assert.match(formsActions, /expected_amount: financialUpdate\.expected_amount/);
+  assert.match(formsActions, /participant_details: financialUpdate\.participant_details/);
+  assert.match(formsActions, /recalculatePaymentGroupExpectedAmount/);
   assert.match(formsActions, /\.from\("form_response_admins"\)/);
   assert.doesNotMatch(formsActions, /form_response_admins\(profile_id\)/);
   assert.doesNotMatch(formsActions, /if \(!user\.is_super_admin && !user\.permissions\?\.perm_forms\)/);
